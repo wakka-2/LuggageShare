@@ -12,7 +12,7 @@
     "build:android": "eas build --platform android",
     "build:ios": "eas build --platform ios",
     "lint": "eslint . --ext .ts,.tsx",
-    "type-check": "tsc --noEmit",
+    "typecheck": "tsc --noEmit",
     "test": "jest",
     "clean": "rm -rf node_modules .expo dist"
   },
@@ -32,6 +32,7 @@
     "expo-image": "~2.0.0",
     "expo-image-picker": "~16.0.0",
     "expo-linking": "~7.0.0",
+    "expo-localization": "~16.0.0",
     "expo-location": "~18.0.0",
     "expo-notifications": "~0.29.0",
     "expo-router": "~4.0.0",
