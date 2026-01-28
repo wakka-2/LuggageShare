@@ -1,0 +1,50 @@
+{
+  "name": "luggageshare",
+  "version": "0.1.0",
+  "private": true,
+  "description": "LuggageShare - Peer-to-peer luggage sharing platform",
+  "keywords": [
+    "luggage",
+    "travel",
+    "p2p",
+    "saudi-arabia",
+    "mobile",
+    "react-native",
+    "expo",
+    "nestjs",
+    "nextjs"
+  ],
+  "author": "LuggageShare Team",
+  "license": "UNLICENSED",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "dev:mobile": "turbo run dev --filter=@luggageshare/mobile",
+    "dev:web": "turbo run dev --filter=@luggageshare/web",
+    "dev:api": "turbo run dev --filter=@luggageshare/api",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "test:e2e": "turbo run test:e2e",
+    "type-check": "turbo run type-check",
+    "clean": "turbo run clean && rm -rf node_modules",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "db:generate": "turbo run db:generate --filter=@luggageshare/api",
+    "db:push": "turbo run db:push --filter=@luggageshare/api",
+    "db:studio": "turbo run db:studio --filter=@luggageshare/api"
+  },
+  "devDependencies": {
+    "turbo": "^2.3.0",
+    "prettier": "^3.4.0",
+    "@types/node": "^22.0.0",
+    "typescript": "^5.7.0"
+  },
+  "packageManager": "npm@10.9.0",
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

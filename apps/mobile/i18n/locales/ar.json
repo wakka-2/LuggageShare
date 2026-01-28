@@ -1,0 +1,106 @@
+{
+  "common": {
+    "loading": "جاري التحميل...",
+    "error": "حدث خطأ",
+    "retry": "إعادة المحاولة",
+    "cancel": "إلغاء",
+    "confirm": "تأكيد",
+    "save": "حفظ",
+    "delete": "حذف",
+    "edit": "تعديل",
+    "search": "بحث",
+    "noResults": "لا توجد نتائج",
+    "seeAll": "عرض الكل",
+    "sar": "ر.س"
+  },
+  "tabs": {
+    "home": "الرئيسية",
+    "trips": "رحلاتي",
+    "messages": "الرسائل",
+    "profile": "الملف الشخصي"
+  },
+  "auth": {
+    "tagline": "شارك أمتعتك، وفر تكاليفك",
+    "continueWithGoogle": "المتابعة مع جوجل",
+    "continueWithApple": "المتابعة مع آبل",
+    "termsPrefix": "بالمتابعة، أنت توافق على",
+    "termsOfService": "شروط الخدمة",
+    "and": "و",
+    "privacyPolicy": "سياسة الخصوصية"
+  },
+  "home": {
+    "greeting": "أهلاً بك",
+    "title": "أين تريد أن ترسل؟",
+    "searchPlaceholder": "ابحث عن وجهة...",
+    "popularRoutes": "الوجهات الشائعة",
+    "topCarriers": "أفضل الناقلين",
+    "recentTrips": "الرحلات الأخيرة",
+    "from": "من",
+    "to": "إلى",
+    "date": "التاريخ",
+    "weight": "الوزن",
+    "kg": "كجم",
+    "searchButton": "بحث",
+    "startingFrom": "يبدأ من",
+    "availableCarriers": "متاح",
+    "items": "أغراض"
+  },
+  "status": {
+    "pending": "قيد الانتظار",
+    "confirmed": "مؤكد",
+    "in_transit": "قيد التوصيل",
+    "delivered": "تم التسليم"
+  },
+  "trips": {
+    "title": "رحلاتي",
+    "empty": "لا توجد رحلات حالياً",
+    "asCarrier": "كناقل",
+    "asSender": "كمرسل",
+    "active": "نشطة",
+    "completed": "مكتملة",
+    "cancelled": "ملغاة"
+  },
+  "messages": {
+    "title": "الرسائل",
+    "empty": "لا توجد رسائل",
+    "typeMessage": "اكتب رسالة..."
+  },
+  "profile": {
+    "title": "الملف الشخصي",
+    "guest": "زائر",
+    "editProfile": "تعديل الملف الشخصي",
+    "verification": "التحقق من الهوية",
+    "wallet": "المحفظة",
+    "settings": "الإعدادات",
+    "help": "المساعدة والدعم",
+    "signOut": "تسجيل الخروج"
+  },
+  "listing": {
+    "create": "إنشاء عرض",
+    "flightNumber": "رقم الرحلة",
+    "availableSpace": "المساحة المتاحة",
+    "pricePerKg": "السعر لكل كيلو",
+    "preferences": "التفضيلات",
+    "notes": "ملاحظات",
+    "publish": "نشر العرض"
+  },
+  "booking": {
+    "request": "طلب حجز",
+    "status": "الحالة",
+    "pending": "قيد الانتظار",
+    "accepted": "مقبول",
+    "rejected": "مرفوض",
+    "items": "الأغراض",
+    "payment": "الدفع",
+    "pickup": "الاستلام",
+    "delivery": "التسليم"
+  },
+  "wallet": {
+    "title": "المحفظة",
+    "balance": "الرصيد الحالي",
+    "topUp": "شحن الرصيد",
+    "transactions": "سجل المعاملات",
+    "restricted": "حسابك مقيد",
+    "topUpNow": "اشحن الآن"
+  }
+}

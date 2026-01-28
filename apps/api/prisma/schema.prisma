@@ -1,0 +1,225 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==========================================
+// User & Authentication
+// ==========================================
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String
+  avatarUrl     String?
+  phone         String?
+  bio           String?
+  city          String?
+  isVerified    Boolean   @default(false)
+  googleId      String?   @unique
+  appleId       String?   @unique
+  provider      String    // 'google' | 'apple'
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  settings        UserSettings?
+  carrierListings Listing[]       @relation("CarrierListings")
+  senderBookings  Booking[]       @relation("SenderBookings")
+  carrierBookings Booking[]       @relation("CarrierBookings")
+  messages        Message[]
+  reviews         Review[]        @relation("ReviewAuthor")
+  receivedReviews Review[]        @relation("ReviewReceiver")
+  notifications   Notification[]
+  pushTokens      PushToken[]
+  balanceHistory  BalanceHistory[]
+
+  @@map("users")
+}
+
+model UserSettings {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  language      String   @default("ar")
+  currency      String   @default("SAR")
+  notifications Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_settings")
+}
+
+// ==========================================
+// Listings
+// ==========================================
+
+model Listing {
+  id              String   @id @default(cuid())
+  carrierId       String
+  departureCity   String
+  departureCode   String?
+  arrivalCity     String
+  arrivalCode     String?
+  departureDate   DateTime
+  flightNumber    String?
+  availableWeight Decimal  @db.Decimal(5, 2)
+  pricePerKg      Decimal  @db.Decimal(8, 2)
+  currency        String   @default("SAR")
+  preferences     Json?
+  notes           String?
+  status          String   @default("active") // active, completed, cancelled
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  carrier  User      @relation("CarrierListings", fields: [carrierId], references: [id])
+  bookings Booking[]
+
+  @@index([departureCity, arrivalCity, departureDate])
+  @@index([carrierId])
+  @@map("listings")
+}
+
+// ==========================================
+// Bookings & Items
+// ==========================================
+
+model Booking {
+  id          String    @id @default(cuid())
+  listingId   String
+  senderId    String
+  carrierId   String
+  status      String    @default("pending") // pending, accepted, rejected, picked_up, in_transit, delivered, cancelled
+  totalWeight Decimal   @db.Decimal(5, 2)
+  totalPrice  Decimal   @db.Decimal(10, 2)
+  currency    String    @default("SAR")
+  cancelledBy String?
+  cancelledAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  listing  Listing   @relation(fields: [listingId], references: [id])
+  sender   User      @relation("SenderBookings", fields: [senderId], references: [id])
+  carrier  User      @relation("CarrierBookings", fields: [carrierId], references: [id])
+  items    Item[]
+  messages Message[]
+  review   Review?
+
+  @@index([senderId])
+  @@index([carrierId])
+  @@index([listingId])
+  @@map("bookings")
+}
+
+model Item {
+  id          String   @id @default(cuid())
+  bookingId   String
+  name        String
+  description String?
+  weight      Decimal  @db.Decimal(5, 2)
+  value       Decimal  @db.Decimal(10, 2)
+  currency    String   @default("SAR")
+  imageUrls   String[]
+  createdAt   DateTime @default(now())
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@map("items")
+}
+
+// ==========================================
+// Messaging
+// ==========================================
+
+model Message {
+  id        String   @id @default(cuid())
+  bookingId String
+  senderId  String
+  content   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  sender  User    @relation(fields: [senderId], references: [id])
+
+  @@index([bookingId, createdAt])
+  @@map("messages")
+}
+
+// ==========================================
+// Reviews
+// ==========================================
+
+model Review {
+  id         String   @id @default(cuid())
+  bookingId  String   @unique
+  reviewerId String
+  revieweeId String
+  rating     Int      // 1-5
+  comment    String?
+  createdAt  DateTime @default(now())
+
+  booking  Booking @relation(fields: [bookingId], references: [id])
+  reviewer User    @relation("ReviewAuthor", fields: [reviewerId], references: [id])
+  reviewee User    @relation("ReviewReceiver", fields: [revieweeId], references: [id])
+
+  @@index([revieweeId])
+  @@map("reviews")
+}
+
+// ==========================================
+// Notifications
+// ==========================================
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  body      String
+  data      Json?
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("notifications")
+}
+
+model PushToken {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String
+  platform  String   // ios, android, web
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, token])
+  @@map("push_tokens")
+}
+
+// ==========================================
+// Balance (Phase 2)
+// ==========================================
+
+model BalanceHistory {
+  id          String   @id @default(cuid())
+  userId      String
+  amount      Decimal  @db.Decimal(10, 2)
+  type        String   // commission, top_up, refund
+  description String?
+  bookingId   String?
+  createdAt   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId, createdAt])
+  @@map("balance_history")
+}

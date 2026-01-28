@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git init:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nInitial LuggageShare monorepo setup\n\n- Turborepo monorepo structure with workspaces\n- apps/mobile: Expo React Native app with expo-router\n  - Google + Apple Sign-In authentication\n  - i18n support \\(Arabic/English\\) with RTL\n  - Home screen with search, popular routes, recent trips\n  - Tab navigation, auth flow, theme support\n- apps/web: Next.js web application\n  - Landing page with search, popular routes\n  - Bilingual support \\(Arabic primary\\)\n  - Tailwind CSS with custom design system\n- apps/api: NestJS REST API\n  - JWT authentication with Google/Apple OAuth\n  - Prisma ORM with PostgreSQL schema\n  - Modules: auth, users, listings, bookings, messages, notifications\n  - Swagger documentation\n- packages/shared: Shared types, constants, utilities, validation\n\nDocumentation:\n- Terms of Service \\(bilingual\\)\n- Privacy Policy \\(PDPL compliant\\)\n- Notifications specification\n- API specification\n- Database schema\n- UI/UX design guide\n- Development plan\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")"
+    ]
+  }
+}

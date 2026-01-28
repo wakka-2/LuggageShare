@@ -1,0 +1,106 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "retry": "Retry",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "search": "Search",
+    "noResults": "No results found",
+    "seeAll": "See all",
+    "sar": "SAR"
+  },
+  "tabs": {
+    "home": "Home",
+    "trips": "My Trips",
+    "messages": "Messages",
+    "profile": "Profile"
+  },
+  "auth": {
+    "tagline": "Share luggage space, save money",
+    "continueWithGoogle": "Continue with Google",
+    "continueWithApple": "Continue with Apple",
+    "termsPrefix": "By continuing, you agree to our",
+    "termsOfService": "Terms of Service",
+    "and": "and",
+    "privacyPolicy": "Privacy Policy"
+  },
+  "home": {
+    "greeting": "Welcome",
+    "title": "Where do you want to send?",
+    "searchPlaceholder": "Search for a destination...",
+    "popularRoutes": "Popular Routes",
+    "topCarriers": "Top Carriers",
+    "recentTrips": "Recent Trips",
+    "from": "From",
+    "to": "To",
+    "date": "Date",
+    "weight": "Weight",
+    "kg": "kg",
+    "searchButton": "Search",
+    "startingFrom": "Starting from",
+    "availableCarriers": "Available",
+    "items": "items"
+  },
+  "status": {
+    "pending": "Pending",
+    "confirmed": "Confirmed",
+    "in_transit": "In Transit",
+    "delivered": "Delivered"
+  },
+  "trips": {
+    "title": "My Trips",
+    "empty": "No trips yet",
+    "asCarrier": "As Carrier",
+    "asSender": "As Sender",
+    "active": "Active",
+    "completed": "Completed",
+    "cancelled": "Cancelled"
+  },
+  "messages": {
+    "title": "Messages",
+    "empty": "No messages yet",
+    "typeMessage": "Type a message..."
+  },
+  "profile": {
+    "title": "Profile",
+    "guest": "Guest",
+    "editProfile": "Edit Profile",
+    "verification": "Identity Verification",
+    "wallet": "Wallet",
+    "settings": "Settings",
+    "help": "Help & Support",
+    "signOut": "Sign Out"
+  },
+  "listing": {
+    "create": "Create Listing",
+    "flightNumber": "Flight Number",
+    "availableSpace": "Available Space",
+    "pricePerKg": "Price per kg",
+    "preferences": "Preferences",
+    "notes": "Notes",
+    "publish": "Publish Listing"
+  },
+  "booking": {
+    "request": "Request Booking",
+    "status": "Status",
+    "pending": "Pending",
+    "accepted": "Accepted",
+    "rejected": "Rejected",
+    "items": "Items",
+    "payment": "Payment",
+    "pickup": "Pickup",
+    "delivery": "Delivery"
+  },
+  "wallet": {
+    "title": "Wallet",
+    "balance": "Current Balance",
+    "topUp": "Top Up",
+    "transactions": "Transaction History",
+    "restricted": "Account Restricted",
+    "topUpNow": "Top Up Now"
+  }
+}
