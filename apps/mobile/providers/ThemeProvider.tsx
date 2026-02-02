@@ -10,6 +10,7 @@ export interface ThemeColors {
   card: string;
   text: string;
   textSecondary: string;
+  textTertiary: string;
   border: string;
   success: string;
   error: string;
@@ -31,6 +32,7 @@ const lightColors: ThemeColors = {
   card: '#F8FAFC',
   text: '#0F172A',
   textSecondary: '#64748B',
+  textTertiary: '#94A3B8',
   border: '#E2E8F0',
   success: '#22C55E',
   error: '#EF4444',
@@ -47,6 +49,7 @@ const darkColors: ThemeColors = {
   card: '#1E293B',
   text: '#F8FAFC',
   textSecondary: '#94A3B8',
+  textTertiary: '#64748B',
   border: '#334155',
   success: '#22C55E',
   error: '#EF4444',

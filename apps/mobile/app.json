@@ -69,7 +69,8 @@
           "icon": "./assets/images/notification-icon.png",
           "color": "#2E5A8F"
         }
-      ]
+      ],
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true

@@ -43,7 +43,10 @@
     "searchButton": "بحث",
     "startingFrom": "يبدأ من",
     "availableCarriers": "متاح",
-    "items": "أغراض"
+    "items": "أغراض",
+    "trips": "رحلات",
+    "verified": "موثق",
+    "nextTrip": "الرحلة القادمة"
   },
   "status": {
     "pending": "قيد الانتظار",
@@ -102,5 +105,20 @@
     "transactions": "سجل المعاملات",
     "restricted": "حسابك مقيد",
     "topUpNow": "اشحن الآن"
+  },
+  "carrier": {
+    "earnings": "الأرباح",
+    "thisMonth": "هذا الشهر",
+    "pending": "قيد الانتظار",
+    "totalTrips": "إجمالي الرحلات",
+    "quickActions": "إجراءات سريعة",
+    "createListing": "إنشاء عرض",
+    "myListings": "عروضي",
+    "pendingRequests": "طلبات معلقة",
+    "noRequests": "لا توجد طلبات معلقة",
+    "accept": "قبول",
+    "decline": "رفض",
+    "switchToSender": "التبديل للمرسل",
+    "switchToCarrier": "التبديل للناقل"
   }
 }

@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -39,11 +39,7 @@ export default function LoginScreen() {
             onPress={signInWithGoogle}
             disabled={isLoading}
           >
-            <Image
-              source={require('@/assets/images/google-icon.png')}
-              style={styles.authIcon}
-              resizeMode="contain"
-            />
+            <Ionicons name="logo-google" size={24} color="#4285F4" />
             <Text style={styles.googleButtonText}>
               {t('auth.continueWithGoogle')}
             </Text>
@@ -138,10 +134,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#FFFFFF',
-  },
-  authIcon: {
-    width: 24,
-    height: 24,
   },
   terms: {
     marginTop: 32,

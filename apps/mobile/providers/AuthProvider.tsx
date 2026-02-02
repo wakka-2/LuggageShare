@@ -24,15 +24,29 @@ const AuthContext = createContext<AuthContextType | null>(null);
 
 const TOKEN_KEY = 'auth_tokens';
 
+// Set to true to bypass login for development
+const DEV_SKIP_AUTH = __DEV__;
+
+const DEMO_USER: User = {
+  id: 'demo_user_id',
+  email: 'demo@luggageshare.com',
+  displayName: 'Demo User',
+  avatarUrl: null,
+  isNewUser: false,
+  profileComplete: true,
+};
+
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = useState<User | null>(DEV_SKIP_AUTH ? DEMO_USER : null);
+  const [isLoading, setIsLoading] = useState(!DEV_SKIP_AUTH);
   const segments = useSegments();
   const router = useRouter();
 
-  // Check authentication on mount
+  // Check authentication on mount (skip in dev mode)
   useEffect(() => {
-    checkAuth();
+    if (!DEV_SKIP_AUTH) {
+      checkAuth();
+    }
   }, []);
 
   // Handle navigation based on auth state

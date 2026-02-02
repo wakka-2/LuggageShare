@@ -5,11 +5,12 @@ import { useTheme } from '@/hooks/useTheme';
 interface AvatarProps {
   source?: string | null;
   name?: string;
-  size?: 'small' | 'medium' | 'large' | 'xlarge';
+  size?: 'tiny' | 'small' | 'medium' | 'large' | 'xlarge';
   verified?: boolean;
 }
 
 const SIZES = {
+  tiny: 24,
   small: 32,
   medium: 40,
   large: 56,
@@ -17,6 +18,7 @@ const SIZES = {
 };
 
 const FONT_SIZES = {
+  tiny: 9,
   small: 12,
   medium: 14,
   large: 20,

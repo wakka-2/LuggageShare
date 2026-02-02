@@ -43,7 +43,10 @@
     "searchButton": "Search",
     "startingFrom": "Starting from",
     "availableCarriers": "Available",
-    "items": "items"
+    "items": "items",
+    "trips": "trips",
+    "verified": "Verified",
+    "nextTrip": "Next trip"
   },
   "status": {
     "pending": "Pending",
@@ -102,5 +105,20 @@
     "transactions": "Transaction History",
     "restricted": "Account Restricted",
     "topUpNow": "Top Up Now"
+  },
+  "carrier": {
+    "earnings": "Earnings",
+    "thisMonth": "This Month",
+    "pending": "Pending",
+    "totalTrips": "Total Trips",
+    "quickActions": "Quick Actions",
+    "createListing": "Create Listing",
+    "myListings": "My Listings",
+    "pendingRequests": "Pending Requests",
+    "noRequests": "No pending requests",
+    "accept": "Accept",
+    "decline": "Decline",
+    "switchToSender": "Switch to Sender",
+    "switchToCarrier": "Switch to Carrier"
   }
 }
