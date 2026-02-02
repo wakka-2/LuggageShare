@@ -7,6 +7,7 @@ export interface ThemeColors {
   primaryLight: string;
   secondary: string;
   background: string;
+  surface: string;
   card: string;
   text: string;
   textSecondary: string;
@@ -29,6 +30,7 @@ const lightColors: ThemeColors = {
   primaryLight: '#4A7AB8',
   secondary: '#E8B923',
   background: '#FFFFFF',
+  surface: '#F8FAFC',
   card: '#F8FAFC',
   text: '#0F172A',
   textSecondary: '#64748B',
@@ -46,6 +48,7 @@ const darkColors: ThemeColors = {
   primaryLight: '#7FA8D3',
   secondary: '#F5D456',
   background: '#0F172A',
+  surface: '#1E293B',
   card: '#1E293B',
   text: '#F8FAFC',
   textSecondary: '#94A3B8',
