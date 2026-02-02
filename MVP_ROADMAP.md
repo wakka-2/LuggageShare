@@ -339,22 +339,22 @@ jobs:
 
 ## MVP Milestones
 
-### Milestone 1: Core Listing Flow (Week 1-2)
+### Milestone 1: Core Listing Flow (Week 1-2) ✅ COMPLETE
 **Branch:** `feature/create-listing` → `phase1-mvp`
 
 | Task | Priority | Status |
 |------|----------|--------|
-| Create listing screen route | P0 | ⬜ |
-| Listing type selector (offer/request) | P0 | ⬜ |
-| Route selection (from/to cities) | P0 | ⬜ |
-| Date picker component | P0 | ⬜ |
-| Weight/capacity input | P0 | ⬜ |
-| Pricing tier inputs | P0 | ⬜ |
-| Item restrictions selector | P0 | ⬜ |
-| Handoff options selector | P0 | ⬜ |
-| Form validation | P0 | ⬜ |
-| Submit flow (mock) | P0 | ⬜ |
-| Success/confirmation screen | P1 | ⬜ |
+| Create listing screen route | P0 | ✅ |
+| Listing type selector (offer/request) | P0 | ✅ |
+| Route selection (from/to cities) | P0 | ✅ |
+| Date picker component | P0 | ✅ |
+| Weight/capacity input | P0 | ✅ |
+| Pricing tier inputs | P0 | ✅ |
+| Item restrictions selector | P0 | ✅ |
+| Handoff options selector | P0 | ✅ |
+| Form validation | P0 | ✅ |
+| Submit flow (mock) | P0 | ✅ |
+| Success/confirmation screen | P1 | ✅ |
 
 **Deliverable:** Users can create carrier offers and sender requests
 
