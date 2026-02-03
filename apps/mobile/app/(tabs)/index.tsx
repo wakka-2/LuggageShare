@@ -107,15 +107,15 @@ export default function HomeScreen() {
               entering={FadeInDown.duration(500).springify()}
               style={[styles.hero, isWideScreen && styles.heroWide]}
             >
-              <View style={styles.heroTextContainer}>
-                <Text style={[styles.heroLabel, { color: colors.primary }]}>
+              <View style={[styles.heroTextContainer, isRTL && styles.heroTextContainerRTL]}>
+                <Text style={[styles.heroLabel, { color: colors.primary }, isRTL && styles.textRTL]}>
                   {isRTL ? 'مرحباً بك في' : 'Welcome to'}
                 </Text>
-                <Text style={[styles.heroTitle, { color: colors.text }]}>
+                <Text style={[styles.heroTitle, { color: colors.text }, isRTL && styles.textRTL]}>
                   {isRTL ? 'سوق الشحن' : 'Luggage'}
-                  <Text style={{ color: colors.primary }}>Share</Text>
+                  {!isRTL && <Text style={{ color: colors.primary }}>Share</Text>}
                 </Text>
-                <Text style={[styles.heroSubtitle, { color: colors.textSecondary }]}>
+                <Text style={[styles.heroSubtitle, { color: colors.textSecondary }, isRTL && styles.textRTL]}>
                   {isRTL
                     ? 'أرسل أغراضك مع مسافرين موثوقين أو اكسب المال من المساحة الإضافية في حقيبتك'
                     : 'Send your items with trusted travelers or earn money from your extra luggage space'}
@@ -125,23 +125,23 @@ export default function HomeScreen() {
               {/* Stats */}
               <Animated.View
                 entering={FadeInUp.delay(200).duration(400)}
-                style={styles.statsRow}
+                style={[styles.statsRow, isRTL && styles.statsRowRTL]}
               >
                 <View style={[styles.statItem, { backgroundColor: colors.card }]}>
                   <Text style={[styles.statValue, { color: colors.primary }]}>2.5K+</Text>
-                  <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
+                  <Text style={[styles.statLabel, { color: colors.textSecondary }, isRTL && styles.textRTL]}>
                     {isRTL ? 'مسافر' : 'Travelers'}
                   </Text>
                 </View>
                 <View style={[styles.statItem, { backgroundColor: colors.card }]}>
                   <Text style={[styles.statValue, { color: colors.success }]}>15K+</Text>
-                  <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
+                  <Text style={[styles.statLabel, { color: colors.textSecondary }, isRTL && styles.textRTL]}>
                     {isRTL ? 'شحنة' : 'Deliveries'}
                   </Text>
                 </View>
                 <View style={[styles.statItem, { backgroundColor: colors.card }]}>
                   <Text style={[styles.statValue, { color: colors.warning }]}>4.8</Text>
-                  <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
+                  <Text style={[styles.statLabel, { color: colors.textSecondary }, isRTL && styles.textRTL]}>
                     {isRTL ? 'تقييم' : 'Rating'}
                   </Text>
                 </View>
@@ -185,12 +185,24 @@ export default function HomeScreen() {
           {/* Results Header */}
           <Animated.View
             entering={FadeIn.delay(200).duration(400)}
-            style={[styles.resultsHeader, isWideScreen && styles.resultsHeaderWide]}
+            style={[
+              styles.resultsHeader,
+              isWideScreen && styles.resultsHeaderWide,
+              isRTL && styles.resultsHeaderRTL,
+            ]}
           >
-            <Text style={[styles.resultsTitle, { color: colors.text }]}>
+            <Text style={[
+              styles.resultsTitle,
+              { color: colors.text },
+              isRTL && styles.textRTL,
+            ]}>
               {isRTL ? 'الإعلانات المتاحة' : 'Available Listings'}
             </Text>
-            <Text style={[styles.resultsCount, { color: colors.textSecondary }]}>
+            <Text style={[
+              styles.resultsCount,
+              { color: colors.textSecondary },
+              isRTL && styles.textRTL,
+            ]}>
               {filteredListings.length} {isRTL ? 'إعلان' : 'listings'}
               {(searchFrom || searchTo || searchDate) && (
                 <Text style={{ color: colors.primary }}> • {isRTL ? 'مفلتر' : 'Filtered'}</Text>
@@ -255,11 +267,11 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Mobile Hero */}
-        <Animated.View entering={FadeInDown.duration(400)} style={styles.mobileHero}>
-          <Text style={[styles.greeting, { color: colors.textSecondary }]}>
+        <Animated.View entering={FadeInDown.duration(400)} style={[styles.mobileHero, isRTL && styles.mobileHeroRTL]}>
+          <Text style={[styles.greeting, { color: colors.textSecondary }, isRTL && styles.textRTL]}>
             {t('home.greeting')}
           </Text>
-          <Text style={[styles.title, { color: colors.text }]}>
+          <Text style={[styles.title, { color: colors.text }, isRTL && styles.textRTL]}>
             {isRTL ? 'سوق الشحن' : 'Marketplace'}
           </Text>
         </Animated.View>
@@ -287,8 +299,8 @@ export default function HomeScreen() {
         </Animated.View>
 
         {/* View Toggle + Results */}
-        <Animated.View entering={FadeIn.delay(200).duration(400)} style={styles.mobileControlsRow}>
-          <Text style={[styles.resultsCount, { color: colors.textSecondary }]}>
+        <Animated.View entering={FadeIn.delay(200).duration(400)} style={[styles.mobileControlsRow, isRTL && styles.mobileControlsRowRTL]}>
+          <Text style={[styles.resultsCount, { color: colors.textSecondary }, isRTL && styles.textRTL]}>
             {filteredListings.length} {isRTL ? 'إعلان' : 'listings'}
           </Text>
           <ViewToggle value={viewMode} onChange={setViewMode} />
@@ -358,6 +370,9 @@ const styles = StyleSheet.create({
   heroTextContainer: {
     marginBottom: 28,
   } as ViewStyle,
+  heroTextContainerRTL: {
+    alignItems: 'flex-end',
+  } as ViewStyle,
   heroLabel: {
     fontSize: 14,
     fontWeight: '600',
@@ -379,6 +394,9 @@ const styles = StyleSheet.create({
   statsRow: {
     flexDirection: 'row',
     gap: 16,
+  } as ViewStyle,
+  statsRowRTL: {
+    flexDirection: 'row-reverse',
   } as ViewStyle,
   statItem: {
     paddingHorizontal: 20,
@@ -443,6 +461,9 @@ const styles = StyleSheet.create({
     width: '100%',
     paddingHorizontal: 24,
   } as ViewStyle,
+  resultsHeaderRTL: {
+    flexDirection: 'row-reverse',
+  } as ViewStyle,
   resultsTitle: {
     fontSize: 20,
     fontWeight: '700',
@@ -450,6 +471,10 @@ const styles = StyleSheet.create({
   resultsCount: {
     fontSize: 14,
     fontWeight: '500',
+  } as TextStyle,
+  textRTL: {
+    textAlign: 'right',
+    writingDirection: 'rtl',
   } as TextStyle,
 
   // Listings container
@@ -486,6 +511,9 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     marginBottom: 20,
   } as ViewStyle,
+  mobileHeroRTL: {
+    alignItems: 'flex-end',
+  } as ViewStyle,
   greeting: {
     fontSize: 14,
     marginBottom: 4,
@@ -500,6 +528,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     marginBottom: 16,
+  } as ViewStyle,
+  mobileControlsRowRTL: {
+    flexDirection: 'row-reverse',
   } as ViewStyle,
   mobileListings: {
     paddingHorizontal: 16,
