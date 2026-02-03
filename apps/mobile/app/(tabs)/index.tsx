@@ -88,11 +88,14 @@ export default function HomeScreen() {
     ? ['#1E293B', '#0F172A'] as const
     : ['#F0F9FF', '#E0F2FE'] as const;
 
+  // Hide HomeHeader on wide screens (AppHeader is in layout)
+  const showMobileHeader = !isWideScreen;
+
   // Web Layout
   if (isWeb) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
-        <HomeHeader notificationCount={notificationCount} />
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={showMobileHeader ? ['top'] : []}>
+        {showMobileHeader && <HomeHeader notificationCount={notificationCount} />}
 
         <ScrollView
           contentContainerStyle={[styles.scrollContent, isWideScreen && styles.scrollContentWide]}
