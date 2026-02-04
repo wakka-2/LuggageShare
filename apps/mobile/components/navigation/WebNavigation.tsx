@@ -20,12 +20,18 @@ const NAV_ITEMS: NavItem[] = [
   { key: 'profile', path: '/(tabs)/profile', icon: 'person-outline', iconActive: 'person', labelKey: 'tabs.profile' },
 ];
 
-export function WebNavigation() {
+interface WebNavigationProps {
+  layout?: 'horizontal' | 'vertical';
+  onNavigate?: () => void;
+}
+
+export function WebNavigation({ layout = 'horizontal', onNavigate }: WebNavigationProps) {
   const { t, i18n } = useTranslation();
   const { colors } = useTheme();
   const router = useRouter();
   const pathname = usePathname();
   const isRTL = i18n.language === 'ar';
+  const isVertical = layout === 'vertical';
 
   const isActive = (path: string) => {
     if (path === '/(tabs)') {
@@ -35,20 +41,28 @@ export function WebNavigation() {
   };
 
   return (
-    <View style={[styles.container, isRTL && styles.containerRTL]}>
+    <View style={[
+      isVertical ? styles.containerVertical : styles.container,
+      !isVertical && isRTL && styles.containerRTL,
+    ]}>
       {NAV_ITEMS.map((item) => {
         const active = isActive(item.path);
         return (
           <Pressable
             key={item.key}
             style={({ pressed, hovered }) => [
-              styles.navItem,
-              active && styles.navItemActive,
+              isVertical ? styles.navItemVertical : styles.navItem,
+              !isVertical && active && styles.navItemActive,
               hovered && styles.navItemHovered,
               pressed && styles.navItemPressed,
-              { borderBottomColor: active ? colors.primary : 'transparent' },
+              !isVertical && { borderBottomColor: active ? colors.primary : 'transparent' },
+              isVertical && active && { backgroundColor: colors.card },
+              isVertical && isRTL && styles.navItemVerticalRTL,
             ]}
-            onPress={() => router.push(item.path as any)}
+            onPress={() => {
+              router.push(item.path as any);
+              onNavigate?.();
+            }}
           >
             <Ionicons
               name={active ? item.iconActive : item.icon}
@@ -80,6 +94,10 @@ const styles = StyleSheet.create({
   containerRTL: {
     flexDirection: 'row-reverse',
   },
+  containerVertical: {
+    flexDirection: 'column',
+    gap: 4,
+  },
   navItem: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -95,6 +113,23 @@ const styles = StyleSheet.create({
         transition: 'all 0.2s ease',
       },
     }),
+  },
+  navItemVertical: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 12,
+    borderRadius: 8,
+    ...Platform.select({
+      web: {
+        cursor: 'pointer',
+        transition: 'all 0.2s ease',
+      },
+    }),
+  },
+  navItemVerticalRTL: {
+    flexDirection: 'row-reverse',
   },
   navItemActive: {
     // Active state handled by borderBottomColor

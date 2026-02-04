@@ -1,8 +1,8 @@
+import { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Platform, useWindowDimensions } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
 
 import { useTheme } from '@/hooks/useTheme';
 import { useAuth } from '@/hooks/useAuth';
@@ -16,15 +16,15 @@ interface AppHeaderProps {
 
 export function AppHeader({ notificationCount = 0, showNavigation = true }: AppHeaderProps) {
   const { t, i18n } = useTranslation();
-  const { colors, isDark } = useTheme();
+  const { colors } = useTheme();
   const { user } = useAuth();
   const router = useRouter();
   const { width } = useWindowDimensions();
   const isRTL = i18n.language === 'ar';
+  const [menuOpen, setMenuOpen] = useState(false);
 
-  const isWeb = Platform.OS === 'web';
   const isWideScreen = width > 768;
-  const showWebNav = isWeb && isWideScreen && showNavigation;
+  const showWebNav = isWideScreen && showNavigation;
 
   const toggleLanguage = () => {
     const newLang = i18n.language === 'ar' ? 'en' : 'ar';
@@ -38,9 +38,9 @@ export function AppHeader({ notificationCount = 0, showNavigation = true }: AppH
         backgroundColor: colors.background,
         borderBottomColor: colors.border,
       },
-      showWebNav && styles.containerWide,
+      isWideScreen && styles.containerWide,
     ]}>
-      <View style={[styles.inner, showWebNav && styles.innerWide]}>
+      <View style={[styles.inner, isWideScreen && styles.innerWide]}>
         {/* Logo / Brand */}
         <TouchableOpacity
           style={[styles.brand, isRTL && styles.brandRTL]}
@@ -54,7 +54,7 @@ export function AppHeader({ notificationCount = 0, showNavigation = true }: AppH
           </Text>
         </TouchableOpacity>
 
-        {/* Web Navigation - Only on wide screens */}
+        {/* Web Navigation - wide screens: inline nav */}
         {showWebNav && (
           <View style={styles.navContainer}>
             <WebNavigation />
@@ -63,7 +63,7 @@ export function AppHeader({ notificationCount = 0, showNavigation = true }: AppH
 
         {/* Right Actions */}
         <View style={[styles.rightActions, isRTL && styles.rightActionsRTL]}>
-          {/* Create Listing Button - Web Only */}
+          {/* Create Listing Button - wide screens only */}
           {showWebNav && (
             <TouchableOpacity
               style={[styles.createButton, { backgroundColor: colors.primary }]}
@@ -101,19 +101,61 @@ export function AppHeader({ notificationCount = 0, showNavigation = true }: AppH
             )}
           </TouchableOpacity>
 
-          {/* Profile Avatar */}
-          <TouchableOpacity
-            style={styles.avatarButton}
-            onPress={() => router.push('/(tabs)/profile')}
-          >
-            <Avatar
-              source={user?.avatarUrl}
-              name={user?.displayName || t('profile.guest')}
-              size="small"
-            />
-          </TouchableOpacity>
+          {/* Profile Avatar - wide screens */}
+          {isWideScreen && (
+            <TouchableOpacity
+              style={styles.avatarButton}
+              onPress={() => router.push('/(tabs)/profile')}
+            >
+              <Avatar
+                source={user?.avatarUrl}
+                name={user?.displayName || t('profile.guest')}
+                size="small"
+              />
+            </TouchableOpacity>
+          )}
+
+          {/* Hamburger Menu - narrow web screens */}
+          {!isWideScreen && (
+            <TouchableOpacity
+              style={[styles.iconButton, { backgroundColor: colors.card }]}
+              onPress={() => setMenuOpen(!menuOpen)}
+            >
+              <Ionicons
+                name={menuOpen ? 'close' : 'menu'}
+                size={22}
+                color={colors.text}
+              />
+            </TouchableOpacity>
+          )}
         </View>
       </View>
+
+      {/* Mobile Web Dropdown Menu */}
+      {!isWideScreen && menuOpen && (
+        <View style={[styles.mobileMenu, { backgroundColor: colors.background, borderTopColor: colors.border }]}>
+          <WebNavigation layout="vertical" onNavigate={() => setMenuOpen(false)} />
+          <View style={[styles.mobileMenuDivider, { backgroundColor: colors.border }]} />
+          <TouchableOpacity
+            style={[styles.mobileMenuItem, isRTL && styles.mobileMenuItemRTL]}
+            onPress={() => { router.push('/listing/create'); setMenuOpen(false); }}
+          >
+            <Ionicons name="add-circle-outline" size={20} color={colors.primary} />
+            <Text style={[styles.mobileMenuLabel, { color: colors.primary }]}>
+              {t('listing.create')}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.mobileMenuItem, isRTL && styles.mobileMenuItemRTL]}
+            onPress={() => { router.push('/(tabs)/profile'); setMenuOpen(false); }}
+          >
+            <Ionicons name="person-outline" size={20} color={colors.text} />
+            <Text style={[styles.mobileMenuLabel, { color: colors.text }]}>
+              {t('tabs.profile')}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 }
@@ -221,5 +263,32 @@ const styles = StyleSheet.create({
   },
   avatarButton: {
     marginLeft: 4,
+  },
+  mobileMenu: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderTopWidth: 1,
+  },
+  mobileMenuDivider: {
+    height: 1,
+    marginVertical: 8,
+  },
+  mobileMenuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+    ...Platform.select({
+      web: { cursor: 'pointer' },
+    }),
+  },
+  mobileMenuItemRTL: {
+    flexDirection: 'row-reverse',
+  },
+  mobileMenuLabel: {
+    fontSize: 15,
+    fontWeight: '500',
   },
 });

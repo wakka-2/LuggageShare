@@ -88,8 +88,8 @@ export default function HomeScreen() {
     ? ['#1E293B', '#0F172A'] as const
     : ['#F0F9FF', '#E0F2FE'] as const;
 
-  // Hide HomeHeader on wide screens (AppHeader is in layout)
-  const showMobileHeader = !isWideScreen;
+  // Hide HomeHeader on web (AppHeader is in the tab layout for all web screens)
+  const showMobileHeader = !isWeb;
 
   // Web Layout
   if (isWeb) {

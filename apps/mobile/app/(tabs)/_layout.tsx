@@ -1,4 +1,4 @@
-import { View, Platform, useWindowDimensions, StyleSheet } from 'react-native';
+import { View, Platform, StyleSheet } from 'react-native';
 import { Tabs } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
@@ -19,22 +19,18 @@ function TabIcon({ name, color, size }: TabIconProps) {
 export default function TabLayout() {
   const { t } = useTranslation();
   const { colors } = useTheme();
-  const { width } = useWindowDimensions();
-
   const isWeb = Platform.OS === 'web';
-  const isWideScreen = width > 768;
-  const hideTabBar = isWeb && isWideScreen;
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      {/* Web Header with Navigation */}
-      {hideTabBar && <AppHeader notificationCount={3} />}
+      {/* Web Header with Navigation - shown on all web screens */}
+      {isWeb && <AppHeader notificationCount={3} />}
 
       <Tabs
         screenOptions={{
           tabBarActiveTintColor: colors.primary,
           tabBarInactiveTintColor: colors.textSecondary,
-          tabBarStyle: hideTabBar
+          tabBarStyle: isWeb
             ? { display: 'none' }
             : {
                 backgroundColor: colors.background,
