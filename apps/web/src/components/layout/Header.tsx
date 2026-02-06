@@ -3,9 +3,11 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { Menu, X, Globe } from 'lucide-react';
+import { MOCK_CONVERSATIONS } from '@/lib/data/mockConversations';
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const totalUnread = MOCK_CONVERSATIONS.reduce((sum, conv) => sum + conv.unreadCount, 0);
 
   return (
     <header className="bg-white border-b border-gray-200">
@@ -21,6 +23,29 @@ export function Header() {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-8">
+            <Link
+              href="/bookings"
+              className="text-gray-600 hover:text-gray-900 transition-colors"
+            >
+              حجوزاتي
+            </Link>
+            <Link
+              href="/messages"
+              className="text-gray-600 hover:text-gray-900 transition-colors relative"
+            >
+              الرسائل
+              {totalUnread > 0 && (
+                <span className="absolute -top-1 -left-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                  {totalUnread}
+                </span>
+              )}
+            </Link>
+            <Link
+              href="/profile"
+              className="text-gray-600 hover:text-gray-900 transition-colors"
+            >
+              الملف الشخصي
+            </Link>
             <Link
               href="/how-it-works"
               className="text-gray-600 hover:text-gray-900 transition-colors"
@@ -82,6 +107,29 @@ export function Header() {
         {isMenuOpen && (
           <div className="md:hidden py-4 border-t border-gray-200">
             <nav className="flex flex-col gap-4">
+              <Link
+                href="/bookings"
+                className="text-gray-600 hover:text-gray-900 transition-colors"
+              >
+                حجوزاتي
+              </Link>
+              <Link
+                href="/messages"
+                className="text-gray-600 hover:text-gray-900 transition-colors flex items-center justify-between"
+              >
+                <span>الرسائل</span>
+                {totalUnread > 0 && (
+                  <span className="bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                    {totalUnread}
+                  </span>
+                )}
+              </Link>
+              <Link
+                href="/profile"
+                className="text-gray-600 hover:text-gray-900 transition-colors"
+              >
+                الملف الشخصي
+              </Link>
               <Link
                 href="/how-it-works"
                 className="text-gray-600 hover:text-gray-900 transition-colors"
