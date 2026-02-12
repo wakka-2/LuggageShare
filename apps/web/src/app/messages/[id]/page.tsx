@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { MessageBubble } from '@/components/messages/MessageBubble';
@@ -9,8 +9,8 @@ import { MOCK_CONVERSATIONS, MOCK_MESSAGES, addMockMessage } from '@/lib/data/mo
 import Link from 'next/link';
 import type { Message } from '@/lib/types/message';
 
-export default function ChatPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
+export default function ChatPage({ params }: { params: { id: string } }) {
+  const { id } = params;
   const conversation = MOCK_CONVERSATIONS.find((c) => c.id === id);
   const [messages, setMessages] = useState<Message[]>(MOCK_MESSAGES[id] || []);
   const [isTyping, setIsTyping] = useState(false);

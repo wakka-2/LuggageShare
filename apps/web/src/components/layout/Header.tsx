@@ -35,7 +35,7 @@ export function Header() {
             >
               الرسائل
               {totalUnread > 0 && (
-                <span className="absolute -top-1 -left-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                <span className="absolute -top-1 -end-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
                   {totalUnread}
                 </span>
               )}
