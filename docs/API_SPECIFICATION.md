@@ -1,9 +1,23 @@
 # LuggageShare API Specification
 
+> **Status**: REFERENCE ONLY - See [ROADMAP.md](ROADMAP.md) for current implementation status.
+>
 > **Version**: 1.0.0
 > **Base URL**: `https://api.luggageshare.com/v1`
 > **Format**: REST + WebSocket
 > **Authentication**: JWT Bearer Token
+
+---
+
+## Implementation Status & Changes
+
+**Implemented modules** (6/13): Auth, Users, Listings, Bookings, Messages, Notifications
+**Not yet implemented** (7/13): Items, Reviews, Payments, Balance/Wallet, Flights, Admin, WebSocket
+
+### Key Changes from Original Spec
+- **Pricing**: Tiered (S/M/L) instead of per-kg. Listing responses will include `pricing: { small, medium, large }` instead of `pricePerKg`
+- **Messaging**: Adding pre-booking conversations. New `POST /conversations` endpoint needed (currently messages are booking-scoped only)
+- **Section 8 (Payments)**: Has duplicate 8.3 and 8.4 section numbers - needs cleanup when implementing
 
 ---
 

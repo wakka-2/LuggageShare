@@ -1,6 +1,23 @@
 # LuggageShare Development Plan
 
+> **Status**: REFERENCE ONLY - See [ROADMAP.md](ROADMAP.md) for the canonical project plan
+>
 > **Strategy**: Saudi Arabia launch → Growth-first (trust before revenue) → Regional expansion
+
+---
+
+## Strategy Changes (February 2026)
+
+The following decisions were made after the original plan was written. See [ROADMAP.md](ROADMAP.md) for the current plan.
+
+| Original Plan | Actual Decision | Reason |
+|---------------|----------------|--------|
+| Mobile-first (Part 4) | **Web-first** | Faster iteration, easier testing |
+| Flutter option considered | **React Native + Expo** | JS/TS ecosystem, code sharing with Next.js |
+| TypeORM for ORM | **Prisma** | Better DX, type safety, migrations |
+| Per-kg pricing | **Tiered pricing (S/M/L)** | Simpler UX, Haraj-style marketplace |
+| Booking-only messaging | **Pre-booking conversations** | Users need to ask questions before booking |
+| Phone + OTP for onboarding | **Social login (Google/Apple) for MVP** | Free, simpler, add OTP later |
 
 ---
 

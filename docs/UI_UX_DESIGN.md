@@ -1,8 +1,18 @@
 # LuggageShare UI/UX Design Specification
 
+> **Status**: REFERENCE ONLY - See [ROADMAP.md](ROADMAP.md) for current implementation status.
+>
 > **Design System**: Modern, Trust-focused, Arabic-first (RTL)
 > **Platforms**: iOS, Android, Web
 > **Framework**: React Native (mobile), Next.js (web)
+
+---
+
+## Implementation Notes
+
+- **Onboarding Flow (Flow 4)**: Shows phone + OTP verification. For MVP, authentication is **Google + Apple Sign-In only**. Phone OTP will be added in Phase 3 (Trust & Safety).
+- **41 Screens Documented**: The web MVP implements 14 pages covering the core flows. Mobile screens are Phase 2.
+- **Listing Card (Section 8)**: Shows per-kg pricing. Actual implementation uses **tiered pricing (S/M/L)**.
 
 ---
 

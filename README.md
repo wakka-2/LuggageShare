@@ -35,8 +35,8 @@ LuggageShare creates a **Haraj-style classifieds marketplace** where:
 | **Styling** | StyleSheet + expo-linear-gradient |
 | **Animations** | react-native-reanimated + Lottie |
 | **i18n** | i18next (AR/EN) |
-| **API** | NestJS (planned) |
-| **Web** | Next.js (planned) |
+| **API** | NestJS (scaffolded) |
+| **Web** | Next.js 14 (Phase 1 MVP) |
 
 ## Project Structure
 
@@ -55,8 +55,8 @@ LuggageShare/
 │   │   ├── hooks/           # Custom React hooks
 │   │   ├── i18n/            # Internationalization
 │   │   └── assets/          # Images, animations
-│   ├── api/                 # NestJS backend (planned)
-│   └── web/                 # Next.js web app (planned)
+│   ├── api/                 # NestJS backend (scaffolded)
+│   └── web/                 # Next.js web app (Phase 1 MVP)
 ├── packages/
 │   └── shared/              # Shared utilities and types
 └── scripts/                 # Development scripts
@@ -164,20 +164,23 @@ The project uses:
 | Branch | Purpose |
 |--------|---------|
 | `develop` | Active development |
-| `phase1-mvp` | MVP milestone |
-| `phase2-growth` | Growth features |
-| `phase3-scale` | Scale features |
+| `phase1-web-mvp` | Web MVP (current) |
+| `phase2-mobile` | Mobile app (planned) |
 
 ## Documentation
 
-| Document | Description |
-|----------|-------------|
-| [API_SPECIFICATION.md](./API_SPECIFICATION.md) | REST API endpoints |
-| [DATABASE_SCHEMA.md](./DATABASE_SCHEMA.md) | Database design |
-| [DEVELOPMENT_PLAN.md](./DEVELOPMENT_PLAN.md) | Roadmap and milestones |
-| [UI_UX_DESIGN.md](./UI_UX_DESIGN.md) | Design system and patterns |
-| [PRIVACY_POLICY.md](./PRIVACY_POLICY.md) | Privacy policy |
-| [TERMS_OF_SERVICE.md](./TERMS_OF_SERVICE.md) | Terms of service |
+All documentation lives in the [docs/](docs/) folder.
+
+| Document | Description | Status |
+|----------|-------------|--------|
+| [ROADMAP.md](docs/ROADMAP.md) | **Canonical project plan and status** | Current |
+| [DEVELOPMENT_PLAN.md](docs/DEVELOPMENT_PLAN.md) | Original technical planning | Reference |
+| [DATABASE_SCHEMA.md](docs/DATABASE_SCHEMA.md) | Aspirational database design | Reference |
+| [API_SPECIFICATION.md](docs/API_SPECIFICATION.md) | REST API endpoints | Reference |
+| [UI_UX_DESIGN.md](docs/UI_UX_DESIGN.md) | Design system and patterns | Reference |
+| [NOTIFICATIONS.md](docs/NOTIFICATIONS.md) | Push notification spec | Current |
+| [PRIVACY_POLICY.md](docs/PRIVACY_POLICY.md) | Privacy policy | Current |
+| [TERMS_OF_SERVICE.md](docs/TERMS_OF_SERVICE.md) | Terms of service | Current |
 
 ## Contributing
 

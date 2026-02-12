@@ -1,7 +1,30 @@
 # LuggageShare Database Schema
 
+> **Status**: REFERENCE ONLY - This describes the aspirational end-state schema. See [ROADMAP.md](ROADMAP.md) for current status.
+>
 > **Database**: PostgreSQL (via Supabase)
-> **ORM**: TypeORM (NestJS) / Prisma (alternative)
+> **ORM**: Prisma (was TypeORM in original plan, changed to Prisma)
+
+---
+
+## Implementation Status & Changes
+
+The actual Prisma schema (`apps/api/prisma/schema.prisma`) is a simplified version of this document. Key differences:
+
+| This Document | Actual Prisma Schema | Decision |
+|--------------|---------------------|----------|
+| `price_per_kg` pricing | **Tiered pricing (S/M/L)** planned | Simpler UX for marketplace |
+| Separate `conversations` + `messages` tables | Messages tied to bookings only | **Needs update**: Pre-booking messaging decided |
+| `flights` table | Not in schema | Deferred to Phase 5 |
+| `payments` table | Not in schema | Deferred to Phase 4 |
+| `disputes` table | Not in schema | Deferred to Phase 3 |
+| `balance` field on users | Not in schema | **Needs adding** for credit system |
+| `expires_at` on listings | Not in schema | **Needs adding** |
+| `booking_ref` on bookings | Not in schema | **Needs adding** |
+| 12-step booking status | 7 statuses only | Simplified for MVP |
+| UUID primary keys | CUID primary keys | Prisma default |
+| Soft deletes (`deleted_at`) | Hard deletes | Deferred |
+| TypeORM entities | Prisma models | ORM changed |
 
 ---
 
