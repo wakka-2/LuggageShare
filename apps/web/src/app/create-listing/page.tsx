@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { TypeSelection } from '@/components/create-listing/TypeSelection';
 import { RouteSelection } from '@/components/create-listing/RouteSelection';
 import { DateSelection } from '@/components/create-listing/DateSelection';
@@ -9,6 +10,8 @@ import { RestrictionsSelection } from '@/components/create-listing/RestrictionsS
 import { HandoffSelection } from '@/components/create-listing/HandoffSelection';
 import { AdditionalDetails } from '@/components/create-listing/AdditionalDetails';
 import { ProgressIndicator } from '@/components/create-listing/ProgressIndicator';
+import { useCreateListing } from '@/hooks/useListings';
+import { useAuth } from '@/lib/contexts/AuthContext';
 import { ListingType, PricingTier, ItemRestrictions, HandoffOption } from '@/lib/types/listing';
 
 export interface ListingFormData {
@@ -27,6 +30,9 @@ export interface ListingFormData {
 }
 
 export default function CreateListingPage() {
+  const router = useRouter();
+  const { isAuthenticated } = useAuth();
+  const createListing = useCreateListing();
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<ListingFormData>({
     type: null,
@@ -67,9 +73,35 @@ export default function CreateListingPage() {
   };
 
   const handleSubmit = async () => {
-    console.log('Submitting listing:', formData);
-    // TODO: API submission
-    alert('Listing created successfully! (Mock submission)');
+    if (!formData.type || !formData.from || !formData.to) return;
+
+    if (isAuthenticated) {
+      try {
+        await createListing.mutateAsync({
+          type: formData.type,
+          departureCity: formData.from.city,
+          departureCode: formData.from.code,
+          arrivalCity: formData.to.city,
+          arrivalCode: formData.to.code,
+          departureDate: formData.travelDate,
+          availableWeight: formData.availableWeight || 0,
+          priceSmall: formData.pricing.small,
+          priceMedium: formData.pricing.medium,
+          priceLarge: formData.pricing.large,
+          negotiable: formData.pricing.negotiable,
+          title: formData.title || undefined,
+          description: formData.description || undefined,
+          restrictions: formData.restrictions as unknown as Record<string, unknown>,
+          handoffOptions: formData.handoffOptions as unknown as Record<string, unknown>,
+        });
+        router.push('/listings');
+      } catch {
+        alert('حدث خطأ أثناء إنشاء الإعلان. حاول مرة أخرى.');
+      }
+    } else {
+      // Not authenticated - show mock success
+      alert('يرجى تسجيل الدخول لإنشاء إعلان');
+    }
   };
 
   const canProceed = () => {
@@ -180,10 +212,10 @@ export default function CreateListingPage() {
             ) : (
               <button
                 onClick={handleSubmit}
-                disabled={!canProceed()}
+                disabled={!canProceed() || createListing.isPending}
                 className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                إنشاء الإعلان
+                {createListing.isPending ? 'جاري الإنشاء...' : 'إنشاء الإعلان'}
               </button>
             )}
           </div>

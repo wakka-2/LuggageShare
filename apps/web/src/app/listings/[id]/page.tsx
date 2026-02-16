@@ -3,12 +3,24 @@
 import { use } from 'react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
-import { MOCK_LISTINGS } from '@/lib/data/mockListings';
+import { useListing } from '@/hooks/useListings';
 import Link from 'next/link';
 
 export default function ListingDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const listing = MOCK_LISTINGS.find(l => l.id === id);
+  const { data: listing, isLoading } = useListing(id);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Header />
+        <main className="flex-1 flex items-center justify-center">
+          <div className="animate-pulse text-gray-500 text-lg">جاري التحميل...</div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   if (!listing) {
     return (

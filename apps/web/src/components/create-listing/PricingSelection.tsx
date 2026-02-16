@@ -19,42 +19,41 @@ export function PricingSelection({ pricing, listingType, onChange }: PricingSele
   };
 
   const sizeInfo = {
-    small: { label: 'Small', description: 'Up to 5kg (documents, electronics)', icon: '📱' },
-    medium: { label: 'Medium', description: '5-10kg (clothes, accessories)', icon: '👜' },
-    large: { label: 'Large', description: '10-20kg (multiple items)', icon: '🧳' },
+    small: { label: 'صغير', description: 'حتى 5 كجم (مستندات، إلكترونيات)', icon: '📱' },
+    medium: { label: 'متوسط', description: '5-10 كجم (ملابس، إكسسوارات)', icon: '👜' },
+    large: { label: 'كبير', description: '10-20 كجم (عدة أغراض)', icon: '🧳' },
   };
 
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-semibold text-gray-900">Pricing</h2>
+      <h2 className="text-xl font-semibold text-gray-900">التسعير</h2>
       <p className="text-gray-600">
         {listingType === 'offer'
-          ? 'Set your prices for different package sizes'
-          : 'Set your budget for different package sizes'}
+          ? 'حدد أسعارك لأحجام الطرود المختلفة'
+          : 'حدد ميزانيتك لأحجام الطرود المختلفة'}
       </p>
 
       <div className="space-y-4">
         {(Object.keys(sizeInfo) as Array<keyof typeof sizeInfo>).map((size) => (
           <div key={size} className="p-4 border border-gray-300 rounded-lg">
-            <div className="flex items-start space-x-4">
+            <div className="flex items-start gap-4">
               <div className="text-3xl">{sizeInfo[size].icon}</div>
               <div className="flex-1">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {sizeInfo[size].label}
                 </label>
                 <p className="text-sm text-gray-500 mb-3">{sizeInfo[size].description}</p>
-                <div className="flex items-center space-x-2">
-                  <span className="text-gray-700">$</span>
+                <div className="flex items-center gap-2">
                   <input
                     type="number"
                     min="0"
-                    step="0.01"
+                    step="1"
                     value={pricing[size] || ''}
                     onChange={(e) => updatePrice(size, e.target.value)}
-                    placeholder="0.00"
+                    placeholder="0"
                     className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
                   />
-                  <span className="text-gray-500">USD</span>
+                  <span className="text-gray-500 font-medium">ر.س</span>
                 </div>
               </div>
             </div>
@@ -70,10 +69,10 @@ export function PricingSelection({ pricing, listingType, onChange }: PricingSele
             onChange={toggleNegotiable}
             className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
           />
-          <div className="ml-3">
-            <span className="text-sm font-medium text-gray-900">Price Negotiable</span>
+          <div className="ms-3">
+            <span className="text-sm font-medium text-gray-900">السعر قابل للتفاوض</span>
             <p className="text-sm text-gray-500 mt-1">
-              Allow potential matches to propose different prices
+              السماح للمهتمين باقتراح أسعار مختلفة
             </p>
           </div>
         </label>
@@ -83,7 +82,7 @@ export function PricingSelection({ pricing, listingType, onChange }: PricingSele
         <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
           <div className="flex items-start">
             <svg
-              className="w-5 h-5 text-green-600 mt-0.5 mr-3"
+              className="w-5 h-5 text-green-600 mt-0.5 me-3"
               fill="currentColor"
               viewBox="0 0 20 20"
             >
@@ -94,9 +93,9 @@ export function PricingSelection({ pricing, listingType, onChange }: PricingSele
               />
             </svg>
             <div className="flex-1">
-              <h4 className="text-sm font-medium text-green-900 mb-1">Pricing Set</h4>
+              <h4 className="text-sm font-medium text-green-900 mb-1">تم تحديد الأسعار</h4>
               <p className="text-sm text-green-700">
-                Your prices are competitive and clearly defined for potential matches.
+                أسعارك تنافسية ومحددة بوضوح للمهتمين.
               </p>
             </div>
           </div>

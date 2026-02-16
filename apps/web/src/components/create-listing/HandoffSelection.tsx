@@ -11,27 +11,27 @@ interface HandoffSelectionProps {
 const HANDOFF_TYPES = [
   {
     type: 'home_pickup' as const,
-    label: 'Home Pickup',
+    label: 'استلام من المنزل',
     icon: '🏠',
-    description: "Pick up from sender's home",
+    description: 'الاستلام من منزل المرسل',
   },
   {
     type: 'mall_meetup' as const,
-    label: 'Mall Meetup',
+    label: 'لقاء في مول',
     icon: '🏬',
-    description: 'Meet at a public location',
+    description: 'اللقاء في مكان عام',
   },
   {
     type: 'airport_dropoff' as const,
-    label: 'Airport Dropoff',
+    label: 'تسليم في المطار',
     icon: '✈️',
-    description: 'Handoff at the airport',
+    description: 'التسليم في المطار',
   },
   {
     type: 'custom' as const,
-    label: 'Custom Location',
+    label: 'موقع مخصص',
     icon: '📍',
-    description: 'Specify your own location',
+    description: 'حدد موقعك الخاص',
   },
 ];
 
@@ -59,7 +59,7 @@ export function HandoffSelection({ options, onChange }: HandoffSelectionProps) {
     const newOption: HandoffOption = {
       type: editingOption,
       location: location.trim(),
-      locationAr: location.trim(), // In production, get Arabic translation
+      locationAr: location.trim(),
       details: details.trim() || undefined,
     };
 
@@ -75,8 +75,8 @@ export function HandoffSelection({ options, onChange }: HandoffSelectionProps) {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-semibold text-gray-900">Handoff Options</h2>
-      <p className="text-gray-600">How will you hand over or receive the items?</p>
+      <h2 className="text-xl font-semibold text-gray-900">خيارات التسليم</h2>
+      <p className="text-gray-600">كيف ستقوم بتسليم أو استلام الأغراض؟</p>
 
       <div className="space-y-3">
         {HANDOFF_TYPES.map((handoffType) => {
@@ -88,12 +88,12 @@ export function HandoffSelection({ options, onChange }: HandoffSelectionProps) {
             <div key={handoffType.type} className="border border-gray-300 rounded-lg">
               <button
                 onClick={() => toggleOption(handoffType.type)}
-                className={`w-full p-4 text-left transition-all ${
+                className={`w-full p-4 text-start transition-all ${
                   selected ? 'bg-blue-50' : 'hover:bg-gray-50'
                 }`}
               >
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
+                  <div className="flex items-center gap-3">
                     <span className="text-2xl">{handoffType.icon}</span>
                     <div>
                       <h3 className="text-sm font-medium text-gray-900">{handoffType.label}</h3>
@@ -120,35 +120,35 @@ export function HandoffSelection({ options, onChange }: HandoffSelectionProps) {
                 <div className="p-4 border-t border-gray-200 bg-gray-50 space-y-3">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Location *
+                      الموقع *
                     </label>
                     <input
                       type="text"
                       value={location}
                       onChange={(e) => setLocation(e.target.value)}
-                      placeholder="Enter location address or name"
+                      placeholder="أدخل عنوان أو اسم الموقع"
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Additional Details (Optional)
+                      تفاصيل إضافية (اختياري)
                     </label>
                     <input
                       type="text"
                       value={details}
                       onChange={(e) => setDetails(e.target.value)}
-                      placeholder="Building number, floor, etc."
+                      placeholder="رقم المبنى، الطابق، إلخ."
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
                     />
                   </div>
-                  <div className="flex space-x-2">
+                  <div className="flex gap-2">
                     <button
                       onClick={saveOption}
                       disabled={!location.trim()}
                       className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                     >
-                      Save
+                      حفظ
                     </button>
                     <button
                       onClick={() => {
@@ -158,7 +158,7 @@ export function HandoffSelection({ options, onChange }: HandoffSelectionProps) {
                       }}
                       className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 text-sm"
                     >
-                      Cancel
+                      إلغاء
                     </button>
                   </div>
                 </div>
@@ -182,7 +182,7 @@ export function HandoffSelection({ options, onChange }: HandoffSelectionProps) {
                       }}
                       className="text-blue-600 hover:text-blue-700 text-sm font-medium"
                     >
-                      Edit
+                      تعديل
                     </button>
                   </div>
                 </div>
@@ -196,7 +196,7 @@ export function HandoffSelection({ options, onChange }: HandoffSelectionProps) {
         <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
           <div className="flex items-start">
             <svg
-              className="w-5 h-5 text-green-600 mt-0.5 mr-3"
+              className="w-5 h-5 text-green-600 mt-0.5 me-3"
               fill="currentColor"
               viewBox="0 0 20 20"
             >
@@ -207,10 +207,9 @@ export function HandoffSelection({ options, onChange }: HandoffSelectionProps) {
               />
             </svg>
             <div className="flex-1">
-              <h4 className="text-sm font-medium text-green-900 mb-1">Handoff Options Set</h4>
+              <h4 className="text-sm font-medium text-green-900 mb-1">تم تحديد خيارات التسليم</h4>
               <p className="text-sm text-green-700">
-                You've selected {options.length} handoff option{options.length !== 1 ? 's' : ''}{' '}
-                for flexibility.
+                اخترت {options.length} خيار تسليم لمزيد من المرونة.
               </p>
             </div>
           </div>

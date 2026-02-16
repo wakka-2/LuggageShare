@@ -15,9 +15,10 @@
 **Not yet implemented** (7/13): Items, Reviews, Payments, Balance/Wallet, Flights, Admin, WebSocket
 
 ### Key Changes from Original Spec
-- **Pricing**: Tiered (S/M/L) instead of per-kg. Listing responses will include `pricing: { small, medium, large }` instead of `pricePerKg`
-- **Messaging**: Adding pre-booking conversations. New `POST /conversations` endpoint needed (currently messages are booking-scoped only)
-- **Section 8 (Payments)**: Has duplicate 8.3 and 8.4 section numbers - needs cleanup when implementing
+- **Pricing**: Tiered (S/M/L) instead of per-kg. Listing responses include `pricing: { small, medium, large, negotiable }`. Schema uses `priceSmall`, `priceMedium`, `priceLarge` columns. **IMPLEMENTED in schema + API.**
+- **Messaging**: Pre-booking conversations via `Conversation` model. Routes changed from `:bookingId` to `:conversationId`. `POST /messages/conversations` creates conversations with optional `listingId` (no booking required). **IMPLEMENTED in schema + API.**
+- **Bookings**: Added `bookingRef` (human-readable LS-XXXXXX), `packageSize` (small/medium/large). Price auto-computed from listing tier. **IMPLEMENTED in schema + API.**
+- **Note**: Some request/response examples below still use the original `pricePerKg` format. The actual API implementation uses tiered pricing.
 
 ---
 
@@ -483,15 +484,19 @@ POST /listings
   "usedKg": 12,
   "availableKg": 18,
   "minBookingKg": 2,
-  "pricePerKg": 25,
+  "priceSmall": 80,
+  "priceMedium": 150,
+  "priceLarge": 250,
+  "negotiable": true,
   "currency": "SAR",
-  "preferences": {
+  "restrictions": {
     "acceptsDocuments": true,
     "acceptsClothing": true,
     "acceptsElectronics": true,
     "acceptsGifts": true,
     "acceptsOther": false
   },
+  "handoffOptions": ["airport", "delivery"],
   "notes": "Will be at airport 3 hours early. Happy to help with gifts."
 }
 ```
@@ -522,9 +527,13 @@ POST /listings
       "arrivalTime": "16:45"
     },
     "availableKg": 18,
-    "pricePerKg": 25,
+    "pricing": {
+      "small": 80,
+      "medium": 150,
+      "large": 250,
+      "negotiable": true
+    },
     "currency": "SAR",
-    "totalPrice": 450,
     "status": "active",
     "preferences": { ... },
     "createdAt": "2026-01-28T10:30:00Z",
@@ -550,7 +559,8 @@ GET /listings
 | `date` | date | Departure date (YYYY-MM-DD) |
 | `dateRange` | number | Days before/after date (default: 3) |
 | `minKg` | number | Minimum available kg |
-| `maxPricePerKg` | number | Maximum price per kg |
+| `maxPrice` | number | Maximum price (filters by small tier) |
+| `type` | string | Listing type: `offer` or `request` |
 | `verifiedOnly` | boolean | Only verified carriers |
 | `sort` | string | `price`, `date`, `rating` |
 | `page` | number | Page number |
@@ -587,9 +597,14 @@ GET /listings?from=RUH&to=CAI&date=2026-02-15&minKg=5&sort=price
         "to": { "code": "CAI", "city": "Cairo" }
       },
       "availableKg": 18,
-      "pricePerKg": 25,
+      "pricing": {
+        "small": 80,
+        "medium": 150,
+        "large": 250,
+        "negotiable": true
+      },
       "currency": "SAR",
-      "preferences": { ... },
+      "restrictions": { ... },
       "createdAt": "2026-01-28T10:30:00Z"
     }
   ],
@@ -680,8 +695,15 @@ POST /bookings
 ```json
 {
   "listingId": "listing_abc123",
-  "weightKg": 5,
-  "insuranceTier": 1,
+  "packageSize": "small",
+  "totalWeight": 5,
+  "items": [
+    {
+      "name": "Clothes and gifts",
+      "weight": 5,
+      "value": 200
+    }
+  ],
   "message": "Hi Ahmed, I have 5kg of clothes and gifts for my family in Cairo."
 }
 ```
@@ -696,22 +718,18 @@ POST /bookings
     "listing": { ... },
     "carrier": { ... },
     "sender": { ... },
-    "weightKg": 5,
-    "pricing": {
-      "pricePerKg": 25,
-      "subtotal": 125,
-      "platformFee": 0,
-      "insuranceFee": 4.99,
-      "totalAmount": 129.99,
-      "currency": "SAR"
-    },
-    "insurance": {
-      "tier": 1,
-      "coverage": 1000
-    },
+    "packageSize": "small",
+    "totalWeight": 5,
+    "totalPrice": 80,
+    "currency": "SAR",
     "status": "pending",
-    "statusHistory": [
-      { "status": "pending", "timestamp": "2026-01-28T10:30:00Z" }
+    "items": [
+      {
+        "id": "item_123",
+        "name": "Clothes and gifts",
+        "weight": 5,
+        "value": 200
+      }
     ],
     "createdAt": "2026-01-28T10:30:00Z"
   }
@@ -1235,7 +1253,7 @@ POST /messages/conversations/:conversationId/read
 
 ---
 
-### 6.7 Start Conversation
+### 6.7 Start Conversation (supports pre-booking messaging)
 
 ```
 POST /messages/conversations
@@ -1245,7 +1263,7 @@ POST /messages/conversations
 ```json
 {
   "userId": "user_xyz",
-  "bookingId": "booking_xyz789",
+  "listingId": "listing_abc123",
   "initialMessage": "Hi! I'm interested in your listing."
 }
 ```
@@ -1465,7 +1483,7 @@ POST /bookings/:bookingId/payment-issue
 
 ---
 
-### 8.3 Get Payment Status
+### 8.5 Get Payment Status
 
 ```
 GET /payments/:paymentId
@@ -1473,7 +1491,7 @@ GET /payments/:paymentId
 
 ---
 
-### 8.4 Get Payment History
+### 8.6 Get Payment History
 
 ```
 GET /payments/me
@@ -1483,7 +1501,7 @@ GET /payments/me
 
 ---
 
-### 8.5 Request Refund
+### 8.7 Request Refund
 
 ```
 POST /payments/:paymentId/refund
@@ -1499,7 +1517,7 @@ POST /payments/:paymentId/refund
 
 ---
 
-### 8.6 Get Earnings (Carrier)
+### 8.8 Get Earnings (Carrier)
 
 ```
 GET /payments/earnings
@@ -1532,7 +1550,7 @@ GET /payments/earnings
 
 ---
 
-### 8.7 Request Payout
+### 8.9 Request Payout
 
 ```
 POST /payments/payout
@@ -1797,7 +1815,7 @@ GET /balance/restriction-status
 
 ## 10. Notifications
 
-### 9.1 Get Notifications
+### 10.1 Get Notifications
 
 ```
 GET /notifications
@@ -1835,7 +1853,7 @@ GET /notifications
 
 ---
 
-### 9.2 Mark Notifications Read
+### 10.2 Mark Notifications Read
 
 ```
 POST /notifications/read
@@ -1850,7 +1868,7 @@ POST /notifications/read
 
 ---
 
-### 9.3 Mark All Read
+### 10.3 Mark All Read
 
 ```
 POST /notifications/read-all
@@ -1858,7 +1876,7 @@ POST /notifications/read-all
 
 ---
 
-### 9.4 Register Push Token
+### 10.4 Register Push Token
 
 ```
 POST /notifications/push-token
@@ -1874,7 +1892,7 @@ POST /notifications/push-token
 
 ---
 
-### 9.5 Remove Push Token
+### 10.5 Remove Push Token
 
 ```
 DELETE /notifications/push-token
@@ -1891,7 +1909,7 @@ DELETE /notifications/push-token
 
 ## 11. Flights
 
-### 10.1 Search Flights
+### 11.1 Search Flights
 
 ```
 GET /flights/search
@@ -1936,7 +1954,7 @@ GET /flights/search
 
 ---
 
-### 10.2 Get Popular Routes
+### 11.2 Get Popular Routes
 
 ```
 GET /flights/popular-routes
@@ -1965,7 +1983,7 @@ GET /flights/popular-routes
 
 ---
 
-### 10.3 Get Airports
+### 11.3 Get Airports
 
 ```
 GET /flights/airports

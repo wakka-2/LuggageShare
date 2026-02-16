@@ -12,19 +12,22 @@ datasource db {
 // ==========================================
 
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  name          String
-  avatarUrl     String?
-  phone         String?
-  bio           String?
-  city          String?
-  isVerified    Boolean   @default(false)
-  googleId      String?   @unique
-  appleId       String?   @unique
-  provider      String    // 'google' | 'apple'
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id                  String    @id @default(cuid())
+  email               String    @unique
+  name                String
+  avatarUrl           String?
+  phone               String?
+  bio                 String?
+  city                String?
+  isVerified          Boolean   @default(false)
+  googleId            String?   @unique
+  appleId             String?   @unique
+  provider            String    // 'google' | 'apple'
+  balance             Decimal   @default(0) @db.Decimal(10, 2)
+  balanceThreshold    Decimal   @default(-10) @db.Decimal(10, 2)
+  isBalanceRestricted Boolean   @default(false)
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
 
   // Relations
   settings        UserSettings?
@@ -37,6 +40,8 @@ model User {
   notifications   Notification[]
   pushTokens      PushToken[]
   balanceHistory  BalanceHistory[]
+  conversations1  Conversation[]  @relation("ConversationParticipant1")
+  conversations2  Conversation[]  @relation("ConversationParticipant2")
 
   @@map("users")
 }
@@ -60,28 +65,41 @@ model UserSettings {
 // ==========================================
 
 model Listing {
-  id              String   @id @default(cuid())
+  id              String    @id @default(cuid())
   carrierId       String
+  type            String    @default("offer") // 'offer' | 'request'
+  title           String?
+  titleAr         String?
+  description     String?
+  descriptionAr   String?
   departureCity   String
   departureCode   String?
   arrivalCity     String
   arrivalCode     String?
   departureDate   DateTime
   flightNumber    String?
-  availableWeight Decimal  @db.Decimal(5, 2)
-  pricePerKg      Decimal  @db.Decimal(8, 2)
-  currency        String   @default("SAR")
-  preferences     Json?
+  availableWeight Decimal   @db.Decimal(5, 2)
+  priceSmall      Decimal   @db.Decimal(8, 2)
+  priceMedium     Decimal   @db.Decimal(8, 2)
+  priceLarge      Decimal   @db.Decimal(8, 2)
+  negotiable      Boolean   @default(false)
+  currency        String    @default("SAR")
+  neededWeight    Decimal?  @db.Decimal(5, 2)
+  restrictions    Json?
+  handoffOptions  Json?
   notes           String?
-  status          String   @default("active") // active, completed, cancelled
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  status          String    @default("active") // active, completed, cancelled
+  expiresAt       DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
-  carrier  User      @relation("CarrierListings", fields: [carrierId], references: [id])
-  bookings Booking[]
+  carrier       User           @relation("CarrierListings", fields: [carrierId], references: [id])
+  bookings      Booking[]
+  conversations Conversation[]
 
   @@index([departureCity, arrivalCity, departureDate])
   @@index([carrierId])
+  @@index([type, status])
   @@map("listings")
 }
 
@@ -91,10 +109,12 @@ model Listing {
 
 model Booking {
   id          String    @id @default(cuid())
+  bookingRef  String    @unique
   listingId   String
   senderId    String
   carrierId   String
   status      String    @default("pending") // pending, accepted, rejected, picked_up, in_transit, delivered, cancelled
+  packageSize String?   // 'small' | 'medium' | 'large'
   totalWeight Decimal   @db.Decimal(5, 2)
   totalPrice  Decimal   @db.Decimal(10, 2)
   currency    String    @default("SAR")
@@ -103,12 +123,12 @@ model Booking {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  listing  Listing   @relation(fields: [listingId], references: [id])
-  sender   User      @relation("SenderBookings", fields: [senderId], references: [id])
-  carrier  User      @relation("CarrierBookings", fields: [carrierId], references: [id])
-  items    Item[]
-  messages Message[]
-  review   Review?
+  listing      Listing       @relation(fields: [listingId], references: [id])
+  sender       User          @relation("SenderBookings", fields: [senderId], references: [id])
+  carrier      User          @relation("CarrierBookings", fields: [carrierId], references: [id])
+  items        Item[]
+  conversation Conversation?
+  review       Review?
 
   @@index([senderId])
   @@index([carrierId])
@@ -133,21 +153,44 @@ model Item {
 }
 
 // ==========================================
-// Messaging
+// Conversations & Messaging
 // ==========================================
 
+model Conversation {
+  id             String    @id @default(cuid())
+  listingId      String?
+  bookingId      String?   @unique
+  participant1Id String
+  participant2Id String
+  lastMessageAt  DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  listing      Listing?  @relation(fields: [listingId], references: [id])
+  booking      Booking?  @relation(fields: [bookingId], references: [id])
+  participant1 User      @relation("ConversationParticipant1", fields: [participant1Id], references: [id])
+  participant2 User      @relation("ConversationParticipant2", fields: [participant2Id], references: [id])
+  messages     Message[]
+
+  @@unique([participant1Id, participant2Id, listingId])
+  @@index([participant1Id])
+  @@index([participant2Id])
+  @@map("conversations")
+}
+
 model Message {
-  id        String   @id @default(cuid())
-  bookingId String
-  senderId  String
-  content   String
-  isRead    Boolean  @default(false)
-  createdAt DateTime @default(now())
+  id             String   @id @default(cuid())
+  conversationId String
+  senderId       String
+  content        String
+  messageType    String   @default("text") // 'text' | 'image' | 'location'
+  isRead         Boolean  @default(false)
+  createdAt      DateTime @default(now())
 
-  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-  sender  User    @relation(fields: [senderId], references: [id])
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User         @relation(fields: [senderId], references: [id])
 
-  @@index([bookingId, createdAt])
+  @@index([conversationId, createdAt])
   @@map("messages")
 }
 
@@ -206,17 +249,23 @@ model PushToken {
 }
 
 // ==========================================
-// Balance (Phase 2)
+// Balance (Phase 4)
 // ==========================================
 
 model BalanceHistory {
-  id          String   @id @default(cuid())
-  userId      String
-  amount      Decimal  @db.Decimal(10, 2)
-  type        String   // commission, top_up, refund
-  description String?
-  bookingId   String?
-  createdAt   DateTime @default(now())
+  id              String    @id @default(cuid())
+  userId          String
+  amount          Decimal   @db.Decimal(10, 2)
+  type            String    // commission, top_up, refund
+  status          String    @default("completed") // pending, completed, rejected
+  description     String?
+  bookingId       String?
+  balanceBefore   Decimal?  @db.Decimal(10, 2)
+  balanceAfter    Decimal?  @db.Decimal(10, 2)
+  paymentMethod   String?
+  paymentProofUrl String?
+  verifiedAt      DateTime?
+  createdAt       DateTime  @default(now())
 
   user User @relation(fields: [userId], references: [id])
 

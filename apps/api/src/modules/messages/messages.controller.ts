@@ -14,6 +14,7 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { MessagesService } from './messages.service';
+import { CreateConversationDto, SendMessageDto } from './dto/create-conversation.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
@@ -31,35 +32,45 @@ export class MessagesController {
     return this.messagesService.getConversations(user.id);
   }
 
-  @Get('conversations/:bookingId')
-  @ApiOperation({ summary: 'Get messages for a booking' })
+  @Post('conversations')
+  @ApiOperation({ summary: 'Create or find a conversation (supports pre-booking messaging)' })
+  @ApiResponse({ status: 201, description: 'Conversation created or found' })
+  async createConversation(
+    @CurrentUser() user: any,
+    @Body() dto: CreateConversationDto,
+  ) {
+    return this.messagesService.createConversation(user.id, dto);
+  }
+
+  @Get('conversations/:conversationId')
+  @ApiOperation({ summary: 'Get messages for a conversation' })
   @ApiResponse({ status: 200, description: 'Returns messages' })
   async getMessages(
     @CurrentUser() user: any,
-    @Param('bookingId') bookingId: string,
+    @Param('conversationId') conversationId: string,
     @Query('cursor') cursor?: string,
   ) {
-    return this.messagesService.getMessages(user.id, bookingId, cursor);
+    return this.messagesService.getMessages(user.id, conversationId, cursor);
   }
 
-  @Post('conversations/:bookingId')
+  @Post('conversations/:conversationId')
   @ApiOperation({ summary: 'Send a message' })
   @ApiResponse({ status: 201, description: 'Message sent' })
   async sendMessage(
     @CurrentUser() user: any,
-    @Param('bookingId') bookingId: string,
-    @Body() body: { content: string },
+    @Param('conversationId') conversationId: string,
+    @Body() dto: SendMessageDto,
   ) {
-    return this.messagesService.sendMessage(user.id, bookingId, body.content);
+    return this.messagesService.sendMessage(user.id, conversationId, dto.content, dto.messageType);
   }
 
-  @Post('conversations/:bookingId/read')
+  @Post('conversations/:conversationId/read')
   @ApiOperation({ summary: 'Mark messages as read' })
   @ApiResponse({ status: 200, description: 'Messages marked as read' })
   async markAsRead(
     @CurrentUser() user: any,
-    @Param('bookingId') bookingId: string,
+    @Param('conversationId') conversationId: string,
   ) {
-    return this.messagesService.markAsRead(user.id, bookingId);
+    return this.messagesService.markAsRead(user.id, conversationId);
   }
 }

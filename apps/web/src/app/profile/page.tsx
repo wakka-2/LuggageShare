@@ -3,11 +3,27 @@
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { MOCK_USER } from '@/lib/data/mockUser';
+import { useCurrentUser } from '@/hooks/useUser';
+import { useAuth } from '@/lib/contexts/AuthContext';
 import Link from 'next/link';
 import { Edit2, MapPin, Calendar, Star, Shield, MessageSquare, Award, Globe } from 'lucide-react';
 
 export default function ProfilePage() {
-  const user = MOCK_USER;
+  const { isAuthenticated } = useAuth();
+  const { data: apiUser } = useCurrentUser();
+
+  // Use API data when authenticated, fall back to mock
+  const user = isAuthenticated && apiUser ? {
+    ...MOCK_USER,
+    nameAr: apiUser.nameAr,
+    nameEn: apiUser.nameEn,
+    email: apiUser.email,
+    phone: apiUser.phone,
+    bio: apiUser.bio || MOCK_USER.bio,
+    city: apiUser.city || MOCK_USER.city,
+    isVerified: apiUser.isVerified,
+    memberSince: apiUser.memberSince,
+  } : MOCK_USER;
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);

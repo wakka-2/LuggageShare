@@ -33,7 +33,7 @@ export function validatePrice(price: number): {
   if (price <= 0) {
     return { valid: false, error: 'Price must be greater than 0' };
   }
-  if (price > 1000) {
+  if (price > 5000) {
     return { valid: false, error: 'Price seems too high' };
   }
   return { valid: true };
@@ -71,13 +71,48 @@ export function validateFutureDate(date: string | Date): {
   return { valid: true };
 }
 
+// Pricing tier validation
+export function validatePricingTiers(pricing: {
+  small: number;
+  medium: number;
+  large: number;
+}): { valid: boolean; errors: string[] } {
+  const errors: string[] = [];
+
+  const smallValidation = validatePrice(pricing.small);
+  if (!smallValidation.valid) {
+    errors.push(`Small tier: ${smallValidation.error}`);
+  }
+
+  const mediumValidation = validatePrice(pricing.medium);
+  if (!mediumValidation.valid) {
+    errors.push(`Medium tier: ${mediumValidation.error}`);
+  }
+
+  const largeValidation = validatePrice(pricing.large);
+  if (!largeValidation.valid) {
+    errors.push(`Large tier: ${largeValidation.error}`);
+  }
+
+  if (pricing.small > pricing.medium) {
+    errors.push('Small tier price should not exceed medium tier');
+  }
+  if (pricing.medium > pricing.large) {
+    errors.push('Medium tier price should not exceed large tier');
+  }
+
+  return { valid: errors.length === 0, errors };
+}
+
 // Listing validation
 export function validateListing(listing: {
   departureCity: string;
   arrivalCity: string;
   departureDate: string | Date;
   availableWeight: number;
-  pricePerKg: number;
+  priceSmall: number;
+  priceMedium: number;
+  priceLarge: number;
 }): { valid: boolean; errors: string[] } {
   const errors: string[] = [];
 
@@ -103,9 +138,13 @@ export function validateListing(listing: {
     errors.push(weightValidation.error!);
   }
 
-  const priceValidation = validatePrice(listing.pricePerKg);
-  if (!priceValidation.valid) {
-    errors.push(priceValidation.error!);
+  const pricingValidation = validatePricingTiers({
+    small: listing.priceSmall,
+    medium: listing.priceMedium,
+    large: listing.priceLarge,
+  });
+  if (!pricingValidation.valid) {
+    errors.push(...pricingValidation.errors);
   }
 
   return { valid: errors.length === 0, errors };

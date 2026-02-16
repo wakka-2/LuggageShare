@@ -34,6 +34,13 @@ export const LISTING_STATUS_LABELS = {
   },
 } as const;
 
+// Package sizes with weight ranges
+export const PACKAGE_SIZES = [
+  { id: 'small' as const, nameEn: 'Small', nameAr: 'صغير', maxWeight: 5, description: 'Up to 5 kg', descriptionAr: 'حتى 5 كجم' },
+  { id: 'medium' as const, nameEn: 'Medium', nameAr: 'متوسط', maxWeight: 10, description: '5-10 kg', descriptionAr: '5-10 كجم' },
+  { id: 'large' as const, nameEn: 'Large', nameAr: 'كبير', maxWeight: 20, description: '10-20 kg', descriptionAr: '10-20 كجم' },
+] as const;
+
 // Popular cities
 export const POPULAR_CITIES = [
   { code: 'RUH', nameEn: 'Riyadh', nameAr: 'الرياض', country: 'SA' },
@@ -74,7 +81,7 @@ export const PROHIBITED_ITEMS = [
   'pornographic_material',
 ] as const;
 
-// Commission rates (Phase 2)
+// Commission rates (Phase 4)
 export const COMMISSION_RATES = {
   carrier: 0.05, // 5%
   sender: 0, // 0%
@@ -132,9 +139,9 @@ export const API_ENDPOINTS = {
   },
   messages: {
     conversations: '/messages/conversations',
-    messages: (bookingId: string) => `/messages/conversations/${bookingId}`,
-    send: (bookingId: string) => `/messages/conversations/${bookingId}`,
-    read: (bookingId: string) => `/messages/conversations/${bookingId}/read`,
+    messages: (conversationId: string) => `/messages/conversations/${conversationId}`,
+    send: (conversationId: string) => `/messages/conversations/${conversationId}`,
+    read: (conversationId: string) => `/messages/conversations/${conversationId}/read`,
   },
   notifications: {
     list: '/notifications',

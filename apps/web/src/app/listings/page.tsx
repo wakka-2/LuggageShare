@@ -7,7 +7,7 @@ import { SearchFilters } from '@/components/listings/SearchFilters';
 import { TypeTabs } from '@/components/listings/TypeTabs';
 import { ViewToggle } from '@/components/listings/ViewToggle';
 import { ListingCard } from '@/components/listings/ListingCard';
-import { MOCK_LISTINGS } from '@/lib/data/mockListings';
+import { useListings } from '@/hooks/useListings';
 import { ListingType, ViewMode } from '@/lib/types/listing';
 
 type TabValue = ListingType | 'all';
@@ -19,9 +19,12 @@ export default function ListingsPage() {
   const [searchTo, setSearchTo] = useState('');
   const [searchDate, setSearchDate] = useState('');
 
-  // Filter listings
+  // Fetch listings from API (falls back to mock data via placeholderData in hook)
+  const { data: listings = [] } = useListings();
+
+  // Filter listings client-side
   const filteredListings = useMemo(() => {
-    return MOCK_LISTINGS.filter((listing) => {
+    return listings.filter((listing) => {
       // Filter by type
       if (activeTab !== 'all' && listing.type !== activeTab) {
         return false;
@@ -45,14 +48,14 @@ export default function ListingsPage() {
       }
       return true;
     });
-  }, [activeTab, searchFrom, searchTo, searchDate]);
+  }, [listings, activeTab, searchFrom, searchTo, searchDate]);
 
   // Calculate counts for tabs
   const tabCounts = useMemo(() => ({
-    all: MOCK_LISTINGS.length,
-    offer: MOCK_LISTINGS.filter(l => l.type === 'offer').length,
-    request: MOCK_LISTINGS.filter(l => l.type === 'request').length,
-  }), []);
+    all: listings.length,
+    offer: listings.filter(l => l.type === 'offer').length,
+    request: listings.filter(l => l.type === 'request').length,
+  }), [listings]);
 
   const handleSwap = () => {
     const temp = searchFrom;

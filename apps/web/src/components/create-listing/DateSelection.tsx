@@ -11,13 +11,13 @@ export function DateSelection({ travelDate, returnDate, onChange }: DateSelectio
 
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-semibold text-gray-900">Travel Dates</h2>
-      <p className="text-gray-600">When are you traveling?</p>
+      <h2 className="text-xl font-semibold text-gray-900">تواريخ السفر</h2>
+      <p className="text-gray-600">متى ستسافر؟</p>
 
       <div className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Travel Date *
+            تاريخ السفر *
           </label>
           <input
             type="date"
@@ -30,7 +30,7 @@ export function DateSelection({ travelDate, returnDate, onChange }: DateSelectio
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Return Date (Optional)
+            تاريخ العودة (اختياري)
           </label>
           <input
             type="date"
@@ -40,7 +40,7 @@ export function DateSelection({ travelDate, returnDate, onChange }: DateSelectio
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
           />
           <p className="mt-2 text-sm text-gray-500">
-            Add a return date if you're making a round trip
+            أضف تاريخ العودة إذا كانت رحلتك ذهاب وعودة
           </p>
         </div>
       </div>
@@ -49,7 +49,7 @@ export function DateSelection({ travelDate, returnDate, onChange }: DateSelectio
         <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
           <div className="flex items-start">
             <svg
-              className="w-5 h-5 text-blue-600 mt-0.5 mr-3"
+              className="w-5 h-5 text-blue-600 mt-0.5 me-3"
               fill="currentColor"
               viewBox="0 0 20 20"
             >
@@ -60,9 +60,9 @@ export function DateSelection({ travelDate, returnDate, onChange }: DateSelectio
               />
             </svg>
             <div className="flex-1">
-              <h4 className="text-sm font-medium text-blue-900 mb-1">Travel Date Set</h4>
+              <h4 className="text-sm font-medium text-blue-900 mb-1">تم تحديد تاريخ السفر</h4>
               <p className="text-sm text-blue-700">
-                Your listing will be active until this date. You can extend it later if needed.
+                سيكون إعلانك نشطاً حتى هذا التاريخ. يمكنك تمديده لاحقاً عند الحاجة.
               </p>
             </div>
           </div>

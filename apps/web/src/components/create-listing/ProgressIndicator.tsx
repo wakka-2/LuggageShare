@@ -6,13 +6,13 @@ interface ProgressIndicatorProps {
 }
 
 const STEP_LABELS = [
-  'Type',
-  'Route',
-  'Dates',
-  'Pricing',
-  'Restrictions',
-  'Handoff',
-  'Details',
+  'النوع',
+  'المسار',
+  'التواريخ',
+  'التسعير',
+  'القيود',
+  'التسليم',
+  'التفاصيل',
 ];
 
 export function ProgressIndicator({ currentStep, totalSteps }: ProgressIndicatorProps) {
@@ -28,8 +28,8 @@ export function ProgressIndicator({ currentStep, totalSteps }: ProgressIndicator
             style={{ width: `${progress}%` }}
           />
         </div>
-        <div className="absolute -top-1 right-0 text-xs font-medium text-gray-600">
-          Step {currentStep} of {totalSteps}
+        <div className="absolute -top-1 start-0 text-xs font-medium text-gray-600">
+          الخطوة {currentStep} من {totalSteps}
         </div>
       </div>
 
@@ -39,7 +39,6 @@ export function ProgressIndicator({ currentStep, totalSteps }: ProgressIndicator
           const stepNumber = index + 1;
           const isCompleted = stepNumber < currentStep;
           const isCurrent = stepNumber === currentStep;
-          const isPending = stepNumber > currentStep;
 
           return (
             <div key={label} className="flex flex-col items-center">

@@ -26,13 +26,13 @@ export function AdditionalDetails({
 }: AdditionalDetailsProps) {
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-semibold text-gray-900">Additional Details</h2>
-      <p className="text-gray-600">Provide more information about your listing</p>
+      <h2 className="text-xl font-semibold text-gray-900">تفاصيل إضافية</h2>
+      <p className="text-gray-600">أضف المزيد من المعلومات عن إعلانك</p>
 
       <div className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Listing Title *
+            عنوان الإعلان *
           </label>
           <input
             type="text"
@@ -40,38 +40,38 @@ export function AdditionalDetails({
             onChange={(e) => onChange({ title: e.target.value, description, availableWeight, neededWeight })}
             placeholder={
               listingType === 'offer'
-                ? 'e.g., NYC to Dubai - Extra 15kg luggage space'
-                : 'e.g., Need delivery from London to Riyadh'
+                ? 'مثال: الرياض إلى القاهرة - مساحة أمتعة إضافية 15 كجم'
+                : 'مثال: أحتاج توصيل أغراض من لندن إلى الرياض'
             }
             maxLength={100}
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
           />
-          <p className="mt-1 text-sm text-gray-500">{title.length}/100 characters</p>
+          <p className="mt-1 text-sm text-gray-500">{title.length}/100 حرف</p>
         </div>
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Description
+            الوصف
           </label>
           <textarea
             value={description}
             onChange={(e) => onChange({ title, description: e.target.value, availableWeight, neededWeight })}
             placeholder={
               listingType === 'offer'
-                ? 'Describe your trip and what you can help with...'
-                : 'Describe what you need delivered...'
+                ? 'صف رحلتك وكيف يمكنك المساعدة...'
+                : 'صف ما تحتاج لتوصيله...'
             }
             rows={5}
             maxLength={500}
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
           />
-          <p className="mt-1 text-sm text-gray-500">{description.length}/500 characters</p>
+          <p className="mt-1 text-sm text-gray-500">{description.length}/500 حرف</p>
         </div>
 
         {listingType === 'offer' && (
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Available Luggage Weight (kg)
+              وزن الأمتعة المتاح (كجم)
             </label>
             <input
               type="number"
@@ -86,11 +86,11 @@ export function AdditionalDetails({
                   neededWeight,
                 })
               }
-              placeholder="e.g., 15"
+              placeholder="مثال: 15"
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
             />
             <p className="mt-1 text-sm text-gray-500">
-              How much extra space do you have available?
+              كم مساحة إضافية متوفرة لديك؟
             </p>
           </div>
         )}
@@ -98,7 +98,7 @@ export function AdditionalDetails({
         {listingType === 'request' && (
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Needed Luggage Weight (kg)
+              الوزن المطلوب (كجم)
             </label>
             <input
               type="number"
@@ -113,11 +113,11 @@ export function AdditionalDetails({
                   neededWeight: parseFloat(e.target.value) || undefined,
                 })
               }
-              placeholder="e.g., 10"
+              placeholder="مثال: 10"
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
             />
             <p className="mt-1 text-sm text-gray-500">
-              How much weight do you need transported?
+              كم وزن تحتاج لنقله؟
             </p>
           </div>
         )}
@@ -127,7 +127,7 @@ export function AdditionalDetails({
         <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
           <div className="flex items-start">
             <svg
-              className="w-5 h-5 text-blue-600 mt-0.5 mr-3"
+              className="w-5 h-5 text-blue-600 mt-0.5 me-3"
               fill="currentColor"
               viewBox="0 0 20 20"
             >
@@ -138,9 +138,9 @@ export function AdditionalDetails({
               />
             </svg>
             <div className="flex-1">
-              <h4 className="text-sm font-medium text-blue-900 mb-1">Listing Preview</h4>
+              <h4 className="text-sm font-medium text-blue-900 mb-1">معاينة الإعلان</h4>
               <p className="text-sm text-blue-700">
-                Your listing is ready! Review all steps and click "Create Listing" when ready.
+                إعلانك جاهز! راجع جميع الخطوات واضغط "إنشاء الإعلان" عند الانتهاء.
               </p>
             </div>
           </div>

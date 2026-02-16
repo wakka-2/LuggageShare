@@ -24,9 +24,9 @@ The original DEVELOPMENT_PLAN.md recommended a mobile-first approach. After eval
 | Component | Status | Details |
 |-----------|--------|---------|
 | **Web Frontend** | ~85% UI complete | 14 pages, 21 components, mock data only |
-| **API Backend** | Scaffolded | 6 modules wired, simplified schema |
+| **API Backend** | Schema aligned | 6 modules with DTOs, tiered pricing, conversation-based messaging |
 | **Mobile App** | Shell only | Basic tabs and auth screen |
-| **Database** | Schema defined | Not deployed, needs Supabase setup |
+| **Database** | Local DB running | PostgreSQL 16 via Homebrew, initial migration applied |
 | **Authentication** | Code written | Not tested (needs Google/Apple credentials) |
 | **Real-time Chat** | Not started | REST polling only |
 | **Payments** | Not started | No module, no schema |
@@ -68,26 +68,29 @@ The original DEVELOPMENT_PLAN.md recommended a mobile-first approach. After eval
 - [ ] Error messages in Arabic
 - [ ] Form validation messages in Arabic
 
-### Milestone 4: Data Model Alignment (NOT STARTED)
-- [ ] Update Prisma schema to match decisions:
-  - Tiered pricing (small/medium/large) instead of pricePerKg
-  - Conversations model (pre-booking messaging)
-  - User balance field for credit system
-  - Listing expiresAt field
-  - Booking bookingRef (human-readable)
-  - Soft deletes (deletedAt)
-- [ ] Create shared types package in `packages/shared/`
-- [ ] Align web frontend types with Prisma models
-- [ ] Run Prisma migrations
+### Milestone 4: Data Model Alignment (DONE)
+- [x] Update Prisma schema to match decisions:
+  - Tiered pricing (priceSmall/priceMedium/priceLarge) instead of pricePerKg
+  - Conversation model (pre-booking messaging, decoupled from bookings)
+  - User balance/balanceThreshold/isBalanceRestricted fields
+  - Listing expiresAt, type, title/description, restrictions, handoffOptions
+  - Booking bookingRef (LS-XXXXXX), packageSize
+  - BalanceHistory status, balanceBefore/After, paymentMethod, paymentProofUrl
+- [x] Update shared types package in `packages/shared/` (types, validation, utils, constants)
+- [x] Align shared types with Prisma models (PricingTier, Conversation, PackageSize)
+- [x] Run Prisma initial migration
+- [ ] Soft deletes (deletedAt) - deferred to when needed
 
-### Milestone 5: API Integration (NOT STARTED)
-- [ ] Set up Supabase project and deploy database
-- [ ] Generate JWT secret
+### Milestone 5: API Integration (IN PROGRESS)
+- [x] Set up local PostgreSQL database (Homebrew)
+- [x] Run initial migration (11 tables created)
+- [x] Add input validation DTOs (class-validator) to listings, bookings, messages
+- [x] CORS, helmet, rate limiting already configured in main.ts
+- [ ] Set up Supabase project for staging/production
+- [ ] Generate production JWT secret
 - [ ] Configure Google OAuth credentials
 - [ ] Connect web frontend to real API (replace mock data)
 - [ ] Implement proper Apple Sign-In token verification
-- [ ] Add input validation DTOs (class-validator) to all endpoints
-- [ ] Add CORS, helmet, rate limiting
 - [ ] Implement file upload (Supabase Storage or Cloudflare R2)
 
 ### Milestone 6: Core Features Live (NOT STARTED)

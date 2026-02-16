@@ -1,5 +1,5 @@
-import { BOOKING_STATUS_LABELS, LISTING_STATUS_LABELS, RATING_LABELS } from '../constants';
-import type { BookingStatus, ListingStatus } from '../types';
+import { BOOKING_STATUS_LABELS, LISTING_STATUS_LABELS, RATING_LABELS, PACKAGE_SIZES } from '../constants';
+import type { BookingStatus, ListingStatus, PackageSize } from '../types';
 
 // Format currency
 export function formatCurrency(
@@ -113,12 +113,31 @@ export function calculateTotalWeight(items: { weight: number }[]): number {
   return items.reduce((sum, item) => sum + item.weight, 0);
 }
 
-// Calculate total price
-export function calculateTotalPrice(
-  weight: number,
-  pricePerKg: number
+// Get price for a specific package size tier
+export function getPriceForTier(
+  pricing: { small: number; medium: number; large: number },
+  size: PackageSize
 ): number {
-  return Math.round(weight * pricePerKg * 100) / 100;
+  return pricing[size];
+}
+
+// Get package size label
+export function getPackageSizeLabel(
+  size: PackageSize,
+  lang: 'ar' | 'en' = 'ar'
+): string {
+  const sizeConfig = PACKAGE_SIZES.find((s) => s.id === size);
+  return sizeConfig ? (lang === 'ar' ? sizeConfig.nameAr : sizeConfig.nameEn) : size;
+}
+
+// Generate a human-readable booking reference (LS-XXXXXX)
+export function generateBookingRef(): string {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // excludes I, O, 0, 1
+  let ref = '';
+  for (let i = 0; i < 6; i++) {
+    ref += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return `LS-${ref}`;
 }
 
 // Validate weight is within limits

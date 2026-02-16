@@ -14,16 +14,19 @@ interface RouteSelectionProps {
   onChange: (route: { from: City | null; to: City | null }) => void;
 }
 
-// Common cities - in production this would come from an API
 const COMMON_CITIES: City[] = [
-  { city: 'New York', country: 'USA', code: 'JFK' },
-  { city: 'London', country: 'UK', code: 'LHR' },
-  { city: 'Dubai', country: 'UAE', code: 'DXB' },
-  { city: 'Tokyo', country: 'Japan', code: 'NRT' },
-  { city: 'Paris', country: 'France', code: 'CDG' },
-  { city: 'Singapore', country: 'Singapore', code: 'SIN' },
-  { city: 'Los Angeles', country: 'USA', code: 'LAX' },
-  { city: 'Hong Kong', country: 'China', code: 'HKG' },
+  { city: 'الرياض', country: 'السعودية', code: 'RUH' },
+  { city: 'جدة', country: 'السعودية', code: 'JED' },
+  { city: 'الدمام', country: 'السعودية', code: 'DMM' },
+  { city: 'القاهرة', country: 'مصر', code: 'CAI' },
+  { city: 'دبي', country: 'الإمارات', code: 'DXB' },
+  { city: 'عمّان', country: 'الأردن', code: 'AMM' },
+  { city: 'اسطنبول', country: 'تركيا', code: 'IST' },
+  { city: 'لندن', country: 'بريطانيا', code: 'LHR' },
+  { city: 'باريس', country: 'فرنسا', code: 'CDG' },
+  { city: 'مانيلا', country: 'الفلبين', code: 'MNL' },
+  { city: 'جاكرتا', country: 'إندونيسيا', code: 'CGK' },
+  { city: 'نيويورك', country: 'أمريكا', code: 'JFK' },
 ];
 
 export function RouteSelection({ from, to, onChange }: RouteSelectionProps) {
@@ -34,14 +37,16 @@ export function RouteSelection({ from, to, onChange }: RouteSelectionProps) {
 
   const filteredFromCities = COMMON_CITIES.filter(
     (city) =>
-      city.city.toLowerCase().includes(fromSearch.toLowerCase()) ||
-      city.country.toLowerCase().includes(fromSearch.toLowerCase())
+      city.city.includes(fromSearch) ||
+      city.country.includes(fromSearch) ||
+      city.code.toLowerCase().includes(fromSearch.toLowerCase())
   );
 
   const filteredToCities = COMMON_CITIES.filter(
     (city) =>
-      city.city.toLowerCase().includes(toSearch.toLowerCase()) ||
-      city.country.toLowerCase().includes(toSearch.toLowerCase())
+      city.city.includes(toSearch) ||
+      city.country.includes(toSearch) ||
+      city.code.toLowerCase().includes(toSearch.toLowerCase())
   );
 
   const selectFrom = (city: City) => {
@@ -58,15 +63,13 @@ export function RouteSelection({ from, to, onChange }: RouteSelectionProps) {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-semibold text-gray-900">Travel Route</h2>
-      <p className="text-gray-600">Where are you traveling from and to?</p>
+      <h2 className="text-xl font-semibold text-gray-900">مسار الرحلة</h2>
+      <p className="text-gray-600">من أين وإلى أين تسافر؟</p>
 
       <div className="space-y-4">
         {/* From City */}
         <div className="relative">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            From
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">من</label>
           {from ? (
             <div className="flex items-center justify-between p-3 border border-gray-300 rounded-lg bg-gray-50">
               <div>
@@ -79,14 +82,14 @@ export function RouteSelection({ from, to, onChange }: RouteSelectionProps) {
                 onClick={() => onChange({ from: null, to })}
                 className="text-red-600 hover:text-red-700 text-sm font-medium"
               >
-                Change
+                تغيير
               </button>
             </div>
           ) : (
             <>
               <input
                 type="text"
-                placeholder="Search city..."
+                placeholder="ابحث عن مدينة..."
                 value={fromSearch}
                 onChange={(e) => setFromSearch(e.target.value)}
                 onFocus={() => setShowFromDropdown(true)}
@@ -98,7 +101,7 @@ export function RouteSelection({ from, to, onChange }: RouteSelectionProps) {
                     <button
                       key={`${city.code}-from`}
                       onClick={() => selectFrom(city)}
-                      className="w-full px-4 py-3 text-left hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
+                      className="w-full px-4 py-3 text-start hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
                     >
                       <div className="font-medium text-gray-900">{city.city}</div>
                       <div className="text-sm text-gray-600">
@@ -114,9 +117,7 @@ export function RouteSelection({ from, to, onChange }: RouteSelectionProps) {
 
         {/* To City */}
         <div className="relative">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            To
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">إلى</label>
           {to ? (
             <div className="flex items-center justify-between p-3 border border-gray-300 rounded-lg bg-gray-50">
               <div>
@@ -129,14 +130,14 @@ export function RouteSelection({ from, to, onChange }: RouteSelectionProps) {
                 onClick={() => onChange({ from, to: null })}
                 className="text-red-600 hover:text-red-700 text-sm font-medium"
               >
-                Change
+                تغيير
               </button>
             </div>
           ) : (
             <>
               <input
                 type="text"
-                placeholder="Search city..."
+                placeholder="ابحث عن مدينة..."
                 value={toSearch}
                 onChange={(e) => setToSearch(e.target.value)}
                 onFocus={() => setShowToDropdown(true)}
@@ -148,7 +149,7 @@ export function RouteSelection({ from, to, onChange }: RouteSelectionProps) {
                     <button
                       key={`${city.code}-to`}
                       onClick={() => selectTo(city)}
-                      className="w-full px-4 py-3 text-left hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
+                      className="w-full px-4 py-3 text-start hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
                     >
                       <div className="font-medium text-gray-900">{city.city}</div>
                       <div className="text-sm text-gray-600">

@@ -8,6 +8,8 @@ export interface User {
   bio?: string;
   city?: string;
   isVerified: boolean;
+  balance?: number;
+  isBalanceRestricted?: boolean;
   createdAt: string;
 }
 
@@ -18,26 +20,16 @@ export interface UserSettings {
 }
 
 // Listing types
-export interface Listing {
-  id: string;
-  carrierId: string;
-  departureCity: string;
-  departureCode?: string;
-  arrivalCity: string;
-  arrivalCode?: string;
-  departureDate: string;
-  flightNumber?: string;
-  availableWeight: number;
-  pricePerKg: number;
-  currency: string;
-  preferences?: ListingPreferences;
-  notes?: string;
-  status: ListingStatus;
-  carrier?: User;
-  createdAt: string;
+export type ListingType = 'offer' | 'request';
+
+export interface PricingTier {
+  small: number;
+  medium: number;
+  large: number;
+  negotiable: boolean;
 }
 
-export interface ListingPreferences {
+export interface ItemRestrictions {
   acceptsFragile: boolean;
   acceptsElectronics: boolean;
   acceptsDocuments: boolean;
@@ -45,15 +37,48 @@ export interface ListingPreferences {
   maxItemValue?: number;
 }
 
+export type HandoffOption = 'airport' | 'delivery' | 'meetup';
+
+export interface Listing {
+  id: string;
+  carrierId: string;
+  type: ListingType;
+  title?: string;
+  titleAr?: string;
+  description?: string;
+  descriptionAr?: string;
+  departureCity: string;
+  departureCode?: string;
+  arrivalCity: string;
+  arrivalCode?: string;
+  departureDate: string;
+  flightNumber?: string;
+  availableWeight: number;
+  pricing: PricingTier;
+  currency: string;
+  neededWeight?: number;
+  restrictions?: ItemRestrictions;
+  handoffOptions?: HandoffOption[];
+  notes?: string;
+  status: ListingStatus;
+  expiresAt?: string;
+  carrier?: User;
+  createdAt: string;
+}
+
 export type ListingStatus = 'active' | 'completed' | 'cancelled';
 
 // Booking types
+export type PackageSize = 'small' | 'medium' | 'large';
+
 export interface Booking {
   id: string;
+  bookingRef: string;
   listingId: string;
   senderId: string;
   carrierId: string;
   status: BookingStatus;
+  packageSize?: PackageSize;
   totalWeight: number;
   totalPrice: number;
   currency: string;
@@ -85,27 +110,33 @@ export interface Item {
   imageUrls: string[];
 }
 
-// Message types
-export interface Message {
-  id: string;
-  bookingId: string;
-  senderId: string;
-  content: string;
-  isRead: boolean;
-  sender?: User;
-  createdAt: string;
-}
-
+// Conversation & Message types
 export interface Conversation {
-  bookingId: string;
+  id: string;
+  listingId?: string;
+  bookingId?: string;
   otherUser: User;
-  route: string;
+  listing?: Listing;
   lastMessage?: {
     content: string;
     createdAt: string;
     isMe: boolean;
   };
   unreadCount: number;
+  createdAt: string;
+}
+
+export type MessageType = 'text' | 'image' | 'location';
+
+export interface Message {
+  id: string;
+  conversationId: string;
+  senderId: string;
+  content: string;
+  messageType: MessageType;
+  isRead: boolean;
+  sender?: User;
+  createdAt: string;
 }
 
 // Review types

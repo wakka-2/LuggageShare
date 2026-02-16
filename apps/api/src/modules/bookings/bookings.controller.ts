@@ -14,6 +14,7 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { BookingsService } from './bookings.service';
+import { CreateBookingDto } from './dto/create-booking.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
@@ -41,7 +42,7 @@ export class BookingsController {
   @Post()
   @ApiOperation({ summary: 'Create a booking request' })
   @ApiResponse({ status: 201, description: 'Booking created successfully' })
-  async create(@CurrentUser() user: any, @Body() createBookingDto: any) {
+  async create(@CurrentUser() user: any, @Body() createBookingDto: CreateBookingDto) {
     return this.bookingsService.create(user.id, createBookingDto);
   }
 

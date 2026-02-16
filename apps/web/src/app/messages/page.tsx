@@ -5,6 +5,8 @@ import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { ConversationCard } from '@/components/messages/ConversationCard';
 import { MOCK_CONVERSATIONS } from '@/lib/data/mockConversations';
+import { useConversations } from '@/hooks/useMessages';
+import { useAuth } from '@/lib/contexts/AuthContext';
 import type { Conversation } from '@/lib/types/message';
 
 type FilterStatus = 'all' | 'pending' | 'confirmed' | 'in_transit' | 'delivered';
@@ -12,9 +14,35 @@ type FilterStatus = 'all' | 'pending' | 'confirmed' | 'in_transit' | 'delivered'
 export default function MessagesPage() {
   const [filterStatus, setFilterStatus] = useState<FilterStatus>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const { isAuthenticated } = useAuth();
+  const { data: apiConversations } = useConversations();
+
+  // Use API data when authenticated, fall back to mock data
+  const conversations: Conversation[] = useMemo(() => {
+    if (isAuthenticated && apiConversations) {
+      return apiConversations.map((c) => ({
+        id: c.id,
+        bookingId: c.bookingId,
+        listingTitle: c.listingTitle,
+        listingTitleAr: c.listingTitleAr,
+        from: c.from,
+        to: c.to,
+        otherUser: c.otherUser,
+        lastMessage: c.lastMessage ? {
+          content: c.lastMessage.content,
+          timestamp: c.lastMessage.timestamp,
+          isFromMe: c.lastMessage.isFromMe,
+        } : undefined,
+        unreadCount: c.unreadCount,
+        bookingStatus: c.bookingStatus as Conversation['bookingStatus'],
+        updatedAt: c.updatedAt,
+      }));
+    }
+    return MOCK_CONVERSATIONS;
+  }, [isAuthenticated, apiConversations]);
 
   const filteredConversations = useMemo(() => {
-    let filtered = [...MOCK_CONVERSATIONS];
+    let filtered = [...conversations];
 
     // Filter by status
     if (filterStatus !== 'all') {
@@ -38,13 +66,13 @@ export default function MessagesPage() {
     filtered.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
 
     return filtered;
-  }, [filterStatus, searchQuery]);
+  }, [conversations, filterStatus, searchQuery]);
 
-  const totalUnread = MOCK_CONVERSATIONS.reduce((sum, conv) => sum + conv.unreadCount, 0);
+  const totalUnread = conversations.reduce((sum, conv) => sum + conv.unreadCount, 0);
 
   const getFilterCount = (status: FilterStatus) => {
-    if (status === 'all') return MOCK_CONVERSATIONS.length;
-    return MOCK_CONVERSATIONS.filter((conv) => conv.bookingStatus === status).length;
+    if (status === 'all') return conversations.length;
+    return conversations.filter((conv) => conv.bookingStatus === status).length;
   };
 
   return (

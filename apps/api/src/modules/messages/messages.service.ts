@@ -1,27 +1,28 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { CreateConversationDto } from './dto/create-conversation.dto';
 
 @Injectable()
 export class MessagesService {
   constructor(private readonly prisma: PrismaService) {}
 
   async getConversations(userId: string) {
-    const bookings = await this.prisma.booking.findMany({
+    const conversations = await this.prisma.conversation.findMany({
       where: {
         OR: [
-          { senderId: userId },
-          { carrierId: userId },
+          { participant1Id: userId },
+          { participant2Id: userId },
         ],
       },
       include: {
-        sender: {
+        participant1: {
           select: {
             id: true,
             name: true,
             avatarUrl: true,
           },
         },
-        carrier: {
+        participant2: {
           select: {
             id: true,
             name: true,
@@ -30,26 +31,59 @@ export class MessagesService {
         },
         listing: {
           select: {
+            id: true,
             departureCity: true,
             arrivalCity: true,
+          },
+        },
+        booking: {
+          select: {
+            id: true,
+            bookingRef: true,
+            status: true,
           },
         },
         messages: {
           orderBy: { createdAt: 'desc' },
           take: 1,
+          include: {
+            sender: {
+              select: { id: true },
+            },
+          },
         },
       },
-      orderBy: { updatedAt: 'desc' },
+      orderBy: { lastMessageAt: { sort: 'desc', nulls: 'last' } },
     });
 
-    return bookings.map((booking) => {
-      const otherUser = booking.senderId === userId ? booking.carrier : booking.sender;
-      const lastMessage = booking.messages[0];
+    // Count unread messages per conversation
+    const unreadCounts = await Promise.all(
+      conversations.map((conv) =>
+        this.prisma.message.count({
+          where: {
+            conversationId: conv.id,
+            senderId: { not: userId },
+            isRead: false,
+          },
+        }),
+      ),
+    );
+
+    return conversations.map((conv, index) => {
+      const otherUser =
+        conv.participant1Id === userId ? conv.participant2 : conv.participant1;
+      const lastMessage = conv.messages[0];
+      const route = conv.listing
+        ? `${conv.listing.departureCity} → ${conv.listing.arrivalCity}`
+        : undefined;
 
       return {
-        bookingId: booking.id,
+        id: conv.id,
+        listingId: conv.listingId,
+        bookingId: conv.bookingId,
         otherUser,
-        route: `${booking.listing.departureCity} → ${booking.listing.arrivalCity}`,
+        route,
+        booking: conv.booking,
         lastMessage: lastMessage
           ? {
               content: lastMessage.content,
@@ -57,26 +91,90 @@ export class MessagesService {
               isMe: lastMessage.senderId === userId,
             }
           : null,
-        unreadCount: 0, // TODO: Implement unread count
+        unreadCount: unreadCounts[index],
+        createdAt: conv.createdAt,
       };
     });
   }
 
-  async getMessages(userId: string, bookingId: string, cursor?: string) {
-    const booking = await this.prisma.booking.findUnique({
-      where: { id: bookingId },
+  async createConversation(userId: string, dto: CreateConversationDto) {
+    // Check if conversation already exists between these users for this listing
+    const existingConversation = await this.prisma.conversation.findFirst({
+      where: {
+        OR: [
+          { participant1Id: userId, participant2Id: dto.userId },
+          { participant1Id: dto.userId, participant2Id: userId },
+        ],
+        ...(dto.listingId && { listingId: dto.listingId }),
+        ...(dto.bookingId && { bookingId: dto.bookingId }),
+      },
     });
 
-    if (!booking) {
-      throw new NotFoundException('Booking not found');
+    if (existingConversation) {
+      // Send initial message to existing conversation if provided
+      if (dto.initialMessage) {
+        await this.prisma.message.create({
+          data: {
+            conversationId: existingConversation.id,
+            senderId: userId,
+            content: dto.initialMessage,
+            messageType: 'text',
+          },
+        });
+        await this.prisma.conversation.update({
+          where: { id: existingConversation.id },
+          data: { lastMessageAt: new Date() },
+        });
+      }
+      return existingConversation;
     }
 
-    if (booking.senderId !== userId && booking.carrierId !== userId) {
+    // Create new conversation
+    const conversation = await this.prisma.conversation.create({
+      data: {
+        participant1Id: userId,
+        participant2Id: dto.userId,
+        listingId: dto.listingId,
+        bookingId: dto.bookingId,
+        ...(dto.initialMessage && {
+          lastMessageAt: new Date(),
+          messages: {
+            create: {
+              senderId: userId,
+              content: dto.initialMessage,
+              messageType: 'text',
+            },
+          },
+        }),
+      },
+      include: {
+        participant1: {
+          select: { id: true, name: true, avatarUrl: true },
+        },
+        participant2: {
+          select: { id: true, name: true, avatarUrl: true },
+        },
+      },
+    });
+
+    return conversation;
+  }
+
+  async getMessages(userId: string, conversationId: string, cursor?: string) {
+    const conversation = await this.prisma.conversation.findUnique({
+      where: { id: conversationId },
+    });
+
+    if (!conversation) {
+      throw new NotFoundException('Conversation not found');
+    }
+
+    if (conversation.participant1Id !== userId && conversation.participant2Id !== userId) {
       throw new ForbiddenException('You do not have access to this conversation');
     }
 
     const messages = await this.prisma.message.findMany({
-      where: { bookingId },
+      where: { conversationId },
       orderBy: { createdAt: 'desc' },
       take: 50,
       ...(cursor && {
@@ -100,24 +198,30 @@ export class MessagesService {
     };
   }
 
-  async sendMessage(userId: string, bookingId: string, content: string) {
-    const booking = await this.prisma.booking.findUnique({
-      where: { id: bookingId },
+  async sendMessage(
+    userId: string,
+    conversationId: string,
+    content: string,
+    messageType: string = 'text',
+  ) {
+    const conversation = await this.prisma.conversation.findUnique({
+      where: { id: conversationId },
     });
 
-    if (!booking) {
-      throw new NotFoundException('Booking not found');
+    if (!conversation) {
+      throw new NotFoundException('Conversation not found');
     }
 
-    if (booking.senderId !== userId && booking.carrierId !== userId) {
+    if (conversation.participant1Id !== userId && conversation.participant2Id !== userId) {
       throw new ForbiddenException('You do not have access to this conversation');
     }
 
     const message = await this.prisma.message.create({
       data: {
-        bookingId,
+        conversationId,
         senderId: userId,
         content,
+        messageType,
       },
       include: {
         sender: {
@@ -130,31 +234,31 @@ export class MessagesService {
       },
     });
 
-    // Update booking's updatedAt for conversation sorting
-    await this.prisma.booking.update({
-      where: { id: bookingId },
-      data: { updatedAt: new Date() },
+    // Update conversation's lastMessageAt for sorting
+    await this.prisma.conversation.update({
+      where: { id: conversationId },
+      data: { lastMessageAt: new Date() },
     });
 
     return message;
   }
 
-  async markAsRead(userId: string, bookingId: string) {
-    const booking = await this.prisma.booking.findUnique({
-      where: { id: bookingId },
+  async markAsRead(userId: string, conversationId: string) {
+    const conversation = await this.prisma.conversation.findUnique({
+      where: { id: conversationId },
     });
 
-    if (!booking) {
-      throw new NotFoundException('Booking not found');
+    if (!conversation) {
+      throw new NotFoundException('Conversation not found');
     }
 
-    if (booking.senderId !== userId && booking.carrierId !== userId) {
+    if (conversation.participant1Id !== userId && conversation.participant2Id !== userId) {
       throw new ForbiddenException('You do not have access to this conversation');
     }
 
     await this.prisma.message.updateMany({
       where: {
-        bookingId,
+        conversationId,
         senderId: { not: userId },
         isRead: false,
       },

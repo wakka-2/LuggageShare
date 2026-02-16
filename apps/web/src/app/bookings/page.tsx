@@ -1,43 +1,88 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { MOCK_BOOKINGS } from '@/lib/data/mockBookings';
+import { useBookings } from '@/hooks/useBookings';
+import { useAuth } from '@/lib/contexts/AuthContext';
 import Link from 'next/link';
-import type { BookingStatus } from '@/lib/types/booking';
 
 type FilterTab = 'all' | 'active' | 'past';
 
+const ACTIVE_STATUSES = ['pending', 'confirmed', 'in_transit', 'accepted'];
+const PAST_STATUSES = ['delivered', 'cancelled', 'disputed', 'rejected'];
+
 export default function BookingsPage() {
   const [filter, setFilter] = useState<FilterTab>('all');
+  const { isAuthenticated } = useAuth();
+  const { data: apiBookings } = useBookings();
 
-  const getStatusColor = (status: BookingStatus) => {
+  // Use API data when authenticated, fall back to mock data
+  const bookings = useMemo(() => {
+    if (isAuthenticated && apiBookings) {
+      return apiBookings;
+    }
+    // Transform mock bookings to match BookingView shape
+    return MOCK_BOOKINGS.map((b) => ({
+      id: b.id,
+      bookingRef: b.id,
+      listingId: b.listingId,
+      listingTitle: b.listingTitle,
+      listingTitleAr: b.listingTitleAr,
+      senderId: b.senderId,
+      senderName: b.senderName,
+      senderNameAr: b.senderNameAr,
+      carrierId: b.carrierId,
+      carrierName: b.carrierName,
+      carrierNameAr: b.carrierNameAr,
+      from: b.from,
+      to: b.to,
+      travelDate: b.travelDate,
+      packageSize: b.packageSize as 'small' | 'medium' | 'large',
+      price: b.price,
+      currency: b.currency,
+      status: b.status,
+      createdAt: b.createdAt,
+      updatedAt: b.updatedAt,
+      conversationId: null,
+      items: [],
+      itemCategoryAr: b.item?.categoryAr,
+      unreadCount: b.unreadCount,
+    }));
+  }, [isAuthenticated, apiBookings]);
+
+  const getStatusColor = (status: string) => {
     switch (status) {
       case 'pending':
         return 'bg-yellow-100 text-yellow-800';
       case 'confirmed':
+      case 'accepted':
         return 'bg-blue-100 text-blue-800';
       case 'in_transit':
+      case 'picked_up':
         return 'bg-purple-100 text-purple-800';
       case 'delivered':
         return 'bg-green-100 text-green-800';
       case 'cancelled':
         return 'bg-red-100 text-red-800';
       case 'disputed':
+      case 'rejected':
         return 'bg-orange-100 text-orange-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
   };
 
-  const getStatusLabel = (status: BookingStatus) => {
+  const getStatusLabel = (status: string) => {
     switch (status) {
       case 'pending':
         return 'قيد المراجعة';
       case 'confirmed':
+      case 'accepted':
         return 'مؤكد';
       case 'in_transit':
+      case 'picked_up':
         return 'قيد التوصيل';
       case 'delivered':
         return 'تم التوصيل';
@@ -45,27 +90,38 @@ export default function BookingsPage() {
         return 'ملغي';
       case 'disputed':
         return 'متنازع عليه';
+      case 'rejected':
+        return 'مرفوض';
       default:
         return status;
     }
   };
 
-  const filteredBookings = MOCK_BOOKINGS.filter((booking) => {
+  const getSizeLabel = (size: string) => {
+    switch (size) {
+      case 'small': return 'صغير';
+      case 'medium': return 'متوسط';
+      case 'large': return 'كبير';
+      default: return size;
+    }
+  };
+
+  const filteredBookings = bookings.filter((booking) => {
     if (filter === 'all') return true;
     if (filter === 'active') {
-      return ['pending', 'confirmed', 'in_transit'].includes(booking.status);
+      return ACTIVE_STATUSES.includes(booking.status);
     }
     if (filter === 'past') {
-      return ['delivered', 'cancelled', 'disputed'].includes(booking.status);
+      return PAST_STATUSES.includes(booking.status);
     }
     return true;
   });
 
-  const activeCount = MOCK_BOOKINGS.filter((b) =>
-    ['pending', 'confirmed', 'in_transit'].includes(b.status)
+  const activeCount = bookings.filter((b) =>
+    ACTIVE_STATUSES.includes(b.status)
   ).length;
-  const pastCount = MOCK_BOOKINGS.filter((b) =>
-    ['delivered', 'cancelled', 'disputed'].includes(b.status)
+  const pastCount = bookings.filter((b) =>
+    PAST_STATUSES.includes(b.status)
   ).length;
 
   return (
@@ -90,7 +146,7 @@ export default function BookingsPage() {
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
-              الكل ({MOCK_BOOKINGS.length})
+              الكل ({bookings.length})
             </button>
             <button
               onClick={() => setFilter('active')}
@@ -147,14 +203,14 @@ export default function BookingsPage() {
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
                         <h3 className="text-lg font-bold text-gray-900">{booking.listingTitleAr}</h3>
-                        {booking.unreadCount > 0 && (
+                        {'unreadCount' in booking && (booking as { unreadCount?: number }).unreadCount! > 0 && (
                           <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
-                            {booking.unreadCount}
+                            {(booking as { unreadCount?: number }).unreadCount}
                           </span>
                         )}
                       </div>
                       <div className="flex items-center gap-4 text-sm text-gray-600">
-                        <span>رقم الحجز: {booking.id}</span>
+                        <span>رقم الحجز: {booking.bookingRef || booking.id}</span>
                         <span>•</span>
                         <span>{new Date(booking.createdAt).toLocaleDateString('ar-SA')}</span>
                       </div>
@@ -194,17 +250,15 @@ export default function BookingsPage() {
                     <div>
                       <div className="text-gray-600 mb-1">الحجم</div>
                       <div className="font-medium text-gray-900">
-                        {booking.packageSize === 'small'
-                          ? 'صغير'
-                          : booking.packageSize === 'medium'
-                          ? 'متوسط'
-                          : 'كبير'}
+                        {getSizeLabel(booking.packageSize)}
                       </div>
                     </div>
-                    <div>
-                      <div className="text-gray-600 mb-1">نوع المحتوى</div>
-                      <div className="font-medium text-gray-900">{booking.item.categoryAr}</div>
-                    </div>
+                    {'itemCategoryAr' in booking && (booking as { itemCategoryAr?: string }).itemCategoryAr && (
+                      <div>
+                        <div className="text-gray-600 mb-1">نوع المحتوى</div>
+                        <div className="font-medium text-gray-900">{(booking as { itemCategoryAr?: string }).itemCategoryAr}</div>
+                      </div>
+                    )}
                     <div>
                       <div className="text-gray-600 mb-1">السعر</div>
                       <div className="font-bold text-primary-600">

@@ -1,5 +1,15 @@
 import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { CreateBookingDto } from './dto/create-booking.dto';
+
+function generateBookingRef(): string {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let ref = '';
+  for (let i = 0; i < 6; i++) {
+    ref += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return `LS-${ref}`;
+}
 
 @Injectable()
 export class BookingsService {
@@ -57,6 +67,9 @@ export class BookingsService {
           },
         },
         items: true,
+        conversation: {
+          select: { id: true },
+        },
       },
     });
 
@@ -71,9 +84,9 @@ export class BookingsService {
     return booking;
   }
 
-  async create(userId: string, createBookingDto: any) {
+  async create(userId: string, dto: CreateBookingDto) {
     const listing = await this.prisma.listing.findUnique({
-      where: { id: createBookingDto.listingId },
+      where: { id: dto.listingId },
     });
 
     if (!listing) {
@@ -88,22 +101,60 @@ export class BookingsService {
       throw new BadRequestException('This listing is no longer available');
     }
 
-    return this.prisma.booking.create({
+    // Look up price from the listing's tier
+    let totalPrice = dto.totalWeight ? Number(listing.priceSmall) : 0;
+    if (dto.packageSize === 'medium') {
+      totalPrice = Number(listing.priceMedium);
+    } else if (dto.packageSize === 'large') {
+      totalPrice = Number(listing.priceLarge);
+    } else {
+      totalPrice = Number(listing.priceSmall);
+    }
+
+    const bookingRef = generateBookingRef();
+
+    const booking = await this.prisma.booking.create({
       data: {
+        bookingRef,
         senderId: userId,
         carrierId: listing.carrierId,
         listingId: listing.id,
         status: 'pending',
-        totalWeight: createBookingDto.totalWeight,
-        totalPrice: createBookingDto.totalPrice,
-        items: {
-          create: createBookingDto.items,
-        },
+        packageSize: dto.packageSize,
+        totalWeight: dto.totalWeight ?? 0,
+        totalPrice,
+        ...(dto.items && dto.items.length > 0 && {
+          items: {
+            create: dto.items,
+          },
+        }),
       },
       include: {
         items: true,
       },
     });
+
+    // Auto-create a conversation linked to this booking
+    await this.prisma.conversation.create({
+      data: {
+        bookingId: booking.id,
+        listingId: listing.id,
+        participant1Id: userId,
+        participant2Id: listing.carrierId,
+        ...(dto.message && {
+          lastMessageAt: new Date(),
+          messages: {
+            create: {
+              senderId: userId,
+              content: dto.message,
+              messageType: 'text',
+            },
+          },
+        }),
+      },
+    });
+
+    return booking;
   }
 
   async accept(userId: string, id: string) {

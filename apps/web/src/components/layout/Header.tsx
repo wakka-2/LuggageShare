@@ -4,10 +4,18 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { Menu, X, Globe } from 'lucide-react';
 import { MOCK_CONVERSATIONS } from '@/lib/data/mockConversations';
+import { useAuth } from '@/lib/contexts/AuthContext';
+import { useNotifications } from '@/hooks/useUser';
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const totalUnread = MOCK_CONVERSATIONS.reduce((sum, conv) => sum + conv.unreadCount, 0);
+  const { isAuthenticated, user, signOut } = useAuth();
+  const { data: notifications } = useNotifications();
+
+  // Use notifications unread count when authenticated, fall back to mock
+  const totalUnread = isAuthenticated && notifications
+    ? notifications.filter((n: { isRead: boolean }) => !n.isRead).length
+    : MOCK_CONVERSATIONS.reduce((sum, conv) => sum + conv.unreadCount, 0);
 
   return (
     <header className="bg-white border-b border-gray-200">
@@ -73,21 +81,41 @@ export function Header() {
               <Globe className="w-5 h-5" />
             </button>
 
-            {/* Auth Buttons */}
-            <div className="hidden md:flex items-center gap-3">
-              <Link
-                href="/auth/login"
-                className="text-gray-600 hover:text-gray-900 transition-colors"
-              >
-                تسجيل الدخول
-              </Link>
-              <Link
-                href="/auth/register"
-                className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors"
-              >
-                إنشاء حساب
-              </Link>
-            </div>
+            {/* Auth Area */}
+            {isAuthenticated && user ? (
+              <div className="hidden md:flex items-center gap-3">
+                <Link
+                  href="/profile"
+                  className="flex items-center gap-2 text-gray-700 hover:text-gray-900 transition-colors"
+                >
+                  <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 font-bold text-sm">
+                    {user.nameAr.charAt(0)}
+                  </div>
+                  <span className="text-sm font-medium">{user.nameAr}</span>
+                </Link>
+                <button
+                  onClick={signOut}
+                  className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+                >
+                  خروج
+                </button>
+              </div>
+            ) : (
+              <div className="hidden md:flex items-center gap-3">
+                <Link
+                  href="/auth/login"
+                  className="text-gray-600 hover:text-gray-900 transition-colors"
+                >
+                  تسجيل الدخول
+                </Link>
+                <Link
+                  href="/auth/register"
+                  className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors"
+                >
+                  إنشاء حساب
+                </Link>
+              </div>
+            )}
 
             {/* Mobile Menu Button */}
             <button
@@ -149,18 +177,29 @@ export function Header() {
                 المساعدة
               </Link>
               <hr className="border-gray-200" />
-              <Link
-                href="/auth/login"
-                className="text-gray-600 hover:text-gray-900 transition-colors"
-              >
-                تسجيل الدخول
-              </Link>
-              <Link
-                href="/auth/register"
-                className="bg-primary-600 text-white px-4 py-2 rounded-lg text-center hover:bg-primary-700 transition-colors"
-              >
-                إنشاء حساب
-              </Link>
+              {isAuthenticated && user ? (
+                <button
+                  onClick={signOut}
+                  className="text-gray-600 hover:text-gray-900 transition-colors text-start"
+                >
+                  تسجيل الخروج
+                </button>
+              ) : (
+                <>
+                  <Link
+                    href="/auth/login"
+                    className="text-gray-600 hover:text-gray-900 transition-colors"
+                  >
+                    تسجيل الدخول
+                  </Link>
+                  <Link
+                    href="/auth/register"
+                    className="bg-primary-600 text-white px-4 py-2 rounded-lg text-center hover:bg-primary-700 transition-colors"
+                  >
+                    إنشاء حساب
+                  </Link>
+                </>
+              )}
             </nav>
           </div>
         )}
