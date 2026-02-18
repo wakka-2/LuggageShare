@@ -19,6 +19,7 @@ export const metadata: Metadata = {
   description: 'Share luggage space, save money - شارك أمتعتك، وفر تكاليفك',
   keywords: ['luggage', 'travel', 'shipping', 'Saudi Arabia', 'peer-to-peer'],
   authors: [{ name: 'LuggageShare' }],
+  icons: { icon: '/favicon.svg' },
   openGraph: {
     title: 'LuggageShare - حصتي',
     description: 'Share luggage space, save money',

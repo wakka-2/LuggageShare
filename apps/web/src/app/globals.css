@@ -68,3 +68,14 @@
 .font-arabic {
   text-rendering: optimizeLegibility;
 }
+
+/* Fix duplicate date picker icons in RTL:
+   Hide all native chrome, stretch the invisible picker indicator
+   to cover the full input so clicking anywhere opens the picker,
+   then show a single custom icon via the wrapper. */
+input[type="date"]::-webkit-inner-spin-button,
+input[type="date"]::-webkit-clear-button,
+input[type="date"]::-webkit-calendar-picker-indicator {
+  -webkit-appearance: none;
+  display: none;
+}
