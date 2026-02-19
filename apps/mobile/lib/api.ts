@@ -5,7 +5,7 @@ import Constants from 'expo-constants';
 const API_URL = Constants.expoConfig?.extra?.apiUrl || 'http://localhost:3001';
 
 export const apiClient = axios.create({
-  baseURL: `${API_URL}/v1`,
+  baseURL: `${API_URL}/api/v1`,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -48,7 +48,7 @@ apiClient.interceptors.response.use(
           const tokens = JSON.parse(tokensJson);
 
           // Try to refresh the token
-          const response = await axios.post(`${API_URL}/v1/auth/refresh`, {
+          const response = await axios.post(`${API_URL}/api/v1/auth/refresh`, {
             refreshToken: tokens.refreshToken,
           });
 

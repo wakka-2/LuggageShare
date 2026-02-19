@@ -4,12 +4,14 @@ import { useTheme } from '@/hooks/useTheme';
 
 interface AvatarProps {
   source?: string | null;
+  avatarUrl?: string | null;
   name?: string;
-  size?: 'tiny' | 'small' | 'medium' | 'large' | 'xlarge';
+  size?: 'tiny' | 'small' | 'medium' | 'large' | 'xlarge' | number;
   verified?: boolean;
+  isVerified?: boolean;
 }
 
-const SIZES = {
+const SIZES: Record<string, number> = {
   tiny: 24,
   small: 32,
   medium: 40,
@@ -17,7 +19,7 @@ const SIZES = {
   xlarge: 80,
 };
 
-const FONT_SIZES = {
+const FONT_RATIOS: Record<string, number> = {
   tiny: 9,
   small: 12,
   medium: 14,
@@ -25,10 +27,12 @@ const FONT_SIZES = {
   xlarge: 28,
 };
 
-export function Avatar({ source, name, size = 'medium', verified }: AvatarProps) {
+export function Avatar({ source, avatarUrl, name, size = 'medium', verified, isVerified }: AvatarProps) {
   const { colors } = useTheme();
-  const dimension = SIZES[size];
-  const fontSize = FONT_SIZES[size];
+  const dimension = typeof size === 'number' ? size : SIZES[size];
+  const fontSize = typeof size === 'number' ? Math.round(size * 0.35) : FONT_RATIOS[size];
+  const imageSource = source || avatarUrl;
+  const isVerifiedUser = verified || isVerified;
 
   const getInitials = (name?: string) => {
     if (!name) return '?';
@@ -41,9 +45,9 @@ export function Avatar({ source, name, size = 'medium', verified }: AvatarProps)
 
   return (
     <View style={styles.container}>
-      {source ? (
+      {imageSource ? (
         <Image
-          source={{ uri: source }}
+          source={{ uri: imageSource }}
           style={[
             styles.image,
             {
@@ -70,14 +74,14 @@ export function Avatar({ source, name, size = 'medium', verified }: AvatarProps)
           </Text>
         </View>
       )}
-      {verified && (
+      {isVerifiedUser && (
         <View
           style={[
             styles.verifiedBadge,
             {
               backgroundColor: colors.success,
-              right: size === 'small' ? -2 : 0,
-              bottom: size === 'small' ? -2 : 0,
+              right: dimension <= 32 ? -2 : 0,
+              bottom: dimension <= 32 ? -2 : 0,
             },
           ]}
         >
