@@ -7,6 +7,8 @@ import { ListingsModule } from './modules/listings/listings.module';
 import { BookingsModule } from './modules/bookings/bookings.module';
 import { MessagesModule } from './modules/messages/messages.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
+import { ReviewsModule } from './modules/reviews/reviews.module';
+import { WalletModule } from './modules/wallet/wallet.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { HealthController } from './health.controller';
 
@@ -40,6 +42,8 @@ import { HealthController } from './health.controller';
     BookingsModule,
     MessagesModule,
     NotificationsModule,
+    ReviewsModule,
+    WalletModule,
   ],
   controllers: [HealthController],
 })
