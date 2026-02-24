@@ -12,34 +12,54 @@ export class ListingsService {
     to?: string;
     date?: string;
     minWeight?: number;
+    page?: number;
+    limit?: number;
   }) {
-    const { from, to, date, minWeight } = params;
+    const { from, to, date, minWeight, page = 1, limit = 20 } = params;
+    const skip = (page - 1) * limit;
 
-    return this.prisma.listing.findMany({
-      where: {
-        status: 'active',
-        ...(from && { departureCity: { contains: from, mode: 'insensitive' } }),
-        ...(to && { arrivalCity: { contains: to, mode: 'insensitive' } }),
-        ...(date && {
-          departureDate: {
-            gte: new Date(date),
-            lt: new Date(new Date(date).setDate(new Date(date).getDate() + 1)),
-          },
-        }),
-        ...(minWeight && { availableWeight: { gte: minWeight } }),
-      },
-      include: {
-        carrier: {
-          select: {
-            id: true,
-            name: true,
-            avatarUrl: true,
-            isVerified: true,
+    const where = {
+      status: 'active' as const,
+      ...(from && { departureCity: { contains: from, mode: 'insensitive' as const } }),
+      ...(to && { arrivalCity: { contains: to, mode: 'insensitive' as const } }),
+      ...(date && {
+        departureDate: {
+          gte: new Date(date),
+          lt: new Date(new Date(date).setDate(new Date(date).getDate() + 1)),
+        },
+      }),
+      ...(minWeight && { availableWeight: { gte: minWeight } }),
+    };
+
+    const [data, total] = await Promise.all([
+      this.prisma.listing.findMany({
+        where,
+        include: {
+          carrier: {
+            select: {
+              id: true,
+              name: true,
+              avatarUrl: true,
+              isVerified: true,
+            },
           },
         },
+        orderBy: { departureDate: 'asc' },
+        skip,
+        take: limit,
+      }),
+      this.prisma.listing.count({ where }),
+    ]);
+
+    return {
+      data,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
       },
-      orderBy: { departureDate: 'asc' },
-    });
+    };
   }
 
   async findById(id: string) {
@@ -95,15 +115,21 @@ export class ListingsService {
     // Explicit field mapping — prevent mass assignment
     const allowedUpdates: Record<string, any> = {};
     const allowedFields = [
-      'departureCity', 'arrivalCity', 'departureDate', 'flightNumber',
-      'availableWeight', 'pricePerKg', 'currency', 'preferences', 'notes',
+      'departureCity',
+      'arrivalCity',
+      'departureDate',
+      'flightNumber',
+      'availableWeight',
+      'pricePerKg',
+      'currency',
+      'preferences',
+      'notes',
     ];
     const dtoRecord = updateListingDto as Record<string, any>;
     for (const field of allowedFields) {
       if (dtoRecord[field] !== undefined) {
-        allowedUpdates[field] = field === 'departureDate'
-          ? new Date(dtoRecord[field])
-          : dtoRecord[field];
+        allowedUpdates[field] =
+          field === 'departureDate' ? new Date(dtoRecord[field]) : dtoRecord[field];
       }
     }
 

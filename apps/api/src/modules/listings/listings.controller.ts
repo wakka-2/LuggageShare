@@ -1,20 +1,5 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Put,
-  Delete,
-  Body,
-  Param,
-  Query,
-  UseGuards,
-} from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-} from '@nestjs/swagger';
+import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { ListingsService } from './listings.service';
 import { CreateListingDto } from './dto/create-listing.dto';
 import { UpdateListingDto } from './dto/update-listing.dto';
@@ -36,8 +21,10 @@ export class ListingsController {
     @Query('to') to?: string,
     @Query('date') date?: string,
     @Query('minWeight') minWeight?: number,
+    @Query('page') page?: number,
+    @Query('limit') limit?: number
   ) {
-    return this.listingsService.search({ from, to, date, minWeight });
+    return this.listingsService.search({ from, to, date, minWeight, page, limit });
   }
 
   @Get(':id')
@@ -65,7 +52,7 @@ export class ListingsController {
   async update(
     @CurrentUser() user: any,
     @Param('id') id: string,
-    @Body() updateListingDto: UpdateListingDto,
+    @Body() updateListingDto: UpdateListingDto
   ) {
     return this.listingsService.update(user.id, id, updateListingDto);
   }

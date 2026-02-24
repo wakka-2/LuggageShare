@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { WalletHistoryQueryDto } from './dto/wallet-query.dto';
 
 @Injectable()
 export class WalletService {
@@ -20,9 +21,20 @@ export class WalletService {
     };
   }
 
-  async getHistory(userId: string) {
+  async getHistory(userId: string, query?: WalletHistoryQueryDto) {
     return this.prisma.balanceHistory.findMany({
-      where: { userId },
+      where: {
+        userId,
+        ...(query?.type && { type: query.type }),
+        ...(query?.from || query?.to
+          ? {
+              createdAt: {
+                ...(query?.from && { gte: new Date(query.from) }),
+                ...(query?.to && { lte: new Date(query.to) }),
+              },
+            }
+          : {}),
+      },
       orderBy: { createdAt: 'desc' },
       take: 50,
     });

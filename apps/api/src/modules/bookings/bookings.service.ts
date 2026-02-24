@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
 
@@ -6,34 +11,52 @@ import { CreateBookingDto } from './dto/create-booking.dto';
 export class BookingsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findByUser(userId: string) {
-    return this.prisma.booking.findMany({
-      where: {
-        OR: [
-          { senderId: userId },
-          { carrierId: userId },
-        ],
-      },
-      include: {
-        listing: true,
-        sender: {
-          select: {
-            id: true,
-            name: true,
-            avatarUrl: true,
+  async findByUser(userId: string, params?: { page?: number; limit?: number }) {
+    const page = params?.page ?? 1;
+    const limit = params?.limit ?? 20;
+    const skip = (page - 1) * limit;
+
+    const where = {
+      OR: [{ senderId: userId }, { carrierId: userId }],
+    };
+
+    const [data, total] = await Promise.all([
+      this.prisma.booking.findMany({
+        where,
+        include: {
+          listing: true,
+          sender: {
+            select: {
+              id: true,
+              name: true,
+              avatarUrl: true,
+            },
           },
-        },
-        carrier: {
-          select: {
-            id: true,
-            name: true,
-            avatarUrl: true,
+          carrier: {
+            select: {
+              id: true,
+              name: true,
+              avatarUrl: true,
+            },
           },
+          items: true,
         },
-        items: true,
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      this.prisma.booking.count({ where }),
+    ]);
+
+    return {
+      data,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
       },
-      orderBy: { createdAt: 'desc' },
-    });
+    };
   }
 
   async findById(userId: string, id: string) {
@@ -92,7 +115,7 @@ export class BookingsService {
     // Validate weight doesn't exceed available
     if (createBookingDto.totalWeight > Number(listing.availableWeight)) {
       throw new BadRequestException(
-        `Total weight (${createBookingDto.totalWeight}kg) exceeds available weight (${listing.availableWeight}kg)`,
+        `Total weight (${createBookingDto.totalWeight}kg) exceeds available weight (${listing.availableWeight}kg)`
       );
     }
 

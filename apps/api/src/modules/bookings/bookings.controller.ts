@@ -1,18 +1,5 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Put,
-  Body,
-  Param,
-  UseGuards,
-} from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-} from '@nestjs/swagger';
+import { Controller, Get, Post, Put, Body, Param, Query, UseGuards } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { BookingsService } from './bookings.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -28,8 +15,12 @@ export class BookingsController {
   @Get()
   @ApiOperation({ summary: 'Get my bookings' })
   @ApiResponse({ status: 200, description: 'Returns user bookings' })
-  async getMyBookings(@CurrentUser() user: any) {
-    return this.bookingsService.findByUser(user.id);
+  async getMyBookings(
+    @CurrentUser() user: any,
+    @Query('page') page?: number,
+    @Query('limit') limit?: number
+  ) {
+    return this.bookingsService.findByUser(user.id, { page, limit });
   }
 
   @Get(':id')

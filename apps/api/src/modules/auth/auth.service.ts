@@ -18,14 +18,14 @@ export class AuthService {
   constructor(
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
-    private readonly usersService: UsersService,
+    private readonly usersService: UsersService
   ) {}
 
   async googleAuth(dto: GoogleAuthDto) {
     try {
       // Verify Google token
       const response = await axios.get(
-        `https://oauth2.googleapis.com/tokeninfo?id_token=${dto.idToken}`,
+        `https://oauth2.googleapis.com/tokeninfo?id_token=${dto.idToken}`
       );
 
       // Validate audience — reject tokens issued for other Google apps
@@ -92,8 +92,11 @@ export class AuthService {
 
   async refreshToken(dto: RefreshTokenDto) {
     try {
+      const refreshSecret =
+        this.configService.get<string>('JWT_REFRESH_SECRET') ||
+        this.configService.get<string>('JWT_SECRET');
       const payload = this.jwtService.verify(dto.refreshToken, {
-        secret: this.configService.get<string>('JWT_SECRET'),
+        secret: refreshSecret,
       });
 
       const user = await this.usersService.findById(payload.sub);
@@ -108,14 +111,24 @@ export class AuthService {
     }
   }
 
-  private generateTokens(user: { id: string; email: string; name: string; avatarUrl: string | null; isVerified: boolean }) {
+  private generateTokens(user: {
+    id: string;
+    email: string;
+    name: string;
+    avatarUrl: string | null;
+    isVerified: boolean;
+  }) {
     const payload = { sub: user.id, email: user.email };
 
     const accessToken = this.jwtService.sign(payload, {
       expiresIn: this.configService.get<string>('JWT_EXPIRES_IN', '1h'),
     });
 
+    const refreshSecret =
+      this.configService.get<string>('JWT_REFRESH_SECRET') ||
+      this.configService.get<string>('JWT_SECRET');
     const refreshToken = this.jwtService.sign(payload, {
+      secret: refreshSecret,
       expiresIn: this.configService.get<string>('JWT_REFRESH_EXPIRES_IN', '7d'),
     });
 
@@ -138,9 +151,7 @@ export class AuthService {
    */
   private async verifyAppleToken(identityToken: string): Promise<any> {
     // Decode header to get the key ID (kid)
-    const header = JSON.parse(
-      Buffer.from(identityToken.split('.')[0], 'base64url').toString(),
-    );
+    const header = JSON.parse(Buffer.from(identityToken.split('.')[0], 'base64url').toString());
 
     if (!header.kid) {
       throw new UnauthorizedException('Apple token missing kid');
@@ -172,7 +183,7 @@ export class AuthService {
         (err, decoded) => {
           if (err) reject(new UnauthorizedException('Apple token verification failed'));
           else resolve(decoded);
-        },
+        }
       );
     });
   }

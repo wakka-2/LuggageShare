@@ -22,6 +22,7 @@ import { HealthController } from './health.controller';
       validationSchema: Joi.object({
         DATABASE_URL: Joi.string().required(),
         JWT_SECRET: Joi.string().min(32).required(),
+        JWT_REFRESH_SECRET: Joi.string().min(32).optional(),
         GOOGLE_CLIENT_ID: Joi.string().optional(),
         API_PORT: Joi.number().default(3001),
       }),
@@ -32,9 +33,10 @@ import { HealthController } from './health.controller';
     LoggerModule.forRoot({
       pinoHttp: {
         autoLogging: true,
-        transport: process.env.NODE_ENV !== 'production'
-          ? { target: 'pino-pretty', options: { colorize: true, singleLine: true } }
-          : undefined,
+        transport:
+          process.env.NODE_ENV !== 'production'
+            ? { target: 'pino-pretty', options: { colorize: true, singleLine: true } }
+            : undefined,
         level: process.env.NODE_ENV !== 'production' ? 'debug' : 'info',
         serializers: {
           req: (req) => ({ method: req.method, url: req.url }),

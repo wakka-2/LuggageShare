@@ -7,6 +7,7 @@ import * as SplashScreen from 'expo-splash-screen';
 
 import { AuthProvider } from '@/providers/AuthProvider';
 import { ThemeProvider } from '@/providers/ThemeProvider';
+import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import '../i18n';
 
 // Keep the splash screen visible while we fetch resources
@@ -33,30 +34,56 @@ export default function RootLayout() {
   }, []);
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <AuthProvider>
-          <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
-          <Stack
-            screenOptions={{
-              headerShown: false,
-              animation: 'slide_from_right',
-            }}
-          >
-            <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="listing/[id]" options={{ headerShown: false, presentation: 'card' }} />
-            <Stack.Screen name="listing/create" options={{ headerShown: false, presentation: 'modal' }} />
-            <Stack.Screen name="booking/[id]" options={{ headerShown: false, presentation: 'card' }} />
-            <Stack.Screen name="booking/create" options={{ headerShown: false, presentation: 'modal' }} />
-            <Stack.Screen name="chat/[bookingId]" options={{ headerShown: false, presentation: 'card' }} />
-            <Stack.Screen name="notifications" options={{ headerShown: false, presentation: 'card' }} />
-            <Stack.Screen name="profile/edit" options={{ headerShown: false, presentation: 'modal' }} />
-            <Stack.Screen name="profile/wallet" options={{ headerShown: false, presentation: 'card' }} />
-            <Stack.Screen name="+not-found" />
-          </Stack>
-        </AuthProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider>
+          <AuthProvider>
+            <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
+            <Stack
+              screenOptions={{
+                headerShown: false,
+                animation: 'slide_from_right',
+              }}
+            >
+              <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen
+                name="listing/[id]"
+                options={{ headerShown: false, presentation: 'card' }}
+              />
+              <Stack.Screen
+                name="listing/create"
+                options={{ headerShown: false, presentation: 'modal' }}
+              />
+              <Stack.Screen
+                name="booking/[id]"
+                options={{ headerShown: false, presentation: 'card' }}
+              />
+              <Stack.Screen
+                name="booking/create"
+                options={{ headerShown: false, presentation: 'modal' }}
+              />
+              <Stack.Screen
+                name="chat/[bookingId]"
+                options={{ headerShown: false, presentation: 'card' }}
+              />
+              <Stack.Screen
+                name="notifications"
+                options={{ headerShown: false, presentation: 'card' }}
+              />
+              <Stack.Screen
+                name="profile/edit"
+                options={{ headerShown: false, presentation: 'modal' }}
+              />
+              <Stack.Screen
+                name="profile/wallet"
+                options={{ headerShown: false, presentation: 'card' }}
+              />
+              <Stack.Screen name="+not-found" />
+            </Stack>
+          </AuthProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
