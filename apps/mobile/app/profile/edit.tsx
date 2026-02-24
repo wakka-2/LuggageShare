@@ -19,6 +19,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
 import { useProfile, useUpdateProfile } from '@/hooks/useProfile';
 import { useAuth } from '@/hooks/useAuth';
+import { useImageUpload } from '@/hooks/useImageUpload';
 import { Avatar } from '@/components/common';
 
 export default function EditProfileScreen() {
@@ -30,18 +31,32 @@ export default function EditProfileScreen() {
 
   const { data: profile, isLoading } = useProfile();
   const updateProfile = useUpdateProfile();
+  const { pickAndUpload, isUploading } = useImageUpload();
 
   const [name, setName] = useState('');
   const [bio, setBio] = useState('');
   const [city, setCity] = useState('');
+  const [iban, setIban] = useState('');
+  const [bankName, setBankName] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (profile) {
       setName(profile.name || '');
       setBio(profile.bio || '');
       setCity(profile.city || '');
+      setIban((profile as any).iban || '');
+      setBankName((profile as any).bankName || '');
+      setAvatarUrl(profile.avatarUrl);
     }
   }, [profile]);
+
+  const handleChangePhoto = async () => {
+    const url = await pickAndUpload({ folder: 'avatars', source: 'library' });
+    if (url) {
+      setAvatarUrl(url);
+    }
+  };
 
   const handleSave = async () => {
     if (!name.trim()) {
@@ -54,6 +69,9 @@ export default function EditProfileScreen() {
         name: name.trim(),
         bio: bio.trim() || undefined,
         city: city.trim() || undefined,
+        iban: iban.trim() || undefined,
+        bankName: bankName.trim() || undefined,
+        ...(avatarUrl !== profile?.avatarUrl ? { avatarUrl: avatarUrl || undefined } : {}),
       });
 
       // Update local auth state
@@ -90,12 +108,22 @@ export default function EditProfileScreen() {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Avatar Section */}
         <View style={styles.avatarSection}>
-          <Avatar name={name || '?'} avatarUrl={profile?.avatarUrl} size={96} />
-          <TouchableOpacity style={[styles.changePhotoBtn, { borderColor: colors.primary }]}>
-            <Ionicons name="camera-outline" size={16} color={colors.primary} />
-            <Text style={[styles.changePhotoText, { color: colors.primary }]}>
-              {t('profile.changePhoto')}
-            </Text>
+          <Avatar name={name || '?'} avatarUrl={avatarUrl} size={96} />
+          <TouchableOpacity
+            onPress={handleChangePhoto}
+            disabled={isUploading}
+            style={[styles.changePhotoBtn, { borderColor: colors.primary }]}
+          >
+            {isUploading ? (
+              <ActivityIndicator size="small" color={colors.primary} />
+            ) : (
+              <>
+                <Ionicons name="camera-outline" size={16} color={colors.primary} />
+                <Text style={[styles.changePhotoText, { color: colors.primary }]}>
+                  {t('profile.changePhoto')}
+                </Text>
+              </>
+            )}
           </TouchableOpacity>
         </View>
 
@@ -170,6 +198,42 @@ export default function EditProfileScreen() {
               {bio.length}/300
             </Text>
           </View>
+
+          {/* Bank Details Section */}
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+            {t('profile.bankDetails')}
+          </Text>
+
+          <View style={styles.fieldGroup}>
+            <Text style={[styles.label, { color: colors.text }]}>{t('profile.bankNameField')}</Text>
+            <TextInput
+              style={[
+                styles.input,
+                { backgroundColor: colors.card, color: colors.text, borderColor: colors.border },
+              ]}
+              value={bankName}
+              onChangeText={setBankName}
+              placeholder={t('profile.placeholderBankName')}
+              placeholderTextColor={colors.textSecondary}
+              textAlign={isRTL ? 'right' : 'left'}
+            />
+          </View>
+
+          <View style={styles.fieldGroup}>
+            <Text style={[styles.label, { color: colors.text }]}>{t('profile.ibanField')}</Text>
+            <TextInput
+              style={[
+                styles.input,
+                { backgroundColor: colors.card, color: colors.text, borderColor: colors.border },
+              ]}
+              value={iban}
+              onChangeText={setIban}
+              placeholder={t('profile.placeholderIban')}
+              placeholderTextColor={colors.textSecondary}
+              textAlign={isRTL ? 'right' : 'left'}
+              autoCapitalize="characters"
+            />
+          </View>
         </View>
       </ScrollView>
 
@@ -223,6 +287,7 @@ const styles = StyleSheet.create({
   } as ViewStyle,
   changePhotoText: { fontSize: 14, fontWeight: '600' } as TextStyle,
 
+  sectionTitle: { fontSize: 16, fontWeight: '700', marginTop: 12 } as TextStyle,
   form: { gap: 20 } as ViewStyle,
   fieldGroup: { gap: 8 } as ViewStyle,
   label: { fontSize: 14, fontWeight: '600' } as TextStyle,

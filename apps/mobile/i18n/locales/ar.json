@@ -138,7 +138,12 @@
     "tosPaymentTerms": "تتم معالجة المدفوعات من خلال المنصة. يحصل الناقلون على الدفع بعد تأكيد التسليم بنجاح.",
     "acceptTos": "أوافق على شروط الخدمة",
     "tosAccepted": "تم قبول شروط الخدمة بنجاح",
-    "tosAcceptFailed": "فشل قبول شروط الخدمة"
+    "tosAcceptFailed": "فشل قبول شروط الخدمة",
+    "bankDetails": "البيانات البنكية",
+    "bankNameField": "اسم البنك",
+    "ibanField": "رقم الآيبان",
+    "placeholderBankName": "مثال: بنك الراجحي",
+    "placeholderIban": "SA..."
   },
   "listing": {
     "create": "إنشاء عرض",
@@ -224,7 +229,16 @@
     "cancelBooking": "إلغاء الحجز",
     "cancelBookingConfirm": "هل أنت متأكد من إلغاء هذا الحجز؟",
     "yesCancel": "نعم، إلغاء",
-    "no": "لا"
+    "no": "لا",
+    "markPickedUp": "تأكيد استلام الأغراض",
+    "markInTransit": "تأكيد بدء الشحن",
+    "markDelivered": "تأكيد التسليم",
+    "confirmPickup": "تأكيد الاستلام",
+    "confirmPickupMessage": "هل تؤكد استلام الأغراض من المرسل؟",
+    "confirmInTransit": "تأكيد الشحن",
+    "confirmInTransitMessage": "هل تؤكد أن الأغراض الآن قيد الشحن؟",
+    "confirmDelivery": "تأكيد التوصيل",
+    "confirmDeliveryMessage": "هل تؤكد أنك سلمت الأغراض للمستلم?"
   },
   "wallet": {
     "title": "المحفظة",

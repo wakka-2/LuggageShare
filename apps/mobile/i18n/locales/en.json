@@ -138,7 +138,12 @@
     "tosPaymentTerms": "Payments are processed through the platform. Carriers receive payment after successful delivery confirmation.",
     "acceptTos": "I Accept the Terms of Service",
     "tosAccepted": "Terms of Service accepted successfully",
-    "tosAcceptFailed": "Failed to accept Terms of Service"
+    "tosAcceptFailed": "Failed to accept Terms of Service",
+    "bankDetails": "Bank Details",
+    "bankNameField": "Bank Name",
+    "ibanField": "IBAN",
+    "placeholderBankName": "e.g. Al Rajhi Bank",
+    "placeholderIban": "SA..."
   },
   "listing": {
     "create": "Create Listing",
@@ -224,7 +229,16 @@
     "cancelBooking": "Cancel Booking",
     "cancelBookingConfirm": "Are you sure you want to cancel?",
     "yesCancel": "Yes, Cancel",
-    "no": "No"
+    "no": "No",
+    "markPickedUp": "Mark as Picked Up",
+    "markInTransit": "Mark as In Transit",
+    "markDelivered": "Mark as Delivered",
+    "confirmPickup": "Confirm Pickup",
+    "confirmPickupMessage": "Confirm that you have picked up the items from the sender?",
+    "confirmInTransit": "Confirm In Transit",
+    "confirmInTransitMessage": "Confirm that the items are now in transit?",
+    "confirmDelivery": "Confirm Delivery",
+    "confirmDeliveryMessage": "Confirm that you have delivered the items to the recipient?"
   },
   "wallet": {
     "title": "Wallet",

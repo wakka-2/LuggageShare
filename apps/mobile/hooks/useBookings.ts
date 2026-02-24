@@ -125,6 +125,51 @@ export function useRejectBooking() {
   });
 }
 
+export function useMarkPickedUp() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { data } = await apiClient.put(`/bookings/${id}/pickup`);
+      return data;
+    },
+    onSuccess: (_data, id) => {
+      queryClient.invalidateQueries({ queryKey: ['bookings'] });
+      queryClient.invalidateQueries({ queryKey: ['booking', id] });
+    },
+  });
+}
+
+export function useMarkInTransit() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { data } = await apiClient.put(`/bookings/${id}/in-transit`);
+      return data;
+    },
+    onSuccess: (_data, id) => {
+      queryClient.invalidateQueries({ queryKey: ['bookings'] });
+      queryClient.invalidateQueries({ queryKey: ['booking', id] });
+    },
+  });
+}
+
+export function useMarkDelivered() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { data } = await apiClient.put(`/bookings/${id}/deliver`);
+      return data;
+    },
+    onSuccess: (_data, id) => {
+      queryClient.invalidateQueries({ queryKey: ['bookings'] });
+      queryClient.invalidateQueries({ queryKey: ['booking', id] });
+    },
+  });
+}
+
 export function useCancelBooking() {
   const queryClient = useQueryClient();
 

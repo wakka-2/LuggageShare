@@ -23,6 +23,9 @@ import {
   useAcceptBooking,
   useRejectBooking,
   useCancelBooking,
+  useMarkPickedUp,
+  useMarkInTransit,
+  useMarkDelivered,
 } from '@/hooks/useBookings';
 import { useBookingReview, useCreateReview } from '@/hooks/useReviews';
 import { useAuth } from '@/hooks/useAuth';
@@ -62,6 +65,9 @@ export default function BookingDetailScreen() {
   const acceptBooking = useAcceptBooking();
   const rejectBooking = useRejectBooking();
   const cancelBooking = useCancelBooking();
+  const markPickedUp = useMarkPickedUp();
+  const markInTransit = useMarkInTransit();
+  const markDelivered = useMarkDelivered();
   const createReview = useCreateReview();
 
   const [reviewRating, setReviewRating] = useState(0);
@@ -110,6 +116,27 @@ export default function BookingDetailScreen() {
         style: 'destructive',
         onPress: () => cancelBooking.mutate(booking.id),
       },
+    ]);
+  };
+
+  const handleMarkPickedUp = () => {
+    Alert.alert(t('booking.confirmPickup'), t('booking.confirmPickupMessage'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      { text: t('common.confirm'), onPress: () => markPickedUp.mutate(booking.id) },
+    ]);
+  };
+
+  const handleMarkInTransit = () => {
+    Alert.alert(t('booking.confirmInTransit'), t('booking.confirmInTransitMessage'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      { text: t('common.confirm'), onPress: () => markInTransit.mutate(booking.id) },
+    ]);
+  };
+
+  const handleMarkDelivered = () => {
+    Alert.alert(t('booking.confirmDelivery'), t('booking.confirmDeliveryMessage'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      { text: t('common.confirm'), onPress: () => markDelivered.mutate(booking.id) },
     ]);
   };
 
@@ -354,6 +381,98 @@ export default function BookingDetailScreen() {
           >
             <Ionicons name="card-outline" size={20} color="#FFF" style={{ marginRight: 8 }} />
             <Text style={styles.acceptText}>{t('payment.title')}</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {/* Carrier Status Progression */}
+      {isCarrier && booking.status === 'accepted' && (
+        <View
+          style={[
+            styles.actionBar,
+            { backgroundColor: colors.card, borderTopColor: colors.border },
+          ]}
+        >
+          <TouchableOpacity
+            onPress={handleMarkPickedUp}
+            disabled={markPickedUp.isPending}
+            style={[
+              styles.acceptBtn,
+              { backgroundColor: '#8B5CF6', opacity: markPickedUp.isPending ? 0.7 : 1 },
+            ]}
+          >
+            {markPickedUp.isPending ? (
+              <ActivityIndicator color="#FFF" size="small" />
+            ) : (
+              <>
+                <Ionicons name="cube-outline" size={20} color="#FFF" style={{ marginRight: 8 }} />
+                <Text style={styles.acceptText}>{t('booking.markPickedUp')}</Text>
+              </>
+            )}
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {isCarrier && booking.status === 'picked_up' && (
+        <View
+          style={[
+            styles.actionBar,
+            { backgroundColor: colors.card, borderTopColor: colors.border },
+          ]}
+        >
+          <TouchableOpacity
+            onPress={handleMarkInTransit}
+            disabled={markInTransit.isPending}
+            style={[
+              styles.acceptBtn,
+              { backgroundColor: '#6366F1', opacity: markInTransit.isPending ? 0.7 : 1 },
+            ]}
+          >
+            {markInTransit.isPending ? (
+              <ActivityIndicator color="#FFF" size="small" />
+            ) : (
+              <>
+                <Ionicons
+                  name="airplane-outline"
+                  size={20}
+                  color="#FFF"
+                  style={{ marginRight: 8 }}
+                />
+                <Text style={styles.acceptText}>{t('booking.markInTransit')}</Text>
+              </>
+            )}
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {isCarrier && booking.status === 'in_transit' && (
+        <View
+          style={[
+            styles.actionBar,
+            { backgroundColor: colors.card, borderTopColor: colors.border },
+          ]}
+        >
+          <TouchableOpacity
+            onPress={handleMarkDelivered}
+            disabled={markDelivered.isPending}
+            style={[
+              styles.acceptBtn,
+              { backgroundColor: '#10B981', opacity: markDelivered.isPending ? 0.7 : 1 },
+            ]}
+          >
+            {markDelivered.isPending ? (
+              <ActivityIndicator color="#FFF" size="small" />
+            ) : (
+              <>
+                <Ionicons
+                  name="checkmark-circle-outline"
+                  size={20}
+                  color="#FFF"
+                  style={{ marginRight: 8 }}
+                />
+                <Text style={styles.acceptText}>{t('booking.markDelivered')}</Text>
+              </>
+            )}
           </TouchableOpacity>
         </View>
       )}

@@ -197,6 +197,57 @@ export class BookingsService {
     });
   }
 
+  async markPickedUp(userId: string, id: string) {
+    const booking = await this.findById(userId, id);
+
+    if (booking.carrierId !== userId) {
+      throw new ForbiddenException('Only the carrier can mark items as picked up');
+    }
+
+    if (booking.status !== 'accepted') {
+      throw new BadRequestException('Booking must be accepted before marking as picked up');
+    }
+
+    return this.prisma.booking.update({
+      where: { id },
+      data: { status: 'picked_up' },
+    });
+  }
+
+  async markInTransit(userId: string, id: string) {
+    const booking = await this.findById(userId, id);
+
+    if (booking.carrierId !== userId) {
+      throw new ForbiddenException('Only the carrier can mark items as in transit');
+    }
+
+    if (booking.status !== 'picked_up') {
+      throw new BadRequestException('Items must be picked up before marking as in transit');
+    }
+
+    return this.prisma.booking.update({
+      where: { id },
+      data: { status: 'in_transit' },
+    });
+  }
+
+  async markDelivered(userId: string, id: string) {
+    const booking = await this.findById(userId, id);
+
+    if (booking.carrierId !== userId) {
+      throw new ForbiddenException('Only the carrier can mark items as delivered');
+    }
+
+    if (booking.status !== 'in_transit') {
+      throw new BadRequestException('Items must be in transit before marking as delivered');
+    }
+
+    return this.prisma.booking.update({
+      where: { id },
+      data: { status: 'delivered' },
+    });
+  }
+
   async cancel(userId: string, id: string) {
     const booking = await this.findById(userId, id);
 

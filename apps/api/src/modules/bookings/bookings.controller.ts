@@ -63,6 +63,27 @@ export class BookingsController {
     return this.bookingsService.submitPaymentProof(user.id, id, dto);
   }
 
+  @Put(':id/pickup')
+  @ApiOperation({ summary: 'Mark items as picked up (carrier)' })
+  @ApiResponse({ status: 200, description: 'Booking marked as picked up' })
+  async markPickedUp(@CurrentUser() user: any, @Param('id') id: string) {
+    return this.bookingsService.markPickedUp(user.id, id);
+  }
+
+  @Put(':id/in-transit')
+  @ApiOperation({ summary: 'Mark items as in transit (carrier)' })
+  @ApiResponse({ status: 200, description: 'Booking marked as in transit' })
+  async markInTransit(@CurrentUser() user: any, @Param('id') id: string) {
+    return this.bookingsService.markInTransit(user.id, id);
+  }
+
+  @Put(':id/deliver')
+  @ApiOperation({ summary: 'Mark items as delivered (carrier)' })
+  @ApiResponse({ status: 200, description: 'Booking marked as delivered' })
+  async markDelivered(@CurrentUser() user: any, @Param('id') id: string) {
+    return this.bookingsService.markDelivered(user.id, id);
+  }
+
   @Put(':id/cancel')
   @ApiOperation({ summary: 'Cancel a booking' })
   @ApiResponse({ status: 200, description: 'Booking cancelled' })
