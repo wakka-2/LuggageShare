@@ -13,6 +13,7 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { ReviewsService } from './reviews.service';
+import { CreateReviewDto } from './dto/create-review.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
@@ -43,7 +44,7 @@ export class ReviewsController {
   async create(
     @CurrentUser() user: any,
     @Param('bookingId') bookingId: string,
-    @Body() createReviewDto: { rating: number; comment?: string },
+    @Body() createReviewDto: CreateReviewDto,
   ) {
     return this.reviewsService.create(user.id, bookingId, createReviewDto);
   }

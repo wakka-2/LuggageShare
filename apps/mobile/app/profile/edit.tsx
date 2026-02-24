@@ -11,7 +11,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Avatar } from '@/components/common';
 
 export default function EditProfileScreen() {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { colors } = useTheme();
   const router = useRouter();
   const isRTL = i18n.language === 'ar';
@@ -34,7 +34,7 @@ export default function EditProfileScreen() {
 
   const handleSave = async () => {
     if (!name.trim()) {
-      Alert.alert(isRTL ? 'خطأ' : 'Error', isRTL ? 'الاسم مطلوب' : 'Name is required');
+      Alert.alert(t('common.errorTitle'), t('profile.nameRequired'));
       return;
     }
 
@@ -49,12 +49,12 @@ export default function EditProfileScreen() {
       updateUser({ displayName: name.trim() });
 
       Alert.alert(
-        isRTL ? 'تم التحديث' : 'Profile Updated',
-        isRTL ? 'تم تحديث ملفك الشخصي بنجاح' : 'Your profile has been updated successfully',
-        [{ text: isRTL ? 'حسناً' : 'OK', onPress: () => router.back() }]
+        t('profile.profileUpdated'),
+        t('profile.profileUpdatedMessage'),
+        [{ text: t('common.ok'), onPress: () => router.back() }]
       );
     } catch {
-      Alert.alert(isRTL ? 'خطأ' : 'Error', isRTL ? 'فشل تحديث الملف الشخصي' : 'Failed to update profile');
+      Alert.alert(t('common.errorTitle'), t('profile.failedUpdate'));
     }
   };
 
@@ -73,7 +73,7 @@ export default function EditProfileScreen() {
           <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.text }]}>
-          {isRTL ? 'تعديل الملف الشخصي' : 'Edit Profile'}
+          {t('profile.editProfile')}
         </Text>
         <View style={styles.headerBtn} />
       </View>
@@ -85,7 +85,7 @@ export default function EditProfileScreen() {
           <TouchableOpacity style={[styles.changePhotoBtn, { borderColor: colors.primary }]}>
             <Ionicons name="camera-outline" size={16} color={colors.primary} />
             <Text style={[styles.changePhotoText, { color: colors.primary }]}>
-              {isRTL ? 'تغيير الصورة' : 'Change Photo'}
+              {t('profile.changePhoto')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -94,13 +94,13 @@ export default function EditProfileScreen() {
         <View style={styles.form}>
           <View style={styles.fieldGroup}>
             <Text style={[styles.label, { color: colors.text }]}>
-              {isRTL ? 'الاسم' : 'Name'} <Text style={{ color: '#EF4444' }}>*</Text>
+              {t('profile.name')} <Text style={{ color: '#EF4444' }}>*</Text>
             </Text>
             <TextInput
               style={[styles.input, { backgroundColor: colors.card, color: colors.text, borderColor: colors.border }]}
               value={name}
               onChangeText={setName}
-              placeholder={isRTL ? 'أدخل اسمك' : 'Enter your name'}
+              placeholder={t('profile.enterName')}
               placeholderTextColor={colors.textSecondary}
               textAlign={isRTL ? 'right' : 'left'}
             />
@@ -108,7 +108,7 @@ export default function EditProfileScreen() {
 
           <View style={styles.fieldGroup}>
             <Text style={[styles.label, { color: colors.text }]}>
-              {isRTL ? 'البريد الإلكتروني' : 'Email'}
+              {t('profile.email')}
             </Text>
             <View style={[styles.input, styles.disabledInput, { backgroundColor: colors.card, borderColor: colors.border }]}>
               <Text style={[styles.disabledText, { color: colors.textSecondary }]}>{profile?.email}</Text>
@@ -117,13 +117,13 @@ export default function EditProfileScreen() {
 
           <View style={styles.fieldGroup}>
             <Text style={[styles.label, { color: colors.text }]}>
-              {isRTL ? 'المدينة' : 'City'}
+              {t('profile.city')}
             </Text>
             <TextInput
               style={[styles.input, { backgroundColor: colors.card, color: colors.text, borderColor: colors.border }]}
               value={city}
               onChangeText={setCity}
-              placeholder={isRTL ? 'مثال: الرياض' : 'e.g. Riyadh'}
+              placeholder={t('profile.placeholderCity')}
               placeholderTextColor={colors.textSecondary}
               textAlign={isRTL ? 'right' : 'left'}
             />
@@ -131,13 +131,13 @@ export default function EditProfileScreen() {
 
           <View style={styles.fieldGroup}>
             <Text style={[styles.label, { color: colors.text }]}>
-              {isRTL ? 'نبذة عنك' : 'Bio'}
+              {t('profile.bio')}
             </Text>
             <TextInput
               style={[styles.input, styles.textArea, { backgroundColor: colors.card, color: colors.text, borderColor: colors.border }]}
               value={bio}
               onChangeText={setBio}
-              placeholder={isRTL ? 'أخبرنا قليلاً عن نفسك...' : 'Tell us a little about yourself...'}
+              placeholder={t('profile.placeholderBio')}
               placeholderTextColor={colors.textSecondary}
               multiline
               numberOfLines={4}
@@ -160,7 +160,7 @@ export default function EditProfileScreen() {
           {updateProfile.isPending ? (
             <ActivityIndicator color="#FFF" />
           ) : (
-            <Text style={styles.saveBtnText}>{isRTL ? 'حفظ التغييرات' : 'Save Changes'}</Text>
+            <Text style={styles.saveBtnText}>{t('profile.saveChanges')}</Text>
           )}
         </TouchableOpacity>
       </View>

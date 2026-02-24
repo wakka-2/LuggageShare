@@ -14,6 +14,7 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { MessagesService } from './messages.service';
+import { SendMessageDto } from './dto/send-message.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
@@ -48,9 +49,9 @@ export class MessagesController {
   async sendMessage(
     @CurrentUser() user: any,
     @Param('bookingId') bookingId: string,
-    @Body() body: { content: string },
+    @Body() sendMessageDto: SendMessageDto,
   ) {
-    return this.messagesService.sendMessage(user.id, bookingId, body.content);
+    return this.messagesService.sendMessage(user.id, bookingId, sendMessageDto.content);
   }
 
   @Post('conversations/:bookingId/read')

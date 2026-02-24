@@ -8,14 +8,14 @@ import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { useTheme } from '@/hooks/useTheme';
 import { useWalletBalance, useTransactionHistory, Transaction } from '@/hooks/useWallet';
 
-const TYPE_CONFIG: Record<string, { icon: keyof typeof Ionicons.glyphMap; color: string; labelEn: string; labelAr: string }> = {
-  commission: { icon: 'trending-up-outline', color: '#10B981', labelEn: 'Commission', labelAr: 'عمولة' },
-  top_up: { icon: 'add-circle-outline', color: '#3B82F6', labelEn: 'Top Up', labelAr: 'إيداع' },
-  refund: { icon: 'refresh-outline', color: '#F59E0B', labelEn: 'Refund', labelAr: 'استرجاع' },
+const TYPE_CONFIG: Record<string, { icon: keyof typeof Ionicons.glyphMap; color: string; labelKey: string }> = {
+  commission: { icon: 'trending-up-outline', color: '#10B981', labelKey: 'wallet.commission' },
+  top_up: { icon: 'add-circle-outline', color: '#3B82F6', labelKey: 'wallet.topUpType' },
+  refund: { icon: 'refresh-outline', color: '#F59E0B', labelKey: 'wallet.refund' },
 };
 
 export default function WalletScreen() {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { colors } = useTheme();
   const router = useRouter();
   const isRTL = i18n.language === 'ar';
@@ -27,7 +27,7 @@ export default function WalletScreen() {
   const handleRefresh = () => { refetchBalance(); refetchHistory(); };
 
   const renderTransaction = ({ item }: { item: Transaction }) => {
-    const config = TYPE_CONFIG[item.type] || { icon: 'ellipsis-horizontal', color: colors.textSecondary, labelEn: item.type, labelAr: item.type };
+    const config = TYPE_CONFIG[item.type] || { icon: 'ellipsis-horizontal', color: colors.textSecondary, labelKey: '' };
     const isPositive = Number(item.amount) > 0;
 
     return (
@@ -36,7 +36,7 @@ export default function WalletScreen() {
           <Ionicons name={config.icon} size={20} color={config.color} />
         </View>
         <View style={styles.txContent}>
-          <Text style={[styles.txType, { color: colors.text }]}>{isRTL ? config.labelAr : config.labelEn}</Text>
+          <Text style={[styles.txType, { color: colors.text }]}>{config.labelKey ? t(config.labelKey) : item.type}</Text>
           {item.description && (
             <Text style={[styles.txDesc, { color: colors.textSecondary }]} numberOfLines={1}>{item.description}</Text>
           )}
@@ -57,7 +57,7 @@ export default function WalletScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.headerBtn}>
           <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>{isRTL ? 'المحفظة' : 'Wallet'}</Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>{t('wallet.title')}</Text>
         <View style={styles.headerBtn} />
       </View>
 
@@ -73,7 +73,7 @@ export default function WalletScreen() {
             <>
               {/* Balance Card */}
               <Animated.View entering={FadeInDown.duration(300)} style={[styles.balanceCard, { backgroundColor: colors.primary }]}>
-                <Text style={styles.balanceLabel}>{isRTL ? 'الرصيد الحالي' : 'Current Balance'}</Text>
+                <Text style={styles.balanceLabel}>{t('wallet.balance')}</Text>
                 <Text style={styles.balanceValue}>
                   {balance?.balance?.toFixed(2) || '0.00'} <Text style={styles.balanceCurrency}>{balance?.currency || 'SAR'}</Text>
                 </Text>
@@ -82,7 +82,7 @@ export default function WalletScreen() {
               {/* History Header */}
               <View style={styles.historyHeader}>
                 <Text style={[styles.historyTitle, { color: colors.text }]}>
-                  {isRTL ? 'سجل المعاملات' : 'Transaction History'}
+                  {t('wallet.transactions')}
                 </Text>
               </View>
             </>
@@ -91,10 +91,10 @@ export default function WalletScreen() {
             <Animated.View entering={FadeIn.duration(300)} style={styles.emptyState}>
               <Ionicons name="wallet-outline" size={48} color={colors.textSecondary} />
               <Text style={[styles.emptyTitle, { color: colors.text }]}>
-                {isRTL ? 'لا توجد معاملات' : 'No transactions yet'}
+                {t('wallet.noTransactions')}
               </Text>
               <Text style={[styles.emptyDesc, { color: colors.textSecondary }]}>
-                {isRTL ? 'ستظهر معاملاتك هنا بعد إتمام الحجوزات' : 'Your transactions will appear here after completed bookings'}
+                {t('wallet.noTransactionsDescription')}
               </Text>
             </Animated.View>
           }

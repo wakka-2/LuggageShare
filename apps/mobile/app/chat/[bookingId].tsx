@@ -12,7 +12,7 @@ import { Avatar } from '@/components/common';
 
 export default function ChatScreen() {
   const { bookingId } = useLocalSearchParams<{ bookingId: string }>();
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { colors } = useTheme();
   const router = useRouter();
   const { user } = useAuth();
@@ -24,8 +24,15 @@ export default function ChatScreen() {
   const sendMessage = useSendMessage();
   const markAsRead = useMarkAsRead();
 
+  // Mark as read only once on mount, and when new unread messages from others arrive
+  const hasMarkedRead = useRef(false);
   useEffect(() => {
-    if (bookingId) {
+    if (!bookingId || !messages?.length) return;
+    const hasUnread = messages.some(
+      (m: any) => m.senderId !== user?.id && !m.isRead,
+    );
+    if (hasUnread || !hasMarkedRead.current) {
+      hasMarkedRead.current = true;
       markAsRead.mutate(bookingId);
     }
   }, [bookingId, messages?.length]);
@@ -65,7 +72,7 @@ export default function ChatScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.headerBtn}>
           <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>{isRTL ? 'المحادثة' : 'Chat'}</Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>{t('chat.title')}</Text>
         <View style={styles.headerBtn} />
       </View>
 
@@ -85,7 +92,7 @@ export default function ChatScreen() {
               <View style={styles.emptyChat}>
                 <Ionicons name="chatbubbles-outline" size={48} color={colors.textSecondary} />
                 <Text style={[styles.emptyChatText, { color: colors.textSecondary }]}>
-                  {isRTL ? 'ابدأ المحادثة' : 'Start the conversation'}
+                  {t('chat.startConversation')}
                 </Text>
               </View>
             }
@@ -97,7 +104,7 @@ export default function ChatScreen() {
             style={[styles.textInput, { backgroundColor: colors.background, color: colors.text }]}
             value={messageText}
             onChangeText={setMessageText}
-            placeholder={isRTL ? 'اكتب رسالة...' : 'Type a message...'}
+            placeholder={t('messages.typeMessage')}
             placeholderTextColor={colors.textSecondary}
             multiline
             maxLength={1000}

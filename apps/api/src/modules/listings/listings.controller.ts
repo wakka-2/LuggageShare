@@ -16,6 +16,8 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { ListingsService } from './listings.service';
+import { CreateListingDto } from './dto/create-listing.dto';
+import { UpdateListingDto } from './dto/update-listing.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Public } from '../auth/decorators/public.decorator';
@@ -51,7 +53,7 @@ export class ListingsController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create a new listing' })
   @ApiResponse({ status: 201, description: 'Listing created successfully' })
-  async create(@CurrentUser() user: any, @Body() createListingDto: any) {
+  async create(@CurrentUser() user: any, @Body() createListingDto: CreateListingDto) {
     return this.listingsService.create(user.id, createListingDto);
   }
 
@@ -63,7 +65,7 @@ export class ListingsController {
   async update(
     @CurrentUser() user: any,
     @Param('id') id: string,
-    @Body() updateListingDto: any,
+    @Body() updateListingDto: UpdateListingDto,
   ) {
     return this.listingsService.update(user.id, id, updateListingDto);
   }

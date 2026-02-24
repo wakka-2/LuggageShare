@@ -26,6 +26,7 @@ import {
   ViewMode,
   ListingType,
 } from '@/components/listings';
+import { useUnreadCount } from '@/hooks/useNotifications';
 
 type TabValue = ListingType | 'all';
 
@@ -90,7 +91,7 @@ export default function HomeScreen() {
     router.push(`/listing/${listingId}`);
   }, [router]);
 
-  const notificationCount = 3;
+  const notificationCount = useUnreadCount();
 
   // Gradient colors for hero
   const heroGradient = isDark
@@ -118,16 +119,14 @@ export default function HomeScreen() {
             >
               <View style={styles.heroTextContainer}>
                 <Text style={[styles.heroLabel, { color: colors.primary }]}>
-                  {isRTL ? 'مرحباً بك في' : 'Welcome to'}
+                  {t('home.welcomeTo')}
                 </Text>
                 <Text style={[styles.heroTitle, { color: colors.text }]}>
-                  {isRTL ? 'سوق الشحن' : 'Luggage'}
+                  {t('home.appName')}
                   <Text style={{ color: colors.primary }}>Share</Text>
                 </Text>
                 <Text style={[styles.heroSubtitle, { color: colors.textSecondary }]}>
-                  {isRTL
-                    ? 'أرسل أغراضك مع مسافرين موثوقين أو اكسب المال من المساحة الإضافية في حقيبتك'
-                    : 'Send your items with trusted travelers or earn money from your extra luggage space'}
+                  {t('home.heroDescription')}
                 </Text>
               </View>
 
@@ -139,19 +138,19 @@ export default function HomeScreen() {
                 <View style={[styles.statItem, { backgroundColor: colors.card }]}>
                   <Text style={[styles.statValue, { color: colors.primary }]}>2.5K+</Text>
                   <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-                    {isRTL ? 'مسافر' : 'Travelers'}
+                    {t('home.travelers')}
                   </Text>
                 </View>
                 <View style={[styles.statItem, { backgroundColor: colors.card }]}>
                   <Text style={[styles.statValue, { color: colors.success }]}>15K+</Text>
                   <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-                    {isRTL ? 'شحنة' : 'Deliveries'}
+                    {t('home.deliveries')}
                   </Text>
                 </View>
                 <View style={[styles.statItem, { backgroundColor: colors.card }]}>
                   <Text style={[styles.statValue, { color: colors.warning }]}>4.8</Text>
                   <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-                    {isRTL ? 'تقييم' : 'Rating'}
+                    {t('home.rating')}
                   </Text>
                 </View>
               </Animated.View>
@@ -197,12 +196,12 @@ export default function HomeScreen() {
             style={[styles.resultsHeader, isWideScreen && styles.resultsHeaderWide]}
           >
             <Text style={[styles.resultsTitle, { color: colors.text }]}>
-              {isRTL ? 'الإعلانات المتاحة' : 'Available Listings'}
+              {t('home.availableListings')}
             </Text>
             <Text style={[styles.resultsCount, { color: colors.textSecondary }]}>
-              {filteredListings.length} {isRTL ? 'إعلان' : 'listings'}
+              {filteredListings.length} {t('home.listings')}
               {(searchFrom || searchTo || searchDate) && (
-                <Text style={{ color: colors.primary }}> • {isRTL ? 'مفلتر' : 'Filtered'}</Text>
+                <Text style={{ color: colors.primary }}> • {t('home.filtered')}</Text>
               )}
             </Text>
           </Animated.View>
@@ -234,11 +233,9 @@ export default function HomeScreen() {
             {filteredListings.length === 0 && (
               <EmptyState
                 lottieAnimation="search"
-                title={isRTL ? 'لا توجد نتائج' : 'No listings found'}
-                description={isRTL
-                  ? 'جرب تغيير معايير البحث أو تصفح جميع الإعلانات'
-                  : 'Try adjusting your search filters or browse all listings'}
-                actionLabel={isRTL ? 'مسح الفلاتر' : 'Clear filters'}
+                title={t('home.noListings')}
+                description={t('home.noListingsDescription')}
+                actionLabel={t('home.clearFilters')}
                 onAction={() => {
                   setSearchFrom('');
                   setSearchTo('');
@@ -272,7 +269,7 @@ export default function HomeScreen() {
             {t('home.greeting')}
           </Text>
           <Text style={[styles.title, { color: colors.text }]}>
-            {isRTL ? 'سوق الشحن' : 'Marketplace'}
+            {t('home.marketplace')}
           </Text>
         </Animated.View>
 
@@ -301,7 +298,7 @@ export default function HomeScreen() {
         {/* View Toggle + Results */}
         <Animated.View entering={FadeIn.delay(200).duration(400)} style={styles.mobileControlsRow}>
           <Text style={[styles.resultsCount, { color: colors.textSecondary }]}>
-            {isLoading ? (isRTL ? 'جاري التحميل...' : 'Loading...') : `${filteredListings.length} ${isRTL ? 'إعلان' : 'listings'}`}
+            {isLoading ? t('common.loading') : `${filteredListings.length} ${t('home.listings')}`}
           </Text>
           <ViewToggle value={viewMode} onChange={setViewMode} />
         </Animated.View>
@@ -329,11 +326,9 @@ export default function HomeScreen() {
             {filteredListings.length === 0 && (
               <EmptyState
                 lottieAnimation="search"
-                title={isRTL ? 'لا توجد نتائج' : 'No listings found'}
-                description={isRTL
-                  ? 'جرب تغيير معايير البحث'
-                  : 'Try adjusting your search filters'}
-                actionLabel={isRTL ? 'مسح الفلاتر' : 'Clear filters'}
+                title={t('home.noListings')}
+                description={t('home.noListingsDescriptionShort')}
+                actionLabel={t('home.clearFilters')}
                 onAction={() => {
                   setSearchFrom('');
                   setSearchTo('');

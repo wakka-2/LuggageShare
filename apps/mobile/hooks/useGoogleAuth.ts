@@ -27,36 +27,34 @@ export function useGoogleAuth() {
   const [isLoading, setIsLoading] = useState(false);
   const { signIn } = useAuth();
 
-  // Only use the auth request hook if configured
-  const authRequest = isConfigured
-    ? Google.useAuthRequest(googleConfig)
-    : [null, null, null];
-
-  const [request, , promptAsync] = authRequest;
+  // Always call the hook (Rules of Hooks) — use isConfigured to skip the flow, not the hook
+  const [request, , promptAsync] = Google.useAuthRequest(googleConfig);
 
   async function signInWithGoogle() {
     if (!isConfigured) {
       console.warn('Google Auth not configured. Add client IDs to app.json extra config.');
-      // For demo purposes, simulate a successful login
-      await signIn({
-        accessToken: 'demo_access_token',
-        refreshToken: 'demo_refresh_token',
-        user: {
-          id: 'demo_user_id',
-          email: 'demo@example.com',
-          displayName: 'Demo User',
-          avatarUrl: null,
-          isNewUser: true,
-          profileComplete: false,
-        },
-      });
+      // Demo login only when explicitly opted in
+      if (__DEV__ && process.env.EXPO_PUBLIC_DEV_SKIP_AUTH === 'true') {
+        await signIn({
+          accessToken: 'demo_access_token',
+          refreshToken: 'demo_refresh_token',
+          user: {
+            id: 'demo_user_id',
+            email: 'demo@example.com',
+            displayName: 'Demo User',
+            avatarUrl: null,
+            isNewUser: true,
+            profileComplete: false,
+          },
+        });
+      }
       return;
     }
 
     try {
       setIsLoading(true);
 
-      const result = await promptAsync!();
+      const result = await promptAsync();
 
       if (result.type === 'success' && result.authentication?.idToken) {
         // Send token to backend for verification
@@ -79,7 +77,7 @@ export function useGoogleAuth() {
   return {
     signInWithGoogle,
     isLoading,
-    isReady: isConfigured ? !!request : true, // Always ready in demo mode
+    isReady: isConfigured ? !!request : true,
     isConfigured,
   };
 }

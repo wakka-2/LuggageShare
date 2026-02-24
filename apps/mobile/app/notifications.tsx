@@ -18,21 +18,21 @@ const NOTIFICATION_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
   payment_received: 'wallet-outline',
 };
 
-function getTimeAgo(dateStr: string, isRTL: boolean): string {
+function getTimeAgo(dateStr: string, isRTL: boolean, t: (key: string, options?: Record<string, unknown>) => string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
   const minutes = Math.floor(diff / 60000);
   const hours = Math.floor(diff / 3600000);
   const days = Math.floor(diff / 86400000);
 
-  if (minutes < 1) return isRTL ? 'الآن' : 'Just now';
-  if (minutes < 60) return isRTL ? `منذ ${minutes} دقيقة` : `${minutes}m ago`;
-  if (hours < 24) return isRTL ? `منذ ${hours} ساعة` : `${hours}h ago`;
-  if (days < 7) return isRTL ? `منذ ${days} يوم` : `${days}d ago`;
+  if (minutes < 1) return t('notifications.justNow');
+  if (minutes < 60) return t('notifications.minutesAgo', { count: minutes });
+  if (hours < 24) return t('notifications.hoursAgo', { count: hours });
+  if (days < 7) return t('notifications.daysAgo', { count: days });
   return new Date(dateStr).toLocaleDateString(isRTL ? 'ar-SA' : 'en-US', { month: 'short', day: 'numeric' });
 }
 
 export default function NotificationsScreen() {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { colors } = useTheme();
   const router = useRouter();
   const isRTL = i18n.language === 'ar';
@@ -81,7 +81,7 @@ export default function NotificationsScreen() {
           {item.body}
         </Text>
         <Text style={[styles.notifTime, { color: colors.textSecondary }]}>
-          {getTimeAgo(item.createdAt, isRTL)}
+          {getTimeAgo(item.createdAt, isRTL, t)}
         </Text>
       </View>
       {!item.isRead && <View style={[styles.unreadDot, { backgroundColor: colors.primary }]} />}
@@ -95,7 +95,7 @@ export default function NotificationsScreen() {
           <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.text }]}>
-          {isRTL ? 'الإشعارات' : 'Notifications'}
+          {t('notifications.title')}
         </Text>
         {unreadCount > 0 ? (
           <TouchableOpacity onPress={() => markAllRead.mutate()} style={styles.headerBtn}>
@@ -118,10 +118,10 @@ export default function NotificationsScreen() {
             <Animated.View entering={FadeIn.duration(300)} style={styles.emptyState}>
               <Ionicons name="notifications-off-outline" size={56} color={colors.textSecondary} />
               <Text style={[styles.emptyTitle, { color: colors.text }]}>
-                {isRTL ? 'لا توجد إشعارات' : 'No notifications'}
+                {t('notifications.noNotifications')}
               </Text>
               <Text style={[styles.emptyDesc, { color: colors.textSecondary }]}>
-                {isRTL ? 'ستظهر هنا عندما يكون لديك إشعارات جديدة' : "You'll see notifications here when you have updates"}
+                {t('notifications.noNotificationsDescription')}
               </Text>
             </Animated.View>
           }

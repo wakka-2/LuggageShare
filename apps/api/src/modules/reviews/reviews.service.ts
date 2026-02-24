@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { CreateReviewDto } from './dto/create-review.dto';
 
 @Injectable()
 export class ReviewsService {
@@ -51,7 +52,7 @@ export class ReviewsService {
     });
   }
 
-  async create(userId: string, bookingId: string, dto: { rating: number; comment?: string }) {
+  async create(userId: string, bookingId: string, dto: CreateReviewDto) {
     const booking = await this.prisma.booking.findUnique({
       where: { id: bookingId },
     });

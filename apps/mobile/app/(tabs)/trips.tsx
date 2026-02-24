@@ -24,14 +24,14 @@ const STATUS_COLORS: Record<string, string> = {
   cancelled: '#6B7280',
 };
 
-const STATUS_LABELS: Record<string, { en: string; ar: string }> = {
-  pending: { en: 'Pending', ar: 'قيد الانتظار' },
-  accepted: { en: 'Accepted', ar: 'مقبول' },
-  picked_up: { en: 'Picked Up', ar: 'تم الاستلام' },
-  in_transit: { en: 'In Transit', ar: 'قيد الشحن' },
-  delivered: { en: 'Delivered', ar: 'تم التوصيل' },
-  rejected: { en: 'Rejected', ar: 'مرفوض' },
-  cancelled: { en: 'Cancelled', ar: 'ملغي' },
+const STATUS_KEYS: Record<string, string> = {
+  pending: 'trips.statusPending',
+  accepted: 'trips.statusAccepted',
+  picked_up: 'trips.statusPickedUp',
+  in_transit: 'trips.statusInTransit',
+  delivered: 'trips.statusDelivered',
+  rejected: 'trips.statusRejected',
+  cancelled: 'trips.statusCancelled',
 };
 
 function BookingCard({ booking, isRTL, colors, onPress }: {
@@ -40,9 +40,10 @@ function BookingCard({ booking, isRTL, colors, onPress }: {
   colors: ThemeColors;
   onPress: () => void;
 }) {
+  const { t } = useTranslation();
   const statusColor = STATUS_COLORS[booking.status] || colors.textSecondary;
   const date = new Date(booking.listing.departureDate);
-  const statusLabel = STATUS_LABELS[booking.status] || { en: booking.status, ar: booking.status };
+  const statusKey = STATUS_KEYS[booking.status];
 
   return (
     <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
@@ -55,7 +56,7 @@ function BookingCard({ booking, isRTL, colors, onPress }: {
 
         <View style={[styles.statusBadge, { backgroundColor: statusColor + '20' }]}>
           <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
-          <Text style={[styles.statusText, { color: statusColor }]}>{isRTL ? statusLabel.ar : statusLabel.en}</Text>
+          <Text style={[styles.statusText, { color: statusColor }]}>{statusKey ? t(statusKey) : booking.status}</Text>
         </View>
 
         <View style={styles.bookingDetails}>
@@ -85,7 +86,7 @@ function BookingCard({ booking, isRTL, colors, onPress }: {
 }
 
 export default function TripsScreen() {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { colors } = useTheme();
   const router = useRouter();
   const isRTL = i18n.language === 'ar';
@@ -101,17 +102,17 @@ export default function TripsScreen() {
     return bookings.filter(b => ['rejected', 'cancelled'].includes(b.status));
   }, [bookings, activeFilter]);
 
-  const filters: { key: FilterTab; label: string; labelAr: string }[] = [
-    { key: 'all', label: 'All', labelAr: 'الكل' },
-    { key: 'active', label: 'Active', labelAr: 'نشط' },
-    { key: 'completed', label: 'Done', labelAr: 'مكتمل' },
-    { key: 'cancelled', label: 'Cancelled', labelAr: 'ملغي' },
+  const filters: { key: FilterTab; labelKey: string }[] = [
+    { key: 'all', labelKey: 'trips.filterAll' },
+    { key: 'active', labelKey: 'trips.filterActive' },
+    { key: 'completed', labelKey: 'trips.filterDone' },
+    { key: 'cancelled', labelKey: 'trips.filterCancelled' },
   ];
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
       <View style={[styles.header, { borderBottomColor: colors.border }]}>
-        <Text style={[styles.title, { color: colors.text }]}>{isRTL ? 'رحلاتي' : 'My Trips'}</Text>
+        <Text style={[styles.title, { color: colors.text }]}>{t('trips.title')}</Text>
       </View>
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterBar} contentContainerStyle={styles.filterBarContent}>
@@ -122,7 +123,7 @@ export default function TripsScreen() {
             style={[styles.filterChip, { backgroundColor: activeFilter === f.key ? colors.primary : colors.card }]}
           >
             <Text style={[styles.filterChipText, { color: activeFilter === f.key ? '#FFF' : colors.textSecondary }]}>
-              {isRTL ? f.labelAr : f.label}
+              {t(f.labelKey)}
             </Text>
           </TouchableOpacity>
         ))}
@@ -140,9 +141,9 @@ export default function TripsScreen() {
         {!isLoading && filteredBookings.length === 0 && (
           <EmptyState
             lottieAnimation="search"
-            title={isRTL ? 'لا توجد رحلات' : 'No trips yet'}
-            description={isRTL ? 'ابدأ بإرسال أغراضك أو نشر إعلان كناقل' : 'Start by sending items or posting a listing as a carrier'}
-            actionLabel={isRTL ? 'تصفح الإعلانات' : 'Browse Listings'}
+            title={t('trips.empty')}
+            description={t('trips.emptyDescription')}
+            actionLabel={t('messages.browseListings')}
             onAction={() => router.push('/(tabs)')}
             style={styles.emptyState}
           />

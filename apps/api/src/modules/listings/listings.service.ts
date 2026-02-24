@@ -1,5 +1,7 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { CreateListingDto } from './dto/create-listing.dto';
+import { UpdateListingDto } from './dto/update-listing.dto';
 
 @Injectable()
 export class ListingsService {
@@ -64,26 +66,50 @@ export class ListingsService {
     return listing;
   }
 
-  async create(userId: string, createListingDto: any) {
+  async create(userId: string, createListingDto: CreateListingDto) {
+    // Explicit field mapping — prevent mass assignment
     return this.prisma.listing.create({
       data: {
-        ...createListingDto,
         carrierId: userId,
         status: 'active',
+        departureCity: createListingDto.departureCity,
+        arrivalCity: createListingDto.arrivalCity,
+        departureDate: new Date(createListingDto.departureDate),
+        flightNumber: createListingDto.flightNumber,
+        availableWeight: createListingDto.availableWeight,
+        pricePerKg: createListingDto.pricePerKg,
+        currency: createListingDto.currency || 'SAR',
+        preferences: createListingDto.preferences as any,
+        notes: createListingDto.notes,
       },
     });
   }
 
-  async update(userId: string, id: string, updateListingDto: any) {
+  async update(userId: string, id: string, updateListingDto: UpdateListingDto) {
     const listing = await this.findById(id);
 
     if (listing.carrierId !== userId) {
       throw new ForbiddenException('You can only update your own listings');
     }
 
+    // Explicit field mapping — prevent mass assignment
+    const allowedUpdates: Record<string, any> = {};
+    const allowedFields = [
+      'departureCity', 'arrivalCity', 'departureDate', 'flightNumber',
+      'availableWeight', 'pricePerKg', 'currency', 'preferences', 'notes',
+    ];
+    const dtoRecord = updateListingDto as Record<string, any>;
+    for (const field of allowedFields) {
+      if (dtoRecord[field] !== undefined) {
+        allowedUpdates[field] = field === 'departureDate'
+          ? new Date(dtoRecord[field])
+          : dtoRecord[field];
+      }
+    }
+
     return this.prisma.listing.update({
       where: { id },
-      data: updateListingDto,
+      data: allowedUpdates,
     });
   }
 

@@ -32,7 +32,27 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Response interceptor for token refresh
+// Mutex for token refresh — prevents concurrent refresh requests
+let refreshPromise: Promise<string | null> | null = null;
+
+async function refreshAccessToken(): Promise<string | null> {
+  const tokensJson = await SecureStore.getItemAsync('auth_tokens');
+  if (!tokensJson) return null;
+
+  const tokens = JSON.parse(tokensJson);
+  const response = await axios.post(`${API_URL}/api/v1/auth/refresh`, {
+    refreshToken: tokens.refreshToken,
+  });
+
+  const newAccessToken = response.data.data?.accessToken ?? response.data.accessToken;
+  if (!newAccessToken) return null;
+
+  const newTokens = { ...tokens, accessToken: newAccessToken };
+  await SecureStore.setItemAsync('auth_tokens', JSON.stringify(newTokens));
+  return newAccessToken;
+}
+
+// Response interceptor for token refresh with mutex
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -43,30 +63,22 @@ apiClient.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        const tokensJson = await SecureStore.getItemAsync('auth_tokens');
-        if (tokensJson) {
-          const tokens = JSON.parse(tokensJson);
-
-          // Try to refresh the token
-          const response = await axios.post(`${API_URL}/api/v1/auth/refresh`, {
-            refreshToken: tokens.refreshToken,
+        // Use mutex: if a refresh is already in-flight, piggyback on it
+        if (!refreshPromise) {
+          refreshPromise = refreshAccessToken().finally(() => {
+            refreshPromise = null;
           });
+        }
 
-          const newTokens = {
-            ...tokens,
-            accessToken: response.data.data.accessToken,
-          };
+        const newAccessToken = await refreshPromise;
 
-          await SecureStore.setItemAsync('auth_tokens', JSON.stringify(newTokens));
-
-          // Retry the original request
-          originalRequest.headers.Authorization = `Bearer ${newTokens.accessToken}`;
+        if (newAccessToken) {
+          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
           return apiClient(originalRequest);
         }
       } catch (refreshError) {
-        // Refresh failed - clear tokens and redirect to login
+        // Refresh failed — clear tokens, AuthProvider will handle redirect
         await SecureStore.deleteItemAsync('auth_tokens');
-        // Navigation will be handled by AuthProvider
       }
     }
 

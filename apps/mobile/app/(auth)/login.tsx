@@ -1,4 +1,5 @@
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -12,8 +13,31 @@ export default function LoginScreen() {
   const { colors } = useTheme();
   const { signInWithGoogle, isLoading: isGoogleLoading } = useGoogleAuth();
   const { signInWithApple, isLoading: isAppleLoading } = useAppleAuth();
+  const [error, setError] = useState<string | null>(null);
 
   const isLoading = isGoogleLoading || isAppleLoading;
+
+  const handleGoogleSignIn = async () => {
+    try {
+      setError(null);
+      await signInWithGoogle();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : t('common.error');
+      setError(message);
+      Alert.alert(t('common.error'), message);
+    }
+  };
+
+  const handleAppleSignIn = async () => {
+    try {
+      setError(null);
+      await signInWithApple();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : t('common.error');
+      setError(message);
+      Alert.alert(t('common.error'), message);
+    }
+  };
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -31,12 +55,20 @@ export default function LoginScreen() {
           </Text>
         </View>
 
+        {/* Error message */}
+        {error && (
+          <View style={[styles.errorBanner, { backgroundColor: '#FEE2E2' }]}>
+            <Ionicons name="alert-circle" size={18} color="#DC2626" />
+            <Text style={styles.errorText}>{error}</Text>
+          </View>
+        )}
+
         {/* Auth Buttons */}
         <View style={styles.authButtons}>
           {/* Google Sign In */}
           <TouchableOpacity
             style={[styles.authButton, styles.googleButton]}
-            onPress={signInWithGoogle}
+            onPress={handleGoogleSignIn}
             disabled={isLoading}
           >
             <Ionicons name="logo-google" size={24} color="#4285F4" />
@@ -48,7 +80,7 @@ export default function LoginScreen() {
           {/* Apple Sign In */}
           <TouchableOpacity
             style={[styles.authButton, styles.appleButton]}
-            onPress={signInWithApple}
+            onPress={handleAppleSignIn}
             disabled={isLoading}
           >
             <Ionicons name="logo-apple" size={24} color="#FFFFFF" />
@@ -146,5 +178,18 @@ const styles = StyleSheet.create({
   },
   termsLink: {
     fontWeight: '600',
+  },
+  errorBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    padding: 12,
+    borderRadius: 10,
+    marginBottom: 16,
+  },
+  errorText: {
+    flex: 1,
+    fontSize: 13,
+    color: '#DC2626',
   },
 });

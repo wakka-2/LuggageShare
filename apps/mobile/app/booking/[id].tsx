@@ -17,14 +17,14 @@ const STATUS_COLORS: Record<string, string> = {
   in_transit: '#6366F1', delivered: '#10B981', rejected: '#EF4444', cancelled: '#6B7280',
 };
 
-const STATUS_LABELS: Record<string, { en: string; ar: string }> = {
-  pending: { en: 'Pending Approval', ar: 'بانتظار الموافقة' },
-  accepted: { en: 'Accepted', ar: 'مقبول' },
-  picked_up: { en: 'Items Picked Up', ar: 'تم استلام الأغراض' },
-  in_transit: { en: 'In Transit', ar: 'قيد الشحن' },
-  delivered: { en: 'Delivered', ar: 'تم التوصيل' },
-  rejected: { en: 'Rejected', ar: 'مرفوض' },
-  cancelled: { en: 'Cancelled', ar: 'ملغي' },
+const BOOKING_STATUS_KEYS: Record<string, string> = {
+  pending: 'booking.statusPendingApproval',
+  accepted: 'booking.statusAccepted',
+  picked_up: 'booking.statusPickedUp',
+  in_transit: 'booking.statusInTransit',
+  delivered: 'booking.statusDelivered',
+  rejected: 'booking.statusRejected',
+  cancelled: 'booking.statusCancelled',
 };
 
 function StarRating({ rating, onRate, size = 28 }: { rating: number; onRate?: (r: number) => void; size?: number }) {
@@ -45,7 +45,7 @@ function StarRating({ rating, onRate, size = 28 }: { rating: number; onRate?: (r
 
 export default function BookingDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { colors } = useTheme();
   const router = useRouter();
   const { user } = useAuth();
@@ -73,33 +73,33 @@ export default function BookingDetailScreen() {
   const isCarrier = user?.id === booking.carrierId;
   const isSender = user?.id === booking.senderId;
   const statusColor = STATUS_COLORS[booking.status] || colors.textSecondary;
-  const statusLabel = STATUS_LABELS[booking.status] || { en: booking.status, ar: booking.status };
+  const statusKey = BOOKING_STATUS_KEYS[booking.status];
   const otherUser = isCarrier ? booking.sender : booking.carrier;
 
   const handleAccept = () => {
-    Alert.alert(isRTL ? 'قبول الحجز' : 'Accept Booking', isRTL ? 'هل تريد قبول هذا الحجز؟' : 'Accept this booking request?', [
-      { text: isRTL ? 'إلغاء' : 'Cancel', style: 'cancel' },
-      { text: isRTL ? 'قبول' : 'Accept', onPress: () => acceptBooking.mutate(booking.id) },
+    Alert.alert(t('booking.acceptBooking'), t('booking.acceptBookingConfirm'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      { text: t('booking.accept'), onPress: () => acceptBooking.mutate(booking.id) },
     ]);
   };
 
   const handleReject = () => {
-    Alert.alert(isRTL ? 'رفض الحجز' : 'Reject Booking', isRTL ? 'هل تريد رفض هذا الحجز؟' : 'Reject this booking request?', [
-      { text: isRTL ? 'إلغاء' : 'Cancel', style: 'cancel' },
-      { text: isRTL ? 'رفض' : 'Reject', style: 'destructive', onPress: () => rejectBooking.mutate(booking.id) },
+    Alert.alert(t('booking.rejectBooking'), t('booking.rejectBookingConfirm'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      { text: t('booking.reject'), style: 'destructive', onPress: () => rejectBooking.mutate(booking.id) },
     ]);
   };
 
   const handleCancel = () => {
-    Alert.alert(isRTL ? 'إلغاء الحجز' : 'Cancel Booking', isRTL ? 'هل أنت متأكد من إلغاء هذا الحجز؟' : 'Are you sure you want to cancel?', [
-      { text: isRTL ? 'لا' : 'No', style: 'cancel' },
-      { text: isRTL ? 'نعم، إلغاء' : 'Yes, Cancel', style: 'destructive', onPress: () => cancelBooking.mutate(booking.id) },
+    Alert.alert(t('booking.cancelBooking'), t('booking.cancelBookingConfirm'), [
+      { text: t('booking.no'), style: 'cancel' },
+      { text: t('booking.yesCancel'), style: 'destructive', onPress: () => cancelBooking.mutate(booking.id) },
     ]);
   };
 
   const handleSubmitReview = async () => {
     if (reviewRating === 0) {
-      Alert.alert(isRTL ? 'خطأ' : 'Error', isRTL ? 'يرجى اختيار تقييم' : 'Please select a rating');
+      Alert.alert(t('common.errorTitle'), t('booking.selectRating'));
       return;
     }
     try {
@@ -109,9 +109,9 @@ export default function BookingDetailScreen() {
         comment: reviewComment.trim() || undefined,
       });
       setShowReviewForm(false);
-      Alert.alert(isRTL ? 'شكراً!' : 'Thank you!', isRTL ? 'تم إرسال تقييمك بنجاح' : 'Your review has been submitted');
+      Alert.alert(t('booking.thankYou'), t('booking.reviewSubmitted'));
     } catch {
-      Alert.alert(isRTL ? 'خطأ' : 'Error', isRTL ? 'فشل إرسال التقييم' : 'Failed to submit review');
+      Alert.alert(t('common.errorTitle'), t('booking.failedReview'));
     }
   };
 
@@ -123,7 +123,7 @@ export default function BookingDetailScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.headerBtn}>
           <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>{isRTL ? 'تفاصيل الحجز' : 'Booking Details'}</Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>{t('booking.details')}</Text>
         <View style={styles.headerBtn} />
       </View>
 
@@ -131,7 +131,7 @@ export default function BookingDetailScreen() {
         {/* Status */}
         <Animated.View entering={FadeIn.duration(300)} style={[styles.statusCard, { backgroundColor: statusColor + '15' }]}>
           <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
-          <Text style={[styles.statusLabel, { color: statusColor }]}>{isRTL ? statusLabel.ar : statusLabel.en}</Text>
+          <Text style={[styles.statusLabel, { color: statusColor }]}>{statusKey ? t(statusKey) : booking.status}</Text>
         </Animated.View>
 
         {/* Route */}
@@ -149,12 +149,12 @@ export default function BookingDetailScreen() {
         {/* Price Summary */}
         <View style={[styles.card, { backgroundColor: colors.card }]}>
           <View style={styles.priceRow}>
-            <Text style={[styles.priceLabel, { color: colors.textSecondary }]}>{isRTL ? 'الوزن' : 'Weight'}</Text>
+            <Text style={[styles.priceLabel, { color: colors.textSecondary }]}>{t('booking.weight')}</Text>
             <Text style={[styles.priceValue, { color: colors.text }]}>{Number(booking.totalWeight)} kg</Text>
           </View>
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
           <View style={styles.priceRow}>
-            <Text style={[styles.totalLabel, { color: colors.text }]}>{isRTL ? 'الإجمالي' : 'Total'}</Text>
+            <Text style={[styles.totalLabel, { color: colors.text }]}>{t('booking.total')}</Text>
             <Text style={[styles.totalValue, { color: colors.primary }]}>{Number(booking.totalPrice)} {booking.currency}</Text>
           </View>
         </View>
@@ -162,7 +162,7 @@ export default function BookingDetailScreen() {
         {/* Other User */}
         <View style={[styles.card, { backgroundColor: colors.card }]}>
           <Text style={[styles.cardTitle, { color: colors.text }]}>
-            {isCarrier ? (isRTL ? 'المرسل' : 'Sender') : (isRTL ? 'الناقل' : 'Carrier')}
+            {isCarrier ? t('booking.sender') : t('booking.carrier')}
           </Text>
           <View style={styles.userRow}>
             <Avatar name={otherUser.name} avatarUrl={otherUser.avatarUrl} size={44} isVerified={otherUser.isVerified} />
@@ -171,7 +171,7 @@ export default function BookingDetailScreen() {
               {otherUser.isVerified && (
                 <View style={styles.verifiedRow}>
                   <Ionicons name="shield-checkmark" size={14} color={colors.primary} />
-                  <Text style={[styles.verifiedText, { color: colors.primary }]}>{isRTL ? 'موثق' : 'Verified'}</Text>
+                  <Text style={[styles.verifiedText, { color: colors.primary }]}>{t('common.verified')}</Text>
                 </View>
               )}
             </View>
@@ -184,14 +184,14 @@ export default function BookingDetailScreen() {
         {/* Existing Review */}
         {existingReview && (
           <View style={[styles.card, { backgroundColor: colors.card }]}>
-            <Text style={[styles.cardTitle, { color: colors.text }]}>{isRTL ? 'التقييم' : 'Review'}</Text>
+            <Text style={[styles.cardTitle, { color: colors.text }]}>{t('booking.review')}</Text>
             <View style={styles.reviewDisplay}>
               <StarRating rating={existingReview.rating} size={22} />
               {existingReview.comment && (
                 <Text style={[styles.reviewComment, { color: colors.text }]}>{existingReview.comment}</Text>
               )}
               <Text style={[styles.reviewAuthor, { color: colors.textSecondary }]}>
-                {isRTL ? 'بواسطة' : 'by'} {existingReview.reviewer.name}
+                {t('booking.reviewBy')} {existingReview.reviewer.name}
               </Text>
             </View>
           </View>
@@ -206,10 +206,10 @@ export default function BookingDetailScreen() {
             <Ionicons name="star-outline" size={24} color={colors.primary} />
             <View style={{ flex: 1 }}>
               <Text style={[styles.reviewPromptTitle, { color: colors.primary }]}>
-                {isRTL ? 'قيّم تجربتك' : 'Rate your experience'}
+                {t('booking.rateExperience')}
               </Text>
               <Text style={[styles.reviewPromptDesc, { color: colors.textSecondary }]}>
-                {isRTL ? 'شارك تجربتك مع الآخرين' : 'Share your experience with others'}
+                {t('booking.shareExperience')}
               </Text>
             </View>
             <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={20} color={colors.primary} />
@@ -218,14 +218,14 @@ export default function BookingDetailScreen() {
 
         {canReview && showReviewForm && (
           <View style={[styles.card, { backgroundColor: colors.card }]}>
-            <Text style={[styles.cardTitle, { color: colors.text }]}>{isRTL ? 'تقييمك' : 'Your Review'}</Text>
+            <Text style={[styles.cardTitle, { color: colors.text }]}>{t('booking.yourReview')}</Text>
             <View style={styles.reviewFormContent}>
               <StarRating rating={reviewRating} onRate={setReviewRating} size={36} />
               <TextInput
                 style={[styles.reviewInput, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]}
                 value={reviewComment}
                 onChangeText={setReviewComment}
-                placeholder={isRTL ? 'أضف تعليقاً (اختياري)...' : 'Add a comment (optional)...'}
+                placeholder={t('booking.addComment')}
                 placeholderTextColor={colors.textSecondary}
                 multiline
                 numberOfLines={3}
@@ -238,7 +238,7 @@ export default function BookingDetailScreen() {
                   onPress={() => setShowReviewForm(false)}
                   style={[styles.reviewCancelBtn, { borderColor: colors.border }]}
                 >
-                  <Text style={[styles.reviewCancelText, { color: colors.textSecondary }]}>{isRTL ? 'إلغاء' : 'Cancel'}</Text>
+                  <Text style={[styles.reviewCancelText, { color: colors.textSecondary }]}>{t('common.cancel')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={handleSubmitReview}
@@ -248,7 +248,7 @@ export default function BookingDetailScreen() {
                   {createReview.isPending ? (
                     <ActivityIndicator color="#FFF" size="small" />
                   ) : (
-                    <Text style={styles.reviewSubmitText}>{isRTL ? 'إرسال' : 'Submit'}</Text>
+                    <Text style={styles.reviewSubmitText}>{t('booking.submit')}</Text>
                   )}
                 </TouchableOpacity>
               </View>
@@ -263,16 +263,16 @@ export default function BookingDetailScreen() {
           {isCarrier && (
             <>
               <TouchableOpacity onPress={handleReject} style={[styles.rejectBtn, { borderColor: '#EF4444' }]}>
-                <Text style={[styles.rejectText, { color: '#EF4444' }]}>{isRTL ? 'رفض' : 'Reject'}</Text>
+                <Text style={[styles.rejectText, { color: '#EF4444' }]}>{t('booking.reject')}</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={handleAccept} style={[styles.acceptBtn, { backgroundColor: colors.primary }]}>
-                <Text style={styles.acceptText}>{isRTL ? 'قبول' : 'Accept'}</Text>
+                <Text style={styles.acceptText}>{t('booking.accept')}</Text>
               </TouchableOpacity>
             </>
           )}
           {isSender && (
             <TouchableOpacity onPress={handleCancel} style={[styles.cancelBtn, { borderColor: '#EF4444' }]}>
-              <Text style={[styles.cancelText, { color: '#EF4444' }]}>{isRTL ? 'إلغاء الحجز' : 'Cancel Booking'}</Text>
+              <Text style={[styles.cancelText, { color: '#EF4444' }]}>{t('booking.cancelBooking')}</Text>
             </TouchableOpacity>
           )}
         </View>

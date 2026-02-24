@@ -11,7 +11,7 @@ import { useProfile } from '@/hooks/useProfile';
 import { Avatar } from '@/components/common';
 
 export default function ProfileScreen() {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { colors } = useTheme();
   const { signOut } = useAuth();
   const router = useRouter();
@@ -20,12 +20,12 @@ export default function ProfileScreen() {
   const { data: profile, isLoading, refetch } = useProfile();
 
   const menuItems = [
-    { icon: 'person-outline' as const, label: isRTL ? 'تعديل الملف الشخصي' : 'Edit Profile', route: '/profile/edit' },
-    { icon: 'shield-checkmark-outline' as const, label: isRTL ? 'التحقق' : 'Verification', route: '/profile/verification' },
-    { icon: 'wallet-outline' as const, label: isRTL ? 'المحفظة' : 'Wallet', route: '/profile/wallet' },
-    { icon: 'notifications-outline' as const, label: isRTL ? 'الإشعارات' : 'Notifications', route: '/notifications' },
-    { icon: 'settings-outline' as const, label: isRTL ? 'الإعدادات' : 'Settings', route: '/profile/settings' },
-    { icon: 'help-circle-outline' as const, label: isRTL ? 'المساعدة' : 'Help & Support', route: '/profile/help' },
+    { icon: 'person-outline' as const, label: t('profile.editProfile'), route: '/profile/edit' },
+    { icon: 'shield-checkmark-outline' as const, label: t('profile.verification'), route: '/profile/verification' },
+    { icon: 'wallet-outline' as const, label: t('profile.wallet'), route: '/profile/wallet' },
+    { icon: 'notifications-outline' as const, label: t('profile.notifications'), route: '/notifications' },
+    { icon: 'settings-outline' as const, label: t('profile.settings'), route: '/profile/settings' },
+    { icon: 'help-circle-outline' as const, label: t('profile.help'), route: '/profile/help' },
   ];
 
   const stats = profile?.stats;
@@ -39,7 +39,7 @@ export default function ProfileScreen() {
         {/* Header */}
         <View style={styles.header}>
           <Text style={[styles.title, { color: colors.text }]}>
-            {isRTL ? 'الملف الشخصي' : 'Profile'}
+            {t('profile.title')}
           </Text>
         </View>
 
@@ -57,7 +57,7 @@ export default function ProfileScreen() {
               />
               <View style={styles.userInfo}>
                 <Text style={[styles.userName, { color: colors.text }]}>
-                  {profile?.name || (isRTL ? 'زائر' : 'Guest')}
+                  {profile?.name || t('profile.guest')}
                 </Text>
                 <Text style={[styles.userEmail, { color: colors.textSecondary }]}>
                   {profile?.email || ''}
@@ -72,7 +72,7 @@ export default function ProfileScreen() {
                   <View style={styles.verifiedBadge}>
                     <Ionicons name="shield-checkmark" size={14} color={colors.primary} />
                     <Text style={[styles.verifiedText, { color: colors.primary }]}>
-                      {isRTL ? 'موثق' : 'Verified'}
+                      {t('profile.verified')}
                     </Text>
                   </View>
                 )}
@@ -90,18 +90,18 @@ export default function ProfileScreen() {
               <Animated.View entering={FadeIn.delay(100).duration(300)} style={styles.statsRow}>
                 <View style={[styles.statCard, { backgroundColor: colors.card }]}>
                   <Text style={[styles.statValue, { color: colors.primary }]}>{stats.totalTrips}</Text>
-                  <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{isRTL ? 'رحلات' : 'Trips'}</Text>
+                  <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t('profile.trips')}</Text>
                 </View>
                 <View style={[styles.statCard, { backgroundColor: colors.card }]}>
                   <Text style={[styles.statValue, { color: colors.success || '#10B981' }]}>{stats.totalDeliveries}</Text>
-                  <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{isRTL ? 'توصيلات' : 'Deliveries'}</Text>
+                  <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t('profile.deliveries')}</Text>
                 </View>
                 <View style={[styles.statCard, { backgroundColor: colors.card }]}>
                   <Text style={[styles.statValue, { color: colors.warning || '#F59E0B' }]}>
                     {stats.averageRating > 0 ? stats.averageRating.toFixed(1) : '—'}
                   </Text>
                   <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-                    {isRTL ? 'التقييم' : 'Rating'}
+                    {t('profile.rating')}
                     {stats.totalReviews > 0 ? ` (${stats.totalReviews})` : ''}
                   </Text>
                 </View>
@@ -120,7 +120,7 @@ export default function ProfileScreen() {
               <Animated.View entering={FadeIn.delay(200).duration(300)} style={styles.memberSince}>
                 <Ionicons name="calendar-outline" size={14} color={colors.textSecondary} />
                 <Text style={[styles.memberSinceText, { color: colors.textSecondary }]}>
-                  {isRTL ? 'عضو منذ ' : 'Member since '}
+                  {t('profile.memberSince')}
                   {new Date(profile.createdAt).toLocaleDateString(isRTL ? 'ar-SA' : 'en-US', { month: 'long', year: 'numeric' })}
                 </Text>
               </Animated.View>
@@ -155,7 +155,7 @@ export default function ProfileScreen() {
           onPress={signOut}
         >
           <Ionicons name="log-out-outline" size={22} color="#EF4444" />
-          <Text style={styles.signOutText}>{isRTL ? 'تسجيل الخروج' : 'Sign Out'}</Text>
+          <Text style={styles.signOutText}>{t('profile.signOut')}</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>

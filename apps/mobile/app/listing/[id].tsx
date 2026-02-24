@@ -36,10 +36,10 @@ export default function ListingDetailScreen() {
         <View style={styles.loadingContainer}>
           <Ionicons name="alert-circle-outline" size={48} color={colors.textSecondary} />
           <Text style={[styles.errorText, { color: colors.textSecondary }]}>
-            {isRTL ? 'لم يتم العثور على الإعلان' : 'Listing not found'}
+            {t('listing.notFound')}
           </Text>
           <TouchableOpacity onPress={() => router.back()} style={[styles.backButton, { backgroundColor: colors.primary }]}>
-            <Text style={styles.backButtonText}>{isRTL ? 'رجوع' : 'Go Back'}</Text>
+            <Text style={styles.backButtonText}>{t('listing.goBack')}</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -57,8 +57,8 @@ export default function ListingDetailScreen() {
 
   const handleMessage = () => {
     Alert.alert(
-      isRTL ? 'قريباً' : 'Coming Soon',
-      isRTL ? 'المراسلة ستكون متاحة قريباً' : 'Messaging will be available soon'
+      t('listing.comingSoon'),
+      t('listing.messagingSoon')
     );
   };
 
@@ -70,7 +70,7 @@ export default function ListingDetailScreen() {
           <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.text }]}>
-          {isRTL ? 'تفاصيل الإعلان' : 'Listing Details'}
+          {t('listing.details')}
         </Text>
         <View style={styles.headerButton} />
       </View>
@@ -122,14 +122,14 @@ export default function ListingDetailScreen() {
             <Ionicons name="scale-outline" size={24} color={colors.primary} />
             <Text style={[styles.statValue, { color: colors.text }]}>{weight} kg</Text>
             <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-              {isRTL ? 'الوزن المتاح' : 'Available'}
+              {t('listing.available')}
             </Text>
           </View>
           <View style={[styles.statCard, { backgroundColor: colors.card }]}>
             <Ionicons name="pricetag-outline" size={24} color={colors.success} />
             <Text style={[styles.statValue, { color: colors.text }]}>{price} {listing.currency}</Text>
             <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-              {isRTL ? 'لكل كيلو' : 'Per kg'}
+              {t('listing.perKg')}
             </Text>
           </View>
         </Animated.View>
@@ -138,7 +138,7 @@ export default function ListingDetailScreen() {
         {listing.notes && (
           <Animated.View entering={FadeIn.delay(150).duration(400)} style={[styles.section, { backgroundColor: colors.card }]}>
             <Text style={[styles.sectionTitle, { color: colors.text }]}>
-              {isRTL ? 'ملاحظات' : 'Notes'}
+              {t('listing.notes')}
             </Text>
             <Text style={[styles.notesText, { color: colors.textSecondary }]}>{listing.notes}</Text>
           </Animated.View>
@@ -147,7 +147,7 @@ export default function ListingDetailScreen() {
         {/* Carrier Info */}
         <Animated.View entering={FadeIn.delay(200).duration(400)} style={[styles.section, { backgroundColor: colors.card }]}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            {isRTL ? 'الناقل' : 'Carrier'}
+            {t('listing.carrier')}
           </Text>
           <View style={styles.carrierRow}>
             <Avatar
@@ -165,7 +165,7 @@ export default function ListingDetailScreen() {
                 <View style={styles.verifiedBadge}>
                   <Ionicons name="shield-checkmark" size={14} color={colors.primary} />
                   <Text style={[styles.verifiedText, { color: colors.primary }]}>
-                    {isRTL ? 'موثق' : 'Verified'}
+                    {t('common.verified')}
                   </Text>
                 </View>
               )}
@@ -185,7 +185,7 @@ export default function ListingDetailScreen() {
           </TouchableOpacity>
           <TouchableOpacity onPress={handleBooking} style={[styles.bookButton, { backgroundColor: colors.primary }]}>
             <Text style={styles.bookButtonText}>
-              {isRTL ? 'احجز الآن' : 'Book Now'}
+              {t('listing.bookNow')}
             </Text>
           </TouchableOpacity>
         </View>

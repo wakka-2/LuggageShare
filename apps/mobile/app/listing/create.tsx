@@ -9,7 +9,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { useCreateListing } from '@/hooks/useListings';
 
 export default function CreateListingScreen() {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { colors } = useTheme();
   const router = useRouter();
   const isRTL = i18n.language === 'ar';
@@ -29,8 +29,8 @@ export default function CreateListingScreen() {
   const handleSubmit = async () => {
     if (!departureCity || !arrivalCity || !departureDate || !availableWeight || !pricePerKg) {
       Alert.alert(
-        isRTL ? 'خطأ' : 'Error',
-        isRTL ? 'يرجى ملء جميع الحقول المطلوبة' : 'Please fill in all required fields'
+        t('common.errorTitle'),
+        t('common.requiredFieldsError')
       );
       return;
     }
@@ -49,14 +49,14 @@ export default function CreateListingScreen() {
       });
 
       Alert.alert(
-        isRTL ? 'تم بنجاح' : 'Success',
-        isRTL ? 'تم إنشاء الإعلان بنجاح' : 'Listing created successfully',
-        [{ text: isRTL ? 'حسناً' : 'OK', onPress: () => router.back() }]
+        t('common.success'),
+        t('listing.createdSuccess'),
+        [{ text: t('common.ok'), onPress: () => router.back() }]
       );
     } catch (error) {
       Alert.alert(
-        isRTL ? 'خطأ' : 'Error',
-        isRTL ? 'فشل في إنشاء الإعلان' : 'Failed to create listing'
+        t('common.errorTitle'),
+        t('listing.failedCreate')
       );
     }
   };
@@ -96,7 +96,7 @@ export default function CreateListingScreen() {
           <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.text }]}>
-          {isRTL ? 'إنشاء إعلان' : 'Create Listing'}
+          {t('listing.create')}
         </Text>
         <View style={styles.headerButton} />
       </View>
@@ -104,17 +104,17 @@ export default function CreateListingScreen() {
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Route Section */}
         <Text style={[styles.sectionTitle, { color: colors.text }]}>
-          {isRTL ? 'معلومات الرحلة' : 'Trip Information'}
+          {t('listing.tripInfo')}
         </Text>
 
         <View style={styles.row}>
           <View style={styles.flex1}>
-            {renderInput(isRTL ? 'مدينة المغادرة' : 'From City', departureCity, setDepartureCity, {
-              placeholder: isRTL ? 'الرياض' : 'Riyadh', required: true,
+            {renderInput(t('listing.fromCity'), departureCity, setDepartureCity, {
+              placeholder: t('listing.placeholderRiyadh'), required: true,
             })}
           </View>
           <View style={styles.codeInput}>
-            {renderInput(isRTL ? 'الرمز' : 'Code', departureCode, setDepartureCode, {
+            {renderInput(t('listing.code'), departureCode, setDepartureCode, {
               placeholder: 'RUH',
             })}
           </View>
@@ -122,46 +122,46 @@ export default function CreateListingScreen() {
 
         <View style={styles.row}>
           <View style={styles.flex1}>
-            {renderInput(isRTL ? 'مدينة الوصول' : 'To City', arrivalCity, setArrivalCity, {
-              placeholder: isRTL ? 'القاهرة' : 'Cairo', required: true,
+            {renderInput(t('listing.toCity'), arrivalCity, setArrivalCity, {
+              placeholder: t('listing.placeholderCairo'), required: true,
             })}
           </View>
           <View style={styles.codeInput}>
-            {renderInput(isRTL ? 'الرمز' : 'Code', arrivalCode, setArrivalCode, {
+            {renderInput(t('listing.code'), arrivalCode, setArrivalCode, {
               placeholder: 'CAI',
             })}
           </View>
         </View>
 
-        {renderInput(isRTL ? 'تاريخ المغادرة' : 'Departure Date', departureDate, setDepartureDate, {
+        {renderInput(t('listing.departureDate'), departureDate, setDepartureDate, {
           placeholder: '2026-03-15', required: true,
         })}
 
-        {renderInput(isRTL ? 'رقم الرحلة' : 'Flight Number', flightNumber, setFlightNumber, {
+        {renderInput(t('listing.flightNumber'), flightNumber, setFlightNumber, {
           placeholder: 'SV123',
         })}
 
         {/* Weight & Price */}
         <Text style={[styles.sectionTitle, { color: colors.text, marginTop: 24 }]}>
-          {isRTL ? 'الوزن والسعر' : 'Weight & Price'}
+          {t('listing.weightAndPrice')}
         </Text>
 
         <View style={styles.row}>
           <View style={styles.flex1}>
-            {renderInput(isRTL ? 'الوزن المتاح (كجم)' : 'Available Weight (kg)', availableWeight, setAvailableWeight, {
+            {renderInput(t('listing.availableWeightKg'), availableWeight, setAvailableWeight, {
               placeholder: '10', keyboardType: 'numeric', required: true,
             })}
           </View>
           <View style={styles.flex1}>
-            {renderInput(isRTL ? 'السعر لكل كجم (ريال)' : 'Price per kg (SAR)', pricePerKg, setPricePerKg, {
+            {renderInput(t('listing.pricePerKgSar'), pricePerKg, setPricePerKg, {
               placeholder: '25', keyboardType: 'numeric', required: true,
             })}
           </View>
         </View>
 
         {/* Notes */}
-        {renderInput(isRTL ? 'ملاحظات' : 'Notes', notes, setNotes, {
-          placeholder: isRTL ? 'أي تفاصيل إضافية عن الرحلة...' : 'Any additional details about the trip...',
+        {renderInput(t('listing.notes'), notes, setNotes, {
+          placeholder: t('listing.placeholderNotes'),
           multiline: true,
         })}
       </ScrollView>
@@ -177,7 +177,7 @@ export default function CreateListingScreen() {
             <ActivityIndicator color="#FFF" />
           ) : (
             <Text style={styles.submitButtonText}>
-              {isRTL ? 'نشر الإعلان' : 'Post Listing'}
+              {t('listing.postListing')}
             </Text>
           )}
         </TouchableOpacity>

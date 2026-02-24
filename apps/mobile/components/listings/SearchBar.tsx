@@ -24,20 +24,20 @@ interface SearchBarProps {
 }
 
 const POPULAR_ROUTES = [
-  { from: 'RUH', to: 'DXB', label: 'Riyadh → Dubai', labelAr: 'الرياض → دبي' },
-  { from: 'JED', to: 'CAI', label: 'Jeddah → Cairo', labelAr: 'جدة → القاهرة' },
-  { from: 'DMM', to: 'BAH', label: 'Dammam → Bahrain', labelAr: 'الدمام → البحرين' },
-  { from: 'RUH', to: 'AMM', label: 'Riyadh → Amman', labelAr: 'الرياض → عمان' },
+  { from: 'RUH', to: 'DXB', labelKey: 'searchBar.routeRuhDxb' },
+  { from: 'JED', to: 'CAI', labelKey: 'searchBar.routeJedCai' },
+  { from: 'DMM', to: 'BAH', labelKey: 'searchBar.routeDmmBah' },
+  { from: 'RUH', to: 'AMM', labelKey: 'searchBar.routeRuhAmm' },
 ];
 
 const QUICK_DATES = [
-  { key: 'today', label: 'Today', labelAr: 'اليوم', getValue: () => new Date().toISOString().split('T')[0] },
-  { key: 'tomorrow', label: 'Tomorrow', labelAr: 'غداً', getValue: () => {
+  { key: 'today', labelKey: 'searchBar.today', getValue: () => new Date().toISOString().split('T')[0] },
+  { key: 'tomorrow', labelKey: 'searchBar.tomorrow', getValue: () => {
     const d = new Date();
     d.setDate(d.getDate() + 1);
     return d.toISOString().split('T')[0];
   }},
-  { key: 'week', label: 'This week', labelAr: 'هذا الأسبوع', getValue: () => {
+  { key: 'week', labelKey: 'searchBar.thisWeek', getValue: () => {
     const d = new Date();
     d.setDate(d.getDate() + 7);
     return d.toISOString().split('T')[0];
@@ -56,7 +56,7 @@ export function SearchBar({
   onSearch,
   onSwap,
 }: SearchBarProps) {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { colors } = useTheme();
   const isRTL = i18n.language === 'ar';
   const isWeb = Platform.OS === 'web';
@@ -99,7 +99,7 @@ export function SearchBar({
           <Ionicons name="location" size={20} color={colors.primary} />
           <TextInput
             style={[styles.input, { color: colors.text }]}
-            placeholder={isRTL ? 'من أين؟' : 'From'}
+            placeholder={t('searchBar.from')}
             placeholderTextColor={colors.textTertiary}
             value={from}
             onChangeText={onFromChange}
@@ -126,7 +126,7 @@ export function SearchBar({
           <Ionicons name="navigate" size={20} color={colors.success} />
           <TextInput
             style={[styles.input, { color: colors.text }]}
-            placeholder={isRTL ? 'إلى أين؟' : 'To'}
+            placeholder={t('searchBar.to')}
             placeholderTextColor={colors.textTertiary}
             value={to}
             onChangeText={onToChange}
@@ -156,12 +156,12 @@ export function SearchBar({
                 fontWeight: '500',
                 fontFamily: 'inherit',
               }}
-              placeholder={isRTL ? 'التاريخ' : 'Date'}
+              placeholder={t('searchBar.date')}
             />
           ) : (
             <TextInput
               style={[styles.input, { color: colors.text }]}
-              placeholder={isRTL ? 'التاريخ' : 'Date'}
+              placeholder={t('searchBar.date')}
               placeholderTextColor={colors.textTertiary}
               value={date ? formatDateDisplay(date) : ''}
               onChangeText={onDateChange}
@@ -182,7 +182,7 @@ export function SearchBar({
           <Ionicons name="search" size={20} color="#FFFFFF" />
           {isWeb && (
             <Text style={styles.searchButtonText}>
-              {isRTL ? 'بحث' : 'Search'}
+              {t('searchBar.search')}
             </Text>
           )}
         </TouchableOpacity>
@@ -194,7 +194,7 @@ export function SearchBar({
           {/* Quick Dates */}
           <View style={styles.quickSection}>
             <Text style={[styles.quickLabel, { color: colors.textTertiary }]}>
-              {isRTL ? 'التاريخ:' : 'When:'}
+              {t('searchBar.when')}
             </Text>
             <View style={styles.quickChips}>
               {QUICK_DATES.map((item, index) => (
@@ -205,7 +205,7 @@ export function SearchBar({
                 >
                   <Ionicons name="calendar-outline" size={14} color={colors.warning} />
                   <Text style={[styles.quickChipText, { color: colors.warning }]}>
-                    {isRTL ? item.labelAr : item.label}
+                    {t(item.labelKey)}
                   </Text>
                 </TouchableOpacity>
               ))}
@@ -215,7 +215,7 @@ export function SearchBar({
           {/* Popular Routes */}
           <View style={styles.quickSection}>
             <Text style={[styles.quickLabel, { color: colors.textTertiary }]}>
-              {isRTL ? 'الوجهات الشائعة:' : 'Popular:'}
+              {t('searchBar.popular')}
             </Text>
             <View style={styles.quickChips}>
               {POPULAR_ROUTES.map((route, index) => (
@@ -229,7 +229,7 @@ export function SearchBar({
                 >
                   <Ionicons name="airplane-outline" size={14} color={colors.primary} />
                   <Text style={[styles.quickChipText, { color: colors.primary }]}>
-                    {isRTL ? route.labelAr : route.label}
+                    {t(route.labelKey)}
                   </Text>
                 </TouchableOpacity>
               ))}
@@ -245,7 +245,7 @@ export function SearchBar({
             {from && (
               <View style={[styles.filterTag, { backgroundColor: colors.primary + '15' }]}>
                 <Text style={[styles.filterTagText, { color: colors.primary }]}>
-                  {isRTL ? 'من:' : 'From:'} {from}
+                  {t('searchBar.fromLabel')} {from}
                 </Text>
                 <TouchableOpacity onPress={() => onFromChange('')}>
                   <Ionicons name="close" size={14} color={colors.primary} />
@@ -255,7 +255,7 @@ export function SearchBar({
             {to && (
               <View style={[styles.filterTag, { backgroundColor: colors.success + '15' }]}>
                 <Text style={[styles.filterTagText, { color: colors.success }]}>
-                  {isRTL ? 'إلى:' : 'To:'} {to}
+                  {t('searchBar.toLabel')} {to}
                 </Text>
                 <TouchableOpacity onPress={() => onToChange('')}>
                   <Ionicons name="close" size={14} color={colors.success} />
@@ -275,7 +275,7 @@ export function SearchBar({
           </View>
           <TouchableOpacity onPress={clearAll}>
             <Text style={[styles.clearAllText, { color: colors.error }]}>
-              {isRTL ? 'مسح الكل' : 'Clear all'}
+              {t('searchBar.clearAll')}
             </Text>
           </TouchableOpacity>
         </Animated.View>

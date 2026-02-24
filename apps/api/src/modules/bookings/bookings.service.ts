@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { CreateBookingDto } from './dto/create-booking.dto';
 
 @Injectable()
 export class BookingsService {
@@ -71,7 +72,7 @@ export class BookingsService {
     return booking;
   }
 
-  async create(userId: string, createBookingDto: any) {
+  async create(userId: string, createBookingDto: CreateBookingDto) {
     const listing = await this.prisma.listing.findUnique({
       where: { id: createBookingDto.listingId },
     });
@@ -88,6 +89,16 @@ export class BookingsService {
       throw new BadRequestException('This listing is no longer available');
     }
 
+    // Validate weight doesn't exceed available
+    if (createBookingDto.totalWeight > Number(listing.availableWeight)) {
+      throw new BadRequestException(
+        `Total weight (${createBookingDto.totalWeight}kg) exceeds available weight (${listing.availableWeight}kg)`,
+      );
+    }
+
+    // Server-side price calculation — never trust client-supplied price
+    const totalPrice = Number(listing.pricePerKg) * Number(createBookingDto.totalWeight);
+
     return this.prisma.booking.create({
       data: {
         senderId: userId,
@@ -95,7 +106,7 @@ export class BookingsService {
         listingId: listing.id,
         status: 'pending',
         totalWeight: createBookingDto.totalWeight,
-        totalPrice: createBookingDto.totalPrice,
+        totalPrice,
         items: {
           create: createBookingDto.items,
         },

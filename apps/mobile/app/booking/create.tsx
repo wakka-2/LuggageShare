@@ -11,7 +11,7 @@ import { useCreateBooking } from '@/hooks/useBookings';
 
 export default function CreateBookingScreen() {
   const { listingId } = useLocalSearchParams<{ listingId: string }>();
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { colors } = useTheme();
   const router = useRouter();
   const isRTL = i18n.language === 'ar';
@@ -26,7 +26,7 @@ export default function CreateBookingScreen() {
 
   const handleSubmit = async () => {
     if (!weight || !listingId) {
-      Alert.alert(isRTL ? 'خطأ' : 'Error', isRTL ? 'يرجى إدخال الوزن' : 'Please enter the weight');
+      Alert.alert(t('common.errorTitle'), t('booking.pleaseEnterWeight'));
       return;
     }
 
@@ -39,12 +39,12 @@ export default function CreateBookingScreen() {
       });
 
       Alert.alert(
-        isRTL ? 'تم بنجاح' : 'Booking Sent!',
-        isRTL ? 'تم إرسال طلب الحجز بنجاح. سيتم إشعارك عند قبول الناقل.' : 'Your booking request has been sent. You will be notified when the carrier responds.',
-        [{ text: isRTL ? 'حسناً' : 'OK', onPress: () => router.back() }]
+        t('booking.bookingSent'),
+        t('booking.bookingSentMessage'),
+        [{ text: t('common.ok'), onPress: () => router.back() }]
       );
     } catch (error) {
-      Alert.alert(isRTL ? 'خطأ' : 'Error', isRTL ? 'فشل في إرسال الحجز' : 'Failed to send booking request');
+      Alert.alert(t('common.errorTitle'), t('booking.failedToSend'));
     }
   };
 
@@ -60,7 +60,7 @@ export default function CreateBookingScreen() {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.loading}>
-          <Text style={{ color: colors.textSecondary }}>{isRTL ? 'الإعلان غير موجود' : 'Listing not found'}</Text>
+          <Text style={{ color: colors.textSecondary }}>{t('listing.notFound')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -72,7 +72,7 @@ export default function CreateBookingScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.headerBtn}>
           <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>{isRTL ? 'طلب حجز' : 'Book Listing'}</Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>{t('booking.bookListing')}</Text>
         <View style={styles.headerBtn} />
       </View>
 
@@ -95,13 +95,13 @@ export default function CreateBookingScreen() {
         {/* Weight Input */}
         <View style={styles.inputGroup}>
           <Text style={[styles.label, { color: colors.text }]}>
-            {isRTL ? 'الوزن المطلوب (كجم)' : 'Weight Needed (kg)'} <Text style={{ color: '#EF4444' }}>*</Text>
+            {t('booking.weightNeeded')} <Text style={{ color: '#EF4444' }}>*</Text>
           </Text>
           <TextInput
             style={[styles.input, { backgroundColor: colors.card, color: colors.text, borderColor: colors.border }]}
             value={weight}
             onChangeText={setWeight}
-            placeholder={`${isRTL ? 'الحد الأقصى' : 'Max'}: ${Number(listing.availableWeight)} kg`}
+            placeholder={`${t('booking.maxWeight')}: ${Number(listing.availableWeight)} kg`}
             placeholderTextColor={colors.textSecondary}
             keyboardType="numeric"
             textAlign={isRTL ? 'right' : 'left'}
@@ -112,16 +112,16 @@ export default function CreateBookingScreen() {
         {weight && parseFloat(weight) > 0 && (
           <View style={[styles.priceCard, { backgroundColor: colors.card }]}>
             <View style={styles.priceRow}>
-              <Text style={[styles.priceLabel, { color: colors.textSecondary }]}>{isRTL ? 'الوزن' : 'Weight'}</Text>
+              <Text style={[styles.priceLabel, { color: colors.textSecondary }]}>{t('booking.weight')}</Text>
               <Text style={[styles.priceValue, { color: colors.text }]}>{weight} kg</Text>
             </View>
             <View style={styles.priceRow}>
-              <Text style={[styles.priceLabel, { color: colors.textSecondary }]}>{isRTL ? 'سعر الكيلو' : 'Rate'}</Text>
+              <Text style={[styles.priceLabel, { color: colors.textSecondary }]}>{t('booking.rate')}</Text>
               <Text style={[styles.priceValue, { color: colors.text }]}>{pricePerKg} {listing.currency}/kg</Text>
             </View>
             <View style={[styles.priceDivider, { backgroundColor: colors.border }]} />
             <View style={styles.priceRow}>
-              <Text style={[styles.totalLabel, { color: colors.text }]}>{isRTL ? 'الإجمالي' : 'Total'}</Text>
+              <Text style={[styles.totalLabel, { color: colors.text }]}>{t('booking.total')}</Text>
               <Text style={[styles.totalValue, { color: colors.primary }]}>{totalPrice.toFixed(2)} {listing.currency}</Text>
             </View>
           </View>
@@ -137,7 +137,7 @@ export default function CreateBookingScreen() {
           {createBooking.isPending ? (
             <ActivityIndicator color="#FFF" />
           ) : (
-            <Text style={styles.submitText}>{isRTL ? 'إرسال طلب الحجز' : 'Send Booking Request'}</Text>
+            <Text style={styles.submitText}>{t('booking.sendRequest')}</Text>
           )}
         </TouchableOpacity>
       </View>

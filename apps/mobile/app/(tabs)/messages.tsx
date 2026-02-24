@@ -48,7 +48,7 @@ function ConversationItem({ conversation, isRTL, colors, onPress }: {
 }
 
 export default function MessagesScreen() {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { colors } = useTheme();
   const router = useRouter();
   const isRTL = i18n.language === 'ar';
@@ -58,7 +58,7 @@ export default function MessagesScreen() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
       <View style={[styles.header, { borderBottomColor: colors.border }]}>
-        <Text style={[styles.title, { color: colors.text }]}>{isRTL ? 'الرسائل' : 'Messages'}</Text>
+        <Text style={[styles.title, { color: colors.text }]}>{t('messages.title')}</Text>
       </View>
 
       <ScrollView
@@ -73,9 +73,9 @@ export default function MessagesScreen() {
         {!isLoading && (!conversations || conversations.length === 0) && (
           <EmptyState
             lottieAnimation="search"
-            title={isRTL ? 'لا توجد محادثات' : 'No conversations yet'}
-            description={isRTL ? 'ابدأ محادثة عبر حجز إعلان' : 'Start a conversation by booking a listing'}
-            actionLabel={isRTL ? 'تصفح الإعلانات' : 'Browse Listings'}
+            title={t('messages.noConversations')}
+            description={t('messages.startConversation')}
+            actionLabel={t('messages.browseListings')}
             onAction={() => router.push('/(tabs)')}
             style={styles.emptyState}
           />
