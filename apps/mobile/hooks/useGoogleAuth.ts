@@ -27,8 +27,13 @@ export function useGoogleAuth() {
   const [isLoading, setIsLoading] = useState(false);
   const { signIn } = useAuth();
 
-  // Always call the hook (Rules of Hooks) — use isConfigured to skip the flow, not the hook
-  const [request, , promptAsync] = Google.useAuthRequest(googleConfig);
+  // Always call the hook (Rules of Hooks).
+  // On web, expo-auth-session throws if webClientId is falsy, so pass a placeholder.
+  const safeConfig =
+    Platform.OS === 'web' && !googleConfig.webClientId
+      ? { ...googleConfig, webClientId: 'not-configured' }
+      : googleConfig;
+  const [request, , promptAsync] = Google.useAuthRequest(safeConfig);
 
   async function signInWithGoogle() {
     if (!isConfigured) {

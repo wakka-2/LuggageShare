@@ -8,9 +8,7 @@ export default function AuthLayout() {
         animation: 'slide_from_bottom',
       }}
     >
-      <Stack.Screen name="welcome" />
       <Stack.Screen name="login" />
-      <Stack.Screen name="profile-setup" />
     </Stack>
   );
 }

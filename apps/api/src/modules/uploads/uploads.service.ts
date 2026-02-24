@@ -16,7 +16,7 @@ const MIME_TO_EXT: Record<string, string> = {
 @Injectable()
 export class UploadsService {
   private readonly logger = new Logger(UploadsService.name);
-  private readonly supabase: SupabaseClient;
+  private readonly supabase: SupabaseClient | null = null;
 
   constructor(private readonly configService: ConfigService) {
     const supabaseUrl = this.configService.get<string>('SUPABASE_URL', '');
@@ -26,6 +26,7 @@ export class UploadsService {
       this.logger.warn(
         'SUPABASE_URL or SUPABASE_SERVICE_KEY is not configured. File uploads will fail at runtime.'
       );
+      return;
     }
 
     this.supabase = createClient(supabaseUrl, supabaseServiceKey);
@@ -40,6 +41,12 @@ export class UploadsService {
    * @returns The public URL of the uploaded file
    */
   async uploadFile(file: Express.Multer.File, bucket: string, folder: string): Promise<string> {
+    if (!this.supabase) {
+      throw new BadRequestException(
+        'File uploads are not configured. Missing Supabase credentials.'
+      );
+    }
+
     // --- Validate MIME type ---
     if (!ALLOWED_MIME_TYPES.includes(file.mimetype)) {
       throw new BadRequestException(
@@ -90,6 +97,11 @@ export class UploadsService {
    * @param bucket - The Supabase Storage bucket the file lives in
    */
   async deleteFile(url: string, bucket: string): Promise<void> {
+    if (!this.supabase) {
+      this.logger.warn('Cannot delete file: Supabase is not configured.');
+      return;
+    }
+
     try {
       // Extract the storage path from the public URL.
       // Public URLs follow the pattern:

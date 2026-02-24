@@ -17,8 +17,8 @@ export class BookingsService {
   ) {}
 
   async findByUser(userId: string, params?: { page?: number; limit?: number }) {
-    const page = params?.page ?? 1;
-    const limit = params?.limit ?? 20;
+    const page = Number(params?.page) || 1;
+    const limit = Math.min(Number(params?.limit) || 20, 100);
     const skip = (page - 1) * limit;
 
     const where = {

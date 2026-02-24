@@ -15,7 +15,9 @@ export class ListingsService {
     page?: number;
     limit?: number;
   }) {
-    const { from, to, date, minWeight, page = 1, limit = 20 } = params;
+    const { from, to, date, minWeight } = params;
+    const page = Number(params.page) || 1;
+    const limit = Math.min(Number(params.limit) || 20, 100);
     const skip = (page - 1) * limit;
 
     const where = {
