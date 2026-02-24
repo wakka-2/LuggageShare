@@ -61,9 +61,9 @@ export function ListingCard({ listing, index, viewMode, onPress }: ListingCardPr
     const now = new Date();
     const diffDays = Math.ceil((date.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
 
-    if (diffDays === 0) return isRTL ? 'اليوم' : 'Today';
-    if (diffDays === 1) return isRTL ? 'غداً' : 'Tomorrow';
-    if (diffDays < 7) return isRTL ? `بعد ${diffDays} أيام` : `In ${diffDays} days`;
+    if (diffDays === 0) return t('listingCard.today');
+    if (diffDays === 1) return t('listingCard.tomorrow');
+    if (diffDays < 7) return t('listingCard.inDays', { count: diffDays });
 
     return date.toLocaleDateString(isRTL ? 'ar-SA' : 'en-US', {
       month: 'short',
@@ -76,10 +76,10 @@ export function ListingCard({ listing, index, viewMode, onPress }: ListingCardPr
     const now = new Date();
     const diffHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
 
-    if (diffHours < 1) return isRTL ? 'الآن' : 'Just now';
-    if (diffHours < 24) return isRTL ? `منذ ${diffHours} س` : `${diffHours}h ago`;
+    if (diffHours < 1) return t('listingCard.justNow');
+    if (diffHours < 24) return t('listingCard.hoursAgo', { count: diffHours });
     const diffDays = Math.floor(diffHours / 24);
-    return isRTL ? `منذ ${diffDays} ي` : `${diffDays}d ago`;
+    return t('listingCard.daysAgo', { count: diffDays });
   };
 
   // Color scheme based on type
@@ -88,8 +88,8 @@ export function ListingCard({ listing, index, viewMode, onPress }: ListingCardPr
     : { primary: colors.success, gradient: ['#22C55E', '#16A34A'] as const };
 
   const typeLabel = isOffer
-    ? (isRTL ? 'عرض' : 'Offer')
-    : (isRTL ? 'طلب' : 'Request');
+    ? t('listingCard.offer')
+    : t('listingCard.request');
 
   // List View Layout - Compact and clean
   if (viewMode === 'list') {
@@ -294,7 +294,7 @@ export function ListingCard({ listing, index, viewMode, onPress }: ListingCardPr
         <View style={[styles.pricingSection, { borderColor: colors.border }]}>
           <View style={styles.priceMain}>
             <Text style={[styles.priceFrom, { color: colors.textSecondary }]}>
-              {isRTL ? 'يبدأ من' : 'Starting'}
+              {t('listingCard.starting')}
             </Text>
             <View style={styles.priceRow}>
               <Text style={[styles.priceValue, { color: colors.text }]}>
@@ -309,7 +309,7 @@ export function ListingCard({ listing, index, viewMode, onPress }: ListingCardPr
             <View style={[styles.negotiableBadge, { backgroundColor: colors.warning + '15' }]}>
               <Ionicons name="chatbubble-ellipses" size={14} color={colors.warning} />
               <Text style={[styles.negotiableText, { color: colors.warning }]}>
-                {isRTL ? 'تفاوض' : 'Negotiate'}
+                {t('listingCard.negotiate')}
               </Text>
             </View>
           )}
@@ -334,7 +334,7 @@ export function ListingCard({ listing, index, viewMode, onPress }: ListingCardPr
                   {listing.user.rating}
                 </Text>
                 <Text style={[styles.userDeals, { color: colors.textTertiary }]}>
-                  • {listing.user.completedDeals} {isRTL ? 'صفقة' : 'deals'}
+                  • {listing.user.completedDeals} {t('listingCard.deals')}
                 </Text>
               </View>
             </View>

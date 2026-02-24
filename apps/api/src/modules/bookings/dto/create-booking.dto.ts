@@ -1,76 +1,99 @@
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import {
   IsString,
+  IsNotEmpty,
   IsNumber,
-  IsOptional,
-  IsIn,
   IsArray,
-  ValidateNested,
+  IsOptional,
+  IsUUID,
   Min,
+  Max,
+  MaxLength,
+  ValidateNested,
+  ArrayMinSize,
 } from 'class-validator';
-import { Type } from 'class-transformer';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
-class CreateItemDto {
-  @ApiProperty()
+export class BookingItemDto {
+  @ApiProperty({
+    description: 'Name of the item',
+    example: 'Winter jacket',
+    maxLength: 100,
+  })
   @IsString()
+  @IsNotEmpty()
+  @MaxLength(100)
   name: string;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({
+    description: 'Description of the item',
+    example: 'Heavy winter jacket, packed in garment bag',
+    maxLength: 500,
+  })
   @IsOptional()
   @IsString()
+  @MaxLength(500)
   description?: string;
 
-  @ApiProperty()
+  @ApiProperty({
+    description: 'Weight of the item in kg',
+    example: 2.5,
+    minimum: 0.1,
+    maximum: 30,
+  })
   @IsNumber()
-  @Type(() => Number)
   @Min(0.1)
+  @Max(30)
   weight: number;
 
-  @ApiProperty()
+  @ApiProperty({
+    description: 'Declared value of the item',
+    example: 150,
+    minimum: 0,
+    maximum: 500,
+  })
   @IsNumber()
-  @Type(() => Number)
   @Min(0)
+  @Max(500)
   value: number;
 
-  @ApiPropertyOptional({ default: 'SAR' })
+  @ApiPropertyOptional({
+    description: 'Currency for the item value',
+    example: 'SAR',
+  })
   @IsOptional()
   @IsString()
   currency?: string;
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
-  imageUrls?: string[];
 }
 
 export class CreateBookingDto {
-  @ApiProperty()
-  @IsString()
+  @ApiProperty({
+    description: 'ID of the listing to book',
+    example: '550e8400-e29b-41d4-a716-446655440000',
+    format: 'uuid',
+  })
+  @IsUUID()
+  @IsNotEmpty()
   listingId: string;
 
-  @ApiPropertyOptional({ enum: ['small', 'medium', 'large'] })
-  @IsOptional()
-  @IsString()
-  @IsIn(['small', 'medium', 'large'])
-  packageSize?: string;
-
-  @ApiPropertyOptional()
-  @IsOptional()
+  @ApiProperty({
+    description: 'Total weight of all items in kg',
+    example: 5.0,
+    minimum: 0.1,
+    maximum: 30,
+  })
   @IsNumber()
-  @Type(() => Number)
   @Min(0.1)
-  totalWeight?: number;
+  @Max(30)
+  totalWeight: number;
 
-  @ApiPropertyOptional()
-  @IsOptional()
+  @ApiProperty({
+    description: 'List of items to be transported',
+    type: [BookingItemDto],
+  })
   @IsArray()
+  @ArrayMinSize(1)
   @ValidateNested({ each: true })
-  @Type(() => CreateItemDto)
-  items?: CreateItemDto[];
-
-  @ApiPropertyOptional({ description: 'Initial message to the carrier' })
-  @IsOptional()
-  @IsString()
-  message?: string;
+  @Type(() => BookingItemDto)
+  items: BookingItemDto[];
 }

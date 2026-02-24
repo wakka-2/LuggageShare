@@ -4,7 +4,6 @@ import {
   Post,
   Body,
   Param,
-  Query,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -12,7 +11,6 @@ import {
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
-  ApiQuery,
 } from '@nestjs/swagger';
 import { ReviewsService } from './reviews.service';
 import { CreateReviewDto } from './dto/create-review.dto';
@@ -26,38 +24,28 @@ import { CurrentUser } from '../auth/decorators/current-user.decorator';
 export class ReviewsController {
   constructor(private readonly reviewsService: ReviewsService) {}
 
-  @Post()
-  @ApiOperation({ summary: 'Create a review for a booking' })
-  @ApiResponse({ status: 201, description: 'Review created successfully' })
-  @ApiResponse({ status: 400, description: 'Already reviewed or booking not completed' })
-  async create(@CurrentUser() user: any, @Body() createReviewDto: CreateReviewDto) {
-    return this.reviewsService.create(user.id, createReviewDto);
+  @Get('booking/:bookingId')
+  @ApiOperation({ summary: 'Get review for a booking' })
+  @ApiResponse({ status: 200, description: 'Returns the booking review' })
+  async getByBooking(@CurrentUser() user: any, @Param('bookingId') bookingId: string) {
+    return this.reviewsService.findByBooking(user.id, bookingId);
   }
 
   @Get('user/:userId')
   @ApiOperation({ summary: 'Get reviews for a user' })
-  @ApiResponse({ status: 200, description: 'Returns user reviews with summary' })
-  @ApiQuery({ name: 'page', required: false, type: Number })
-  @ApiQuery({ name: 'limit', required: false, type: Number })
-  async getByUser(
-    @Param('userId') userId: string,
-    @Query('page') page?: string,
-    @Query('limit') limit?: string,
-  ) {
-    return this.reviewsService.getByUser(
-      userId,
-      page ? parseInt(page, 10) : 1,
-      limit ? parseInt(limit, 10) : 20,
-    );
+  @ApiResponse({ status: 200, description: 'Returns user reviews' })
+  async getByUser(@Param('userId') userId: string) {
+    return this.reviewsService.findByUser(userId);
   }
 
-  @Get('booking/:bookingId')
-  @ApiOperation({ summary: 'Get review for a specific booking' })
-  @ApiResponse({ status: 200, description: 'Returns booking review' })
-  async getByBooking(
+  @Post('booking/:bookingId')
+  @ApiOperation({ summary: 'Create a review for a booking' })
+  @ApiResponse({ status: 201, description: 'Review created successfully' })
+  async create(
     @CurrentUser() user: any,
     @Param('bookingId') bookingId: string,
+    @Body() createReviewDto: CreateReviewDto,
   ) {
-    return this.reviewsService.getByBooking(user.id, bookingId);
+    return this.reviewsService.create(user.id, bookingId, createReviewDto);
   }
 }

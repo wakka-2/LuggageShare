@@ -18,6 +18,7 @@ import {
 } from '@nestjs/swagger';
 import { ListingsService } from './listings.service';
 import { CreateListingDto } from './dto/create-listing.dto';
+import { UpdateListingDto } from './dto/update-listing.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Public } from '../auth/decorators/public.decorator';
@@ -73,7 +74,7 @@ export class ListingsController {
   async update(
     @CurrentUser() user: any,
     @Param('id') id: string,
-    @Body() updateListingDto: Partial<CreateListingDto>,
+    @Body() updateListingDto: UpdateListingDto,
   ) {
     return this.listingsService.update(user.id, id, updateListingDto);
   }

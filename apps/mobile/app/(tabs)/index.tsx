@@ -1,8 +1,10 @@
 import { useState, useMemo, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, Platform, useWindowDimensions, ViewStyle, TextStyle } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Platform, useWindowDimensions, ViewStyle, TextStyle, ActivityIndicator, RefreshControl, TouchableOpacity } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import Animated, {
   FadeIn,
   FadeInDown,
@@ -11,6 +13,8 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { useTheme } from '@/hooks/useTheme';
+import { useListings } from '@/hooks/useListings';
+import { mapApiListingToListing } from '@/lib/mappers';
 import { HomeHeader } from '@/components/home';
 import { EmptyState } from '@/components/common';
 import {
@@ -22,6 +26,7 @@ import {
   ViewMode,
   ListingType,
 } from '@/components/listings';
+import { useUnreadCount } from '@/hooks/useNotifications';
 
 type TabValue = ListingType | 'all';
 
@@ -29,6 +34,7 @@ export default function HomeScreen() {
   const { t, i18n } = useTranslation();
   const { colors, isDark } = useTheme();
   const { width } = useWindowDimensions();
+  const router = useRouter();
   const isWeb = Platform.OS === 'web';
   const isWideScreen = width > 768;
   const isRTL = i18n.language === 'ar';
@@ -40,40 +46,40 @@ export default function HomeScreen() {
   const [searchTo, setSearchTo] = useState('');
   const [searchDate, setSearchDate] = useState('');
 
-  // Filter listings based on current filters
+  // Fetch real listings from API (server-side filtering for from/to/date)
+  const { data: apiListings, isLoading, isError, refetch } = useListings({
+    from: searchFrom || undefined,
+    to: searchTo || undefined,
+    date: searchDate || undefined,
+  });
+
+  // Map API listings to the UI Listing type, fallback to mock data on error
+  const allListings = useMemo(() => {
+    if (apiListings && apiListings.length > 0) {
+      return apiListings.map(mapApiListingToListing);
+    }
+    if (isError || (!isLoading && (!apiListings || apiListings.length === 0))) {
+      return MOCK_LISTINGS;
+    }
+    return [];
+  }, [apiListings, isLoading, isError]);
+
+  // Client-side filtering by tab type (server doesn't know about offer/request yet)
   const filteredListings = useMemo(() => {
-    return MOCK_LISTINGS.filter((listing) => {
-      // Filter by type
+    return allListings.filter((listing) => {
       if (activeTab !== 'all' && listing.type !== activeTab) {
         return false;
       }
-      // Filter by from
-      if (searchFrom && !listing.from.code.toLowerCase().includes(searchFrom.toLowerCase()) &&
-          !listing.from.city.toLowerCase().includes(searchFrom.toLowerCase())) {
-        return false;
-      }
-      // Filter by to
-      if (searchTo && !listing.to.code.toLowerCase().includes(searchTo.toLowerCase()) &&
-          !listing.to.city.toLowerCase().includes(searchTo.toLowerCase())) {
-        return false;
-      }
-      // Filter by date
-      if (searchDate) {
-        const listingDate = listing.travelDate.split('T')[0];
-        if (listingDate !== searchDate) {
-          return false;
-        }
-      }
       return true;
     });
-  }, [activeTab, searchFrom, searchTo, searchDate]);
+  }, [allListings, activeTab]);
 
   // Calculate counts for tabs
   const tabCounts = useMemo(() => ({
-    all: MOCK_LISTINGS.length,
-    offer: MOCK_LISTINGS.filter(l => l.type === 'offer').length,
-    request: MOCK_LISTINGS.filter(l => l.type === 'request').length,
-  }), []);
+    all: allListings.length,
+    offer: allListings.filter(l => l.type === 'offer').length,
+    request: allListings.filter(l => l.type === 'request').length,
+  }), [allListings]);
 
   const handleSwap = useCallback(() => {
     const temp = searchFrom;
@@ -81,7 +87,11 @@ export default function HomeScreen() {
     setSearchTo(temp);
   }, [searchFrom, searchTo]);
 
-  const notificationCount = 3;
+  const handleListingPress = useCallback((listingId: string) => {
+    router.push(`/listing/${listingId}`);
+  }, [router]);
+
+  const notificationCount = useUnreadCount();
 
   // Gradient colors for hero
   const heroGradient = isDark
@@ -109,16 +119,14 @@ export default function HomeScreen() {
             >
               <View style={styles.heroTextContainer}>
                 <Text style={[styles.heroLabel, { color: colors.primary }]}>
-                  {isRTL ? 'مرحباً بك في' : 'Welcome to'}
+                  {t('home.welcomeTo')}
                 </Text>
                 <Text style={[styles.heroTitle, { color: colors.text }]}>
-                  {isRTL ? 'سوق الشحن' : 'Luggage'}
+                  {t('home.appName')}
                   <Text style={{ color: colors.primary }}>Share</Text>
                 </Text>
                 <Text style={[styles.heroSubtitle, { color: colors.textSecondary }]}>
-                  {isRTL
-                    ? 'أرسل أغراضك مع مسافرين موثوقين أو اكسب المال من المساحة الإضافية في حقيبتك'
-                    : 'Send your items with trusted travelers or earn money from your extra luggage space'}
+                  {t('home.heroDescription')}
                 </Text>
               </View>
 
@@ -130,19 +138,19 @@ export default function HomeScreen() {
                 <View style={[styles.statItem, { backgroundColor: colors.card }]}>
                   <Text style={[styles.statValue, { color: colors.primary }]}>2.5K+</Text>
                   <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-                    {isRTL ? 'مسافر' : 'Travelers'}
+                    {t('home.travelers')}
                   </Text>
                 </View>
                 <View style={[styles.statItem, { backgroundColor: colors.card }]}>
                   <Text style={[styles.statValue, { color: colors.success }]}>15K+</Text>
                   <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-                    {isRTL ? 'شحنة' : 'Deliveries'}
+                    {t('home.deliveries')}
                   </Text>
                 </View>
                 <View style={[styles.statItem, { backgroundColor: colors.card }]}>
                   <Text style={[styles.statValue, { color: colors.warning }]}>4.8</Text>
                   <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-                    {isRTL ? 'تقييم' : 'Rating'}
+                    {t('home.rating')}
                   </Text>
                 </View>
               </Animated.View>
@@ -188,12 +196,12 @@ export default function HomeScreen() {
             style={[styles.resultsHeader, isWideScreen && styles.resultsHeaderWide]}
           >
             <Text style={[styles.resultsTitle, { color: colors.text }]}>
-              {isRTL ? 'الإعلانات المتاحة' : 'Available Listings'}
+              {t('home.availableListings')}
             </Text>
             <Text style={[styles.resultsCount, { color: colors.textSecondary }]}>
-              {filteredListings.length} {isRTL ? 'إعلان' : 'listings'}
+              {filteredListings.length} {t('home.listings')}
               {(searchFrom || searchTo || searchDate) && (
-                <Text style={{ color: colors.primary }}> • {isRTL ? 'مفلتر' : 'Filtered'}</Text>
+                <Text style={{ color: colors.primary }}> • {t('home.filtered')}</Text>
               )}
             </Text>
           </Animated.View>
@@ -217,7 +225,7 @@ export default function HomeScreen() {
                   listing={listing}
                   index={index}
                   viewMode={viewMode}
-                  onPress={() => console.log('Listing pressed:', listing.id)}
+                  onPress={() => handleListingPress(listing.id)}
                 />
               </Animated.View>
             ))}
@@ -225,11 +233,9 @@ export default function HomeScreen() {
             {filteredListings.length === 0 && (
               <EmptyState
                 lottieAnimation="search"
-                title={isRTL ? 'لا توجد نتائج' : 'No listings found'}
-                description={isRTL
-                  ? 'جرب تغيير معايير البحث أو تصفح جميع الإعلانات'
-                  : 'Try adjusting your search filters or browse all listings'}
-                actionLabel={isRTL ? 'مسح الفلاتر' : 'Clear filters'}
+                title={t('home.noListings')}
+                description={t('home.noListingsDescription')}
+                actionLabel={t('home.clearFilters')}
                 onAction={() => {
                   setSearchFrom('');
                   setSearchTo('');
@@ -253,6 +259,9 @@ export default function HomeScreen() {
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={false} onRefresh={() => refetch()} tintColor={colors.primary} />
+        }
       >
         {/* Mobile Hero */}
         <Animated.View entering={FadeInDown.duration(400)} style={styles.mobileHero}>
@@ -260,7 +269,7 @@ export default function HomeScreen() {
             {t('home.greeting')}
           </Text>
           <Text style={[styles.title, { color: colors.text }]}>
-            {isRTL ? 'سوق الشحن' : 'Marketplace'}
+            {t('home.marketplace')}
           </Text>
         </Animated.View>
 
@@ -289,42 +298,58 @@ export default function HomeScreen() {
         {/* View Toggle + Results */}
         <Animated.View entering={FadeIn.delay(200).duration(400)} style={styles.mobileControlsRow}>
           <Text style={[styles.resultsCount, { color: colors.textSecondary }]}>
-            {filteredListings.length} {isRTL ? 'إعلان' : 'listings'}
+            {isLoading ? t('common.loading') : `${filteredListings.length} ${t('home.listings')}`}
           </Text>
           <ViewToggle value={viewMode} onChange={setViewMode} />
         </Animated.View>
 
-        {/* Listings */}
-        <Animated.View layout={Layout.springify()} style={styles.mobileListings}>
-          {filteredListings.map((listing, index) => (
-            <ListingCard
-              key={listing.id}
-              listing={listing}
-              index={index}
-              viewMode={viewMode}
-              onPress={() => console.log('Listing pressed:', listing.id)}
-            />
-          ))}
+        {/* Loading State */}
+        {isLoading && (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={colors.primary} />
+          </View>
+        )}
 
-          {filteredListings.length === 0 && (
-            <EmptyState
-              lottieAnimation="search"
-              title={isRTL ? 'لا توجد نتائج' : 'No listings found'}
-              description={isRTL
-                ? 'جرب تغيير معايير البحث'
-                : 'Try adjusting your search filters'}
-              actionLabel={isRTL ? 'مسح الفلاتر' : 'Clear filters'}
-              onAction={() => {
-                setSearchFrom('');
-                setSearchTo('');
-                setSearchDate('');
-                setActiveTab('all');
-              }}
-              style={styles.emptyState}
-            />
-          )}
-        </Animated.View>
+        {/* Listings */}
+        {!isLoading && (
+          <Animated.View layout={Layout.springify()} style={styles.mobileListings}>
+            {filteredListings.map((listing, index) => (
+              <ListingCard
+                key={listing.id}
+                listing={listing}
+                index={index}
+                viewMode={viewMode}
+                onPress={() => handleListingPress(listing.id)}
+              />
+            ))}
+
+            {filteredListings.length === 0 && (
+              <EmptyState
+                lottieAnimation="search"
+                title={t('home.noListings')}
+                description={t('home.noListingsDescriptionShort')}
+                actionLabel={t('home.clearFilters')}
+                onAction={() => {
+                  setSearchFrom('');
+                  setSearchTo('');
+                  setSearchDate('');
+                  setActiveTab('all');
+                }}
+                style={styles.emptyState}
+              />
+            )}
+          </Animated.View>
+        )}
       </ScrollView>
+
+      {/* Floating Action Button - Create Listing */}
+      <TouchableOpacity
+        onPress={() => router.push('/listing/create')}
+        style={[styles.fab, { backgroundColor: colors.primary }]}
+        activeOpacity={0.85}
+      >
+        <Ionicons name="add" size={28} color="#FFF" />
+      </TouchableOpacity>
     </SafeAreaView>
   );
 }
@@ -503,5 +528,25 @@ const styles = StyleSheet.create({
   } as ViewStyle,
   mobileListings: {
     paddingHorizontal: 16,
+  } as ViewStyle,
+  loadingContainer: {
+    paddingVertical: 60,
+    alignItems: 'center',
+    justifyContent: 'center',
+  } as ViewStyle,
+  fab: {
+    position: 'absolute',
+    bottom: 24,
+    right: 20,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.27,
+    shadowRadius: 4.65,
   } as ViewStyle,
 });

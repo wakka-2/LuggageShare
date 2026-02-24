@@ -1,144 +1,106 @@
-import {
-  Injectable,
-  NotFoundException,
-  ForbiddenException,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateReviewDto } from './dto/create-review.dto';
 
 @Injectable()
 export class ReviewsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  async create(userId: string, dto: CreateReviewDto) {
-    // Verify booking exists and user is a participant
+  async findByBooking(userId: string, bookingId: string) {
     const booking = await this.prisma.booking.findUnique({
-      where: { id: dto.bookingId },
-      include: {
-        listing: { select: { departureCity: true, arrivalCity: true } },
-      },
+      where: { id: bookingId },
     });
 
     if (!booking) {
-      throw new NotFoundException('الحجز غير موجود');
+      throw new NotFoundException('Booking not found');
     }
 
     if (booking.senderId !== userId && booking.carrierId !== userId) {
-      throw new ForbiddenException('ليس لديك صلاحية لتقييم هذا الحجز');
+      throw new ForbiddenException('You do not have access to this booking');
     }
 
-    // Only allow review for delivered/completed bookings
-    if (!['delivered', 'completed'].includes(booking.status)) {
-      throw new BadRequestException('لا يمكن التقييم إلا بعد اكتمال التوصيل');
-    }
+    return this.prisma.review.findUnique({
+      where: { bookingId },
+      include: {
+        reviewer: {
+          select: { id: true, name: true, avatarUrl: true },
+        },
+        reviewee: {
+          select: { id: true, name: true, avatarUrl: true },
+        },
+      },
+    });
+  }
 
-    // Check if user already reviewed this booking
-    const existingReview = await this.prisma.review.findUnique({
-      where: { bookingId: dto.bookingId },
+  async findByUser(userId: string) {
+    return this.prisma.review.findMany({
+      where: { revieweeId: userId },
+      include: {
+        reviewer: {
+          select: { id: true, name: true, avatarUrl: true },
+        },
+        booking: {
+          select: {
+            id: true,
+            listing: {
+              select: { departureCity: true, arrivalCity: true },
+            },
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async create(userId: string, bookingId: string, dto: CreateReviewDto) {
+    const booking = await this.prisma.booking.findUnique({
+      where: { id: bookingId },
     });
 
-    if (existingReview) {
-      throw new BadRequestException('تم تقييم هذا الحجز مسبقاً');
+    if (!booking) {
+      throw new NotFoundException('Booking not found');
     }
 
-    // Determine reviewee (the other party)
+    if (booking.senderId !== userId && booking.carrierId !== userId) {
+      throw new ForbiddenException('You are not part of this booking');
+    }
+
+    if (booking.status !== 'delivered') {
+      throw new BadRequestException('You can only review delivered bookings');
+    }
+
+    // Determine who is being reviewed
     const revieweeId = booking.senderId === userId ? booking.carrierId : booking.senderId;
 
-    const review = await this.prisma.review.create({
+    // Check if already reviewed
+    const existing = await this.prisma.review.findUnique({
+      where: { bookingId },
+    });
+
+    if (existing) {
+      throw new BadRequestException('This booking has already been reviewed');
+    }
+
+    if (dto.rating < 1 || dto.rating > 5) {
+      throw new BadRequestException('Rating must be between 1 and 5');
+    }
+
+    return this.prisma.review.create({
       data: {
-        bookingId: dto.bookingId,
+        bookingId,
         reviewerId: userId,
         revieweeId,
         rating: dto.rating,
         comment: dto.comment,
       },
       include: {
-        reviewer: { select: { id: true, name: true, avatarUrl: true } },
-        reviewee: { select: { id: true, name: true } },
-      },
-    });
-
-    return review;
-  }
-
-  async getByUser(userId: string, page = 1, limit = 20) {
-    const skip = (page - 1) * limit;
-
-    const [reviews, total] = await Promise.all([
-      this.prisma.review.findMany({
-        where: { revieweeId: userId },
-        include: {
-          reviewer: { select: { id: true, name: true, avatarUrl: true } },
-          booking: {
-            select: {
-              bookingRef: true,
-              listing: {
-                select: { departureCity: true, arrivalCity: true },
-              },
-            },
-          },
+        reviewer: {
+          select: { id: true, name: true, avatarUrl: true },
         },
-        orderBy: { createdAt: 'desc' },
-        skip,
-        take: limit,
-      }),
-      this.prisma.review.count({ where: { revieweeId: userId } }),
-    ]);
-
-    // Calculate rating summary
-    const allRatings = await this.prisma.review.findMany({
-      where: { revieweeId: userId },
-      select: { rating: true },
-    });
-
-    const averageRating =
-      allRatings.length > 0
-        ? allRatings.reduce((sum, r) => sum + r.rating, 0) / allRatings.length
-        : 0;
-
-    const distribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
-    allRatings.forEach((r) => {
-      distribution[r.rating as keyof typeof distribution]++;
-    });
-
-    return {
-      summary: {
-        averageRating: Math.round(averageRating * 10) / 10,
-        totalReviews: total,
-        ratingDistribution: distribution,
-      },
-      reviews,
-      meta: {
-        page,
-        limit,
-        total,
-        hasMore: skip + limit < total,
-      },
-    };
-  }
-
-  async getByBooking(userId: string, bookingId: string) {
-    const booking = await this.prisma.booking.findUnique({
-      where: { id: bookingId },
-    });
-
-    if (!booking) {
-      throw new NotFoundException('الحجز غير موجود');
-    }
-
-    if (booking.senderId !== userId && booking.carrierId !== userId) {
-      throw new ForbiddenException('ليس لديك صلاحية للوصول لهذا التقييم');
-    }
-
-    const review = await this.prisma.review.findUnique({
-      where: { bookingId },
-      include: {
-        reviewer: { select: { id: true, name: true, avatarUrl: true } },
-        reviewee: { select: { id: true, name: true, avatarUrl: true } },
+        reviewee: {
+          select: { id: true, name: true, avatarUrl: true },
+        },
       },
     });
-
-    return review;
   }
 }

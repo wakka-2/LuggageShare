@@ -45,6 +45,14 @@ export default function RootLayout() {
           >
             <Stack.Screen name="(auth)" options={{ headerShown: false }} />
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="listing/[id]" options={{ headerShown: false, presentation: 'card' }} />
+            <Stack.Screen name="listing/create" options={{ headerShown: false, presentation: 'modal' }} />
+            <Stack.Screen name="booking/[id]" options={{ headerShown: false, presentation: 'card' }} />
+            <Stack.Screen name="booking/create" options={{ headerShown: false, presentation: 'modal' }} />
+            <Stack.Screen name="chat/[bookingId]" options={{ headerShown: false, presentation: 'card' }} />
+            <Stack.Screen name="notifications" options={{ headerShown: false, presentation: 'card' }} />
+            <Stack.Screen name="profile/edit" options={{ headerShown: false, presentation: 'modal' }} />
+            <Stack.Screen name="profile/wallet" options={{ headerShown: false, presentation: 'card' }} />
             <Stack.Screen name="+not-found" />
           </Stack>
         </AuthProvider>

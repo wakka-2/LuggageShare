@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateListingDto } from './dto/create-listing.dto';
+import { UpdateListingDto } from './dto/update-listing.dto';
 
 @Injectable()
 export class ListingsService {
@@ -84,59 +85,52 @@ export class ListingsService {
     return this.transformListing(listing);
   }
 
-  async create(userId: string, dto: CreateListingDto) {
-    const listing = await this.prisma.listing.create({
+  async create(userId: string, createListingDto: CreateListingDto) {
+    // Explicit field mapping — prevent mass assignment
+    return this.prisma.listing.create({
       data: {
-        type: dto.type ?? 'offer',
-        title: dto.title,
-        titleAr: dto.titleAr,
-        description: dto.description,
-        descriptionAr: dto.descriptionAr,
-        departureCity: dto.departureCity,
-        departureCode: dto.departureCode,
-        arrivalCity: dto.arrivalCity,
-        arrivalCode: dto.arrivalCode,
-        departureDate: new Date(dto.departureDate),
-        flightNumber: dto.flightNumber,
-        availableWeight: dto.availableWeight,
-        priceSmall: dto.priceSmall,
-        priceMedium: dto.priceMedium,
-        priceLarge: dto.priceLarge,
-        negotiable: dto.negotiable ?? false,
-        currency: dto.currency ?? 'SAR',
-        neededWeight: dto.neededWeight,
-        restrictions: dto.restrictions ?? undefined,
-        handoffOptions: dto.handoffOptions ?? undefined,
-        notes: dto.notes,
         carrierId: userId,
         status: 'active',
-        expiresAt: new Date(dto.departureDate),
+        departureCity: createListingDto.departureCity,
+        arrivalCity: createListingDto.arrivalCity,
+        departureDate: new Date(createListingDto.departureDate),
+        flightNumber: createListingDto.flightNumber,
+        availableWeight: createListingDto.availableWeight,
+        pricePerKg: createListingDto.pricePerKg,
+        currency: createListingDto.currency || 'SAR',
+        preferences: createListingDto.preferences as any,
+        notes: createListingDto.notes,
       },
     });
 
     return this.transformListing(listing);
   }
 
-  async update(userId: string, id: string, dto: Partial<CreateListingDto>) {
-    const listing = await this.prisma.listing.findUnique({ where: { id } });
-
-    if (!listing) {
-      throw new NotFoundException('Listing not found');
-    }
+  async update(userId: string, id: string, updateListingDto: UpdateListingDto) {
+    const listing = await this.findById(id);
 
     if (listing.carrierId !== userId) {
       throw new ForbiddenException('You can only update your own listings');
     }
 
-    const { handoffOptions, departureDate, ...rest } = dto;
+    // Explicit field mapping — prevent mass assignment
+    const allowedUpdates: Record<string, any> = {};
+    const allowedFields = [
+      'departureCity', 'arrivalCity', 'departureDate', 'flightNumber',
+      'availableWeight', 'pricePerKg', 'currency', 'preferences', 'notes',
+    ];
+    const dtoRecord = updateListingDto as Record<string, any>;
+    for (const field of allowedFields) {
+      if (dtoRecord[field] !== undefined) {
+        allowedUpdates[field] = field === 'departureDate'
+          ? new Date(dtoRecord[field])
+          : dtoRecord[field];
+      }
+    }
 
-    const updated = await this.prisma.listing.update({
+    return this.prisma.listing.update({
       where: { id },
-      data: {
-        ...rest,
-        ...(departureDate && { departureDate: new Date(departureDate) }),
-        ...(handoffOptions && { handoffOptions }),
-      },
+      data: allowedUpdates,
     });
 
     return this.transformListing(updated);

@@ -2,15 +2,6 @@ import { Injectable, NotFoundException, ForbiddenException, BadRequestException 
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
 
-function generateBookingRef(): string {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  let ref = '';
-  for (let i = 0; i < 6; i++) {
-    ref += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return `LS-${ref}`;
-}
-
 @Injectable()
 export class BookingsService {
   constructor(private readonly prisma: PrismaService) {}
@@ -84,7 +75,7 @@ export class BookingsService {
     return booking;
   }
 
-  async create(userId: string, dto: CreateBookingDto) {
+  async create(userId: string, createBookingDto: CreateBookingDto) {
     const listing = await this.prisma.listing.findUnique({
       where: { id: dto.listingId },
     });
@@ -101,33 +92,28 @@ export class BookingsService {
       throw new BadRequestException('This listing is no longer available');
     }
 
-    // Look up price from the listing's tier
-    let totalPrice = dto.totalWeight ? Number(listing.priceSmall) : 0;
-    if (dto.packageSize === 'medium') {
-      totalPrice = Number(listing.priceMedium);
-    } else if (dto.packageSize === 'large') {
-      totalPrice = Number(listing.priceLarge);
-    } else {
-      totalPrice = Number(listing.priceSmall);
+    // Validate weight doesn't exceed available
+    if (createBookingDto.totalWeight > Number(listing.availableWeight)) {
+      throw new BadRequestException(
+        `Total weight (${createBookingDto.totalWeight}kg) exceeds available weight (${listing.availableWeight}kg)`,
+      );
     }
 
-    const bookingRef = generateBookingRef();
+    // Server-side price calculation — never trust client-supplied price
+    const totalPrice = Number(listing.pricePerKg) * Number(createBookingDto.totalWeight);
 
-    const booking = await this.prisma.booking.create({
+    return this.prisma.booking.create({
       data: {
         bookingRef,
         senderId: userId,
         carrierId: listing.carrierId,
         listingId: listing.id,
         status: 'pending',
-        packageSize: dto.packageSize,
-        totalWeight: dto.totalWeight ?? 0,
+        totalWeight: createBookingDto.totalWeight,
         totalPrice,
-        ...(dto.items && dto.items.length > 0 && {
-          items: {
-            create: dto.items,
-          },
-        }),
+        items: {
+          create: createBookingDto.items,
+        },
       },
       include: {
         items: true,

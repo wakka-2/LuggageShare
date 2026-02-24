@@ -6,6 +6,12 @@ import { GoogleAuthDto } from './dto/google-auth.dto';
 import { AppleAuthDto } from './dto/apple-auth.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import axios from 'axios';
+import * as jwt from 'jsonwebtoken';
+import * as crypto from 'crypto';
+
+// Cache Apple's public keys (refresh every 24 hours)
+let appleKeysCache: { keys: any[]; fetchedAt: number } | null = null;
+const APPLE_KEYS_TTL_MS = 24 * 60 * 60 * 1000;
 
 @Injectable()
 export class AuthService {
@@ -21,6 +27,12 @@ export class AuthService {
       const response = await axios.get(
         `https://oauth2.googleapis.com/tokeninfo?id_token=${dto.idToken}`,
       );
+
+      // Validate audience — reject tokens issued for other Google apps
+      const expectedClientId = this.configService.get<string>('GOOGLE_CLIENT_ID');
+      if (expectedClientId && response.data.aud !== expectedClientId) {
+        throw new UnauthorizedException('Google token audience mismatch');
+      }
 
       const { email, name, picture, sub: googleId } = response.data;
 
@@ -40,17 +52,17 @@ export class AuthService {
       // Generate tokens
       return this.generateTokens(user);
     } catch (error) {
+      if (error instanceof UnauthorizedException) throw error;
       throw new UnauthorizedException('Invalid Google token');
     }
   }
 
   async appleAuth(dto: AppleAuthDto) {
     try {
-      // For Apple, the idToken needs to be verified against Apple's public keys
-      // This is a simplified version - production should verify the JWT properly
-      const decoded = this.jwtService.decode(dto.identityToken) as any;
+      // Verify Apple identity token against Apple's public keys
+      const decoded = await this.verifyAppleToken(dto.identityToken);
 
-      if (!decoded) {
+      if (!decoded || !decoded.email) {
         throw new UnauthorizedException('Invalid Apple token');
       }
 
@@ -73,6 +85,7 @@ export class AuthService {
 
       return this.generateTokens(user);
     } catch (error) {
+      if (error instanceof UnauthorizedException) throw error;
       throw new UnauthorizedException('Invalid Apple token');
     }
   }
@@ -95,7 +108,7 @@ export class AuthService {
     }
   }
 
-  private generateTokens(user: any) {
+  private generateTokens(user: { id: string; email: string; name: string; avatarUrl: string | null; isVerified: boolean }) {
     const payload = { sub: user.id, email: user.email };
 
     const accessToken = this.jwtService.sign(payload, {
@@ -117,5 +130,80 @@ export class AuthService {
         isVerified: user.isVerified,
       },
     };
+  }
+
+  /**
+   * Verify Apple identity token using Apple's public JWKS keys.
+   * Validates: signature, issuer (https://appleid.apple.com), and audience.
+   */
+  private async verifyAppleToken(identityToken: string): Promise<any> {
+    // Decode header to get the key ID (kid)
+    const header = JSON.parse(
+      Buffer.from(identityToken.split('.')[0], 'base64url').toString(),
+    );
+
+    if (!header.kid) {
+      throw new UnauthorizedException('Apple token missing kid');
+    }
+
+    // Fetch Apple's public keys (with cache)
+    const appleKeys = await this.getApplePublicKeys();
+    const matchingKey = appleKeys.find((k: any) => k.kid === header.kid);
+
+    if (!matchingKey) {
+      throw new UnauthorizedException('Apple token key not found');
+    }
+
+    // Convert JWK to PEM format for verification
+    const publicKey = this.jwkToPem(matchingKey);
+
+    // Verify the token with Apple's public key
+    const expectedAudience = this.configService.get<string>('APPLE_CLIENT_ID');
+
+    return new Promise((resolve, reject) => {
+      jwt.verify(
+        identityToken,
+        publicKey,
+        {
+          algorithms: ['RS256'],
+          issuer: 'https://appleid.apple.com',
+          ...(expectedAudience && { audience: expectedAudience }),
+        },
+        (err, decoded) => {
+          if (err) reject(new UnauthorizedException('Apple token verification failed'));
+          else resolve(decoded);
+        },
+      );
+    });
+  }
+
+  private async getApplePublicKeys(): Promise<any[]> {
+    if (appleKeysCache && Date.now() - appleKeysCache.fetchedAt < APPLE_KEYS_TTL_MS) {
+      return appleKeysCache.keys;
+    }
+
+    const response = await axios.get('https://appleid.apple.com/auth/keys');
+    appleKeysCache = { keys: response.data.keys, fetchedAt: Date.now() };
+    return appleKeysCache.keys;
+  }
+
+  /**
+   * Convert RSA JWK (from Apple's JWKS) to PEM format.
+   */
+  private jwkToPem(jwk: { n: string; e: string; kty: string }): string {
+    if (jwk.kty !== 'RSA') {
+      throw new UnauthorizedException('Unsupported key type');
+    }
+
+    const keyObject = crypto.createPublicKey({
+      key: {
+        kty: jwk.kty,
+        n: jwk.n,
+        e: jwk.e,
+      },
+      format: 'jwk',
+    });
+
+    return keyObject.export({ type: 'spki', format: 'pem' }) as string;
   }
 }

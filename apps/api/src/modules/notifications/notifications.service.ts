@@ -1,10 +1,12 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../prisma/prisma.service';
 import axios from 'axios';
 
 @Injectable()
 export class NotificationsService {
+  private readonly logger = new Logger(NotificationsService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly configService: ConfigService,
@@ -117,7 +119,7 @@ export class NotificationsService {
         },
       );
     } catch (error) {
-      console.error('Failed to send push notification:', error);
+      this.logger.error('Failed to send push notification', error instanceof Error ? error.stack : error);
     }
   }
 }

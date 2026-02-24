@@ -1,126 +1,142 @@
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import {
   IsString,
+  IsNotEmpty,
   IsNumber,
-  IsBoolean,
   IsOptional,
+  IsBoolean,
   IsDateString,
-  IsIn,
   Min,
   Max,
-  IsObject,
-  IsArray,
+  MaxLength,
+  ValidateNested,
 } from 'class-validator';
-import { Type } from 'class-transformer';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+
+export class ListingPreferencesDto {
+  @ApiPropertyOptional({
+    description: 'Whether fragile items are accepted',
+    example: true,
+  })
+  @IsOptional()
+  @IsBoolean()
+  acceptsFragile?: boolean;
+
+  @ApiPropertyOptional({
+    description: 'Whether electronic items are accepted',
+    example: true,
+  })
+  @IsOptional()
+  @IsBoolean()
+  acceptsElectronics?: boolean;
+
+  @ApiPropertyOptional({
+    description: 'Whether documents are accepted',
+    example: true,
+  })
+  @IsOptional()
+  @IsBoolean()
+  acceptsDocuments?: boolean;
+
+  @ApiPropertyOptional({
+    description: 'Whether clothing items are accepted',
+    example: true,
+  })
+  @IsOptional()
+  @IsBoolean()
+  acceptsClothing?: boolean;
+
+  @ApiPropertyOptional({
+    description: 'Maximum declared value per item',
+    example: 300,
+    minimum: 0,
+  })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  maxItemValue?: number;
+}
 
 export class CreateListingDto {
-  @ApiProperty({ enum: ['offer', 'request'], default: 'offer' })
+  @ApiProperty({
+    description: 'City of departure',
+    example: 'Riyadh',
+  })
   @IsString()
-  @IsIn(['offer', 'request'])
-  type: string = 'offer';
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
-  title?: string;
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
-  titleAr?: string;
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
-  description?: string;
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
-  descriptionAr?: string;
-
-  @ApiProperty()
-  @IsString()
+  @IsNotEmpty()
   departureCity: string;
 
-  @ApiPropertyOptional()
-  @IsOptional()
+  @ApiProperty({
+    description: 'City of arrival',
+    example: 'Jeddah',
+  })
   @IsString()
-  departureCode?: string;
-
-  @ApiProperty()
-  @IsString()
+  @IsNotEmpty()
   arrivalCity: string;
 
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
-  arrivalCode?: string;
-
-  @ApiProperty()
+  @ApiProperty({
+    description: 'Departure date in ISO 8601 format',
+    example: '2026-03-15',
+  })
   @IsDateString()
+  @IsNotEmpty()
   departureDate: string;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({
+    description: 'Flight number',
+    example: 'SV123',
+  })
   @IsOptional()
   @IsString()
   flightNumber?: string;
 
-  @ApiProperty({ minimum: 0.1, maximum: 30 })
+  @ApiProperty({
+    description: 'Available luggage weight in kg',
+    example: 10,
+    minimum: 0.1,
+    maximum: 30,
+  })
   @IsNumber()
-  @Type(() => Number)
   @Min(0.1)
   @Max(30)
   availableWeight: number;
 
-  @ApiProperty({ description: 'Price for small package (up to 5kg)' })
+  @ApiProperty({
+    description: 'Price per kilogram',
+    example: 50,
+    minimum: 0.1,
+    maximum: 1000,
+  })
   @IsNumber()
-  @Type(() => Number)
-  @Min(1)
-  priceSmall: number;
-
-  @ApiProperty({ description: 'Price for medium package (5-10kg)' })
-  @IsNumber()
-  @Type(() => Number)
-  @Min(1)
-  priceMedium: number;
-
-  @ApiProperty({ description: 'Price for large package (10-20kg)' })
-  @IsNumber()
-  @Type(() => Number)
-  @Min(1)
-  priceLarge: number;
-
-  @ApiPropertyOptional({ default: false })
-  @IsOptional()
-  @IsBoolean()
-  negotiable?: boolean;
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
   @Min(0.1)
-  neededWeight?: number;
+  @Max(1000)
+  pricePerKg: number;
 
-  @ApiPropertyOptional({ description: 'Item restriction preferences' })
-  @IsOptional()
-  @IsObject()
-  restrictions?: Record<string, any>;
-
-  @ApiPropertyOptional({ description: 'Handoff options: airport, delivery, meetup' })
-  @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
-  handoffOptions?: string[];
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
-  notes?: string;
-
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({
+    description: 'Currency code',
+    example: 'SAR',
+    default: 'SAR',
+  })
   @IsOptional()
   @IsString()
   currency?: string;
+
+  @ApiPropertyOptional({
+    description: 'Carrier preferences for accepted item types',
+    type: ListingPreferencesDto,
+  })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => ListingPreferencesDto)
+  preferences?: ListingPreferencesDto;
+
+  @ApiPropertyOptional({
+    description: 'Additional notes from the carrier',
+    example: 'Pickup available near King Fahd Road',
+    maxLength: 500,
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  notes?: string;
 }

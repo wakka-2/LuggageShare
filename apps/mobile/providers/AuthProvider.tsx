@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { useRouter, useSegments } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
+import { apiClient } from '@/lib/api';
 
 export interface User {
   id: string;
@@ -24,8 +25,8 @@ const AuthContext = createContext<AuthContextType | null>(null);
 
 const TOKEN_KEY = 'auth_tokens';
 
-// Set to true to bypass login for development
-const DEV_SKIP_AUTH = __DEV__;
+// Dev auth bypass requires explicit opt-in via env var (never leaks to TestFlight/production)
+const DEV_SKIP_AUTH = __DEV__ && process.env.EXPO_PUBLIC_DEV_SKIP_AUTH === 'true';
 
 const DEMO_USER: User = {
   id: 'demo_user_id',
@@ -69,9 +70,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const tokensJson = await SecureStore.getItemAsync(TOKEN_KEY);
       if (tokensJson) {
         const tokens = JSON.parse(tokensJson);
-        // TODO: Validate token with API and get fresh user data
-        if (tokens.user) {
-          setUser(tokens.user);
+        if (tokens.accessToken && tokens.user) {
+          // Validate token by calling the API — rejects expired/invalid tokens
+          try {
+            const response = await apiClient.get('/users/me');
+            setUser(response.data.user || tokens.user);
+          } catch {
+            // Token invalid/expired — clear and redirect to login
+            await SecureStore.deleteItemAsync(TOKEN_KEY);
+          }
         }
       }
     } catch (error) {
