@@ -328,6 +328,36 @@ export default function BookingDetailScreen() {
         )}
       </ScrollView>
 
+      {/* Payment Button for Sender */}
+      {booking.status === 'accepted' && isSender && (
+        <View
+          style={[
+            styles.actionBar,
+            { backgroundColor: colors.card, borderTopColor: colors.border },
+          ]}
+        >
+          <TouchableOpacity
+            onPress={() =>
+              router.push({
+                pathname: '/booking/payment',
+                params: {
+                  bookingId: booking.id,
+                  amount: String(Number(booking.totalPrice)),
+                  currency: booking.currency,
+                  carrierName: booking.carrier.name,
+                  carrierIban: '',
+                  carrierBankName: '',
+                },
+              })
+            }
+            style={[styles.acceptBtn, { backgroundColor: colors.primary }]}
+          >
+            <Ionicons name="card-outline" size={20} color="#FFF" style={{ marginRight: 8 }} />
+            <Text style={styles.acceptText}>{t('payment.title')}</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
       {/* Action Buttons */}
       {booking.status === 'pending' && (
         <View

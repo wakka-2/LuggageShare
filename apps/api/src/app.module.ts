@@ -12,6 +12,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
 import { ReviewsModule } from './modules/reviews/reviews.module';
 import { WalletModule } from './modules/wallet/wallet.module';
 import { DisputesModule } from './modules/disputes/disputes.module';
+import { UploadsModule } from './modules/uploads/uploads.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { HealthController } from './health.controller';
 import { APP_GUARD } from '@nestjs/core';
@@ -27,6 +28,8 @@ import { ThrottlerGuard } from '@nestjs/throttler';
         JWT_SECRET: Joi.string().min(32).required(),
         JWT_REFRESH_SECRET: Joi.string().min(32).optional(),
         GOOGLE_CLIENT_ID: Joi.string().optional(),
+        SUPABASE_URL: Joi.string().optional().default(''),
+        SUPABASE_SERVICE_KEY: Joi.string().optional().default(''),
         API_PORT: Joi.number().default(3001),
       }),
       validationOptions: {
@@ -74,6 +77,7 @@ import { ThrottlerGuard } from '@nestjs/throttler';
     ReviewsModule,
     WalletModule,
     DisputesModule,
+    UploadsModule,
   ],
   controllers: [HealthController],
   providers: [

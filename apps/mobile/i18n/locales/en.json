@@ -243,7 +243,25 @@
   },
   "chat": {
     "title": "Chat",
-    "startConversation": "Start the conversation"
+    "startConversation": "Start the conversation",
+    "typing": "Typing..."
+  },
+  "payment": {
+    "title": "Payment",
+    "amount": "Amount to Transfer",
+    "bankDetails": "Bank Transfer Details",
+    "bankName": "Bank Name",
+    "iban": "IBAN",
+    "accountHolder": "Account Holder",
+    "copyIban": "Copy IBAN",
+    "ibanCopied": "IBAN Copied!",
+    "openBankApp": "Open Bank App",
+    "uploadProof": "Upload Transfer Screenshot",
+    "changeImage": "Change Image",
+    "confirmPayment": "Confirm Payment",
+    "successTitle": "Payment Submitted",
+    "successMessage": "Your payment proof has been submitted. The carrier will be notified.",
+    "uploadFirst": "Please upload a transfer screenshot first"
   },
   "notifications": {
     "title": "Notifications",

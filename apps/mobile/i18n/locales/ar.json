@@ -243,7 +243,25 @@
   },
   "chat": {
     "title": "المحادثة",
-    "startConversation": "ابدأ المحادثة"
+    "startConversation": "ابدأ المحادثة",
+    "typing": "يكتب..."
+  },
+  "payment": {
+    "title": "الدفع",
+    "amount": "المبلغ المطلوب تحويله",
+    "bankDetails": "تفاصيل التحويل البنكي",
+    "bankName": "اسم البنك",
+    "iban": "رقم الآيبان",
+    "accountHolder": "صاحب الحساب",
+    "copyIban": "نسخ الآيبان",
+    "ibanCopied": "تم نسخ الآيبان!",
+    "openBankApp": "فتح تطبيق البنك",
+    "uploadProof": "رفع إثبات التحويل",
+    "changeImage": "تغيير الصورة",
+    "confirmPayment": "تأكيد الدفع",
+    "successTitle": "تم تقديم الدفع",
+    "successMessage": "تم تقديم إثبات الدفع. سيتم إشعار الناقل.",
+    "uploadFirst": "يرجى رفع صورة إثبات التحويل أولاً"
   },
   "notifications": {
     "title": "الإشعارات",

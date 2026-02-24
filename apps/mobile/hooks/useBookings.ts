@@ -1,12 +1,19 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import apiClient from '@/lib/api';
+import { apiClient } from '@/lib/api';
 
 export interface ApiBooking {
   id: string;
   listingId: string;
   senderId: string;
   carrierId: string;
-  status: 'pending' | 'accepted' | 'rejected' | 'picked_up' | 'in_transit' | 'delivered' | 'cancelled';
+  status:
+    | 'pending'
+    | 'accepted'
+    | 'rejected'
+    | 'picked_up'
+    | 'in_transit'
+    | 'delivered'
+    | 'cancelled';
   totalWeight: number;
   totalPrice: number;
   currency: string;
@@ -129,6 +136,29 @@ export function useCancelBooking() {
     onSuccess: (_data, id) => {
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
       queryClient.invalidateQueries({ queryKey: ['booking', id] });
+    },
+  });
+}
+
+export function useSubmitPaymentProof() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      bookingId,
+      proofImageUrl,
+    }: {
+      bookingId: string;
+      proofImageUrl: string;
+    }) => {
+      const { data } = await apiClient.post(`/bookings/${bookingId}/payment-proof`, {
+        proofImageUrl,
+      });
+      return data.data ?? data;
+    },
+    onSuccess: (_, { bookingId }) => {
+      queryClient.invalidateQueries({ queryKey: ['bookings'] });
+      queryClient.invalidateQueries({ queryKey: ['booking', bookingId] });
     },
   });
 }
