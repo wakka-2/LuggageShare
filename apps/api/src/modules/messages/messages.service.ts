@@ -45,6 +45,20 @@ export class MessagesService {
       orderBy: { updatedAt: 'desc' },
     });
 
+    const bookingIds = bookings.map((b) => b.id);
+
+    const unreadCounts = await this.prisma.message.groupBy({
+      by: ['bookingId'],
+      where: {
+        bookingId: { in: bookingIds },
+        senderId: { not: userId },
+        isRead: false,
+      },
+      _count: { id: true },
+    });
+
+    const unreadMap = new Map(unreadCounts.map((uc) => [uc.bookingId, uc._count.id]));
+
     return bookings.map((booking) => {
       const otherUser = booking.senderId === userId ? booking.carrier : booking.sender;
       const lastMessage = booking.messages[0];
@@ -60,7 +74,7 @@ export class MessagesService {
               isMe: lastMessage.senderId === userId,
             }
           : null,
-        unreadCount: 0, // TODO: Implement unread count
+        unreadCount: unreadMap.get(booking.id) ?? 0,
       };
     });
   }

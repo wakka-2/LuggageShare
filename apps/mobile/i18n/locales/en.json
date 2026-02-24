@@ -238,7 +238,9 @@
     "confirmInTransit": "Confirm In Transit",
     "confirmInTransitMessage": "Confirm that the items are now in transit?",
     "confirmDelivery": "Confirm Delivery",
-    "confirmDeliveryMessage": "Confirm that you have delivered the items to the recipient?"
+    "confirmDeliveryMessage": "Confirm that you have delivered the items to the recipient?",
+    "confirmPaymentTitle": "Confirm Payment Received",
+    "confirmPaymentMessage": "Confirm that you have received the payment from the sender?"
   },
   "wallet": {
     "title": "Wallet",

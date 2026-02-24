@@ -36,11 +36,15 @@ export interface ApiBooking {
     avatarUrl: string | null;
     isVerified: boolean;
   };
+  paymentProofUrl: string | null;
+  paymentStatus: string;
   carrier: {
     id: string;
     name: string;
     avatarUrl: string | null;
     isVerified: boolean;
+    iban?: string | null;
+    bankName?: string | null;
   };
   items: Array<{
     id: string;
@@ -64,7 +68,7 @@ export function useBookings() {
     queryKey: ['bookings'],
     queryFn: async () => {
       const { data } = await apiClient.get('/bookings');
-      return data;
+      return data.data ?? data;
     },
   });
 }
@@ -74,7 +78,7 @@ export function useBooking(id: string | null) {
     queryKey: ['booking', id],
     queryFn: async () => {
       const { data } = await apiClient.get(`/bookings/${id}`);
-      return data;
+      return data.data ?? data;
     },
     enabled: !!id,
   });
@@ -176,6 +180,21 @@ export function useCancelBooking() {
   return useMutation({
     mutationFn: async (id: string) => {
       const { data } = await apiClient.put(`/bookings/${id}/cancel`);
+      return data;
+    },
+    onSuccess: (_data, id) => {
+      queryClient.invalidateQueries({ queryKey: ['bookings'] });
+      queryClient.invalidateQueries({ queryKey: ['booking', id] });
+    },
+  });
+}
+
+export function useConfirmPayment() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { data } = await apiClient.put(`/bookings/${id}/confirm-payment`);
       return data;
     },
     onSuccess: (_data, id) => {

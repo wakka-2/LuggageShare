@@ -5,12 +5,16 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { SubmitPaymentProofDto } from './dto/submit-payment-proof.dto';
 
 @Injectable()
 export class BookingsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notifications: NotificationsService
+  ) {}
 
   async findByUser(userId: string, params?: { page?: number; limit?: number }) {
     const page = params?.page ?? 1;
@@ -125,7 +129,7 @@ export class BookingsService {
     // Server-side price calculation — never trust client-supplied price
     const totalPrice = Number(listing.pricePerKg) * Number(createBookingDto.totalWeight);
 
-    return this.prisma.booking.create({
+    const booking = await this.prisma.booking.create({
       data: {
         senderId: userId,
         carrierId: listing.carrierId,
@@ -141,6 +145,16 @@ export class BookingsService {
         items: true,
       },
     });
+
+    // Notify carrier of new booking request
+    this.notifications.sendPushNotification(
+      listing.carrierId,
+      'New Booking Request',
+      `You have a new booking request for ${createBookingDto.totalWeight}kg`,
+      { type: 'booking_created', bookingId: booking.id }
+    );
+
+    return booking;
   }
 
   async accept(userId: string, id: string) {
@@ -154,10 +168,19 @@ export class BookingsService {
       throw new BadRequestException('This booking cannot be accepted');
     }
 
-    return this.prisma.booking.update({
+    const updated = await this.prisma.booking.update({
       where: { id },
       data: { status: 'accepted' },
     });
+
+    this.notifications.sendPushNotification(
+      booking.senderId,
+      'Booking Accepted',
+      `Your booking has been accepted by ${booking.carrier.name}`,
+      { type: 'booking_accepted', bookingId: id }
+    );
+
+    return updated;
   }
 
   async reject(userId: string, id: string) {
@@ -171,10 +194,19 @@ export class BookingsService {
       throw new BadRequestException('This booking cannot be rejected');
     }
 
-    return this.prisma.booking.update({
+    const updated = await this.prisma.booking.update({
       where: { id },
       data: { status: 'rejected' },
     });
+
+    this.notifications.sendPushNotification(
+      booking.senderId,
+      'Booking Rejected',
+      `Your booking request was not accepted`,
+      { type: 'booking_rejected', bookingId: id }
+    );
+
+    return updated;
   }
 
   async submitPaymentProof(userId: string, id: string, dto: SubmitPaymentProofDto) {
@@ -188,12 +220,38 @@ export class BookingsService {
       throw new BadRequestException('Payment proof can only be submitted for accepted bookings');
     }
 
-    return this.prisma.booking.update({
+    const updated = await this.prisma.booking.update({
       where: { id },
       data: {
         paymentProofUrl: dto.proofImageUrl,
         paymentStatus: 'proof_submitted',
       },
+    });
+
+    this.notifications.sendPushNotification(
+      booking.carrierId,
+      'Payment Proof Submitted',
+      `Payment proof has been submitted for your review`,
+      { type: 'payment_proof', bookingId: id }
+    );
+
+    return updated;
+  }
+
+  async confirmPayment(userId: string, id: string) {
+    const booking = await this.findById(userId, id);
+
+    if (booking.carrierId !== userId) {
+      throw new ForbiddenException('Only the carrier can confirm payment');
+    }
+
+    if (booking.paymentStatus !== 'proof_submitted') {
+      throw new BadRequestException('No payment proof to confirm');
+    }
+
+    return this.prisma.booking.update({
+      where: { id },
+      data: { paymentStatus: 'confirmed' },
     });
   }
 
@@ -242,10 +300,19 @@ export class BookingsService {
       throw new BadRequestException('Items must be in transit before marking as delivered');
     }
 
-    return this.prisma.booking.update({
+    const updated = await this.prisma.booking.update({
       where: { id },
       data: { status: 'delivered' },
     });
+
+    this.notifications.sendPushNotification(
+      booking.senderId,
+      'Items Delivered',
+      `Your items have been delivered! Please rate your experience.`,
+      { type: 'booking_delivered', bookingId: id }
+    );
+
+    return updated;
   }
 
   async cancel(userId: string, id: string) {

@@ -238,7 +238,9 @@
     "confirmInTransit": "تأكيد الشحن",
     "confirmInTransitMessage": "هل تؤكد أن الأغراض الآن قيد الشحن؟",
     "confirmDelivery": "تأكيد التوصيل",
-    "confirmDeliveryMessage": "هل تؤكد أنك سلمت الأغراض للمستلم?"
+    "confirmDeliveryMessage": "هل تؤكد أنك سلمت الأغراض للمستلم?",
+    "confirmPaymentTitle": "تأكيد استلام الدفع",
+    "confirmPaymentMessage": "هل تؤكد أنك استلمت الدفع من المرسل?"
   },
   "wallet": {
     "title": "المحفظة",

@@ -60,7 +60,7 @@ export function useListings(params: SearchParams = {}) {
       if (params.minWeight) searchParams.set('minWeight', String(params.minWeight));
 
       const { data } = await apiClient.get(`/listings?${searchParams.toString()}`);
-      return data;
+      return data.data ?? data;
     },
   });
 }
@@ -70,7 +70,7 @@ export function useListing(id: string | null) {
     queryKey: ['listing', id],
     queryFn: async () => {
       const { data } = await apiClient.get(`/listings/${id}`);
-      return data;
+      return data.data ?? data;
     },
     enabled: !!id,
   });

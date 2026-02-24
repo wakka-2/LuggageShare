@@ -52,6 +52,17 @@ async function refreshAccessToken(): Promise<string | null> {
   return newAccessToken;
 }
 
+// Response interceptor: unwrap NestJS TransformInterceptor {data: T} envelope
+apiClient.interceptors.response.use(
+  (response) => {
+    if (response.data && typeof response.data === 'object' && response.data.data !== undefined) {
+      response.data = response.data.data;
+    }
+    return response;
+  },
+  (error) => Promise.reject(error)
+);
+
 // Response interceptor for token refresh with mutex
 apiClient.interceptors.response.use(
   (response) => response,

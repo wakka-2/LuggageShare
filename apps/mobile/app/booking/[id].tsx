@@ -26,6 +26,7 @@ import {
   useMarkPickedUp,
   useMarkInTransit,
   useMarkDelivered,
+  useConfirmPayment,
 } from '@/hooks/useBookings';
 import { useBookingReview, useCreateReview } from '@/hooks/useReviews';
 import { useAuth } from '@/hooks/useAuth';
@@ -65,6 +66,7 @@ export default function BookingDetailScreen() {
   const acceptBooking = useAcceptBooking();
   const rejectBooking = useRejectBooking();
   const cancelBooking = useCancelBooking();
+  const confirmPayment = useConfirmPayment();
   const markPickedUp = useMarkPickedUp();
   const markInTransit = useMarkInTransit();
   const markDelivered = useMarkDelivered();
@@ -116,6 +118,13 @@ export default function BookingDetailScreen() {
         style: 'destructive',
         onPress: () => cancelBooking.mutate(booking.id),
       },
+    ]);
+  };
+
+  const handleConfirmPayment = () => {
+    Alert.alert(t('booking.confirmPaymentTitle'), t('booking.confirmPaymentMessage'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      { text: t('common.confirm'), onPress: () => confirmPayment.mutate(booking.id) },
     ]);
   };
 
@@ -372,8 +381,8 @@ export default function BookingDetailScreen() {
                   amount: String(Number(booking.totalPrice)),
                   currency: booking.currency,
                   carrierName: booking.carrier.name,
-                  carrierIban: (booking.carrier as any).iban || '',
-                  carrierBankName: (booking.carrier as any).bankName || '',
+                  carrierIban: booking.carrier.iban || '',
+                  carrierBankName: booking.carrier.bankName || '',
                 },
               })
             }
@@ -381,6 +390,39 @@ export default function BookingDetailScreen() {
           >
             <Ionicons name="card-outline" size={20} color="#FFF" style={{ marginRight: 8 }} />
             <Text style={styles.acceptText}>{t('payment.title')}</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {/* Carrier: Confirm Payment */}
+      {isCarrier && booking.paymentStatus === 'proof_submitted' && (
+        <View
+          style={[
+            styles.actionBar,
+            { backgroundColor: colors.card, borderTopColor: colors.border },
+          ]}
+        >
+          <TouchableOpacity
+            onPress={handleConfirmPayment}
+            disabled={confirmPayment.isPending}
+            style={[
+              styles.acceptBtn,
+              { backgroundColor: '#10B981', opacity: confirmPayment.isPending ? 0.7 : 1 },
+            ]}
+          >
+            {confirmPayment.isPending ? (
+              <ActivityIndicator color="#FFF" size="small" />
+            ) : (
+              <>
+                <Ionicons
+                  name="checkmark-done-outline"
+                  size={20}
+                  color="#FFF"
+                  style={{ marginRight: 8 }}
+                />
+                <Text style={styles.acceptText}>{t('booking.confirmPayment')}</Text>
+              </>
+            )}
           </TouchableOpacity>
         </View>
       )}

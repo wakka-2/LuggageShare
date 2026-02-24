@@ -63,6 +63,13 @@ export class BookingsController {
     return this.bookingsService.submitPaymentProof(user.id, id, dto);
   }
 
+  @Put(':id/confirm-payment')
+  @ApiOperation({ summary: 'Confirm payment received (carrier)' })
+  @ApiResponse({ status: 200, description: 'Payment confirmed' })
+  async confirmPayment(@CurrentUser() user: any, @Param('id') id: string) {
+    return this.bookingsService.confirmPayment(user.id, id);
+  }
+
   @Put(':id/pickup')
   @ApiOperation({ summary: 'Mark items as picked up (carrier)' })
   @ApiResponse({ status: 200, description: 'Booking marked as picked up' })
