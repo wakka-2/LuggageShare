@@ -20,7 +20,9 @@ export class UploadsService {
 
   constructor(private readonly configService: ConfigService) {
     const supabaseUrl = this.configService.get<string>('SUPABASE_URL', '');
-    const supabaseServiceKey = this.configService.get<string>('SUPABASE_SERVICE_KEY', '');
+    const supabaseServiceKey =
+      this.configService.get<string>('SUPABASE_SERVICE_KEY', '') ||
+      this.configService.get<string>('SUPABASE_SERVICE_ROLE_KEY', '');
 
     if (!supabaseUrl || !supabaseServiceKey) {
       this.logger.warn(

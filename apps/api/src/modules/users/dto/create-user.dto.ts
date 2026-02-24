@@ -19,6 +19,6 @@ export class CreateUserDto {
   @IsOptional()
   appleId?: string;
 
-  @IsEnum(['google', 'apple'])
-  provider: 'google' | 'apple';
+  @IsEnum(['google', 'apple', 'dev'])
+  provider: 'google' | 'apple' | 'dev';
 }

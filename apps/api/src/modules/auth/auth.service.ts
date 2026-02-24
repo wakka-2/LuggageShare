@@ -111,6 +111,21 @@ export class AuthService {
     }
   }
 
+  async devLogin() {
+    const email = 'dev@luggageshare.com';
+    let user = await this.usersService.findByEmail(email);
+
+    if (!user) {
+      user = await this.usersService.create({
+        email,
+        name: 'Dev User',
+        provider: 'dev',
+      });
+    }
+
+    return this.generateTokens(user);
+  }
+
   private generateTokens(user: {
     id: string;
     email: string;

@@ -1,4 +1,5 @@
-import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Body, HttpCode, HttpStatus, ForbiddenException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { GoogleAuthDto } from './dto/google-auth.dto';
@@ -8,7 +9,10 @@ import { RefreshTokenDto } from './dto/refresh-token.dto';
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly configService: ConfigService
+  ) {}
 
   @Post('google')
   @HttpCode(HttpStatus.OK)
@@ -26,6 +30,18 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Invalid token' })
   async appleAuth(@Body() dto: AppleAuthDto) {
     return this.authService.appleAuth(dto);
+  }
+
+  @Post('dev-login')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Dev login (development only)' })
+  @ApiResponse({ status: 200, description: 'Dev user authenticated' })
+  @ApiResponse({ status: 403, description: 'Not available in production' })
+  async devLogin() {
+    if (this.configService.get<string>('NODE_ENV') === 'production') {
+      throw new ForbiddenException('Dev login is not available in production');
+    }
+    return this.authService.devLogin();
   }
 
   @Post('refresh')
