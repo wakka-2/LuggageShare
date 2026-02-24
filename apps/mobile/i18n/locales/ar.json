@@ -237,7 +237,9 @@
     "noTransactionsDescription": "ستظهر معاملاتك هنا بعد إتمام الحجوزات",
     "commission": "عمولة",
     "topUpType": "إيداع",
-    "refund": "استرجاع"
+    "refund": "استرجاع",
+    "withdrawal": "سحب",
+    "withdraw": "سحب"
   },
   "chat": {
     "title": "المحادثة",

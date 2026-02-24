@@ -11,8 +11,11 @@ import { MessagesModule } from './modules/messages/messages.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { ReviewsModule } from './modules/reviews/reviews.module';
 import { WalletModule } from './modules/wallet/wallet.module';
+import { DisputesModule } from './modules/disputes/disputes.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { HealthController } from './health.controller';
+import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerGuard } from '@nestjs/throttler';
 
 @Module({
   imports: [
@@ -70,7 +73,14 @@ import { HealthController } from './health.controller';
     NotificationsModule,
     ReviewsModule,
     WalletModule,
+    DisputesModule,
   ],
   controllers: [HealthController],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
 export class AppModule {}

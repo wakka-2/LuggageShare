@@ -83,6 +83,18 @@ export default function RootLayout() {
                 name="profile/terms"
                 options={{ headerShown: false, presentation: 'card' }}
               />
+              <Stack.Screen
+                name="profile/verification"
+                options={{ headerShown: false, presentation: 'card' }}
+              />
+              <Stack.Screen
+                name="profile/settings"
+                options={{ headerShown: false, presentation: 'card' }}
+              />
+              <Stack.Screen
+                name="profile/help"
+                options={{ headerShown: false, presentation: 'card' }}
+              />
               <Stack.Screen name="+not-found" />
             </Stack>
           </AuthProvider>

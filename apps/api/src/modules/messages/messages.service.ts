@@ -1,5 +1,11 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { containsProfanity } from '../../common/utils/content-filter';
 
 @Injectable()
 export class MessagesService {
@@ -8,10 +14,7 @@ export class MessagesService {
   async getConversations(userId: string) {
     const bookings = await this.prisma.booking.findMany({
       where: {
-        OR: [
-          { senderId: userId },
-          { carrierId: userId },
-        ],
+        OR: [{ senderId: userId }, { carrierId: userId }],
       },
       include: {
         sender: {
@@ -111,6 +114,10 @@ export class MessagesService {
 
     if (booking.senderId !== userId && booking.carrierId !== userId) {
       throw new ForbiddenException('You do not have access to this conversation');
+    }
+
+    if (containsProfanity(content)) {
+      throw new BadRequestException('Message contains inappropriate content');
     }
 
     const message = await this.prisma.message.create({

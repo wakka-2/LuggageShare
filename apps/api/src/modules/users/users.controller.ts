@@ -2,6 +2,7 @@ import { Controller, Get, Post, Put, Body, Param, UseGuards } from '@nestjs/comm
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { VerificationRequestDto } from './dto/verification-request.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
@@ -31,6 +32,21 @@ export class UsersController {
   @ApiResponse({ status: 200, description: 'ToS accepted' })
   async acceptTos(@CurrentUser() user: any) {
     return this.usersService.acceptTos(user.id);
+  }
+
+  @Get('me/verification')
+  @ApiOperation({ summary: 'Get verification status' })
+  @ApiResponse({ status: 200, description: 'Returns verification status' })
+  async getVerificationStatus(@CurrentUser() user: any) {
+    return this.usersService.getVerificationStatus(user.id);
+  }
+
+  @Post('me/verify')
+  @ApiOperation({ summary: 'Submit verification request' })
+  @ApiResponse({ status: 200, description: 'Verification request submitted' })
+  @ApiResponse({ status: 400, description: 'Already verified' })
+  async requestVerification(@CurrentUser() user: any, @Body() dto: VerificationRequestDto) {
+    return this.usersService.requestVerification(user.id, dto);
   }
 
   @Get(':id')

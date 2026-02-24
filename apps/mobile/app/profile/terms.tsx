@@ -16,7 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
 import { useTheme } from '@/hooks/useTheme';
-import { api } from '@/lib/api';
+import { apiClient } from '@/lib/api';
 
 export default function TermsScreen() {
   const { t, i18n } = useTranslation();
@@ -28,7 +28,7 @@ export default function TermsScreen() {
   const handleAccept = async () => {
     setAccepting(true);
     try {
-      await api.post('/users/me/accept-tos');
+      await apiClient.post('/users/me/accept-tos');
       Alert.alert(t('common.success'), t('profile.tosAccepted'), [
         { text: t('common.ok'), onPress: () => router.back() },
       ]);

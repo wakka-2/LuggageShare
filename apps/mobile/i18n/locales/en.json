@@ -237,7 +237,9 @@
     "noTransactionsDescription": "Your transactions will appear here after completed bookings",
     "commission": "Commission",
     "topUpType": "Top Up",
-    "refund": "Refund"
+    "refund": "Refund",
+    "withdrawal": "Withdrawal",
+    "withdraw": "Withdraw"
   },
   "chat": {
     "title": "Chat",

@@ -35,6 +35,7 @@ model User {
   messages        Message[]
   reviews         Review[]        @relation("ReviewAuthor")
   receivedReviews Review[]        @relation("ReviewReceiver")
+  disputes        Dispute[]       @relation("DisputeReporter")
   notifications   Notification[]
   pushTokens      PushToken[]
   balanceHistory  BalanceHistory[]
@@ -110,6 +111,7 @@ model Booking {
   items    Item[]
   messages Message[]
   review   Review?
+  dispute  Dispute?
 
   @@index([senderId])
   @@index([carrierId])
@@ -171,6 +173,28 @@ model Review {
 
   @@index([revieweeId])
   @@map("reviews")
+}
+
+// ==========================================
+// Disputes
+// ==========================================
+
+model Dispute {
+  id          String   @id @default(cuid())
+  bookingId   String   @unique
+  reporterId  String
+  reason      String
+  description String?
+  status      String   @default("open") // open, investigating, resolved, dismissed
+  resolution  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  booking  Booking @relation(fields: [bookingId], references: [id])
+  reporter User    @relation("DisputeReporter", fields: [reporterId], references: [id])
+
+  @@index([reporterId])
+  @@map("disputes")
 }
 
 // ==========================================

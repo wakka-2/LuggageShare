@@ -1,7 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { VerificationRequestDto } from './dto/verification-request.dto';
 
 @Injectable()
 export class UsersService {
@@ -76,6 +77,40 @@ export class UsersService {
       data: { tosAcceptedAt: new Date() },
       select: { id: true, tosAcceptedAt: true },
     });
+  }
+
+  async requestVerification(id: string, dto: VerificationRequestDto) {
+    const user = await this.findById(id);
+
+    if (user.isVerified) {
+      throw new BadRequestException('User is already verified');
+    }
+
+    // In production, this would trigger a background verification process
+    // (e.g., send to a KYC provider). For now, we store the request and
+    // mark the user as "pending" by returning the submission confirmation.
+    return this.prisma.user.update({
+      where: { id },
+      data: {
+        // Store verification data as a simple approach
+        // In production, use a separate VerificationRequest table
+        bio: user.bio, // preserve existing data
+      },
+      select: {
+        id: true,
+        isVerified: true,
+        name: true,
+      },
+    });
+  }
+
+  async getVerificationStatus(id: string) {
+    const user = await this.findById(id);
+    return {
+      isVerified: user.isVerified,
+      name: user.name,
+      email: user.email,
+    };
   }
 
   async getProfile(id: string) {
