@@ -21,6 +21,8 @@ model User {
   city          String?
   isVerified    Boolean   @default(false)
   tosAcceptedAt DateTime?
+  iban          String?
+  bankName      String?
   googleId      String?   @unique
   appleId       String?   @unique
   provider      String    // 'google' | 'apple'
@@ -96,12 +98,14 @@ model Booking {
   listingId   String
   senderId    String
   carrierId   String
-  status      String    @default("pending") // pending, accepted, rejected, picked_up, in_transit, delivered, cancelled
-  totalWeight Decimal   @db.Decimal(5, 2)
-  totalPrice  Decimal   @db.Decimal(10, 2)
-  currency    String    @default("SAR")
-  cancelledBy String?
-  cancelledAt DateTime?
+  status          String    @default("pending") // pending, accepted, rejected, picked_up, in_transit, delivered, cancelled
+  totalWeight     Decimal   @db.Decimal(5, 2)
+  totalPrice      Decimal   @db.Decimal(10, 2)
+  currency        String    @default("SAR")
+  paymentProofUrl String?
+  paymentStatus   String    @default("unpaid") // unpaid, proof_submitted, confirmed, failed
+  cancelledBy     String?
+  cancelledAt     DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 

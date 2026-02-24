@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
+import { SubmitPaymentProofDto } from './dto/submit-payment-proof.dto';
 
 @Injectable()
 export class BookingsService {
@@ -78,6 +79,8 @@ export class BookingsService {
             name: true,
             avatarUrl: true,
             phone: true,
+            iban: true,
+            bankName: true,
           },
         },
         items: true,
@@ -171,6 +174,26 @@ export class BookingsService {
     return this.prisma.booking.update({
       where: { id },
       data: { status: 'rejected' },
+    });
+  }
+
+  async submitPaymentProof(userId: string, id: string, dto: SubmitPaymentProofDto) {
+    const booking = await this.findById(userId, id);
+
+    if (booking.senderId !== userId) {
+      throw new ForbiddenException('Only the sender can submit payment proof');
+    }
+
+    if (booking.status !== 'accepted') {
+      throw new BadRequestException('Payment proof can only be submitted for accepted bookings');
+    }
+
+    return this.prisma.booking.update({
+      where: { id },
+      data: {
+        paymentProofUrl: dto.proofImageUrl,
+        paymentStatus: 'proof_submitted',
+      },
     });
   }
 

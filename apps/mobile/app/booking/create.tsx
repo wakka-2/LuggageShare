@@ -225,7 +225,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     borderWidth: 1,
     fontWeight: '600',
-  } as ViewStyle,
+  } as TextStyle,
   priceCard: { borderRadius: 16, padding: 20 } as ViewStyle,
   priceRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 } as ViewStyle,
   priceLabel: { fontSize: 14 } as TextStyle,

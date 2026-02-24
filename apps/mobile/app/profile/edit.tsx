@@ -1,5 +1,16 @@
 import { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, ActivityIndicator, ViewStyle, TextStyle } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  TextInput,
+  Alert,
+  ActivityIndicator,
+  ViewStyle,
+  TextStyle,
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -48,11 +59,9 @@ export default function EditProfileScreen() {
       // Update local auth state
       updateUser({ displayName: name.trim() });
 
-      Alert.alert(
-        t('profile.profileUpdated'),
-        t('profile.profileUpdatedMessage'),
-        [{ text: t('common.ok'), onPress: () => router.back() }]
-      );
+      Alert.alert(t('profile.profileUpdated'), t('profile.profileUpdatedMessage'), [
+        { text: t('common.ok'), onPress: () => router.back() },
+      ]);
     } catch {
       Alert.alert(t('common.errorTitle'), t('profile.failedUpdate'));
     }
@@ -61,7 +70,9 @@ export default function EditProfileScreen() {
   if (isLoading) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-        <View style={styles.loading}><ActivityIndicator size="large" color={colors.primary} /></View>
+        <View style={styles.loading}>
+          <ActivityIndicator size="large" color={colors.primary} />
+        </View>
       </SafeAreaView>
     );
   }
@@ -72,9 +83,7 @@ export default function EditProfileScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.headerBtn}>
           <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>
-          {t('profile.editProfile')}
-        </Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>{t('profile.editProfile')}</Text>
         <View style={styles.headerBtn} />
       </View>
 
@@ -97,7 +106,10 @@ export default function EditProfileScreen() {
               {t('profile.name')} <Text style={{ color: '#EF4444' }}>*</Text>
             </Text>
             <TextInput
-              style={[styles.input, { backgroundColor: colors.card, color: colors.text, borderColor: colors.border }]}
+              style={[
+                styles.input,
+                { backgroundColor: colors.card, color: colors.text, borderColor: colors.border },
+              ]}
               value={name}
               onChangeText={setName}
               placeholder={t('profile.enterName')}
@@ -107,20 +119,27 @@ export default function EditProfileScreen() {
           </View>
 
           <View style={styles.fieldGroup}>
-            <Text style={[styles.label, { color: colors.text }]}>
-              {t('profile.email')}
-            </Text>
-            <View style={[styles.input, styles.disabledInput, { backgroundColor: colors.card, borderColor: colors.border }]}>
-              <Text style={[styles.disabledText, { color: colors.textSecondary }]}>{profile?.email}</Text>
+            <Text style={[styles.label, { color: colors.text }]}>{t('profile.email')}</Text>
+            <View
+              style={[
+                styles.input as any,
+                styles.disabledInput,
+                { backgroundColor: colors.card, borderColor: colors.border },
+              ]}
+            >
+              <Text style={[styles.disabledText, { color: colors.textSecondary }]}>
+                {profile?.email}
+              </Text>
             </View>
           </View>
 
           <View style={styles.fieldGroup}>
-            <Text style={[styles.label, { color: colors.text }]}>
-              {t('profile.city')}
-            </Text>
+            <Text style={[styles.label, { color: colors.text }]}>{t('profile.city')}</Text>
             <TextInput
-              style={[styles.input, { backgroundColor: colors.card, color: colors.text, borderColor: colors.border }]}
+              style={[
+                styles.input,
+                { backgroundColor: colors.card, color: colors.text, borderColor: colors.border },
+              ]}
               value={city}
               onChangeText={setCity}
               placeholder={t('profile.placeholderCity')}
@@ -130,11 +149,13 @@ export default function EditProfileScreen() {
           </View>
 
           <View style={styles.fieldGroup}>
-            <Text style={[styles.label, { color: colors.text }]}>
-              {t('profile.bio')}
-            </Text>
+            <Text style={[styles.label, { color: colors.text }]}>{t('profile.bio')}</Text>
             <TextInput
-              style={[styles.input, styles.textArea, { backgroundColor: colors.card, color: colors.text, borderColor: colors.border }]}
+              style={[
+                styles.input,
+                styles.textArea,
+                { backgroundColor: colors.card, color: colors.text, borderColor: colors.border },
+              ]}
               value={bio}
               onChangeText={setBio}
               placeholder={t('profile.placeholderBio')}
@@ -145,17 +166,24 @@ export default function EditProfileScreen() {
               textAlign={isRTL ? 'right' : 'left'}
               textAlignVertical="top"
             />
-            <Text style={[styles.charCount, { color: colors.textSecondary }]}>{bio.length}/300</Text>
+            <Text style={[styles.charCount, { color: colors.textSecondary }]}>
+              {bio.length}/300
+            </Text>
           </View>
         </View>
       </ScrollView>
 
       {/* Save Button */}
-      <View style={[styles.bottomBar, { backgroundColor: colors.card, borderTopColor: colors.border }]}>
+      <View
+        style={[styles.bottomBar, { backgroundColor: colors.card, borderTopColor: colors.border }]}
+      >
         <TouchableOpacity
           onPress={handleSave}
           disabled={updateProfile.isPending}
-          style={[styles.saveBtn, { backgroundColor: colors.primary, opacity: updateProfile.isPending ? 0.7 : 1 }]}
+          style={[
+            styles.saveBtn,
+            { backgroundColor: colors.primary, opacity: updateProfile.isPending ? 0.7 : 1 },
+          ]}
         >
           {updateProfile.isPending ? (
             <ActivityIndicator color="#FFF" />
@@ -172,8 +200,12 @@ const styles = StyleSheet.create({
   container: { flex: 1 } as ViewStyle,
   loading: { flex: 1, alignItems: 'center', justifyContent: 'center' } as ViewStyle,
   header: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
   } as ViewStyle,
   headerBtn: { width: 40, alignItems: 'center' } as ViewStyle,
   headerTitle: { fontSize: 18, fontWeight: '600' } as TextStyle,
@@ -181,8 +213,13 @@ const styles = StyleSheet.create({
 
   avatarSection: { alignItems: 'center', marginBottom: 32, gap: 12 } as ViewStyle,
   changePhotoBtn: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, borderWidth: 1.5,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1.5,
   } as ViewStyle,
   changePhotoText: { fontSize: 14, fontWeight: '600' } as TextStyle,
 
@@ -190,14 +227,23 @@ const styles = StyleSheet.create({
   fieldGroup: { gap: 8 } as ViewStyle,
   label: { fontSize: 14, fontWeight: '600' } as TextStyle,
   input: {
-    height: 52, borderRadius: 12, paddingHorizontal: 16, fontSize: 16, borderWidth: 1,
-  } as ViewStyle,
-  textArea: { height: 120, paddingTop: 14 } as ViewStyle,
+    height: 52,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    fontSize: 16,
+    borderWidth: 1,
+  } as TextStyle,
+  textArea: { height: 120, paddingTop: 14 } as TextStyle,
   disabledInput: { justifyContent: 'center', opacity: 0.7 } as ViewStyle,
   disabledText: { fontSize: 16 } as TextStyle,
   charCount: { fontSize: 12, textAlign: 'right' } as TextStyle,
 
   bottomBar: { padding: 16, borderTopWidth: 1 } as ViewStyle,
-  saveBtn: { height: 52, borderRadius: 12, alignItems: 'center', justifyContent: 'center' } as ViewStyle,
+  saveBtn: {
+    height: 52,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  } as ViewStyle,
   saveBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' } as TextStyle,
 });

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -64,44 +64,43 @@ export default function ChatScreen() {
     }
   };
 
-  const renderMessage = ({
-    item,
-  }: {
-    item: typeof messages extends (infer T)[] | undefined ? T : never;
-  }) => {
-    if (!item) return null;
-    const isMe = item.senderId === user?.id;
-    const time = new Date(item.createdAt).toLocaleTimeString(isRTL ? 'ar-SA' : 'en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+  const renderMessage = useCallback(
+    ({ item }: { item: typeof messages extends (infer T)[] | undefined ? T : never }) => {
+      if (!item) return null;
+      const isMe = item.senderId === user?.id;
+      const time = new Date(item.createdAt).toLocaleTimeString(isRTL ? 'ar-SA' : 'en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+      });
 
-    return (
-      <View style={[styles.messageRow, isMe ? styles.messageRowMe : styles.messageRowOther]}>
-        {!isMe && <Avatar name={item.sender.name} avatarUrl={item.sender.avatarUrl} size={28} />}
-        <View
-          style={[
-            styles.messageBubble,
-            isMe
-              ? [styles.bubbleMe, { backgroundColor: colors.primary }]
-              : [styles.bubbleOther, { backgroundColor: colors.card }],
-          ]}
-        >
-          <Text style={[styles.messageText, { color: isMe ? '#FFF' : colors.text }]}>
-            {item.content}
-          </Text>
-          <Text
+      return (
+        <View style={[styles.messageRow, isMe ? styles.messageRowMe : styles.messageRowOther]}>
+          {!isMe && <Avatar name={item.sender.name} avatarUrl={item.sender.avatarUrl} size={28} />}
+          <View
             style={[
-              styles.messageTime,
-              { color: isMe ? 'rgba(255,255,255,0.7)' : colors.textSecondary },
+              styles.messageBubble,
+              isMe
+                ? [styles.bubbleMe, { backgroundColor: colors.primary }]
+                : [styles.bubbleOther, { backgroundColor: colors.card }],
             ]}
           >
-            {time}
-          </Text>
+            <Text style={[styles.messageText, { color: isMe ? '#FFF' : colors.text }]}>
+              {item.content}
+            </Text>
+            <Text
+              style={[
+                styles.messageTime,
+                { color: isMe ? 'rgba(255,255,255,0.7)' : colors.textSecondary },
+              ]}
+            >
+              {time}
+            </Text>
+          </View>
         </View>
-      </View>
-    );
-  };
+      );
+    },
+    [user?.id, isRTL, colors]
+  );
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -131,6 +130,9 @@ export default function ChatScreen() {
             contentContainerStyle={styles.messagesList}
             inverted={false}
             onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+            maxToRenderPerBatch={15}
+            windowSize={10}
+            removeClippedSubviews
             ListEmptyComponent={
               <View style={styles.emptyChat}>
                 <Ionicons name="chatbubbles-outline" size={48} color={colors.textSecondary} />
@@ -235,7 +237,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 10,
     fontSize: 15,
-  } as ViewStyle,
+  } as TextStyle,
   sendBtn: {
     width: 40,
     height: 40,

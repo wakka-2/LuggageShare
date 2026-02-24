@@ -252,8 +252,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     fontSize: 16,
     borderWidth: 1,
-  } as ViewStyle,
-  multilineInput: { height: 100, paddingTop: 12, textAlignVertical: 'top' } as ViewStyle,
+  } as TextStyle,
+  multilineInput: { height: 100, paddingTop: 12, textAlignVertical: 'top' } as TextStyle,
   submitBar: { padding: 16, borderTopWidth: 1 } as ViewStyle,
   submitButton: {
     height: 52,

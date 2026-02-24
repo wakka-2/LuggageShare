@@ -1,3 +1,4 @@
+import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
@@ -27,7 +28,12 @@ interface ListingCardProps {
 
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
-export function ListingCard({ listing, index, viewMode, onPress }: ListingCardProps) {
+export const ListingCard = React.memo(function ListingCard({
+  listing,
+  index,
+  viewMode,
+  onPress,
+}: ListingCardProps) {
   const { t, i18n } = useTranslation();
   const { colors } = useTheme();
   const isRTL = i18n.language === 'ar';
@@ -87,9 +93,7 @@ export function ListingCard({ listing, index, viewMode, onPress }: ListingCardPr
     ? { primary: colors.primary, gradient: [colors.primary, colors.primaryDark] as const }
     : { primary: colors.success, gradient: ['#22C55E', '#16A34A'] as const };
 
-  const typeLabel = isOffer
-    ? t('listingCard.offer')
-    : t('listingCard.request');
+  const typeLabel = isOffer ? t('listingCard.offer') : t('listingCard.request');
 
   // List View Layout - Compact and clean
   if (viewMode === 'list') {
@@ -133,9 +137,7 @@ export function ListingCard({ listing, index, viewMode, onPress }: ListingCardPr
                 {listing.from.code}
               </Text>
               <Ionicons name="arrow-forward" size={12} color={colors.textTertiary} />
-              <Text style={[styles.listRouteText, { color: colors.text }]}>
-                {listing.to.code}
-              </Text>
+              <Text style={[styles.listRouteText, { color: colors.text }]}>{listing.to.code}</Text>
             </View>
             <View style={styles.listDateContainer}>
               <Ionicons name="calendar-outline" size={14} color={colors.textSecondary} />
@@ -153,7 +155,10 @@ export function ListingCard({ listing, index, viewMode, onPress }: ListingCardPr
                 size="tiny"
                 verified={listing.user.isVerified}
               />
-              <Text style={[styles.listUserName, { color: colors.textSecondary }]} numberOfLines={1}>
+              <Text
+                style={[styles.listUserName, { color: colors.textSecondary }]}
+                numberOfLines={1}
+              >
                 {isRTL ? listing.user.nameAr : listing.user.name}
               </Text>
               {listing.user.isVerified && (
@@ -174,7 +179,9 @@ export function ListingCard({ listing, index, viewMode, onPress }: ListingCardPr
   // Grid View Layout - Rich and visually appealing
   return (
     <AnimatedTouchable
-      entering={FadeInDown.delay(index * 60).duration(400).springify()}
+      entering={FadeInDown.delay(index * 60)
+        .duration(400)
+        .springify()}
       style={[
         styles.gridContainer,
         { backgroundColor: colors.card },
@@ -197,11 +204,7 @@ export function ListingCard({ listing, index, viewMode, onPress }: ListingCardPr
         >
           <View style={styles.headerContent}>
             <View style={styles.typeBadge}>
-              <Ionicons
-                name={isOffer ? 'airplane' : 'cube'}
-                size={16}
-                color="#FFFFFF"
-              />
+              <Ionicons name={isOffer ? 'airplane' : 'cube'} size={16} color="#FFFFFF" />
               <Text style={styles.typeBadgeText}>{typeLabel}</Text>
             </View>
             <View style={styles.viewsContainer}>
@@ -264,7 +267,7 @@ export function ListingCard({ listing, index, viewMode, onPress }: ListingCardPr
         <View style={styles.restrictionsSection}>
           <View style={styles.restrictionsRow}>
             {listing.restrictions.allowed.slice(0, 4).map((key) => {
-              const category = ITEM_CATEGORIES.allowed.find(c => c.key === key);
+              const category = ITEM_CATEGORIES.allowed.find((c) => c.key === key);
               if (!category) return null;
               return (
                 <View
@@ -276,7 +279,7 @@ export function ListingCard({ listing, index, viewMode, onPress }: ListingCardPr
               );
             })}
             {listing.restrictions.notAllowed.slice(0, 2).map((key) => {
-              const category = ITEM_CATEGORIES.notAllowed.find(c => c.key === key);
+              const category = ITEM_CATEGORIES.notAllowed.find((c) => c.key === key);
               if (!category) return null;
               return (
                 <View
@@ -346,7 +349,7 @@ export function ListingCard({ listing, index, viewMode, onPress }: ListingCardPr
       </View>
     </AnimatedTouchable>
   );
-}
+});
 
 const styles = StyleSheet.create({
   // Grid View Styles
@@ -361,10 +364,12 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   gridContainerWeb: {
-    ...(Platform.OS === 'web' ? {
-      cursor: 'pointer',
-      transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-    } as any : {}),
+    ...(Platform.OS === 'web'
+      ? ({
+          cursor: 'pointer',
+          transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+        } as any)
+      : {}),
   },
   gradientHeader: {
     overflow: 'hidden',
@@ -575,10 +580,12 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   listContainerWeb: {
-    ...(Platform.OS === 'web' ? {
-      cursor: 'pointer',
-      transition: 'transform 0.15s ease, box-shadow 0.15s ease',
-    } as any : {}),
+    ...(Platform.OS === 'web'
+      ? ({
+          cursor: 'pointer',
+          transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+        } as any)
+      : {}),
   },
   listTypeBar: {
     width: 4,

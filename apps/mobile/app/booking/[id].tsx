@@ -345,8 +345,8 @@ export default function BookingDetailScreen() {
                   amount: String(Number(booking.totalPrice)),
                   currency: booking.currency,
                   carrierName: booking.carrier.name,
-                  carrierIban: '',
-                  carrierBankName: '',
+                  carrierIban: (booking.carrier as any).iban || '',
+                  carrierBankName: (booking.carrier as any).bankName || '',
                 },
               })
             }
@@ -482,7 +482,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     fontSize: 14,
     borderWidth: 1,
-  } as ViewStyle,
+  } as TextStyle,
   reviewActions: { flexDirection: 'row', gap: 12, width: '100%' } as ViewStyle,
   reviewCancelBtn: {
     flex: 1,
