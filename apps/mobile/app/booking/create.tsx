@@ -1,5 +1,16 @@
 import { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, ActivityIndicator, ViewStyle, TextStyle } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  TextInput,
+  Alert,
+  ActivityIndicator,
+  ViewStyle,
+  TextStyle,
+} from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -8,6 +19,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
 import { useListing } from '@/hooks/useListings';
 import { useCreateBooking } from '@/hooks/useBookings';
+import { validateWeight } from '@luggageshare/shared';
 
 export default function CreateBookingScreen() {
   const { listingId } = useLocalSearchParams<{ listingId: string }>();
@@ -30,19 +42,32 @@ export default function CreateBookingScreen() {
       return;
     }
 
+    const parsedWeight = parseFloat(weight);
+    const weightCheck = validateWeight(parsedWeight);
+    if (!weightCheck.valid) {
+      Alert.alert(t('common.errorTitle'), weightCheck.error!);
+      return;
+    }
+
+    if (listing && parsedWeight > Number(listing.availableWeight)) {
+      Alert.alert(
+        t('common.errorTitle'),
+        `Weight (${parsedWeight}kg) exceeds available (${Number(listing.availableWeight)}kg)`
+      );
+      return;
+    }
+
     try {
       await createBooking.mutateAsync({
         listingId,
-        totalWeight: parseFloat(weight),
+        totalWeight: parsedWeight,
         totalPrice,
         currency: listing?.currency || 'SAR',
       });
 
-      Alert.alert(
-        t('booking.bookingSent'),
-        t('booking.bookingSentMessage'),
-        [{ text: t('common.ok'), onPress: () => router.back() }]
-      );
+      Alert.alert(t('booking.bookingSent'), t('booking.bookingSentMessage'), [
+        { text: t('common.ok'), onPress: () => router.back() },
+      ]);
     } catch (error) {
       Alert.alert(t('common.errorTitle'), t('booking.failedToSend'));
     }
@@ -51,7 +76,9 @@ export default function CreateBookingScreen() {
   if (listingLoading) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-        <View style={styles.loading}><ActivityIndicator size="large" color={colors.primary} /></View>
+        <View style={styles.loading}>
+          <ActivityIndicator size="large" color={colors.primary} />
+        </View>
       </SafeAreaView>
     );
   }
@@ -81,11 +108,20 @@ export default function CreateBookingScreen() {
         <View style={[styles.summaryCard, { backgroundColor: colors.card }]}>
           <View style={styles.routeRow}>
             <Text style={[styles.city, { color: colors.text }]}>{listing.departureCity}</Text>
-            <Ionicons name="airplane" size={18} color={colors.primary} style={{ marginHorizontal: 10 }} />
+            <Ionicons
+              name="airplane"
+              size={18}
+              color={colors.primary}
+              style={{ marginHorizontal: 10 }}
+            />
             <Text style={[styles.city, { color: colors.text }]}>{listing.arrivalCity}</Text>
           </View>
           <Text style={[styles.dateText, { color: colors.textSecondary }]}>
-            {new Date(listing.departureDate).toLocaleDateString(isRTL ? 'ar-SA' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' })}
+            {new Date(listing.departureDate).toLocaleDateString(isRTL ? 'ar-SA' : 'en-US', {
+              day: 'numeric',
+              month: 'long',
+              year: 'numeric',
+            })}
           </Text>
           <Text style={[styles.priceText, { color: colors.primary }]}>
             {pricePerKg} {listing.currency} / kg
@@ -98,7 +134,10 @@ export default function CreateBookingScreen() {
             {t('booking.weightNeeded')} <Text style={{ color: '#EF4444' }}>*</Text>
           </Text>
           <TextInput
-            style={[styles.input, { backgroundColor: colors.card, color: colors.text, borderColor: colors.border }]}
+            style={[
+              styles.input,
+              { backgroundColor: colors.card, color: colors.text, borderColor: colors.border },
+            ]}
             value={weight}
             onChangeText={setWeight}
             placeholder={`${t('booking.maxWeight')}: ${Number(listing.availableWeight)} kg`}
@@ -112,27 +151,40 @@ export default function CreateBookingScreen() {
         {weight && parseFloat(weight) > 0 && (
           <View style={[styles.priceCard, { backgroundColor: colors.card }]}>
             <View style={styles.priceRow}>
-              <Text style={[styles.priceLabel, { color: colors.textSecondary }]}>{t('booking.weight')}</Text>
+              <Text style={[styles.priceLabel, { color: colors.textSecondary }]}>
+                {t('booking.weight')}
+              </Text>
               <Text style={[styles.priceValue, { color: colors.text }]}>{weight} kg</Text>
             </View>
             <View style={styles.priceRow}>
-              <Text style={[styles.priceLabel, { color: colors.textSecondary }]}>{t('booking.rate')}</Text>
-              <Text style={[styles.priceValue, { color: colors.text }]}>{pricePerKg} {listing.currency}/kg</Text>
+              <Text style={[styles.priceLabel, { color: colors.textSecondary }]}>
+                {t('booking.rate')}
+              </Text>
+              <Text style={[styles.priceValue, { color: colors.text }]}>
+                {pricePerKg} {listing.currency}/kg
+              </Text>
             </View>
             <View style={[styles.priceDivider, { backgroundColor: colors.border }]} />
             <View style={styles.priceRow}>
               <Text style={[styles.totalLabel, { color: colors.text }]}>{t('booking.total')}</Text>
-              <Text style={[styles.totalValue, { color: colors.primary }]}>{totalPrice.toFixed(2)} {listing.currency}</Text>
+              <Text style={[styles.totalValue, { color: colors.primary }]}>
+                {totalPrice.toFixed(2)} {listing.currency}
+              </Text>
             </View>
           </View>
         )}
       </ScrollView>
 
-      <View style={[styles.bottomBar, { backgroundColor: colors.card, borderTopColor: colors.border }]}>
+      <View
+        style={[styles.bottomBar, { backgroundColor: colors.card, borderTopColor: colors.border }]}
+      >
         <TouchableOpacity
           onPress={handleSubmit}
           disabled={createBooking.isPending}
-          style={[styles.submitBtn, { backgroundColor: colors.primary, opacity: createBooking.isPending ? 0.7 : 1 }]}
+          style={[
+            styles.submitBtn,
+            { backgroundColor: colors.primary, opacity: createBooking.isPending ? 0.7 : 1 },
+          ]}
         >
           {createBooking.isPending ? (
             <ActivityIndicator color="#FFF" />
@@ -148,7 +200,14 @@ export default function CreateBookingScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 } as ViewStyle,
   loading: { flex: 1, alignItems: 'center', justifyContent: 'center' } as ViewStyle,
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1 } as ViewStyle,
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+  } as ViewStyle,
   headerBtn: { width: 40, alignItems: 'center' } as ViewStyle,
   headerTitle: { fontSize: 18, fontWeight: '600' } as TextStyle,
   scrollContent: { padding: 16, paddingBottom: 100 } as ViewStyle,
@@ -159,7 +218,14 @@ const styles = StyleSheet.create({
   priceText: { fontSize: 16, fontWeight: '700', marginTop: 4 } as TextStyle,
   inputGroup: { marginBottom: 24 } as ViewStyle,
   label: { fontSize: 14, fontWeight: '600', marginBottom: 8 } as TextStyle,
-  input: { height: 52, borderRadius: 12, paddingHorizontal: 16, fontSize: 18, borderWidth: 1, fontWeight: '600' } as ViewStyle,
+  input: {
+    height: 52,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    fontSize: 18,
+    borderWidth: 1,
+    fontWeight: '600',
+  } as ViewStyle,
   priceCard: { borderRadius: 16, padding: 20 } as ViewStyle,
   priceRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 } as ViewStyle,
   priceLabel: { fontSize: 14 } as TextStyle,
@@ -168,6 +234,11 @@ const styles = StyleSheet.create({
   totalLabel: { fontSize: 16, fontWeight: '700' } as TextStyle,
   totalValue: { fontSize: 20, fontWeight: '700' } as TextStyle,
   bottomBar: { padding: 16, borderTopWidth: 1 } as ViewStyle,
-  submitBtn: { height: 52, borderRadius: 12, alignItems: 'center', justifyContent: 'center' } as ViewStyle,
+  submitBtn: {
+    height: 52,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  } as ViewStyle,
   submitText: { color: '#FFF', fontSize: 16, fontWeight: '700' } as TextStyle,
 });

@@ -70,6 +70,14 @@ export class UsersService {
     });
   }
 
+  async acceptTos(id: string) {
+    return this.prisma.user.update({
+      where: { id },
+      data: { tosAcceptedAt: new Date() },
+      select: { id: true, tosAcceptedAt: true },
+    });
+  }
+
   async getProfile(id: string) {
     const user = await this.prisma.user.findUnique({
       where: { id },

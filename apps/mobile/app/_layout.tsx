@@ -79,6 +79,10 @@ export default function RootLayout() {
                 name="profile/wallet"
                 options={{ headerShown: false, presentation: 'card' }}
               />
+              <Stack.Screen
+                name="profile/terms"
+                options={{ headerShown: false, presentation: 'card' }}
+              />
               <Stack.Screen name="+not-found" />
             </Stack>
           </AuthProvider>

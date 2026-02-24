@@ -20,6 +20,7 @@ model User {
   bio           String?
   city          String?
   isVerified    Boolean   @default(false)
+  tosAcceptedAt DateTime?
   googleId      String?   @unique
   appleId       String?   @unique
   provider      String    // 'google' | 'apple'

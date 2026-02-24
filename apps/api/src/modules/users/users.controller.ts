@@ -1,17 +1,5 @@
-import {
-  Controller,
-  Get,
-  Put,
-  Body,
-  Param,
-  UseGuards,
-} from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-} from '@nestjs/swagger';
+import { Controller, Get, Post, Put, Body, Param, UseGuards } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -34,11 +22,15 @@ export class UsersController {
   @Put('me')
   @ApiOperation({ summary: 'Update current user profile' })
   @ApiResponse({ status: 200, description: 'User updated successfully' })
-  async updateCurrentUser(
-    @CurrentUser() user: any,
-    @Body() updateUserDto: UpdateUserDto,
-  ) {
+  async updateCurrentUser(@CurrentUser() user: any, @Body() updateUserDto: UpdateUserDto) {
     return this.usersService.update(user.id, updateUserDto);
+  }
+
+  @Post('me/accept-tos')
+  @ApiOperation({ summary: 'Accept Terms of Service' })
+  @ApiResponse({ status: 200, description: 'ToS accepted' })
+  async acceptTos(@CurrentUser() user: any) {
+    return this.usersService.acceptTos(user.id);
   }
 
   @Get(':id')

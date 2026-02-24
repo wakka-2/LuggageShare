@@ -129,7 +129,16 @@
     "profileUpdated": "Profile Updated",
     "profileUpdatedMessage": "Your profile has been updated successfully",
     "failedUpdate": "Failed to update profile",
-    "saveChanges": "Save Changes"
+    "saveChanges": "Save Changes",
+    "termsOfService": "Terms of Service",
+    "tosTitle": "LuggageShare Terms of Service",
+    "tosBody": "By using LuggageShare, you agree to follow our community guidelines and applicable laws. Please review the key terms below before accepting.",
+    "tosUserResponsibilities": "You are responsible for ensuring items you carry or send comply with airline and customs regulations.",
+    "tosProhibitedItems": "Prohibited items include hazardous materials, illegal goods, and items restricted by airline policy.",
+    "tosPaymentTerms": "Payments are processed through the platform. Carriers receive payment after successful delivery confirmation.",
+    "acceptTos": "I Accept the Terms of Service",
+    "tosAccepted": "Terms of Service accepted successfully",
+    "tosAcceptFailed": "Failed to accept Terms of Service"
   },
   "listing": {
     "create": "Create Listing",
@@ -161,7 +170,8 @@
     "placeholderCairo": "Cairo",
     "placeholderNotes": "Any additional details about the trip...",
     "createdSuccess": "Listing created successfully",
-    "failedCreate": "Failed to create listing"
+    "failedCreate": "Failed to create listing",
+    "selectDate": "Select departure date"
   },
   "booking": {
     "request": "Request Booking",
