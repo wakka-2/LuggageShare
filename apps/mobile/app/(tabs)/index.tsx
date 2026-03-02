@@ -17,7 +17,16 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import Animated, { FadeIn, FadeInDown, FadeInUp, Layout } from 'react-native-reanimated';
+import Animated, {
+  FadeIn,
+  FadeInDown,
+  FadeInUp,
+  Layout,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  ZoomIn,
+} from 'react-native-reanimated';
 
 import { useTheme } from '@/hooks/useTheme';
 import { useListings } from '@/hooks/useListings';
@@ -350,13 +359,15 @@ export default function HomeScreen() {
       </ScrollView>
 
       {/* Floating Action Button - Create Listing */}
-      <TouchableOpacity
-        onPress={() => router.push('/listing/create')}
-        style={[styles.fab, { backgroundColor: colors.primary }]}
-        activeOpacity={0.85}
-      >
-        <Ionicons name="add" size={28} color="#FFF" />
-      </TouchableOpacity>
+      <Animated.View entering={ZoomIn.delay(400).springify()}>
+        <TouchableOpacity
+          onPress={() => router.push('/listing/create')}
+          style={[styles.fab, { backgroundColor: colors.primary }]}
+          activeOpacity={0.85}
+        >
+          <Ionicons name="add" size={28} color="#FFF" />
+        </TouchableOpacity>
+      </Animated.View>
     </SafeAreaView>
   );
 }

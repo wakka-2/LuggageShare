@@ -14,13 +14,19 @@ import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import Animated, {
+  FadeInDown,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from 'react-native-reanimated';
 
 import { useTheme } from '@/hooks/useTheme';
 import { ThemeColors } from '@/providers/ThemeProvider';
 import { useBookings, getMockBookings, ApiBooking } from '@/hooks/useBookings';
 import { useAuth } from '@/hooks/useAuth';
 import { EmptyState, Avatar } from '@/components/common';
+import { LiveIndicator } from '@/components/status';
 
 type FilterTab = 'all' | 'active' | 'completed' | 'cancelled';
 
@@ -44,6 +50,8 @@ const STATUS_KEYS: Record<string, string> = {
   cancelled: 'trips.statusCancelled',
 };
 
+const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
+
 function BookingCard({
   booking,
   isRTL,
@@ -59,62 +67,86 @@ function BookingCard({
   const statusColor = STATUS_COLORS[booking.status] || colors.textSecondary;
   const date = new Date(booking.listing.departureDate);
   const statusKey = STATUS_KEYS[booking.status];
+  const isInTransit = booking.status === 'in_transit';
+
+  const scale = useSharedValue(1);
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
 
   return (
-    <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
-      <View style={[styles.bookingCard, { backgroundColor: colors.card }]}>
-        <View style={styles.bookingRoute}>
-          <Text style={[styles.bookingCity, { color: colors.text }]}>
-            {booking.listing.departureCity}
-          </Text>
-          <Ionicons
-            name="arrow-forward"
-            size={16}
-            color={colors.textSecondary}
-            style={{ marginHorizontal: 8 }}
+    <AnimatedTouchable
+      onPress={onPress}
+      onPressIn={() => {
+        scale.value = withSpring(0.97, { damping: 20, stiffness: 300 });
+      }}
+      onPressOut={() => {
+        scale.value = withSpring(1, { damping: 15, stiffness: 200 });
+      }}
+      activeOpacity={0.9}
+      style={[styles.bookingCard, { backgroundColor: colors.card }, animatedStyle]}
+    >
+      <View style={styles.bookingRoute}>
+        <Text style={[styles.bookingCity, { color: colors.text }]}>
+          {booking.listing.departureCity}
+        </Text>
+        <Ionicons
+          name="arrow-forward"
+          size={16}
+          color={colors.textSecondary}
+          style={{ marginHorizontal: 8 }}
+        />
+        <Text style={[styles.bookingCity, { color: colors.text }]}>
+          {booking.listing.arrivalCity}
+        </Text>
+      </View>
+
+      <View style={[styles.statusBadge, { backgroundColor: statusColor + '20' }]}>
+        {isInTransit ? (
+          <LiveIndicator
+            color={statusColor}
+            size="small"
+            label={statusKey ? t(statusKey) : booking.status}
           />
-          <Text style={[styles.bookingCity, { color: colors.text }]}>
-            {booking.listing.arrivalCity}
+        ) : (
+          <>
+            <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
+            <Text style={[styles.statusText, { color: statusColor }]}>
+              {statusKey ? t(statusKey) : booking.status}
+            </Text>
+          </>
+        )}
+      </View>
+
+      <View style={styles.bookingDetails}>
+        <View style={styles.detailItem}>
+          <Ionicons name="calendar-outline" size={14} color={colors.textSecondary} />
+          <Text style={[styles.detailText, { color: colors.textSecondary }]}>
+            {date.toLocaleDateString(isRTL ? 'ar-SA' : 'en-US', {
+              day: 'numeric',
+              month: 'short',
+            })}
           </Text>
         </View>
-
-        <View style={[styles.statusBadge, { backgroundColor: statusColor + '20' }]}>
-          <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
-          <Text style={[styles.statusText, { color: statusColor }]}>
-            {statusKey ? t(statusKey) : booking.status}
+        <View style={styles.detailItem}>
+          <Ionicons name="scale-outline" size={14} color={colors.textSecondary} />
+          <Text style={[styles.detailText, { color: colors.textSecondary }]}>
+            {Number(booking.totalWeight)} kg
           </Text>
         </View>
-
-        <View style={styles.bookingDetails}>
-          <View style={styles.detailItem}>
-            <Ionicons name="calendar-outline" size={14} color={colors.textSecondary} />
-            <Text style={[styles.detailText, { color: colors.textSecondary }]}>
-              {date.toLocaleDateString(isRTL ? 'ar-SA' : 'en-US', {
-                day: 'numeric',
-                month: 'short',
-              })}
-            </Text>
-          </View>
-          <View style={styles.detailItem}>
-            <Ionicons name="scale-outline" size={14} color={colors.textSecondary} />
-            <Text style={[styles.detailText, { color: colors.textSecondary }]}>
-              {Number(booking.totalWeight)} kg
-            </Text>
-          </View>
-          <View style={styles.detailItem}>
-            <Ionicons name="pricetag-outline" size={14} color={colors.textSecondary} />
-            <Text style={[styles.detailText, { color: colors.textSecondary }]}>
-              {Number(booking.totalPrice)} {booking.currency}
-            </Text>
-          </View>
-        </View>
-
-        <View style={[styles.bookingUser, { borderTopColor: colors.border }]}>
-          <Avatar name={booking.carrier.name} avatarUrl={booking.carrier.avatarUrl} size={32} />
-          <Text style={[styles.userName, { color: colors.text }]}>{booking.carrier.name}</Text>
+        <View style={styles.detailItem}>
+          <Ionicons name="pricetag-outline" size={14} color={colors.textSecondary} />
+          <Text style={[styles.detailText, { color: colors.textSecondary }]}>
+            {Number(booking.totalPrice)} {booking.currency}
+          </Text>
         </View>
       </View>
-    </TouchableOpacity>
+
+      <View style={[styles.bookingUser, { borderTopColor: colors.border }]}>
+        <Avatar name={booking.carrier.name} avatarUrl={booking.carrier.avatarUrl} size={32} />
+        <Text style={[styles.userName, { color: colors.text }]}>{booking.carrier.name}</Text>
+      </View>
+    </AnimatedTouchable>
   );
 }
 

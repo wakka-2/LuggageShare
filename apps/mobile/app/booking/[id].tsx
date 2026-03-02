@@ -17,7 +17,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import Animated, { FadeIn } from 'react-native-reanimated';
+import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 
 import { useTheme } from '@/hooks/useTheme';
 import { showAlert } from '@/lib/alert';
@@ -36,6 +36,8 @@ import { useBookingReview, useCreateReview } from '@/hooks/useReviews';
 import { useAuth } from '@/hooks/useAuth';
 import { Avatar } from '@/components/common';
 import { StarRating } from '@/components/common/StarRating';
+import { StatusStepper, getDefaultBookingSteps, LiveIndicator } from '@/components/status';
+import { VerificationBadge } from '@/components/trust';
 
 const STATUS_COLORS: Record<string, string> = {
   pending: '#F59E0B',
@@ -207,11 +209,30 @@ export default function BookingDetailScreen() {
           entering={FadeIn.duration(300)}
           style={[styles.statusCard, { backgroundColor: statusColor + '15' }]}
         >
-          <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
-          <Text style={[styles.statusLabel, { color: statusColor }]}>
-            {statusKey ? t(statusKey) : booking.status}
-          </Text>
+          {booking.status === 'in_transit' ? (
+            <LiveIndicator color={statusColor} label={statusKey ? t(statusKey) : booking.status} />
+          ) : (
+            <>
+              <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
+              <Text style={[styles.statusLabel, { color: statusColor }]}>
+                {statusKey ? t(statusKey) : booking.status}
+              </Text>
+            </>
+          )}
         </Animated.View>
+
+        {/* Status Stepper — show for active bookings */}
+        {!['rejected', 'cancelled'].includes(booking.status) && (
+          <Animated.View
+            entering={FadeInUp.delay(150).springify()}
+            style={[styles.card, { backgroundColor: colors.card }]}
+          >
+            <Text style={[styles.cardTitle, { color: colors.text }]}>
+              {t('booking.progress', { defaultValue: 'Progress' })}
+            </Text>
+            <StatusStepper steps={getDefaultBookingSteps()} currentStepKey={booking.status} />
+          </Animated.View>
+        )}
 
         {/* Route */}
         <View style={[styles.card, { backgroundColor: colors.card }]}>
@@ -321,12 +342,7 @@ export default function BookingDetailScreen() {
             <View style={{ flex: 1 }}>
               <Text style={[styles.userName, { color: colors.text }]}>{otherUser.name}</Text>
               {otherUser.isVerified && (
-                <View style={styles.verifiedRow}>
-                  <Ionicons name="shield-checkmark" size={14} color={colors.primary} />
-                  <Text style={[styles.verifiedText, { color: colors.primary }]}>
-                    {t('common.verified')}
-                  </Text>
-                </View>
+                <VerificationBadge type="verified" size="small" animated={false} />
               )}
             </View>
             <TouchableOpacity
