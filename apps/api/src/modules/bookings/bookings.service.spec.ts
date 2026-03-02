@@ -8,18 +8,24 @@ import { CreateBookingDto } from './dto/create-booking.dto';
 // ---------------------------------------------------------------------------
 // Mock factory
 // ---------------------------------------------------------------------------
-const mockPrismaService = () => ({
-  booking: {
-    findMany: jest.fn(),
-    findUnique: jest.fn(),
-    create: jest.fn(),
-    update: jest.fn(),
-    count: jest.fn().mockResolvedValue(0),
-  },
-  listing: {
-    findUnique: jest.fn(),
-  },
-});
+const mockPrismaService = () => {
+  const mock = {
+    booking: {
+      findMany: jest.fn(),
+      findUnique: jest.fn(),
+      create: jest.fn(),
+      update: jest.fn(),
+      count: jest.fn().mockResolvedValue(0),
+    },
+    listing: {
+      findUnique: jest.fn(),
+    },
+    $transaction: jest.fn(),
+  };
+  // $transaction executes the callback with the mock itself (simulating tx)
+  mock.$transaction.mockImplementation((cb: (tx: typeof mock) => Promise<unknown>) => cb(mock));
+  return mock;
+};
 
 const mockNotificationsService = () => ({
   sendPushNotification: jest.fn(),

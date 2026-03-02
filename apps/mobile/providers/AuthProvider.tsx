@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 import { useRouter, useSegments } from 'expo-router';
 import { tokenStorage } from '@/lib/storage';
 import { apiClient } from '@/lib/api';
+import { usePushNotifications } from '@/hooks/usePushNotifications';
 
 export interface User {
   id: string;
@@ -42,6 +43,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(!DEV_SKIP_AUTH);
   const segments = useSegments();
   const router = useRouter();
+
+  // Register push notifications when authenticated
+  usePushNotifications(!!user);
 
   // Check authentication on mount (skip in dev mode)
   useEffect(() => {

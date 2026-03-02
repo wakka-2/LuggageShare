@@ -12,6 +12,24 @@ const MIME_TO_EXT: Record<string, string> = {
   'image/webp': 'webp',
 };
 
+// Magic byte signatures for allowed image types
+const MAGIC_BYTES: Record<string, { offset: number; bytes: number[] }[]> = {
+  'image/jpeg': [{ offset: 0, bytes: [0xff, 0xd8, 0xff] }],
+  'image/png': [{ offset: 0, bytes: [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a] }],
+  'image/webp': [
+    { offset: 0, bytes: [0x52, 0x49, 0x46, 0x46] }, // "RIFF"
+    { offset: 8, bytes: [0x57, 0x45, 0x42, 0x50] }, // "WEBP"
+  ],
+};
+
+function validateMagicBytes(buffer: Buffer, mimetype: string): boolean {
+  const signatures = MAGIC_BYTES[mimetype];
+  if (!signatures) return false;
+  return signatures.every(({ offset, bytes }) =>
+    bytes.every((byte, i) => buffer[offset + i] === byte)
+  );
+}
+
 @Injectable()
 export class UploadsService {
   private readonly logger = new Logger(UploadsService.name);
@@ -64,6 +82,13 @@ export class UploadsService {
     if (!ALLOWED_MIME_TYPES.includes(file.mimetype)) {
       throw new BadRequestException(
         `Invalid file type "${file.mimetype}". Allowed types: ${ALLOWED_MIME_TYPES.join(', ')}`
+      );
+    }
+
+    // --- Validate actual file content via magic bytes ---
+    if (!validateMagicBytes(file.buffer, file.mimetype)) {
+      throw new BadRequestException(
+        'File content does not match declared type. Upload a valid image file.'
       );
     }
 
