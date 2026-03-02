@@ -3,11 +3,22 @@ import { ValidationPipe, Logger } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { Logger as PinoLogger } from 'nestjs-pino';
 import helmet from 'helmet';
+import * as Sentry from '@sentry/node';
 import { AppModule } from './app.module';
 import { TransformInterceptor } from './common/interceptors';
 import { AllExceptionsFilter } from './common/filters';
 
 async function bootstrap() {
+  // Initialize Sentry before application bootstrap
+  if (process.env.SENTRY_DSN) {
+    Sentry.init({
+      dsn: process.env.SENTRY_DSN,
+      environment: process.env.NODE_ENV || 'development',
+      tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.2 : 1.0,
+      enabled: process.env.NODE_ENV !== 'test',
+    });
+  }
+
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
   app.useLogger(app.get(PinoLogger));
 

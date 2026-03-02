@@ -44,6 +44,7 @@ import { ThrottlerGuard } from '@nestjs/throttler';
         R2_SECRET_ACCESS_KEY: Joi.string().optional().default(''),
         R2_BUCKET_NAME: Joi.string().optional().default('luggageshare'),
         R2_PUBLIC_URL: Joi.string().optional().default(''),
+        SENTRY_DSN: Joi.string().uri().optional().default(''),
         API_PORT: Joi.number().default(3001),
       }),
       validationOptions: {

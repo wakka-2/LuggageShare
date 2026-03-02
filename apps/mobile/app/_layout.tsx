@@ -4,6 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import { I18nManager, Platform, useColorScheme } from 'react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import * as SplashScreen from 'expo-splash-screen';
+import * as Sentry from '@sentry/react-native';
 
 import { AuthProvider } from '@/providers/AuthProvider';
 import { ThemeProvider } from '@/providers/ThemeProvider';
@@ -13,6 +14,13 @@ import i18n, { syncRTL } from '../i18n';
 
 // Conditionally import WebShell only on web for tree-shaking
 const WebShell = Platform.OS === 'web' ? require('@/components/web').WebShell : null;
+
+// Initialize Sentry for crash reporting (no-op if DSN is empty)
+Sentry.init({
+  dsn: process.env.EXPO_PUBLIC_SENTRY_DSN || '',
+  enabled: !__DEV__,
+  tracesSampleRate: 0.2,
+});
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();

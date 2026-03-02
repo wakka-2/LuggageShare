@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import { Response, Request } from 'express';
 import { Prisma } from '@prisma/client';
+import * as Sentry from '@sentry/node';
 
 interface ErrorResponseBody {
   error: {
@@ -25,7 +26,7 @@ interface ErrorResponseBody {
  * details are never leaked to clients.
  */
 function mapPrismaError(
-  exception: Prisma.PrismaClientKnownRequestError,
+  exception: Prisma.PrismaClientKnownRequestError
 ): { statusCode: number; code: string; message: string } | null {
   switch (exception.code) {
     case 'P2002': {
@@ -65,9 +66,7 @@ function mapPrismaError(
  * HttpException.  NestJS returns the validation messages inside
  * `response.message` as a string array when class-validator fails.
  */
-function extractValidationDetails(
-  response: string | Record<string, any>,
-): any[] | undefined {
+function extractValidationDetails(response: string | Record<string, any>): any[] | undefined {
   if (typeof response === 'object' && Array.isArray(response.message)) {
     return response.message.map((msg: string) => ({
       message: msg,
@@ -92,15 +91,12 @@ export class AllExceptionsFilter implements ExceptionFilter {
       const status = exception.getStatus();
       const exceptionResponse = exception.getResponse();
 
-      const details = extractValidationDetails(
-        exceptionResponse as string | Record<string, any>,
-      );
+      const details = extractValidationDetails(exceptionResponse as string | Record<string, any>);
 
       const message =
         typeof exceptionResponse === 'string'
           ? exceptionResponse
-          : (exceptionResponse as Record<string, any>).message ??
-            exception.message;
+          : ((exceptionResponse as Record<string, any>).message ?? exception.message);
 
       // Validation errors from ValidationPipe come as 400 with an array
       const isValidation = status === HttpStatus.BAD_REQUEST && details;
@@ -114,15 +110,13 @@ export class AllExceptionsFilter implements ExceptionFilter {
         },
       };
 
-      this.logger.error(
-        `[HttpException] ${request.method} ${request.url} -> ${status}`,
-        { message: body.error.message, details },
-      );
+      this.logger.error(`[HttpException] ${request.method} ${request.url} -> ${status}`, {
+        message: body.error.message,
+        details,
+      });
 
-    // ── Prisma Known Request Error ────────────────────────────────
-    } else if (
-      exception instanceof Prisma.PrismaClientKnownRequestError
-    ) {
+      // ── Prisma Known Request Error ────────────────────────────────
+    } else if (exception instanceof Prisma.PrismaClientKnownRequestError) {
       const mapped = mapPrismaError(exception);
 
       if (mapped) {
@@ -144,12 +138,11 @@ export class AllExceptionsFilter implements ExceptionFilter {
         };
       }
 
-      this.logger.error(
-        `[PrismaError] ${request.method} ${request.url} -> ${exception.code}`,
-        { meta: exception.meta },
-      );
+      this.logger.error(`[PrismaError] ${request.method} ${request.url} -> ${exception.code}`, {
+        meta: exception.meta,
+      });
 
-    // ── Unknown / unhandled errors ────────────────────────────────
+      // ── Unknown / unhandled errors ────────────────────────────────
     } else {
       body = {
         error: {
@@ -159,10 +152,12 @@ export class AllExceptionsFilter implements ExceptionFilter {
         },
       };
 
-      this.logger.error(
-        `[UnhandledError] ${request.method} ${request.url}`,
-        exception,
-      );
+      // Report unhandled errors to Sentry
+      Sentry.captureException(exception, {
+        extra: { method: request.method, url: request.url },
+      });
+
+      this.logger.error(`[UnhandledError] ${request.method} ${request.url}`, exception);
     }
 
     response.status(body.error.statusCode).json(body);

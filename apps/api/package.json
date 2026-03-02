@@ -36,6 +36,7 @@
     "@nestjs/throttler": "^5.1.1",
     "@nestjs/websockets": "^10.4.22",
     "@prisma/client": "^5.8.0",
+    "@sentry/node": "^10.41.0",
     "@supabase/supabase-js": "^2.39.2",
     "axios": "^1.6.5",
     "bcrypt": "^5.1.1",
