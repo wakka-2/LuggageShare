@@ -95,6 +95,8 @@ export const ListingCard = React.memo(function ListingCard({
 
   const typeLabel = isOffer ? t('listingCard.offer') : t('listingCard.request');
 
+  const accessibilityLabel = `${typeLabel}: ${listing.from.code} to ${listing.to.code}, ${listing.pricing.small} SAR, by ${listing.user.name}`;
+
   // List View Layout - Compact and clean
   if (viewMode === 'list') {
     return (
@@ -110,6 +112,8 @@ export const ListingCard = React.memo(function ListingCard({
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
         activeOpacity={1}
+        accessibilityRole="button"
+        accessibilityLabel={accessibilityLabel}
       >
         {/* Type indicator bar */}
         <View style={[styles.listTypeBar, { backgroundColor: typeColors.primary }]} />
@@ -193,6 +197,8 @@ export const ListingCard = React.memo(function ListingCard({
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
       activeOpacity={1}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
     >
       {/* Gradient Header */}
       <View style={styles.gradientHeader}>

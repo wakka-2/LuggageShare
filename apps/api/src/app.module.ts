@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { TerminusModule } from '@nestjs/terminus';
 import { LoggerModule } from 'nestjs-pino';
 import * as Joi from 'joi';
 import { AuthModule } from './modules/auth/auth.module';
@@ -83,6 +84,7 @@ import { ThrottlerGuard } from '@nestjs/throttler';
         limit: 100,
       },
     ]),
+    TerminusModule,
     PrismaModule,
     AuthModule,
     UsersModule,

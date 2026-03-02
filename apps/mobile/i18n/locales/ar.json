@@ -16,7 +16,8 @@
     "success": "تم بنجاح",
     "errorTitle": "خطأ",
     "requiredFieldsError": "يرجى ملء جميع الحقول المطلوبة",
-    "verified": "موثق"
+    "verified": "موثق",
+    "offline": "أنت غير متصل بالإنترنت"
   },
   "tabs": {
     "home": "الرئيسية",

@@ -8,6 +8,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { AuthProvider } from '@/providers/AuthProvider';
 import { ThemeProvider } from '@/providers/ThemeProvider';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
+import { OfflineBanner } from '@/components/common/OfflineBanner';
 import i18n, { syncRTL } from '../i18n';
 
 // Conditionally import WebShell only on web for tree-shaking
@@ -23,7 +24,12 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 1000 * 60 * 5, // 5 minutes
+      gcTime: 1000 * 60 * 30, // 30 minutes
       retry: 2,
+      networkMode: 'offlineFirst',
+    },
+    mutations: {
+      networkMode: 'offlineFirst',
     },
   },
 });
@@ -77,6 +83,7 @@ export default function RootLayout() {
         <ThemeProvider>
           <AuthProvider>
             <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
+            <OfflineBanner />
             {WebShell ? <WebShell>{stackNavigator}</WebShell> : stackNavigator}
           </AuthProvider>
         </ThemeProvider>

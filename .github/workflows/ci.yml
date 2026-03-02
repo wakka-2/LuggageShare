@@ -24,6 +24,8 @@ env:
   NODE_VERSION: "20"
   DATABASE_URL: "postgresql://user:password@localhost:5432/testdb?schema=public"
   JWT_SECRET: "ci-test-jwt-secret-32-characters!"
+  JWT_REFRESH_SECRET: "ci-test-refresh-secret-32-chars!!"
+  NODE_ENV: "test"
 
 jobs:
   ci:

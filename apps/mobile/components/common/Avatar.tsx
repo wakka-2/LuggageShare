@@ -51,7 +51,13 @@ export function Avatar({
   };
 
   return (
-    <View style={styles.container}>
+    <View
+      style={styles.container}
+      accessibilityLabel={
+        name ? `${name}'s avatar${isVerifiedUser ? ', verified' : ''}` : 'User avatar'
+      }
+      accessibilityRole="image"
+    >
       {imageSource ? (
         <Image
           source={{ uri: imageSource }}
@@ -63,6 +69,7 @@ export function Avatar({
               borderRadius: dimension / 2,
             },
           ]}
+          accessibilityLabel={name ? `${name}'s photo` : 'User photo'}
         />
       ) : (
         <View

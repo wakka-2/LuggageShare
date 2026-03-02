@@ -111,50 +111,53 @@ export class BookingsService {
   }
 
   async create(userId: string, createBookingDto: CreateBookingDto) {
-    const listing = await this.prisma.listing.findUnique({
-      where: { id: createBookingDto.listingId },
+    // Wrap in transaction to prevent race conditions on weight availability
+    const booking = await this.prisma.$transaction(async (tx) => {
+      const listing = await tx.listing.findUnique({
+        where: { id: createBookingDto.listingId },
+      });
+
+      if (!listing) {
+        throw new NotFoundException('Listing not found');
+      }
+
+      if (listing.carrierId === userId) {
+        throw new BadRequestException('You cannot book your own listing');
+      }
+
+      if (listing.status !== 'active') {
+        throw new BadRequestException('This listing is no longer available');
+      }
+
+      // Validate weight doesn't exceed available
+      if (createBookingDto.totalWeight > Number(listing.availableWeight)) {
+        throw new BadRequestException(
+          `Total weight (${createBookingDto.totalWeight}kg) exceeds available weight (${listing.availableWeight}kg)`
+        );
+      }
+
+      // Server-side price calculation — never trust client-supplied price
+      const totalPrice = Number(listing.price);
+
+      return tx.booking.create({
+        data: {
+          senderId: userId,
+          carrierId: listing.carrierId,
+          listingId: listing.id,
+          status: 'pending',
+          totalWeight: createBookingDto.totalWeight,
+          totalPrice,
+          ...(createBookingDto.items?.length ? { items: { create: createBookingDto.items } } : {}),
+        },
+        include: {
+          items: true,
+        },
+      });
     });
 
-    if (!listing) {
-      throw new NotFoundException('Listing not found');
-    }
-
-    if (listing.carrierId === userId) {
-      throw new BadRequestException('You cannot book your own listing');
-    }
-
-    if (listing.status !== 'active') {
-      throw new BadRequestException('This listing is no longer available');
-    }
-
-    // Validate weight doesn't exceed available
-    if (createBookingDto.totalWeight > Number(listing.availableWeight)) {
-      throw new BadRequestException(
-        `Total weight (${createBookingDto.totalWeight}kg) exceeds available weight (${listing.availableWeight}kg)`
-      );
-    }
-
-    // Server-side price calculation — never trust client-supplied price
-    const totalPrice = Number(listing.price);
-
-    const booking = await this.prisma.booking.create({
-      data: {
-        senderId: userId,
-        carrierId: listing.carrierId,
-        listingId: listing.id,
-        status: 'pending',
-        totalWeight: createBookingDto.totalWeight,
-        totalPrice,
-        ...(createBookingDto.items?.length ? { items: { create: createBookingDto.items } } : {}),
-      },
-      include: {
-        items: true,
-      },
-    });
-
-    // Notify carrier of new booking request
+    // Notify carrier of new booking request (outside transaction)
     this.notifications.sendPushNotification(
-      listing.carrierId,
+      booking.carrierId,
       'New Booking Request',
       `You have a new booking request for ${createBookingDto.totalWeight}kg`,
       { type: 'booking_created', bookingId: booking.id }

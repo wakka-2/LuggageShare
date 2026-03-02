@@ -16,7 +16,8 @@
     "success": "Success",
     "errorTitle": "Error",
     "requiredFieldsError": "Please fill in all required fields",
-    "verified": "Verified"
+    "verified": "Verified",
+    "offline": "You are offline"
   },
   "tabs": {
     "home": "Home",

@@ -59,6 +59,7 @@ export default function TabLayout() {
           tabBarIcon: ({ color, size }) => (
             <TabIcon name="home-outline" color={color} size={size} />
           ),
+          tabBarAccessibilityLabel: t('tabs.home'),
         }}
       />
       <Tabs.Screen
@@ -68,6 +69,7 @@ export default function TabLayout() {
           tabBarIcon: ({ color, size }) => (
             <TabIcon name="airplane-outline" color={color} size={size} />
           ),
+          tabBarAccessibilityLabel: t('tabs.trips'),
         }}
       />
       <Tabs.Screen
@@ -79,6 +81,10 @@ export default function TabLayout() {
           ),
           tabBarBadge: unreadMessages > 0 ? unreadMessages : undefined,
           tabBarBadgeStyle: { backgroundColor: colors.primary, fontSize: 10 },
+          tabBarAccessibilityLabel:
+            unreadMessages > 0
+              ? `${t('tabs.messages')}, ${unreadMessages} unread`
+              : t('tabs.messages'),
         }}
       />
       <Tabs.Screen
@@ -90,6 +96,10 @@ export default function TabLayout() {
           ),
           tabBarBadge: notificationCount > 0 ? notificationCount : undefined,
           tabBarBadgeStyle: { backgroundColor: '#EF4444', fontSize: 10 },
+          tabBarAccessibilityLabel:
+            notificationCount > 0
+              ? `${t('tabs.profile')}, ${notificationCount} notifications`
+              : t('tabs.profile'),
         }}
       />
     </Tabs>

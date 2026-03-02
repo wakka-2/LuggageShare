@@ -78,9 +78,17 @@ export function Input({
           editable={editable}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
+          accessibilityLabel={label || placeholder}
+          accessibilityHint={error ? error : undefined}
+          accessibilityState={{ disabled: !editable }}
         />
         {secureTextEntry && (
-          <TouchableOpacity style={styles.iconRight} onPress={() => setShowPassword(!showPassword)}>
+          <TouchableOpacity
+            style={styles.iconRight}
+            onPress={() => setShowPassword(!showPassword)}
+            accessibilityRole="button"
+            accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
+          >
             <Ionicons
               name={showPassword ? 'eye-off-outline' : 'eye-outline'}
               size={20}

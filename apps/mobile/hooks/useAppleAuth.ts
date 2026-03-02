@@ -14,21 +14,23 @@ export function useAppleAuth() {
 
   async function signInWithApple() {
     if (!isAvailable) {
-      console.warn('Apple Sign In is only available on iOS. Using demo mode.');
-      // For demo purposes on web/Android, simulate a successful login
-      await signIn({
-        accessToken: 'demo_apple_access_token',
-        refreshToken: 'demo_apple_refresh_token',
-        user: {
-          id: 'demo_apple_user_id',
-          email: 'demo.apple@example.com',
-          displayName: 'Demo Apple User',
-          avatarUrl: null,
-          isNewUser: true,
-          profileComplete: false,
-        },
-      });
-      return;
+      if (__DEV__) {
+        console.warn('Apple Sign In is only available on iOS. Using demo mode.');
+        await signIn({
+          accessToken: 'demo_apple_access_token',
+          refreshToken: 'demo_apple_refresh_token',
+          user: {
+            id: 'demo_apple_user_id',
+            email: 'demo.apple@example.com',
+            displayName: 'Demo Apple User',
+            avatarUrl: null,
+            isNewUser: true,
+            profileComplete: false,
+          },
+        });
+        return;
+      }
+      throw new Error('Apple Sign In is only available on iOS');
     }
 
     try {

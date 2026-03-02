@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { CurrentUser } from './decorators/current-user.decorator';
 import { AuthService } from './auth.service';
@@ -25,6 +26,7 @@ export class AuthController {
   ) {}
 
   @Post('google')
+  @Throttle({ short: { ttl: 60000, limit: 5 } })
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Authenticate with Google' })
   @ApiResponse({ status: 200, description: 'Successfully authenticated' })
@@ -34,6 +36,7 @@ export class AuthController {
   }
 
   @Post('apple')
+  @Throttle({ short: { ttl: 60000, limit: 5 } })
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Authenticate with Apple' })
   @ApiResponse({ status: 200, description: 'Successfully authenticated' })
@@ -43,6 +46,7 @@ export class AuthController {
   }
 
   @Post('dev-login')
+  @Throttle({ short: { ttl: 60000, limit: 3 } })
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Dev login (development only)' })
   @ApiResponse({ status: 200, description: 'Dev user authenticated' })
@@ -58,6 +62,7 @@ export class AuthController {
   }
 
   @Post('refresh')
+  @Throttle({ short: { ttl: 60000, limit: 10 } })
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Refresh access token' })
   @ApiResponse({ status: 200, description: 'New tokens generated' })
