@@ -99,6 +99,14 @@ export class BookingsService {
       throw new ForbiddenException('You do not have access to this booking');
     }
 
+    // Mask sensitive carrier data for the sender
+    if (booking.carrier && booking.senderId === userId) {
+      const carrier = booking.carrier as any;
+      if (carrier.iban) {
+        carrier.iban = `${carrier.iban.slice(0, 4)}****${carrier.iban.slice(-4)}`;
+      }
+    }
+
     return booking;
   }
 

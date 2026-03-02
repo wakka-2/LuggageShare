@@ -1,6 +1,16 @@
-import { Controller, Post, Body, HttpCode, HttpStatus, ForbiddenException } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  HttpCode,
+  HttpStatus,
+  ForbiddenException,
+  UseGuards,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { CurrentUser } from './decorators/current-user.decorator';
 import { AuthService } from './auth.service';
 import { GoogleAuthDto } from './dto/google-auth.dto';
 import { AppleAuthDto } from './dto/apple-auth.dto';
@@ -38,8 +48,11 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'Dev user authenticated' })
   @ApiResponse({ status: 403, description: 'Not available in production' })
   async devLogin() {
-    if (this.configService.get<string>('NODE_ENV') === 'production') {
-      throw new ForbiddenException('Dev login is not available in production');
+    const isProduction = this.configService.get<string>('NODE_ENV') === 'production';
+    const devLoginEnabled = this.configService.get<boolean>('DEV_LOGIN_ENABLED') === true;
+
+    if (isProduction || !devLoginEnabled) {
+      throw new ForbiddenException('Dev login is not available');
     }
     return this.authService.devLogin();
   }
@@ -51,5 +64,16 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Invalid refresh token' })
   async refreshToken(@Body() dto: RefreshTokenDto) {
     return this.authService.refreshToken(dto);
+  }
+
+  @Post('logout')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Logout and revoke all refresh tokens' })
+  @ApiResponse({ status: 200, description: 'Successfully logged out' })
+  async logout(@CurrentUser() user: any) {
+    await this.authService.logout(user.id);
+    return { message: 'Logged out successfully' };
   }
 }

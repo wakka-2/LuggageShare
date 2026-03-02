@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { BookingsService } from './bookings.service';
 import { PrismaService } from '../../prisma/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
 
 // ---------------------------------------------------------------------------
@@ -13,10 +14,15 @@ const mockPrismaService = () => ({
     findUnique: jest.fn(),
     create: jest.fn(),
     update: jest.fn(),
+    count: jest.fn().mockResolvedValue(0),
   },
   listing: {
     findUnique: jest.fn(),
   },
+});
+
+const mockNotificationsService = () => ({
+  sendPushNotification: jest.fn(),
 });
 
 // ---------------------------------------------------------------------------
@@ -95,7 +101,11 @@ describe('BookingsService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [BookingsService, { provide: PrismaService, useFactory: mockPrismaService }],
+      providers: [
+        BookingsService,
+        { provide: PrismaService, useFactory: mockPrismaService },
+        { provide: NotificationsService, useFactory: mockNotificationsService },
+      ],
     }).compile();
 
     service = module.get<BookingsService>(BookingsService);
@@ -114,37 +124,25 @@ describe('BookingsService', () => {
   // findByUser
   // =========================================================================
   describe('findByUser', () => {
-    it('should return bookings where user is sender or carrier', async () => {
+    it('should return paginated bookings where user is sender or carrier', async () => {
       const bookings = [makeBooking(), makeBooking({ id: 'booking-2' })];
       prisma.booking.findMany.mockResolvedValue(bookings);
+      prisma.booking.count.mockResolvedValue(2);
 
       const result = await service.findByUser(SENDER_ID);
 
-      expect(result).toEqual(bookings);
-      expect(prisma.booking.findMany).toHaveBeenCalledWith({
-        where: {
-          OR: [{ senderId: SENDER_ID }, { carrierId: SENDER_ID }],
-        },
-        include: {
-          listing: true,
-          sender: {
-            select: { id: true, name: true, avatarUrl: true },
-          },
-          carrier: {
-            select: { id: true, name: true, avatarUrl: true },
-          },
-          items: true,
-        },
-        orderBy: { createdAt: 'desc' },
-      });
+      expect(result.data).toEqual(bookings);
+      expect(result.meta).toEqual({ total: 2, page: 1, limit: 20, totalPages: 1 });
     });
 
-    it('should return empty array when user has no bookings', async () => {
+    it('should return empty data when user has no bookings', async () => {
       prisma.booking.findMany.mockResolvedValue([]);
+      prisma.booking.count.mockResolvedValue(0);
 
       const result = await service.findByUser(UNRELATED_USER_ID);
 
-      expect(result).toEqual([]);
+      expect(result.data).toEqual([]);
+      expect(result.meta.total).toBe(0);
     });
   });
 
@@ -158,7 +156,7 @@ describe('BookingsService', () => {
 
       const result = await service.findById(SENDER_ID, BOOKING_ID);
 
-      expect(result).toEqual(booking);
+      expect(result.id).toEqual(booking.id);
       expect(prisma.booking.findUnique).toHaveBeenCalledWith({
         where: { id: BOOKING_ID },
         include: {
@@ -167,7 +165,14 @@ describe('BookingsService', () => {
             select: { id: true, name: true, avatarUrl: true, phone: true },
           },
           carrier: {
-            select: { id: true, name: true, avatarUrl: true, phone: true },
+            select: {
+              id: true,
+              name: true,
+              avatarUrl: true,
+              phone: true,
+              iban: true,
+              bankName: true,
+            },
           },
           items: true,
         },

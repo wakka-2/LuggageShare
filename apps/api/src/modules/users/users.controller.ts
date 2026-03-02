@@ -50,10 +50,10 @@ export class UsersController {
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Get user by ID' })
-  @ApiResponse({ status: 200, description: 'Returns user profile' })
+  @ApiOperation({ summary: 'Get public user profile by ID' })
+  @ApiResponse({ status: 200, description: 'Returns public user profile' })
   @ApiResponse({ status: 404, description: 'User not found' })
   async getUserById(@Param('id') id: string) {
-    return this.usersService.getProfile(id);
+    return this.usersService.getPublicProfile(id);
   }
 }

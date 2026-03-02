@@ -24,14 +24,21 @@ import { ThrottlerGuard } from '@nestjs/throttler';
       isGlobal: true,
       envFilePath: ['.env.local', '.env'],
       validationSchema: Joi.object({
+        NODE_ENV: Joi.string().valid('development', 'production', 'test').default('development'),
         DATABASE_URL: Joi.string().required(),
         JWT_SECRET: Joi.string().min(32).required(),
-        JWT_REFRESH_SECRET: Joi.string().min(32).optional(),
+        JWT_REFRESH_SECRET: Joi.string().min(32).required(),
         GOOGLE_CLIENT_ID: Joi.string().when('NODE_ENV', {
           is: 'production',
           then: Joi.required(),
           otherwise: Joi.optional(),
         }),
+        CORS_ORIGINS: Joi.string().when('NODE_ENV', {
+          is: 'production',
+          then: Joi.required(),
+          otherwise: Joi.optional(),
+        }),
+        DEV_LOGIN_ENABLED: Joi.boolean().default(false),
         SUPABASE_URL: Joi.string().optional().default(''),
         SUPABASE_SERVICE_KEY: Joi.string().optional().default(''),
         R2_ACCOUNT_ID: Joi.string().optional().default(''),

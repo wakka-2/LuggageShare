@@ -113,6 +113,50 @@ export class UsersService {
     };
   }
 
+  async getPublicProfile(id: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        name: true,
+        avatarUrl: true,
+        isVerified: true,
+        bio: true,
+        city: true,
+        createdAt: true,
+        _count: {
+          select: {
+            carrierListings: true,
+            carrierBookings: true,
+            senderBookings: true,
+            reviews: true,
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const reviews = await this.prisma.review.aggregate({
+      where: { revieweeId: id },
+      _avg: { rating: true },
+      _count: true,
+    });
+
+    return {
+      ...user,
+      stats: {
+        totalTrips: user._count.carrierListings,
+        totalDeliveries: user._count.carrierBookings,
+        totalSent: user._count.senderBookings,
+        averageRating: reviews._avg.rating || 0,
+        totalReviews: reviews._count,
+      },
+    };
+  }
+
   async getProfile(id: string) {
     const user = await this.prisma.user.findUnique({
       where: { id },

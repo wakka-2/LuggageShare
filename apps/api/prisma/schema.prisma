@@ -41,6 +41,7 @@ model User {
   notifications   Notification[]
   pushTokens      PushToken[]
   balanceHistory  BalanceHistory[]
+  refreshTokens   RefreshToken[]
 
   @@map("users")
 }
@@ -232,6 +233,26 @@ model PushToken {
 
   @@unique([userId, token])
   @@map("push_tokens")
+}
+
+// ==========================================
+// Refresh Tokens (Rotation + Revocation)
+// ==========================================
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  userId    String
+  tokenHash String   @unique
+  family    String
+  isRevoked Boolean  @default(false)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([family])
+  @@map("refresh_tokens")
 }
 
 // ==========================================
