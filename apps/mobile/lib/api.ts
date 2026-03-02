@@ -1,5 +1,5 @@
 import axios from 'axios';
-import * as SecureStore from 'expo-secure-store';
+import { tokenStorage } from '@/lib/storage';
 import Constants from 'expo-constants';
 
 const API_URL = Constants.expoConfig?.extra?.apiUrl || 'http://localhost:3001';
@@ -15,7 +15,7 @@ export const apiClient = axios.create({
 apiClient.interceptors.request.use(
   async (config) => {
     try {
-      const tokensJson = await SecureStore.getItemAsync('auth_tokens');
+      const tokensJson = await tokenStorage.getItem('auth_tokens');
       if (tokensJson) {
         const tokens = JSON.parse(tokensJson);
         if (tokens.accessToken) {
@@ -36,7 +36,7 @@ apiClient.interceptors.request.use(
 let refreshPromise: Promise<string | null> | null = null;
 
 async function refreshAccessToken(): Promise<string | null> {
-  const tokensJson = await SecureStore.getItemAsync('auth_tokens');
+  const tokensJson = await tokenStorage.getItem('auth_tokens');
   if (!tokensJson) return null;
 
   const tokens = JSON.parse(tokensJson);
@@ -48,7 +48,7 @@ async function refreshAccessToken(): Promise<string | null> {
   if (!newAccessToken) return null;
 
   const newTokens = { ...tokens, accessToken: newAccessToken };
-  await SecureStore.setItemAsync('auth_tokens', JSON.stringify(newTokens));
+  await tokenStorage.setItem('auth_tokens', JSON.stringify(newTokens));
   return newAccessToken;
 }
 
@@ -89,7 +89,7 @@ apiClient.interceptors.response.use(
         }
       } catch (refreshError) {
         // Refresh failed — clear tokens, AuthProvider will handle redirect
-        await SecureStore.deleteItemAsync('auth_tokens');
+        await tokenStorage.deleteItem('auth_tokens');
       }
     }
 

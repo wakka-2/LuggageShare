@@ -1,4 +1,13 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert, ViewStyle, TextStyle } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  ActivityIndicator,
+  ViewStyle,
+  TextStyle,
+} from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -7,8 +16,11 @@ import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 
 import { useTheme } from '@/hooks/useTheme';
 import { useListing } from '@/hooks/useListings';
+import { useBookings } from '@/hooks/useBookings';
 import { useAuth } from '@/hooks/useAuth';
 import { Avatar } from '@/components/common';
+import { MOCK_LISTINGS, adaptMockListing } from '@/components/listings';
+import { showAlert } from '@/lib/alert';
 
 export default function ListingDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -18,7 +30,19 @@ export default function ListingDetailScreen() {
   const { user } = useAuth();
   const isRTL = i18n.language === 'ar';
 
-  const { data: listing, isLoading, isError } = useListing(id ?? null);
+  const { data: apiListing, isLoading, isError } = useListing(id ?? null);
+  const { data: bookings } = useBookings();
+
+  // Fall back to mock data when the API doesn't return a result
+  const mockMatch = !apiListing && id ? MOCK_LISTINGS.find((m) => m.id === id) : undefined;
+  const listing = apiListing ?? (mockMatch ? adaptMockListing(mockMatch) : undefined);
+
+  // Check if the user already has an active booking for this listing
+  const existingBooking = listing
+    ? bookings?.find(
+        (b) => b.listingId === listing.id && !['cancelled', 'rejected'].includes(b.status)
+      )
+    : undefined;
 
   if (isLoading) {
     return (
@@ -30,7 +54,7 @@ export default function ListingDetailScreen() {
     );
   }
 
-  if (isError || !listing) {
+  if (!listing) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.loadingContainer}>
@@ -38,7 +62,10 @@ export default function ListingDetailScreen() {
           <Text style={[styles.errorText, { color: colors.textSecondary }]}>
             {t('listing.notFound')}
           </Text>
-          <TouchableOpacity onPress={() => router.back()} style={[styles.backButton, { backgroundColor: colors.primary }]}>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={[styles.backButton, { backgroundColor: colors.primary }]}
+          >
             <Text style={styles.backButtonText}>{t('listing.goBack')}</Text>
           </TouchableOpacity>
         </View>
@@ -47,8 +74,8 @@ export default function ListingDetailScreen() {
   }
 
   const isOwner = user?.id === listing.carrierId;
-  const weight = Number(listing.availableWeight);
-  const price = Number(listing.pricePerKg);
+  const weight = Number(listing.availableWeight) || 0;
+  const price = Number(listing.price) || 0;
   const departureDate = new Date(listing.departureDate);
 
   const handleBooking = () => {
@@ -56,10 +83,13 @@ export default function ListingDetailScreen() {
   };
 
   const handleMessage = () => {
-    Alert.alert(
-      t('listing.comingSoon'),
-      t('listing.messagingSoon')
-    );
+    if (existingBooking) {
+      router.push(`/chat/${existingBooking.id}`);
+    } else {
+      showAlert(t('listing.bookToChat'), t('listing.bookToChatDescription'), () =>
+        router.push(`/booking/create?listingId=${listing.id}`)
+      );
+    }
   };
 
   return (
@@ -69,21 +99,24 @@ export default function ListingDetailScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.headerButton}>
           <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>
-          {t('listing.details')}
-        </Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>{t('listing.details')}</Text>
         <View style={styles.headerButton} />
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Route Card */}
-        <Animated.View entering={FadeInDown.duration(400)} style={[styles.routeCard, { backgroundColor: colors.card }]}>
+        <Animated.View
+          entering={FadeInDown.duration(400)}
+          style={[styles.routeCard, { backgroundColor: colors.card }]}
+        >
           <View style={styles.routeRow}>
             <View style={styles.routePoint}>
               <View style={[styles.routeDot, { backgroundColor: colors.primary }]} />
               <Text style={[styles.cityName, { color: colors.text }]}>{listing.departureCity}</Text>
               {listing.departureCode && (
-                <Text style={[styles.cityCode, { color: colors.textSecondary }]}>{listing.departureCode}</Text>
+                <Text style={[styles.cityCode, { color: colors.textSecondary }]}>
+                  {listing.departureCode}
+                </Text>
               )}
             </View>
             <View style={styles.routeLine}>
@@ -93,7 +126,9 @@ export default function ListingDetailScreen() {
               <View style={[styles.routeDot, { backgroundColor: colors.success }]} />
               <Text style={[styles.cityName, { color: colors.text }]}>{listing.arrivalCity}</Text>
               {listing.arrivalCode && (
-                <Text style={[styles.cityCode, { color: colors.textSecondary }]}>{listing.arrivalCode}</Text>
+                <Text style={[styles.cityCode, { color: colors.textSecondary }]}>
+                  {listing.arrivalCode}
+                </Text>
               )}
             </View>
           </View>
@@ -104,13 +139,19 @@ export default function ListingDetailScreen() {
             <View style={styles.detailItem}>
               <Ionicons name="calendar-outline" size={18} color={colors.textSecondary} />
               <Text style={[styles.detailText, { color: colors.text }]}>
-                {departureDate.toLocaleDateString(isRTL ? 'ar-SA' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
+                {departureDate.toLocaleDateString(isRTL ? 'ar-SA' : 'en-US', {
+                  day: 'numeric',
+                  month: 'short',
+                  year: 'numeric',
+                })}
               </Text>
             </View>
             {listing.flightNumber && (
               <View style={styles.detailItem}>
                 <Ionicons name="airplane-outline" size={18} color={colors.textSecondary} />
-                <Text style={[styles.detailText, { color: colors.text }]}>{listing.flightNumber}</Text>
+                <Text style={[styles.detailText, { color: colors.text }]}>
+                  {listing.flightNumber}
+                </Text>
               </View>
             )}
           </View>
@@ -127,28 +168,32 @@ export default function ListingDetailScreen() {
           </View>
           <View style={[styles.statCard, { backgroundColor: colors.card }]}>
             <Ionicons name="pricetag-outline" size={24} color={colors.success} />
-            <Text style={[styles.statValue, { color: colors.text }]}>{price} {listing.currency}</Text>
+            <Text style={[styles.statValue, { color: colors.text }]}>
+              {price} {listing.currency || 'SAR'}
+            </Text>
             <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-              {t('listing.perKg')}
+              {t('listing.price')}
             </Text>
           </View>
         </Animated.View>
 
         {/* Notes */}
         {listing.notes && (
-          <Animated.View entering={FadeIn.delay(150).duration(400)} style={[styles.section, { backgroundColor: colors.card }]}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>
-              {t('listing.notes')}
-            </Text>
+          <Animated.View
+            entering={FadeIn.delay(150).duration(400)}
+            style={[styles.section, { backgroundColor: colors.card }]}
+          >
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('listing.notes')}</Text>
             <Text style={[styles.notesText, { color: colors.textSecondary }]}>{listing.notes}</Text>
           </Animated.View>
         )}
 
         {/* Carrier Info */}
-        <Animated.View entering={FadeIn.delay(200).duration(400)} style={[styles.section, { backgroundColor: colors.card }]}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            {t('listing.carrier')}
-          </Text>
+        <Animated.View
+          entering={FadeIn.delay(200).duration(400)}
+          style={[styles.section, { backgroundColor: colors.card }]}
+        >
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('listing.carrier')}</Text>
           <View style={styles.carrierRow}>
             <Avatar
               name={listing.carrier.name}
@@ -157,9 +202,13 @@ export default function ListingDetailScreen() {
               isVerified={listing.carrier.isVerified}
             />
             <View style={styles.carrierInfo}>
-              <Text style={[styles.carrierName, { color: colors.text }]}>{listing.carrier.name}</Text>
+              <Text style={[styles.carrierName, { color: colors.text }]}>
+                {listing.carrier.name}
+              </Text>
               {listing.carrier.city && (
-                <Text style={[styles.carrierCity, { color: colors.textSecondary }]}>{listing.carrier.city}</Text>
+                <Text style={[styles.carrierCity, { color: colors.textSecondary }]}>
+                  {listing.carrier.city}
+                </Text>
               )}
               {listing.carrier.isVerified && (
                 <View style={styles.verifiedBadge}>
@@ -172,21 +221,32 @@ export default function ListingDetailScreen() {
             </View>
           </View>
           {listing.carrier.bio && (
-            <Text style={[styles.carrierBio, { color: colors.textSecondary }]}>{listing.carrier.bio}</Text>
+            <Text style={[styles.carrierBio, { color: colors.textSecondary }]}>
+              {listing.carrier.bio}
+            </Text>
           )}
         </Animated.View>
       </ScrollView>
 
       {/* Bottom Action Bar */}
       {!isOwner && (
-        <View style={[styles.actionBar, { backgroundColor: colors.card, borderTopColor: colors.border }]}>
-          <TouchableOpacity onPress={handleMessage} style={[styles.messageButton, { borderColor: colors.primary }]}>
+        <View
+          style={[
+            styles.actionBar,
+            { backgroundColor: colors.card, borderTopColor: colors.border },
+          ]}
+        >
+          <TouchableOpacity
+            onPress={handleMessage}
+            style={[styles.messageButton, { borderColor: colors.primary }]}
+          >
             <Ionicons name="chatbubble-outline" size={20} color={colors.primary} />
           </TouchableOpacity>
-          <TouchableOpacity onPress={handleBooking} style={[styles.bookButton, { backgroundColor: colors.primary }]}>
-            <Text style={styles.bookButtonText}>
-              {t('listing.bookNow')}
-            </Text>
+          <TouchableOpacity
+            onPress={handleBooking}
+            style={[styles.bookButton, { backgroundColor: colors.primary }]}
+          >
+            <Text style={styles.bookButtonText}>{t('listing.bookNow')}</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -196,13 +256,25 @@ export default function ListingDetailScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 } as ViewStyle,
-  loadingContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16 } as ViewStyle,
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 16,
+  } as ViewStyle,
   errorText: { fontSize: 16, marginTop: 8 } as TextStyle,
   backButton: { paddingHorizontal: 24, paddingVertical: 12, borderRadius: 8 } as ViewStyle,
   backButtonText: { color: '#FFF', fontSize: 16, fontWeight: '600' } as TextStyle,
 
   // Header
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1 } as ViewStyle,
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+  } as ViewStyle,
   headerButton: { width: 40, alignItems: 'center' } as ViewStyle,
   headerTitle: { fontSize: 18, fontWeight: '600' } as TextStyle,
 
@@ -210,7 +282,11 @@ const styles = StyleSheet.create({
 
   // Route Card
   routeCard: { borderRadius: 16, padding: 20, marginBottom: 16 } as ViewStyle,
-  routeRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' } as ViewStyle,
+  routeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  } as ViewStyle,
   routePoint: { alignItems: 'center', flex: 1 } as ViewStyle,
   routeDot: { width: 12, height: 12, borderRadius: 6, marginBottom: 8 } as ViewStyle,
   cityName: { fontSize: 18, fontWeight: '700', textAlign: 'center' } as TextStyle,
@@ -242,8 +318,30 @@ const styles = StyleSheet.create({
   carrierBio: { fontSize: 14, lineHeight: 20, marginTop: 12 } as TextStyle,
 
   // Action Bar
-  actionBar: { position: 'absolute', bottom: 0, left: 0, right: 0, flexDirection: 'row', padding: 16, gap: 12, borderTopWidth: 1 } as ViewStyle,
-  messageButton: { width: 52, height: 52, borderRadius: 12, borderWidth: 2, alignItems: 'center', justifyContent: 'center' } as ViewStyle,
-  bookButton: { flex: 1, height: 52, borderRadius: 12, alignItems: 'center', justifyContent: 'center' } as ViewStyle,
+  actionBar: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    padding: 16,
+    gap: 12,
+    borderTopWidth: 1,
+  } as ViewStyle,
+  messageButton: {
+    width: 52,
+    height: 52,
+    borderRadius: 12,
+    borderWidth: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  } as ViewStyle,
+  bookButton: {
+    flex: 1,
+    height: 52,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  } as ViewStyle,
   bookButtonText: { color: '#FFF', fontSize: 16, fontWeight: '700' } as TextStyle,
 });

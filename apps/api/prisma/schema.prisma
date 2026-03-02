@@ -73,7 +73,7 @@ model Listing {
   departureDate   DateTime
   flightNumber    String?
   availableWeight Decimal  @db.Decimal(5, 2)
-  pricePerKg      Decimal  @db.Decimal(8, 2)
+  price           Decimal  @db.Decimal(8, 2) @map("pricePerKg")
   currency        String   @default("SAR")
   preferences     Json?
   notes           String?

@@ -65,7 +65,10 @@
     "noListings": "لا توجد نتائج",
     "noListingsDescription": "جرب تغيير معايير البحث أو تصفح جميع الإعلانات",
     "noListingsDescriptionShort": "جرب تغيير معايير البحث",
-    "clearFilters": "مسح الفلاتر"
+    "clearFilters": "مسح الفلاتر",
+    "allTab": "الكل",
+    "offersTab": "عروض",
+    "requestsTab": "طلبات"
   },
   "status": {
     "pending": "قيد الانتظار",
@@ -149,7 +152,7 @@
     "create": "إنشاء عرض",
     "flightNumber": "رقم الرحلة",
     "availableSpace": "المساحة المتاحة",
-    "pricePerKg": "السعر لكل كيلو",
+    "pricePerKg": "السعر",
     "preferences": "التفضيلات",
     "notes": "ملاحظات",
     "publish": "نشر العرض",
@@ -158,8 +161,10 @@
     "goBack": "رجوع",
     "comingSoon": "قريباً",
     "messagingSoon": "المراسلة ستكون متاحة قريباً",
+    "bookToChat": "احجز للمراسلة",
+    "bookToChatDescription": "أنشئ طلب حجز لبدء المحادثة مع الناقل",
     "available": "الوزن المتاح",
-    "perKg": "لكل كيلو",
+    "price": "السعر",
     "carrier": "الناقل",
     "bookNow": "احجز الآن",
     "tripInfo": "معلومات الرحلة",
@@ -169,14 +174,15 @@
     "departureDate": "تاريخ المغادرة",
     "weightAndPrice": "الوزن والسعر",
     "availableWeightKg": "الوزن المتاح (كجم)",
-    "pricePerKgSar": "السعر لكل كجم (ريال)",
+    "priceSar": "السعر (ريال)",
     "postListing": "نشر الإعلان",
     "placeholderRiyadh": "الرياض",
     "placeholderCairo": "القاهرة",
     "placeholderNotes": "أي تفاصيل إضافية عن الرحلة...",
     "createdSuccess": "تم إنشاء الإعلان بنجاح",
     "failedCreate": "فشل في إنشاء الإعلان",
-    "selectDate": "اختر تاريخ المغادرة"
+    "selectDate": "اختر تاريخ المغادرة",
+    "departureDateRequired": "تاريخ المغادرة مطلوب"
   },
   "booking": {
     "request": "طلب حجز",
@@ -240,7 +246,19 @@
     "confirmDelivery": "تأكيد التوصيل",
     "confirmDeliveryMessage": "هل تؤكد أنك سلمت الأغراض للمستلم?",
     "confirmPaymentTitle": "تأكيد استلام الدفع",
-    "confirmPaymentMessage": "هل تؤكد أنك استلمت الدفع من المرسل?"
+    "confirmPaymentMessage": "هل تؤكد أنك استلمت الدفع من المرسل?",
+    "addItemsHint": "أضف الأغراض التي تريد إرسالها مع الصور",
+    "itemNumber": "غرض {{number}}",
+    "itemNamePlaceholder": "اسم الغرض (مثال: جاكيت شتوي)",
+    "itemNameRequired": "يرجى إدخال اسم لكل غرض",
+    "itemWeightRequired": "يرجى إدخال الوزن لكل غرض",
+    "itemValue": "القيمة",
+    "itemDescriptionPlaceholder": "وصف مختصر (اختياري)",
+    "itemPhotos": "الصور",
+    "addPhoto": "إضافة",
+    "addAnotherItem": "إضافة غرض آخر",
+    "itemPhotoRequired": "يرجى إضافة صورة واحدة على الأقل لكل غرض",
+    "confirmPayment": "تأكيد الدفع"
   },
   "wallet": {
     "title": "المحفظة",
@@ -255,7 +273,17 @@
     "topUpType": "إيداع",
     "refund": "استرجاع",
     "withdrawal": "سحب",
-    "withdraw": "سحب"
+    "withdraw": "سحب",
+    "minWithdrawal": "الحد الأدنى للسحب 10 ريال",
+    "invalidIban": "يرجى إدخال آيبان سعودي صحيح",
+    "withdrawalSubmitted": "تم تقديم طلب السحب. سيتم التحويل خلال 2-3 أيام عمل.",
+    "withdrawalFailed": "فشل طلب السحب",
+    "amountSar": "المبلغ (ريال)",
+    "minAmountPlaceholder": "الحد الأدنى 10 ريال",
+    "ibanNumber": "رقم الآيبان",
+    "accountHolderName": "اسم صاحب الحساب",
+    "accountHolderPlaceholder": "الاسم كما في البنك",
+    "confirmWithdrawal": "تأكيد السحب"
   },
   "chat": {
     "title": "المحادثة",
@@ -277,7 +305,8 @@
     "confirmPayment": "تأكيد الدفع",
     "successTitle": "تم تقديم الدفع",
     "successMessage": "تم تقديم إثبات الدفع. سيتم إشعار الناقل.",
-    "uploadFirst": "يرجى رفع صورة إثبات التحويل أولاً"
+    "uploadFirst": "يرجى رفع صورة إثبات التحويل أولاً",
+    "proofFailed": "فشل تقديم إثبات الدفع"
   },
   "notifications": {
     "title": "الإشعارات",
@@ -300,6 +329,19 @@
     "starting": "يبدأ من",
     "negotiate": "تفاوض",
     "deals": "صفقة"
+  },
+  "categories": {
+    "electronics": "إلكترونيات",
+    "documents": "مستندات",
+    "clothes": "ملابس",
+    "cosmetics": "مستحضرات تجميل",
+    "accessories": "إكسسوارات",
+    "gifts": "هدايا",
+    "liquids": "سوائل",
+    "food": "طعام",
+    "fragile": "قابل للكسر",
+    "valuables": "مقتنيات ثمينة",
+    "batteries": "بطاريات"
   },
   "searchBar": {
     "from": "من أين؟",
@@ -333,5 +375,72 @@
     "decline": "رفض",
     "switchToSender": "التبديل للمرسل",
     "switchToCarrier": "التبديل للناقل"
+  },
+  "help": {
+    "faq": "الأسئلة الشائعة",
+    "contactUs": "تواصل معنا",
+    "emailSupport": "البريد الإلكتروني",
+    "howItWorks": "كيف يعمل LuggageShare؟",
+    "howItWorksAnswer": "يقوم الناقلون بعرض المساحة المتاحة في أمتعتهم في الرحلات القادمة. يتصفح المرسلون العروض ويطلبون حجز مساحة لأغراضهم.",
+    "isInsured": "هل أغراضي مؤمنة؟",
+    "isInsuredAnswer": "الأغراض مغطاة بالقيمة المعلنة أثناء النقل. ننصح بالإعلان الدقيق عن قيمة الأغراض عند إنشاء الحجز.",
+    "howGetPaid": "كيف أحصل على أموالي كناقل؟",
+    "howGetPaidAnswer": "يتم تحويل المبلغ إلى محفظتك بعد تأكيد المرسل للتسليم. يمكنك بعدها تحويل الرصيد إلى حسابك البنكي."
+  },
+  "verification": {
+    "identityVerified": "تم التحقق من هويتك",
+    "verifiedDescription": "حسابك موثق. يمكنك الآن الاستمتاع بجميع ميزات المنصة.",
+    "infoMessage": "التحقق من الهوية يساعد في بناء الثقة مع المستخدمين الآخرين ويفتح ميزات إضافية.",
+    "documentType": "نوع المستند",
+    "nationalId": "الهوية الوطنية",
+    "passport": "جواز السفر",
+    "drivingLicense": "رخصة القيادة",
+    "documentNumber": "رقم المستند",
+    "enterDocumentNumber": "أدخل رقم المستند",
+    "fullNameOptional": "الاسم الكامل (اختياري)",
+    "fullNamePlaceholder": "كما يظهر في المستند",
+    "submitRequest": "تقديم طلب التحقق",
+    "submitSuccess": "تم تقديم طلب التحقق بنجاح",
+    "submitFailed": "فشل تقديم طلب التحقق"
+  },
+  "settings": {
+    "language": "اللغة",
+    "appearance": "المظهر",
+    "darkMode": "الوضع الداكن",
+    "lightMode": "الوضع الفاتح",
+    "followsSystem": "يتبع النظام",
+    "restartRequired": "إعادة تشغيل مطلوبة",
+    "restartDescription": "أعد تشغيل التطبيق لتطبيق اتجاه اللغة"
+  },
+  "web": {
+    "sidebar": {
+      "collapse": "طي",
+      "expand": "توسيع"
+    },
+    "notifications": {
+      "title": "الإشعارات",
+      "viewAll": "عرض الكل",
+      "empty": "لا توجد إشعارات"
+    },
+    "userMenu": {
+      "editProfile": "تعديل الملف الشخصي",
+      "wallet": "المحفظة",
+      "settings": "الإعدادات",
+      "help": "المساعدة",
+      "logout": "تسجيل الخروج"
+    },
+    "breadcrumb": {
+      "home": "الرئيسية",
+      "listing": "الإعلان",
+      "booking": "الحجز",
+      "chat": "المحادثة",
+      "profile": "الملف الشخصي",
+      "notifications": "الإشعارات",
+      "create": "إنشاء",
+      "edit": "تعديل",
+      "wallet": "المحفظة",
+      "trips": "رحلاتي",
+      "messages": "الرسائل"
+    }
   }
 }

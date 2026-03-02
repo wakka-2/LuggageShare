@@ -5,7 +5,6 @@ import {
   StyleSheet,
   TextInput,
   TouchableOpacity,
-  Alert,
   ScrollView,
   ActivityIndicator,
   ViewStyle,
@@ -19,16 +18,12 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { useTheme } from '@/hooks/useTheme';
 import { apiClient } from '@/lib/api';
+import { showAlert } from '@/lib/alert';
 
 const DOCUMENT_TYPES = [
-  { key: 'national_id', iconEn: 'card-outline', labelEn: 'National ID', labelAr: 'الهوية الوطنية' },
-  { key: 'passport', iconEn: 'document-outline', labelEn: 'Passport', labelAr: 'جواز السفر' },
-  {
-    key: 'driving_license',
-    iconEn: 'car-outline',
-    labelEn: 'Driving License',
-    labelAr: 'رخصة القيادة',
-  },
+  { key: 'national_id', icon: 'card-outline', labelKey: 'verification.nationalId' },
+  { key: 'passport', icon: 'document-outline', labelKey: 'verification.passport' },
+  { key: 'driving_license', icon: 'car-outline', labelKey: 'verification.drivingLicense' },
 ] as const;
 
 export default function VerificationScreen() {
@@ -62,22 +57,16 @@ export default function VerificationScreen() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['verification-status'] });
       queryClient.invalidateQueries({ queryKey: ['user'] });
-      Alert.alert(
-        t('common.success'),
-        isRTL ? 'تم تقديم طلب التحقق بنجاح' : 'Verification request submitted successfully'
-      );
+      showAlert(t('common.success'), t('verification.submitSuccess'));
     },
     onError: () => {
-      Alert.alert(
-        t('common.errorTitle'),
-        isRTL ? 'فشل تقديم طلب التحقق' : 'Failed to submit verification request'
-      );
+      showAlert(t('common.errorTitle'), t('verification.submitFailed'));
     },
   });
 
   const handleSubmit = () => {
     if (!selectedType || !documentNumber.trim()) {
-      Alert.alert(t('common.errorTitle'), t('common.requiredFieldsError'));
+      showAlert(t('common.errorTitle'), t('common.requiredFieldsError'));
       return;
     }
     submitMutation.mutate();
@@ -111,12 +100,10 @@ export default function VerificationScreen() {
             <Ionicons name="shield-checkmark" size={64} color="#10B981" />
           </View>
           <Text style={[styles.verifiedTitle, { color: colors.text }]}>
-            {isRTL ? 'تم التحقق من هويتك' : 'Identity Verified'}
+            {t('verification.identityVerified')}
           </Text>
           <Text style={[styles.verifiedDesc, { color: colors.textSecondary }]}>
-            {isRTL
-              ? 'حسابك موثق. يمكنك الآن الاستمتاع بجميع ميزات المنصة.'
-              : 'Your account is verified. You can now enjoy all platform features.'}
+            {t('verification.verifiedDescription')}
           </Text>
         </View>
       </SafeAreaView>
@@ -142,9 +129,7 @@ export default function VerificationScreen() {
           <Text
             style={[styles.infoText, { color: colors.text, textAlign: isRTL ? 'right' : 'left' }]}
           >
-            {isRTL
-              ? 'التحقق من الهوية يساعد في بناء الثقة مع المستخدمين الآخرين ويفتح ميزات إضافية.'
-              : 'Identity verification helps build trust with other users and unlocks additional features.'}
+            {t('verification.infoMessage')}
           </Text>
         </View>
 
@@ -152,7 +137,7 @@ export default function VerificationScreen() {
         <Text
           style={[styles.sectionTitle, { color: colors.text, textAlign: isRTL ? 'right' : 'left' }]}
         >
-          {isRTL ? 'نوع المستند' : 'Document Type'}
+          {t('verification.documentType')}
         </Text>
         <View style={styles.typeGrid}>
           {DOCUMENT_TYPES.map((doc) => (
@@ -166,7 +151,7 @@ export default function VerificationScreen() {
               onPress={() => setSelectedType(doc.key)}
             >
               <Ionicons
-                name={doc.iconEn as keyof typeof Ionicons.glyphMap}
+                name={doc.icon as keyof typeof Ionicons.glyphMap}
                 size={28}
                 color={selectedType === doc.key ? colors.primary : colors.textSecondary}
               />
@@ -176,7 +161,7 @@ export default function VerificationScreen() {
                   { color: selectedType === doc.key ? colors.primary : colors.text },
                 ]}
               >
-                {isRTL ? doc.labelAr : doc.labelEn}
+                {t(doc.labelKey)}
               </Text>
             </TouchableOpacity>
           ))}
@@ -186,7 +171,7 @@ export default function VerificationScreen() {
         <Text
           style={[styles.sectionTitle, { color: colors.text, textAlign: isRTL ? 'right' : 'left' }]}
         >
-          {isRTL ? 'رقم المستند' : 'Document Number'}
+          {t('verification.documentNumber')}
         </Text>
         <TextInput
           style={[
@@ -198,7 +183,7 @@ export default function VerificationScreen() {
               textAlign: isRTL ? 'right' : 'left',
             },
           ]}
-          placeholder={isRTL ? 'أدخل رقم المستند' : 'Enter document number'}
+          placeholder={t('verification.enterDocumentNumber')}
           placeholderTextColor={colors.textSecondary}
           value={documentNumber}
           onChangeText={setDocumentNumber}
@@ -209,7 +194,7 @@ export default function VerificationScreen() {
         <Text
           style={[styles.sectionTitle, { color: colors.text, textAlign: isRTL ? 'right' : 'left' }]}
         >
-          {isRTL ? 'الاسم الكامل (اختياري)' : 'Full Name (Optional)'}
+          {t('verification.fullNameOptional')}
         </Text>
         <TextInput
           style={[
@@ -221,7 +206,7 @@ export default function VerificationScreen() {
               textAlign: isRTL ? 'right' : 'left',
             },
           ]}
-          placeholder={isRTL ? 'كما يظهر في المستند' : 'As it appears on document'}
+          placeholder={t('verification.fullNamePlaceholder')}
           placeholderTextColor={colors.textSecondary}
           value={fullName}
           onChangeText={setFullName}
@@ -239,9 +224,7 @@ export default function VerificationScreen() {
           {submitMutation.isPending ? (
             <ActivityIndicator color="#FFF" />
           ) : (
-            <Text style={styles.submitText}>
-              {isRTL ? 'تقديم طلب التحقق' : 'Submit Verification Request'}
-            </Text>
+            <Text style={styles.submitText}>{t('verification.submitRequest')}</Text>
           )}
         </TouchableOpacity>
       </ScrollView>

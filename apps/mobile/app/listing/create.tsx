@@ -6,7 +6,6 @@ import {
   ScrollView,
   TouchableOpacity,
   TextInput,
-  Alert,
   ActivityIndicator,
   ViewStyle,
   TextStyle,
@@ -20,6 +19,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { useCreateListing } from '@/hooks/useListings';
 import { DatePickerInput } from '@/components/common/DatePickerInput';
 import { validateListing } from '@luggageshare/shared';
+import { showAlert } from '@/lib/alert';
 
 export default function CreateListingScreen() {
   const { t, i18n } = useTranslation();
@@ -36,12 +36,12 @@ export default function CreateListingScreen() {
   const [departureDate, setDepartureDate] = useState<Date | null>(null);
   const [flightNumber, setFlightNumber] = useState('');
   const [availableWeight, setAvailableWeight] = useState('');
-  const [pricePerKg, setPricePerKg] = useState('');
+  const [price, setPrice] = useState('');
   const [notes, setNotes] = useState('');
 
   const handleSubmit = async () => {
     if (!departureDate) {
-      Alert.alert(t('common.errorTitle'), 'Departure date is required');
+      showAlert(t('common.errorTitle'), t('listing.departureDateRequired'));
       return;
     }
 
@@ -50,11 +50,11 @@ export default function CreateListingScreen() {
       arrivalCity,
       departureDate,
       availableWeight: parseFloat(availableWeight) || 0,
-      pricePerKg: parseFloat(pricePerKg) || 0,
+      price: parseFloat(price) || 0,
     });
 
     if (!validation.valid) {
-      Alert.alert(t('common.errorTitle'), validation.errors.join('\n'));
+      showAlert(t('common.errorTitle'), validation.errors.join('\n'));
       return;
     }
 
@@ -67,15 +67,15 @@ export default function CreateListingScreen() {
         departureDate: departureDate.toISOString(),
         flightNumber: flightNumber || undefined,
         availableWeight: parseFloat(availableWeight),
-        pricePerKg: parseFloat(pricePerKg),
+        price: parseFloat(price),
         notes: notes || undefined,
       });
 
-      Alert.alert(t('common.success'), t('listing.createdSuccess'), [
+      showAlert(t('common.success'), t('listing.createdSuccess'), [
         { text: t('common.ok'), onPress: () => router.back() },
       ]);
     } catch (error) {
-      Alert.alert(t('common.errorTitle'), t('listing.failedCreate'));
+      showAlert(t('common.errorTitle'), t('listing.failedCreate'));
     }
   };
 
@@ -189,7 +189,7 @@ export default function CreateListingScreen() {
             })}
           </View>
           <View style={styles.flex1}>
-            {renderInput(t('listing.pricePerKgSar'), pricePerKg, setPricePerKg, {
+            {renderInput(t('listing.priceSar'), price, setPrice, {
               placeholder: '25',
               keyboardType: 'numeric',
               required: true,

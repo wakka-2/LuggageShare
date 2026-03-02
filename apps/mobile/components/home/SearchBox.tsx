@@ -20,9 +20,7 @@ export function SearchBox() {
             <Text style={[styles.routeLabel, { color: colors.textSecondary }]}>
               {t('home.from')}
             </Text>
-            <Text style={[styles.routeValue, { color: colors.text }]}>
-              الرياض - Riyadh
-            </Text>
+            <Text style={[styles.routeValue, { color: colors.text }]}>الرياض - Riyadh</Text>
           </TouchableOpacity>
         </View>
 
@@ -35,12 +33,8 @@ export function SearchBox() {
             <View style={[styles.routeIcon, { backgroundColor: colors.error }]} />
           </View>
           <TouchableOpacity style={styles.routeInput}>
-            <Text style={[styles.routeLabel, { color: colors.textSecondary }]}>
-              {t('home.to')}
-            </Text>
-            <Text style={[styles.routeValue, { color: colors.text }]}>
-              القاهرة - Cairo
-            </Text>
+            <Text style={[styles.routeLabel, { color: colors.textSecondary }]}>{t('home.to')}</Text>
+            <Text style={[styles.routeValue, { color: colors.text }]}>القاهرة - Cairo</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -55,9 +49,7 @@ export function SearchBox() {
             <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>
               {t('home.date')}
             </Text>
-            <Text style={[styles.detailValue, { color: colors.text }]}>
-              15 Feb 2026
-            </Text>
+            <Text style={[styles.detailValue, { color: colors.text }]}>15 Feb 2026</Text>
           </View>
         </TouchableOpacity>
 
@@ -69,9 +61,7 @@ export function SearchBox() {
             <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>
               {t('home.weight')}
             </Text>
-            <Text style={[styles.detailValue, { color: colors.text }]}>
-              5 {t('home.kg')}
-            </Text>
+            <Text style={[styles.detailValue, { color: colors.text }]}>5 {t('home.kg')}</Text>
           </View>
         </TouchableOpacity>
       </View>
@@ -121,7 +111,7 @@ const styles = StyleSheet.create({
   },
   swapButton: {
     position: 'absolute',
-    right: 16,
+    end: 16,
     top: '50%',
     marginTop: -20,
     width: 40,
@@ -145,7 +135,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   detailText: {
-    marginLeft: 8,
+    marginStart: 8,
   },
   detailLabel: {
     fontSize: 12,

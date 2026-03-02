@@ -65,7 +65,10 @@
     "noListings": "No listings found",
     "noListingsDescription": "Try adjusting your search filters or browse all listings",
     "noListingsDescriptionShort": "Try adjusting your search filters",
-    "clearFilters": "Clear filters"
+    "clearFilters": "Clear filters",
+    "allTab": "All",
+    "offersTab": "Offers",
+    "requestsTab": "Requests"
   },
   "status": {
     "pending": "Pending",
@@ -149,7 +152,7 @@
     "create": "Create Listing",
     "flightNumber": "Flight Number",
     "availableSpace": "Available Space",
-    "pricePerKg": "Price per kg",
+    "pricePerKg": "Price",
     "preferences": "Preferences",
     "notes": "Notes",
     "publish": "Publish Listing",
@@ -158,8 +161,10 @@
     "goBack": "Go Back",
     "comingSoon": "Coming Soon",
     "messagingSoon": "Messaging will be available soon",
+    "bookToChat": "Book to Message",
+    "bookToChatDescription": "Create a booking request to start chatting with the carrier",
     "available": "Available",
-    "perKg": "Per kg",
+    "price": "Price",
     "carrier": "Carrier",
     "bookNow": "Book Now",
     "tripInfo": "Trip Information",
@@ -169,14 +174,15 @@
     "departureDate": "Departure Date",
     "weightAndPrice": "Weight & Price",
     "availableWeightKg": "Available Weight (kg)",
-    "pricePerKgSar": "Price per kg (SAR)",
+    "priceSar": "Price (SAR)",
     "postListing": "Post Listing",
     "placeholderRiyadh": "Riyadh",
     "placeholderCairo": "Cairo",
     "placeholderNotes": "Any additional details about the trip...",
     "createdSuccess": "Listing created successfully",
     "failedCreate": "Failed to create listing",
-    "selectDate": "Select departure date"
+    "selectDate": "Select departure date",
+    "departureDateRequired": "Departure date is required"
   },
   "booking": {
     "request": "Request Booking",
@@ -240,7 +246,19 @@
     "confirmDelivery": "Confirm Delivery",
     "confirmDeliveryMessage": "Confirm that you have delivered the items to the recipient?",
     "confirmPaymentTitle": "Confirm Payment Received",
-    "confirmPaymentMessage": "Confirm that you have received the payment from the sender?"
+    "confirmPaymentMessage": "Confirm that you have received the payment from the sender?",
+    "addItemsHint": "Add the items you want to send with photos",
+    "itemNumber": "Item {{number}}",
+    "itemNamePlaceholder": "Item name (e.g. Winter jacket)",
+    "itemNameRequired": "Please enter a name for each item",
+    "itemWeightRequired": "Please enter the weight for each item",
+    "itemValue": "Value",
+    "itemDescriptionPlaceholder": "Brief description (optional)",
+    "itemPhotos": "Photos",
+    "addPhoto": "Add",
+    "addAnotherItem": "Add another item",
+    "itemPhotoRequired": "Please add at least one photo for each item",
+    "confirmPayment": "Confirm Payment"
   },
   "wallet": {
     "title": "Wallet",
@@ -255,7 +273,17 @@
     "topUpType": "Top Up",
     "refund": "Refund",
     "withdrawal": "Withdrawal",
-    "withdraw": "Withdraw"
+    "withdraw": "Withdraw",
+    "minWithdrawal": "Minimum withdrawal is 10 SAR",
+    "invalidIban": "Please enter a valid Saudi IBAN",
+    "withdrawalSubmitted": "Withdrawal submitted. Funds will arrive in 2-3 business days.",
+    "withdrawalFailed": "Withdrawal request failed",
+    "amountSar": "Amount (SAR)",
+    "minAmountPlaceholder": "Minimum 10 SAR",
+    "ibanNumber": "IBAN Number",
+    "accountHolderName": "Account Holder Name",
+    "accountHolderPlaceholder": "Name as in bank account",
+    "confirmWithdrawal": "Confirm Withdrawal"
   },
   "chat": {
     "title": "Chat",
@@ -277,7 +305,8 @@
     "confirmPayment": "Confirm Payment",
     "successTitle": "Payment Submitted",
     "successMessage": "Your payment proof has been submitted. The carrier will be notified.",
-    "uploadFirst": "Please upload a transfer screenshot first"
+    "uploadFirst": "Please upload a transfer screenshot first",
+    "proofFailed": "Failed to submit payment proof"
   },
   "notifications": {
     "title": "Notifications",
@@ -300,6 +329,19 @@
     "starting": "Starting",
     "negotiate": "Negotiate",
     "deals": "deals"
+  },
+  "categories": {
+    "electronics": "Electronics",
+    "documents": "Documents",
+    "clothes": "Clothes",
+    "cosmetics": "Cosmetics",
+    "accessories": "Accessories",
+    "gifts": "Gifts",
+    "liquids": "Liquids",
+    "food": "Food",
+    "fragile": "Fragile",
+    "valuables": "Valuables",
+    "batteries": "Batteries"
   },
   "searchBar": {
     "from": "From",
@@ -333,5 +375,72 @@
     "decline": "Decline",
     "switchToSender": "Switch to Sender",
     "switchToCarrier": "Switch to Carrier"
+  },
+  "help": {
+    "faq": "Frequently Asked Questions",
+    "contactUs": "Contact Us",
+    "emailSupport": "Email Support",
+    "howItWorks": "How does LuggageShare work?",
+    "howItWorksAnswer": "Carriers list their available luggage space on upcoming trips. Senders browse listings and request to book space for their items.",
+    "isInsured": "Is my item insured?",
+    "isInsuredAnswer": "Items are covered by the declared value during transport. We recommend accurately declaring item values when creating a booking.",
+    "howGetPaid": "How do I get paid as a carrier?",
+    "howGetPaidAnswer": "Payment is released to your wallet after the sender confirms delivery. You can then transfer the balance to your bank account."
+  },
+  "verification": {
+    "identityVerified": "Identity Verified",
+    "verifiedDescription": "Your account is verified. You can now enjoy all platform features.",
+    "infoMessage": "Identity verification helps build trust with other users and unlocks additional features.",
+    "documentType": "Document Type",
+    "nationalId": "National ID",
+    "passport": "Passport",
+    "drivingLicense": "Driving License",
+    "documentNumber": "Document Number",
+    "enterDocumentNumber": "Enter document number",
+    "fullNameOptional": "Full Name (Optional)",
+    "fullNamePlaceholder": "As it appears on document",
+    "submitRequest": "Submit Verification Request",
+    "submitSuccess": "Verification request submitted successfully",
+    "submitFailed": "Failed to submit verification request"
+  },
+  "settings": {
+    "language": "Language",
+    "appearance": "Appearance",
+    "darkMode": "Dark Mode",
+    "lightMode": "Light Mode",
+    "followsSystem": "Follows system",
+    "restartRequired": "Restart Required",
+    "restartDescription": "Please restart the app to apply language direction"
+  },
+  "web": {
+    "sidebar": {
+      "collapse": "Collapse",
+      "expand": "Expand"
+    },
+    "notifications": {
+      "title": "Notifications",
+      "viewAll": "View all",
+      "empty": "No notifications"
+    },
+    "userMenu": {
+      "editProfile": "Edit Profile",
+      "wallet": "Wallet",
+      "settings": "Settings",
+      "help": "Help",
+      "logout": "Log out"
+    },
+    "breadcrumb": {
+      "home": "Home",
+      "listing": "Listing",
+      "booking": "Booking",
+      "chat": "Chat",
+      "profile": "Profile",
+      "notifications": "Notifications",
+      "create": "Create",
+      "edit": "Edit",
+      "wallet": "Wallet",
+      "trips": "My Trips",
+      "messages": "Messages"
+    }
   }
 }

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -9,6 +9,7 @@ import { useGoogleAuth } from '@/hooks/useGoogleAuth';
 import { useAppleAuth } from '@/hooks/useAppleAuth';
 import { useAuth } from '@/hooks/useAuth';
 import { apiClient } from '@/lib/api';
+import { showAlert } from '@/lib/alert';
 
 export default function LoginScreen() {
   const { t } = useTranslation();
@@ -28,7 +29,7 @@ export default function LoginScreen() {
     } catch (err) {
       const message = err instanceof Error ? err.message : t('common.error');
       setError(message);
-      Alert.alert(t('common.error'), message);
+      showAlert(t('common.error'), message);
     }
   };
 
@@ -39,7 +40,7 @@ export default function LoginScreen() {
     } catch (err) {
       const message = err instanceof Error ? err.message : t('common.error');
       setError(message);
-      Alert.alert(t('common.error'), message);
+      showAlert(t('common.error'), message);
     }
   };
 
@@ -61,9 +62,9 @@ export default function LoginScreen() {
         },
       });
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Dev login failed';
+      const message = err instanceof Error ? err.message : t('common.error');
       setError(message);
-      Alert.alert('Error', message);
+      showAlert(t('common.errorTitle'), message);
     } finally {
       setIsDevLoading(false);
     }

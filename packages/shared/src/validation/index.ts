@@ -77,7 +77,7 @@ export function validateListing(listing: {
   arrivalCity: string;
   departureDate: string | Date;
   availableWeight: number;
-  pricePerKg: number;
+  price: number;
 }): { valid: boolean; errors: string[] } {
   const errors: string[] = [];
 
@@ -103,7 +103,7 @@ export function validateListing(listing: {
     errors.push(weightValidation.error!);
   }
 
-  const priceValidation = validatePrice(listing.pricePerKg);
+  const priceValidation = validatePrice(listing.price);
   if (!priceValidation.valid) {
     errors.push(priceValidation.error!);
   }
@@ -112,11 +112,10 @@ export function validateListing(listing: {
 }
 
 // Item validation
-export function validateItem(item: {
-  name: string;
-  weight: number;
-  value: number;
-}): { valid: boolean; errors: string[] } {
+export function validateItem(item: { name: string; weight: number; value: number }): {
+  valid: boolean;
+  errors: string[];
+} {
   const errors: string[] = [];
 
   if (!item.name?.trim()) {

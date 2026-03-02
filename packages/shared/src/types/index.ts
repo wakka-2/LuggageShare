@@ -28,7 +28,7 @@ export interface Listing {
   departureDate: string;
   flightNumber?: string;
   availableWeight: number;
-  pricePerKg: number;
+  price: number;
   currency: string;
   preferences?: ListingPreferences;
   notes?: string;

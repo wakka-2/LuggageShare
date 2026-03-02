@@ -11,7 +11,7 @@ export interface ApiListing {
   departureDate: string;
   flightNumber: string | null;
   availableWeight: number;
-  pricePerKg: number;
+  price: number;
   currency: string;
   preferences: Record<string, unknown> | null;
   notes: string | null;
@@ -43,7 +43,7 @@ interface CreateListingParams {
   departureDate: string;
   flightNumber?: string;
   availableWeight: number;
-  pricePerKg: number;
+  price: number;
   currency?: string;
   preferences?: Record<string, unknown>;
   notes?: string;

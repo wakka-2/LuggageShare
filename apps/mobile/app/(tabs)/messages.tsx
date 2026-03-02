@@ -168,7 +168,7 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   } as ViewStyle,
   conversationName: { fontSize: 16, fontWeight: '600', flex: 1 } as TextStyle,
-  conversationTime: { fontSize: 12, marginLeft: 8 } as TextStyle,
+  conversationTime: { fontSize: 12, marginStart: 8 } as TextStyle,
   conversationRoute: { fontSize: 12, fontWeight: '500', marginBottom: 2 } as TextStyle,
   conversationMessage: { fontSize: 14 } as TextStyle,
   unreadBadge: {

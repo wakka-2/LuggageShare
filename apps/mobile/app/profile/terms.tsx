@@ -5,7 +5,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
   ViewStyle,
   TextStyle,
@@ -17,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { useTheme } from '@/hooks/useTheme';
 import { apiClient } from '@/lib/api';
+import { showAlert } from '@/lib/alert';
 
 export default function TermsScreen() {
   const { t, i18n } = useTranslation();
@@ -29,11 +29,11 @@ export default function TermsScreen() {
     setAccepting(true);
     try {
       await apiClient.post('/users/me/accept-tos');
-      Alert.alert(t('common.success'), t('profile.tosAccepted'), [
+      showAlert(t('common.success'), t('profile.tosAccepted'), [
         { text: t('common.ok'), onPress: () => router.back() },
       ]);
     } catch {
-      Alert.alert(t('common.errorTitle'), t('profile.tosAcceptFailed'));
+      showAlert(t('common.errorTitle'), t('profile.tosAcceptFailed'));
     } finally {
       setAccepting(false);
     }

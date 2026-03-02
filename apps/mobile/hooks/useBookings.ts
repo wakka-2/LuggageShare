@@ -28,7 +28,7 @@ export interface ApiBooking {
     arrivalCity: string;
     arrivalCode: string | null;
     departureDate: string;
-    pricePerKg: number;
+    price: number;
   };
   sender: {
     id: string;
@@ -56,11 +56,203 @@ export interface ApiBooking {
   }>;
 }
 
+export interface BookingItemParam {
+  name: string;
+  description?: string;
+  weight: number;
+  value: number;
+  imageUrls?: string[];
+}
+
 interface CreateBookingParams {
   listingId: string;
   totalWeight: number;
-  totalPrice: number;
-  currency?: string;
+  items?: BookingItemParam[];
+}
+
+/**
+ * Generate mock bookings for demo/offline mode.
+ * Uses the logged-in user's ID so carrier/sender action buttons render properly.
+ */
+export function getMockBookings(userId: string): ApiBooking[] {
+  const now = new Date().toISOString();
+  return [
+    {
+      id: 'mock-b1',
+      listingId: '1',
+      senderId: 'u4',
+      carrierId: userId, // current user is the carrier
+      status: 'pending',
+      totalWeight: 3,
+      totalPrice: 240,
+      currency: 'SAR',
+      cancelledBy: null,
+      cancelledAt: null,
+      paymentProofUrl: null,
+      paymentStatus: 'unpaid',
+      createdAt: now,
+      updatedAt: now,
+      listing: {
+        id: '1',
+        departureCity: 'Riyadh',
+        departureCode: 'RUH',
+        arrivalCity: 'Dubai',
+        arrivalCode: 'DXB',
+        departureDate: '2024-02-15T14:30:00Z',
+        price: 80,
+      },
+      sender: { id: 'u4', name: 'Sara Al-Otaibi', avatarUrl: null, isVerified: true },
+      carrier: { id: userId, name: 'You', avatarUrl: null, isVerified: true },
+      items: [
+        {
+          id: 'mock-i1',
+          name: 'iPhone 15 Pro',
+          description: 'Brand new, sealed box',
+          weight: 0.5,
+          value: 4500,
+          imageUrls: ['https://picsum.photos/seed/iphone/200/200'],
+        },
+        {
+          id: 'mock-i2',
+          name: 'Documents folder',
+          description: 'University admission papers',
+          weight: 0.3,
+          value: 0,
+          imageUrls: [],
+        },
+      ],
+    },
+    {
+      id: 'mock-b2',
+      listingId: '3',
+      senderId: 'u5',
+      carrierId: userId, // current user is the carrier
+      status: 'accepted',
+      totalWeight: 5,
+      totalPrice: 250,
+      currency: 'SAR',
+      cancelledBy: null,
+      cancelledAt: null,
+      paymentProofUrl: null,
+      paymentStatus: 'unpaid',
+      createdAt: now,
+      updatedAt: now,
+      listing: {
+        id: '3',
+        departureCity: 'Riyadh',
+        departureCode: 'RUH',
+        arrivalCity: 'Amman',
+        arrivalCode: 'AMM',
+        departureDate: '2024-02-20T19:00:00Z',
+        price: 50,
+      },
+      sender: { id: 'u5', name: 'Mohammed Al-Dosari', avatarUrl: null, isVerified: false },
+      carrier: { id: userId, name: 'You', avatarUrl: null, isVerified: true },
+      items: [
+        {
+          id: 'mock-i3',
+          name: 'Arabic books',
+          description: '3 textbooks for university',
+          weight: 3,
+          value: 150,
+          imageUrls: ['https://picsum.photos/seed/books/200/200'],
+        },
+        {
+          id: 'mock-i4',
+          name: 'Perfume gift set',
+          description: 'Oud collection, well-packaged',
+          weight: 1.5,
+          value: 400,
+          imageUrls: [
+            'https://picsum.photos/seed/perfume/200/200',
+            'https://picsum.photos/seed/perfbox/200/200',
+          ],
+        },
+      ],
+    },
+    {
+      id: 'mock-b3',
+      listingId: '2',
+      senderId: userId, // current user is the sender
+      carrierId: 'u2',
+      status: 'in_transit',
+      totalWeight: 2,
+      totalPrice: 120,
+      currency: 'SAR',
+      cancelledBy: null,
+      cancelledAt: null,
+      paymentProofUrl: null,
+      paymentStatus: 'confirmed',
+      createdAt: now,
+      updatedAt: now,
+      listing: {
+        id: '2',
+        departureCity: 'Jeddah',
+        departureCode: 'JED',
+        arrivalCity: 'Cairo',
+        arrivalCode: 'CAI',
+        departureDate: '2024-02-18T09:00:00Z',
+        price: 60,
+      },
+      sender: { id: userId, name: 'You', avatarUrl: null, isVerified: true },
+      carrier: { id: 'u2', name: 'Fatima Mohammed', avatarUrl: null, isVerified: true },
+      items: [
+        {
+          id: 'mock-i5',
+          name: 'Spice collection',
+          description: 'Assorted Saudi spices',
+          weight: 1,
+          value: 80,
+          imageUrls: ['https://picsum.photos/seed/spices/200/200'],
+        },
+        {
+          id: 'mock-i6',
+          name: 'Dates box',
+          description: 'Premium Ajwa dates',
+          weight: 1,
+          value: 120,
+          imageUrls: ['https://picsum.photos/seed/dates/200/200'],
+        },
+      ],
+    },
+    {
+      id: 'mock-b4',
+      listingId: '6',
+      senderId: userId, // current user is the sender
+      carrierId: 'u6',
+      status: 'delivered',
+      totalWeight: 1,
+      totalPrice: 30,
+      currency: 'SAR',
+      cancelledBy: null,
+      cancelledAt: null,
+      paymentProofUrl: null,
+      paymentStatus: 'confirmed',
+      createdAt: now,
+      updatedAt: now,
+      listing: {
+        id: '6',
+        departureCity: 'Dammam',
+        departureCode: 'DMM',
+        arrivalCity: 'Manama',
+        arrivalCode: 'BAH',
+        departureDate: '2024-02-14T10:00:00Z',
+        price: 30,
+      },
+      sender: { id: userId, name: 'You', avatarUrl: null, isVerified: true },
+      carrier: { id: 'u6', name: 'Omar Hassan', avatarUrl: null, isVerified: true },
+      items: [
+        {
+          id: 'mock-i7',
+          name: 'Chocolate box',
+          description: 'Swiss chocolates gift',
+          weight: 1,
+          value: 200,
+          imageUrls: ['https://picsum.photos/seed/chocolate/200/200'],
+        },
+      ],
+    },
+  ];
 }
 
 export function useBookings() {

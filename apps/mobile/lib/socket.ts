@@ -1,5 +1,5 @@
 import { io, Socket } from 'socket.io-client';
-import * as SecureStore from 'expo-secure-store';
+import { tokenStorage } from '@/lib/storage';
 import Constants from 'expo-constants';
 
 const API_URL = Constants.expoConfig?.extra?.apiUrl || 'http://localhost:3001';
@@ -37,9 +37,9 @@ export async function connectSocket(): Promise<void> {
   if (s.connected) return;
 
   // Read token from secure storage.
-  const tokensJson = await SecureStore.getItemAsync(TOKEN_KEY);
+  const tokensJson = await tokenStorage.getItem(TOKEN_KEY);
   if (!tokensJson) {
-    throw new Error('No auth tokens found in SecureStore');
+    throw new Error('No auth tokens found in storage');
   }
 
   const tokens = JSON.parse(tokensJson);

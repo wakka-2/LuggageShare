@@ -1,5 +1,15 @@
 import { useState, useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, ActivityIndicator, ViewStyle, TextStyle } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  RefreshControl,
+  ActivityIndicator,
+  ViewStyle,
+  TextStyle,
+} from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -8,7 +18,7 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 
 import { useTheme } from '@/hooks/useTheme';
 import { ThemeColors } from '@/providers/ThemeProvider';
-import { useBookings, ApiBooking } from '@/hooks/useBookings';
+import { useBookings, getMockBookings, ApiBooking } from '@/hooks/useBookings';
 import { useAuth } from '@/hooks/useAuth';
 import { EmptyState, Avatar } from '@/components/common';
 
@@ -34,7 +44,12 @@ const STATUS_KEYS: Record<string, string> = {
   cancelled: 'trips.statusCancelled',
 };
 
-function BookingCard({ booking, isRTL, colors, onPress }: {
+function BookingCard({
+  booking,
+  isRTL,
+  colors,
+  onPress,
+}: {
   booking: ApiBooking;
   isRTL: boolean;
   colors: ThemeColors;
@@ -49,30 +64,48 @@ function BookingCard({ booking, isRTL, colors, onPress }: {
     <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
       <View style={[styles.bookingCard, { backgroundColor: colors.card }]}>
         <View style={styles.bookingRoute}>
-          <Text style={[styles.bookingCity, { color: colors.text }]}>{booking.listing.departureCity}</Text>
-          <Ionicons name="arrow-forward" size={16} color={colors.textSecondary} style={{ marginHorizontal: 8 }} />
-          <Text style={[styles.bookingCity, { color: colors.text }]}>{booking.listing.arrivalCity}</Text>
+          <Text style={[styles.bookingCity, { color: colors.text }]}>
+            {booking.listing.departureCity}
+          </Text>
+          <Ionicons
+            name="arrow-forward"
+            size={16}
+            color={colors.textSecondary}
+            style={{ marginHorizontal: 8 }}
+          />
+          <Text style={[styles.bookingCity, { color: colors.text }]}>
+            {booking.listing.arrivalCity}
+          </Text>
         </View>
 
         <View style={[styles.statusBadge, { backgroundColor: statusColor + '20' }]}>
           <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
-          <Text style={[styles.statusText, { color: statusColor }]}>{statusKey ? t(statusKey) : booking.status}</Text>
+          <Text style={[styles.statusText, { color: statusColor }]}>
+            {statusKey ? t(statusKey) : booking.status}
+          </Text>
         </View>
 
         <View style={styles.bookingDetails}>
           <View style={styles.detailItem}>
             <Ionicons name="calendar-outline" size={14} color={colors.textSecondary} />
             <Text style={[styles.detailText, { color: colors.textSecondary }]}>
-              {date.toLocaleDateString(isRTL ? 'ar-SA' : 'en-US', { day: 'numeric', month: 'short' })}
+              {date.toLocaleDateString(isRTL ? 'ar-SA' : 'en-US', {
+                day: 'numeric',
+                month: 'short',
+              })}
             </Text>
           </View>
           <View style={styles.detailItem}>
             <Ionicons name="scale-outline" size={14} color={colors.textSecondary} />
-            <Text style={[styles.detailText, { color: colors.textSecondary }]}>{Number(booking.totalWeight)} kg</Text>
+            <Text style={[styles.detailText, { color: colors.textSecondary }]}>
+              {Number(booking.totalWeight)} kg
+            </Text>
           </View>
           <View style={styles.detailItem}>
             <Ionicons name="pricetag-outline" size={14} color={colors.textSecondary} />
-            <Text style={[styles.detailText, { color: colors.textSecondary }]}>{Number(booking.totalPrice)} {booking.currency}</Text>
+            <Text style={[styles.detailText, { color: colors.textSecondary }]}>
+              {Number(booking.totalPrice)} {booking.currency}
+            </Text>
           </View>
         </View>
 
@@ -91,15 +124,22 @@ export default function TripsScreen() {
   const router = useRouter();
   const isRTL = i18n.language === 'ar';
 
+  const { user } = useAuth();
   const [activeFilter, setActiveFilter] = useState<FilterTab>('all');
-  const { data: bookings, isLoading, refetch } = useBookings();
+  const { data: apiBookings, isLoading, refetch } = useBookings();
+
+  // Fall back to mock bookings when the API doesn't return data
+  const bookings = apiBookings?.length ? apiBookings : user?.id ? getMockBookings(user.id) : [];
 
   const filteredBookings = useMemo(() => {
     if (!bookings) return [];
     if (activeFilter === 'all') return bookings;
-    if (activeFilter === 'active') return bookings.filter(b => ['pending', 'accepted', 'picked_up', 'in_transit'].includes(b.status));
-    if (activeFilter === 'completed') return bookings.filter(b => b.status === 'delivered');
-    return bookings.filter(b => ['rejected', 'cancelled'].includes(b.status));
+    if (activeFilter === 'active')
+      return bookings.filter((b) =>
+        ['pending', 'accepted', 'picked_up', 'in_transit'].includes(b.status)
+      );
+    if (activeFilter === 'completed') return bookings.filter((b) => b.status === 'delivered');
+    return bookings.filter((b) => ['rejected', 'cancelled'].includes(b.status));
   }, [bookings, activeFilter]);
 
   const filters: { key: FilterTab; labelKey: string }[] = [
@@ -110,19 +150,35 @@ export default function TripsScreen() {
   ];
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.background }]}
+      edges={['top']}
+    >
       <View style={[styles.header, { borderBottomColor: colors.border }]}>
         <Text style={[styles.title, { color: colors.text }]}>{t('trips.title')}</Text>
       </View>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterBar} contentContainerStyle={styles.filterBarContent}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.filterBar}
+        contentContainerStyle={styles.filterBarContent}
+      >
         {filters.map((f) => (
           <TouchableOpacity
             key={f.key}
             onPress={() => setActiveFilter(f.key)}
-            style={[styles.filterChip, { backgroundColor: activeFilter === f.key ? colors.primary : colors.card }]}
+            style={[
+              styles.filterChip,
+              { backgroundColor: activeFilter === f.key ? colors.primary : colors.card },
+            ]}
           >
-            <Text style={[styles.filterChipText, { color: activeFilter === f.key ? '#FFF' : colors.textSecondary }]}>
+            <Text
+              style={[
+                styles.filterChipText,
+                { color: activeFilter === f.key ? '#FFF' : colors.textSecondary },
+              ]}
+            >
               {t(f.labelKey)}
             </Text>
           </TouchableOpacity>
@@ -132,10 +188,18 @@ export default function TripsScreen() {
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={false} onRefresh={() => refetch()} tintColor={colors.primary} />}
+        refreshControl={
+          <RefreshControl
+            refreshing={false}
+            onRefresh={() => refetch()}
+            tintColor={colors.primary}
+          />
+        }
       >
         {isLoading && (
-          <View style={styles.loading}><ActivityIndicator size="large" color={colors.primary} /></View>
+          <View style={styles.loading}>
+            <ActivityIndicator size="large" color={colors.primary} />
+          </View>
         )}
 
         {!isLoading && filteredBookings.length === 0 && (
@@ -149,11 +213,17 @@ export default function TripsScreen() {
           />
         )}
 
-        {!isLoading && filteredBookings.map((booking, index) => (
-          <Animated.View key={booking.id} entering={FadeInDown.delay(index * 50).duration(300)}>
-            <BookingCard booking={booking} isRTL={isRTL} colors={colors} onPress={() => router.push(`/booking/${booking.id}`)} />
-          </Animated.View>
-        ))}
+        {!isLoading &&
+          filteredBookings.map((booking, index) => (
+            <Animated.View key={booking.id} entering={FadeInDown.delay(index * 50).duration(300)}>
+              <BookingCard
+                booking={booking}
+                isRTL={isRTL}
+                colors={colors}
+                onPress={() => router.push(`/booking/${booking.id}`)}
+              />
+            </Animated.View>
+          ))}
       </ScrollView>
     </SafeAreaView>
   );
@@ -173,12 +243,27 @@ const styles = StyleSheet.create({
   bookingCard: { borderRadius: 16, padding: 16, marginBottom: 12 } as ViewStyle,
   bookingRoute: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 } as ViewStyle,
   bookingCity: { fontSize: 16, fontWeight: '700' } as TextStyle,
-  statusBadge: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, gap: 6, marginBottom: 12 } as ViewStyle,
+  statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    gap: 6,
+    marginBottom: 12,
+  } as ViewStyle,
   statusDot: { width: 6, height: 6, borderRadius: 3 } as ViewStyle,
   statusText: { fontSize: 12, fontWeight: '600' } as TextStyle,
   bookingDetails: { flexDirection: 'row', gap: 16, marginBottom: 12 } as ViewStyle,
   detailItem: { flexDirection: 'row', alignItems: 'center', gap: 4 } as ViewStyle,
   detailText: { fontSize: 13 } as TextStyle,
-  bookingUser: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingTop: 12, borderTopWidth: 1 } as ViewStyle,
+  bookingUser: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingTop: 12,
+    borderTopWidth: 1,
+  } as ViewStyle,
   userName: { fontSize: 14, fontWeight: '500' } as TextStyle,
 });

@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { useRouter, useSegments } from 'expo-router';
-import * as SecureStore from 'expo-secure-store';
+import { tokenStorage } from '@/lib/storage';
 import { apiClient } from '@/lib/api';
 
 export interface User {
@@ -67,7 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function checkAuth() {
     try {
-      const tokensJson = await SecureStore.getItemAsync(TOKEN_KEY);
+      const tokensJson = await tokenStorage.getItem(TOKEN_KEY);
       if (tokensJson) {
         const tokens = JSON.parse(tokensJson);
         if (tokens.accessToken && tokens.user) {
@@ -77,7 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setUser(response.data.user || tokens.user);
           } catch {
             // Token invalid/expired — clear and redirect to login
-            await SecureStore.deleteItemAsync(TOKEN_KEY);
+            await tokenStorage.deleteItem(TOKEN_KEY);
           }
         }
       }
@@ -90,7 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function signIn(tokens: { accessToken: string; refreshToken: string; user: User }) {
     try {
-      await SecureStore.setItemAsync(TOKEN_KEY, JSON.stringify(tokens));
+      await tokenStorage.setItem(TOKEN_KEY, JSON.stringify(tokens));
       setUser(tokens.user);
     } catch (error) {
       console.error('Error signing in:', error);
@@ -100,7 +100,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function signOut() {
     try {
-      await SecureStore.deleteItemAsync(TOKEN_KEY);
+      await tokenStorage.deleteItem(TOKEN_KEY);
       setUser(null);
     } catch (error) {
       console.error('Error signing out:', error);

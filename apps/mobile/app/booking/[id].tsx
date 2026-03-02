@@ -7,9 +7,11 @@ import {
   TouchableOpacity,
   TextInput,
   ActivityIndicator,
-  Alert,
+  Platform,
+  Image,
   ViewStyle,
   TextStyle,
+  ImageStyle,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -18,6 +20,7 @@ import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeIn } from 'react-native-reanimated';
 
 import { useTheme } from '@/hooks/useTheme';
+import { showAlert } from '@/lib/alert';
 import {
   useBooking,
   useAcceptBooking,
@@ -27,6 +30,7 @@ import {
   useMarkInTransit,
   useMarkDelivered,
   useConfirmPayment,
+  getMockBookings,
 } from '@/hooks/useBookings';
 import { useBookingReview, useCreateReview } from '@/hooks/useReviews';
 import { useAuth } from '@/hooks/useAuth';
@@ -61,8 +65,13 @@ export default function BookingDetailScreen() {
   const { user } = useAuth();
   const isRTL = i18n.language === 'ar';
 
-  const { data: booking, isLoading } = useBooking(id ?? null);
+  const { data: apiBooking, isLoading } = useBooking(id ?? null);
   const { data: existingReview } = useBookingReview(id ?? null);
+
+  // Fall back to mock bookings when the API doesn't return data
+  const mockMatch =
+    !apiBooking && id && user?.id ? getMockBookings(user.id).find((b) => b.id === id) : undefined;
+  const booking = apiBooking ?? mockMatch;
   const acceptBooking = useAcceptBooking();
   const rejectBooking = useRejectBooking();
   const cancelBooking = useCancelBooking();
@@ -76,11 +85,24 @@ export default function BookingDetailScreen() {
   const [reviewComment, setReviewComment] = useState('');
   const [showReviewForm, setShowReviewForm] = useState(false);
 
-  if (isLoading || !booking) {
+  if (isLoading) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.loading}>
           <ActivityIndicator size="large" color={colors.primary} />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (!booking) {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+        <View style={styles.loading}>
+          <Text style={{ color: colors.textSecondary }}>{t('listing.notFound')}</Text>
+          <TouchableOpacity onPress={() => router.back()} style={{ marginTop: 16 }}>
+            <Text style={{ color: colors.primary, fontWeight: '600' }}>{t('listing.goBack')}</Text>
+          </TouchableOpacity>
         </View>
       </SafeAreaView>
     );
@@ -93,14 +115,14 @@ export default function BookingDetailScreen() {
   const otherUser = isCarrier ? booking.sender : booking.carrier;
 
   const handleAccept = () => {
-    Alert.alert(t('booking.acceptBooking'), t('booking.acceptBookingConfirm'), [
+    showAlert(t('booking.acceptBooking'), t('booking.acceptBookingConfirm'), [
       { text: t('common.cancel'), style: 'cancel' },
       { text: t('booking.accept'), onPress: () => acceptBooking.mutate(booking.id) },
     ]);
   };
 
   const handleReject = () => {
-    Alert.alert(t('booking.rejectBooking'), t('booking.rejectBookingConfirm'), [
+    showAlert(t('booking.rejectBooking'), t('booking.rejectBookingConfirm'), [
       { text: t('common.cancel'), style: 'cancel' },
       {
         text: t('booking.reject'),
@@ -111,7 +133,7 @@ export default function BookingDetailScreen() {
   };
 
   const handleCancel = () => {
-    Alert.alert(t('booking.cancelBooking'), t('booking.cancelBookingConfirm'), [
+    showAlert(t('booking.cancelBooking'), t('booking.cancelBookingConfirm'), [
       { text: t('booking.no'), style: 'cancel' },
       {
         text: t('booking.yesCancel'),
@@ -122,28 +144,28 @@ export default function BookingDetailScreen() {
   };
 
   const handleConfirmPayment = () => {
-    Alert.alert(t('booking.confirmPaymentTitle'), t('booking.confirmPaymentMessage'), [
+    showAlert(t('booking.confirmPaymentTitle'), t('booking.confirmPaymentMessage'), [
       { text: t('common.cancel'), style: 'cancel' },
       { text: t('common.confirm'), onPress: () => confirmPayment.mutate(booking.id) },
     ]);
   };
 
   const handleMarkPickedUp = () => {
-    Alert.alert(t('booking.confirmPickup'), t('booking.confirmPickupMessage'), [
+    showAlert(t('booking.confirmPickup'), t('booking.confirmPickupMessage'), [
       { text: t('common.cancel'), style: 'cancel' },
       { text: t('common.confirm'), onPress: () => markPickedUp.mutate(booking.id) },
     ]);
   };
 
   const handleMarkInTransit = () => {
-    Alert.alert(t('booking.confirmInTransit'), t('booking.confirmInTransitMessage'), [
+    showAlert(t('booking.confirmInTransit'), t('booking.confirmInTransitMessage'), [
       { text: t('common.cancel'), style: 'cancel' },
       { text: t('common.confirm'), onPress: () => markInTransit.mutate(booking.id) },
     ]);
   };
 
   const handleMarkDelivered = () => {
-    Alert.alert(t('booking.confirmDelivery'), t('booking.confirmDeliveryMessage'), [
+    showAlert(t('booking.confirmDelivery'), t('booking.confirmDeliveryMessage'), [
       { text: t('common.cancel'), style: 'cancel' },
       { text: t('common.confirm'), onPress: () => markDelivered.mutate(booking.id) },
     ]);
@@ -151,7 +173,7 @@ export default function BookingDetailScreen() {
 
   const handleSubmitReview = async () => {
     if (reviewRating === 0) {
-      Alert.alert(t('common.errorTitle'), t('booking.selectRating'));
+      showAlert(t('common.errorTitle'), t('booking.selectRating'));
       return;
     }
     try {
@@ -161,9 +183,9 @@ export default function BookingDetailScreen() {
         comment: reviewComment.trim() || undefined,
       });
       setShowReviewForm(false);
-      Alert.alert(t('booking.thankYou'), t('booking.reviewSubmitted'));
+      showAlert(t('booking.thankYou'), t('booking.reviewSubmitted'));
     } catch {
-      Alert.alert(t('common.errorTitle'), t('booking.failedReview'));
+      showAlert(t('common.errorTitle'), t('booking.failedReview'));
     }
   };
 
@@ -221,17 +243,68 @@ export default function BookingDetailScreen() {
               {t('booking.weight')}
             </Text>
             <Text style={[styles.priceValue, { color: colors.text }]}>
-              {Number(booking.totalWeight)} kg
+              {Number(booking.totalWeight) || 0} kg
             </Text>
           </View>
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
           <View style={styles.priceRow}>
             <Text style={[styles.totalLabel, { color: colors.text }]}>{t('booking.total')}</Text>
             <Text style={[styles.totalValue, { color: colors.primary }]}>
-              {Number(booking.totalPrice)} {booking.currency}
+              {Number(booking.totalPrice) || 0} {booking.currency || 'SAR'}
             </Text>
           </View>
         </View>
+
+        {/* Items with Photos */}
+        {booking.items && booking.items.length > 0 && (
+          <View style={[styles.card, { backgroundColor: colors.card }]}>
+            <Text style={[styles.cardTitle, { color: colors.text }]}>
+              {t('booking.items')} ({booking.items.length})
+            </Text>
+            {booking.items.map((item, idx) => (
+              <View
+                key={item.id}
+                style={[
+                  styles.itemRow,
+                  idx < booking.items.length - 1 && {
+                    borderBottomWidth: 1,
+                    borderBottomColor: colors.border,
+                  },
+                ]}
+              >
+                <View style={styles.itemInfo}>
+                  <Text style={[styles.itemName, { color: colors.text }]}>{item.name}</Text>
+                  {item.description && (
+                    <Text style={[styles.itemDesc, { color: colors.textSecondary }]}>
+                      {item.description}
+                    </Text>
+                  )}
+                  <View style={styles.itemMeta}>
+                    <Text style={[styles.itemMetaText, { color: colors.textSecondary }]}>
+                      {Number(item.weight)} kg
+                    </Text>
+                    {item.value > 0 && (
+                      <Text style={[styles.itemMetaText, { color: colors.textSecondary }]}>
+                        {Number(item.value)} SAR
+                      </Text>
+                    )}
+                  </View>
+                </View>
+                {item.imageUrls && item.imageUrls.length > 0 && (
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    style={styles.itemImageScroll}
+                  >
+                    {item.imageUrls.map((url, imgIdx) => (
+                      <Image key={imgIdx} source={{ uri: url }} style={styles.itemThumb} />
+                    ))}
+                  </ScrollView>
+                )}
+              </View>
+            ))}
+          </View>
+        )}
 
         {/* Other User */}
         <View style={[styles.card, { backgroundColor: colors.card }]}>
@@ -388,7 +461,7 @@ export default function BookingDetailScreen() {
             }
             style={[styles.acceptBtn, { backgroundColor: colors.primary }]}
           >
-            <Ionicons name="card-outline" size={20} color="#FFF" style={{ marginRight: 8 }} />
+            <Ionicons name="card-outline" size={20} color="#FFF" style={{ marginEnd: 8 }} />
             <Text style={styles.acceptText}>{t('payment.title')}</Text>
           </TouchableOpacity>
         </View>
@@ -418,7 +491,7 @@ export default function BookingDetailScreen() {
                   name="checkmark-done-outline"
                   size={20}
                   color="#FFF"
-                  style={{ marginRight: 8 }}
+                  style={{ marginEnd: 8 }}
                 />
                 <Text style={styles.acceptText}>{t('booking.confirmPayment')}</Text>
               </>
@@ -447,7 +520,7 @@ export default function BookingDetailScreen() {
               <ActivityIndicator color="#FFF" size="small" />
             ) : (
               <>
-                <Ionicons name="cube-outline" size={20} color="#FFF" style={{ marginRight: 8 }} />
+                <Ionicons name="cube-outline" size={20} color="#FFF" style={{ marginEnd: 8 }} />
                 <Text style={styles.acceptText}>{t('booking.markPickedUp')}</Text>
               </>
             )}
@@ -474,12 +547,7 @@ export default function BookingDetailScreen() {
               <ActivityIndicator color="#FFF" size="small" />
             ) : (
               <>
-                <Ionicons
-                  name="airplane-outline"
-                  size={20}
-                  color="#FFF"
-                  style={{ marginRight: 8 }}
-                />
+                <Ionicons name="airplane-outline" size={20} color="#FFF" style={{ marginEnd: 8 }} />
                 <Text style={styles.acceptText}>{t('booking.markInTransit')}</Text>
               </>
             )}
@@ -510,7 +578,7 @@ export default function BookingDetailScreen() {
                   name="checkmark-circle-outline"
                   size={20}
                   color="#FFF"
-                  style={{ marginRight: 8 }}
+                  style={{ marginEnd: 8 }}
                 />
                 <Text style={styles.acceptText}>{t('booking.markDelivered')}</Text>
               </>
@@ -601,6 +669,21 @@ const styles = StyleSheet.create({
   divider: { height: 1, marginVertical: 8 } as ViewStyle,
   totalLabel: { fontSize: 16, fontWeight: '700' } as TextStyle,
   totalValue: { fontSize: 20, fontWeight: '700' } as TextStyle,
+
+  // Item display
+  itemRow: { paddingVertical: 12 } as ViewStyle,
+  itemInfo: { marginBottom: 8 } as ViewStyle,
+  itemName: { fontSize: 15, fontWeight: '600' } as TextStyle,
+  itemDesc: { fontSize: 13, marginTop: 2 } as TextStyle,
+  itemMeta: { flexDirection: 'row', gap: 12, marginTop: 4 } as ViewStyle,
+  itemMetaText: { fontSize: 12, fontWeight: '500' } as TextStyle,
+  itemImageScroll: { marginTop: 4 } as ViewStyle,
+  itemThumb: {
+    width: 72,
+    height: 72,
+    borderRadius: 10,
+    marginEnd: 8,
+  } as ImageStyle,
 
   userRow: { flexDirection: 'row', alignItems: 'center', gap: 12 } as ViewStyle,
   userName: { fontSize: 16, fontWeight: '600' } as TextStyle,

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Platform } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { apiClient } from '@/lib/api';
 
@@ -62,11 +63,19 @@ export function useImageUpload() {
       const ext = match ? match[1] : 'jpg';
       const mimeType = `image/${ext === 'jpg' ? 'jpeg' : ext}`;
 
-      formData.append('file', {
-        uri,
-        name: filename,
-        type: mimeType,
-      } as any);
+      if (Platform.OS === 'web') {
+        // On web, fetch the blob URI and append the real Blob
+        const response = await fetch(uri);
+        const blob = await response.blob();
+        formData.append('file', blob, filename);
+      } else {
+        // On native, RN's FormData accepts { uri, name, type }
+        formData.append('file', {
+          uri,
+          name: filename,
+          type: mimeType,
+        } as any);
+      }
 
       // Upload
       const { data } = await apiClient.post(`/uploads/image?folder=${folder}`, formData, {

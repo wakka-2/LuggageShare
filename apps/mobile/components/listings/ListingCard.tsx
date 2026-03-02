@@ -118,7 +118,7 @@ export const ListingCard = React.memo(function ListingCard({
         <View style={styles.listContent}>
           <View style={styles.listHeader}>
             <Text style={[styles.listTitle, { color: colors.text }]} numberOfLines={1}>
-              {isRTL ? listing.titleAr : listing.title}
+              {listing.title}
             </Text>
             <View style={styles.listPriceContainer}>
               <Text style={[styles.listPrice, { color: typeColors.primary }]}>
@@ -150,7 +150,7 @@ export const ListingCard = React.memo(function ListingCard({
           <View style={styles.listFooter}>
             <View style={styles.listUserInfo}>
               <Avatar
-                name={isRTL ? listing.user.nameAr : listing.user.name}
+                name={listing.user.name}
                 source={listing.user.avatarUrl}
                 size="tiny"
                 verified={listing.user.isVerified}
@@ -159,7 +159,7 @@ export const ListingCard = React.memo(function ListingCard({
                 style={[styles.listUserName, { color: colors.textSecondary }]}
                 numberOfLines={1}
               >
-                {isRTL ? listing.user.nameAr : listing.user.name}
+                {listing.user.name}
               </Text>
               {listing.user.isVerified && (
                 <View style={[styles.verifiedBadge, { backgroundColor: colors.success + '20' }]}>
@@ -218,7 +218,7 @@ export const ListingCard = React.memo(function ListingCard({
             <View style={styles.routeCity}>
               <Text style={styles.routeCode}>{listing.from.code}</Text>
               <Text style={styles.routeCityName} numberOfLines={1}>
-                {isRTL ? listing.from.cityAr : listing.from.city}
+                {listing.from.city}
               </Text>
             </View>
             <View style={styles.routeArrow}>
@@ -231,7 +231,7 @@ export const ListingCard = React.memo(function ListingCard({
             <View style={[styles.routeCity, styles.routeCityEnd]}>
               <Text style={styles.routeCode}>{listing.to.code}</Text>
               <Text style={styles.routeCityName} numberOfLines={1}>
-                {isRTL ? listing.to.cityAr : listing.to.city}
+                {listing.to.city}
               </Text>
             </View>
           </View>
@@ -242,7 +242,7 @@ export const ListingCard = React.memo(function ListingCard({
       <View style={styles.cardBody}>
         {/* Title */}
         <Text style={[styles.gridTitle, { color: colors.text }]} numberOfLines={2}>
-          {isRTL ? listing.titleAr : listing.title}
+          {listing.title}
         </Text>
 
         {/* Quick Info Pills */}
@@ -322,14 +322,14 @@ export const ListingCard = React.memo(function ListingCard({
         <View style={[styles.cardFooter, { borderColor: colors.border }]}>
           <View style={styles.userSection}>
             <Avatar
-              name={isRTL ? listing.user.nameAr : listing.user.name}
+              name={listing.user.name}
               source={listing.user.avatarUrl}
               size="small"
               verified={listing.user.isVerified}
             />
             <View style={styles.userInfo}>
               <Text style={[styles.userName, { color: colors.text }]} numberOfLines={1}>
-                {isRTL ? listing.user.nameAr : listing.user.name}
+                {listing.user.name}
               </Text>
               <View style={styles.userStats}>
                 <Ionicons name="star" size={12} color="#F59E0B" />
@@ -604,7 +604,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     flex: 1,
-    marginRight: 12,
+    marginEnd: 12,
   },
   listPriceContainer: {
     flexDirection: 'row',

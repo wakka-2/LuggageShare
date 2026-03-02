@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -6,6 +6,8 @@ import { useRouter } from 'expo-router';
 import { useTheme } from '@/hooks/useTheme';
 import { useAuth } from '@/hooks/useAuth';
 import { Avatar } from '@/components/common';
+import { changeLanguage } from '@/i18n';
+import { showAlert } from '@/lib/alert';
 
 interface HomeHeaderProps {
   notificationCount?: number;
@@ -17,9 +19,13 @@ export function HomeHeader({ notificationCount = 0 }: HomeHeaderProps) {
   const { user } = useAuth();
   const router = useRouter();
 
-  const toggleLanguage = () => {
+  const toggleLanguage = async () => {
     const newLang = i18n.language === 'ar' ? 'en' : 'ar';
-    i18n.changeLanguage(newLang);
+    await changeLanguage(newLang as 'ar' | 'en');
+    // On native, RTL direction change requires an app restart
+    if (Platform.OS !== 'web') {
+      showAlert(t('settings.restartRequired'), t('settings.restartDescription'));
+    }
   };
 
   return (
@@ -97,7 +103,7 @@ const styles = StyleSheet.create({
   badge: {
     position: 'absolute',
     top: -2,
-    right: -2,
+    end: -2,
     minWidth: 18,
     height: 18,
     borderRadius: 9,

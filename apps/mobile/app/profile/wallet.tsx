@@ -8,7 +8,6 @@ import {
   ActivityIndicator,
   RefreshControl,
   TextInput,
-  Alert,
   Modal,
   ViewStyle,
   TextStyle,
@@ -20,6 +19,7 @@ import { useRouter } from 'expo-router';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 
 import { useTheme } from '@/hooks/useTheme';
+import { showAlert } from '@/lib/alert';
 import {
   useWalletBalance,
   useTransactionHistory,
@@ -69,21 +69,15 @@ export default function WalletScreen() {
   const handleWithdraw = () => {
     const amount = parseFloat(withdrawAmount);
     if (!amount || amount < 10) {
-      Alert.alert(
-        t('common.errorTitle'),
-        isRTL ? 'الحد الأدنى للسحب 10 ريال' : 'Minimum withdrawal is 10 SAR'
-      );
+      showAlert(t('common.errorTitle'), t('wallet.minWithdrawal'));
       return;
     }
     if (!iban.trim() || !iban.startsWith('SA') || iban.length !== 24) {
-      Alert.alert(
-        t('common.errorTitle'),
-        isRTL ? 'يرجى إدخال آيبان سعودي صحيح' : 'Please enter a valid Saudi IBAN'
-      );
+      showAlert(t('common.errorTitle'), t('wallet.invalidIban'));
       return;
     }
     if (!accountName.trim()) {
-      Alert.alert(t('common.errorTitle'), t('common.requiredFieldsError'));
+      showAlert(t('common.errorTitle'), t('common.requiredFieldsError'));
       return;
     }
 
@@ -95,18 +89,10 @@ export default function WalletScreen() {
           setWithdrawAmount('');
           setIban('');
           setAccountName('');
-          Alert.alert(
-            t('common.success'),
-            isRTL
-              ? 'تم تقديم طلب السحب. سيتم التحويل خلال 2-3 أيام عمل.'
-              : 'Withdrawal submitted. Funds will arrive in 2-3 business days.'
-          );
+          showAlert(t('common.success'), t('wallet.withdrawalSubmitted'));
         },
         onError: () => {
-          Alert.alert(
-            t('common.errorTitle'),
-            isRTL ? 'فشل طلب السحب' : 'Withdrawal request failed'
-          );
+          showAlert(t('common.errorTitle'), t('wallet.withdrawalFailed'));
         },
       }
     );
@@ -238,7 +224,7 @@ export default function WalletScreen() {
                 { color: colors.text, textAlign: isRTL ? 'right' : 'left' },
               ]}
             >
-              {isRTL ? 'المبلغ (ريال)' : 'Amount (SAR)'}
+              {t('wallet.amountSar')}
             </Text>
             <TextInput
               style={[
@@ -250,7 +236,7 @@ export default function WalletScreen() {
                   textAlign: isRTL ? 'right' : 'left',
                 },
               ]}
-              placeholder={isRTL ? 'الحد الأدنى 10 ريال' : 'Minimum 10 SAR'}
+              placeholder={t('wallet.minAmountPlaceholder')}
               placeholderTextColor={colors.textSecondary}
               keyboardType="decimal-pad"
               value={withdrawAmount}
@@ -263,7 +249,7 @@ export default function WalletScreen() {
                 { color: colors.text, textAlign: isRTL ? 'right' : 'left' },
               ]}
             >
-              {isRTL ? 'رقم الآيبان' : 'IBAN Number'}
+              {t('wallet.ibanNumber')}
             </Text>
             <TextInput
               style={[
@@ -288,7 +274,7 @@ export default function WalletScreen() {
                 { color: colors.text, textAlign: isRTL ? 'right' : 'left' },
               ]}
             >
-              {isRTL ? 'اسم صاحب الحساب' : 'Account Holder Name'}
+              {t('wallet.accountHolderName')}
             </Text>
             <TextInput
               style={[
@@ -300,7 +286,7 @@ export default function WalletScreen() {
                   textAlign: isRTL ? 'right' : 'left',
                 },
               ]}
-              placeholder={isRTL ? 'الاسم كما في البنك' : 'Name as in bank account'}
+              placeholder={t('wallet.accountHolderPlaceholder')}
               placeholderTextColor={colors.textSecondary}
               value={accountName}
               onChangeText={setAccountName}
@@ -320,9 +306,7 @@ export default function WalletScreen() {
               {withdrawalMutation.isPending ? (
                 <ActivityIndicator color="#FFF" />
               ) : (
-                <Text style={styles.submitWithdrawText}>
-                  {isRTL ? 'تأكيد السحب' : 'Confirm Withdrawal'}
-                </Text>
+                <Text style={styles.submitWithdrawText}>{t('wallet.confirmWithdrawal')}</Text>
               )}
             </TouchableOpacity>
           </View>

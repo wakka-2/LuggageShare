@@ -1,8 +1,13 @@
-import { Tabs } from 'expo-router';
+import { Platform, useWindowDimensions } from 'react-native';
+import { Tabs, Slot } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 
 import { useTheme } from '@/hooks/useTheme';
+import { useConversations } from '@/hooks/useMessages';
+import { useUnreadCount } from '@/hooks/useNotifications';
+
+const WEB_DESKTOP_BREAKPOINT = 768;
 
 type TabIconProps = {
   name: keyof typeof Ionicons.glyphMap;
@@ -17,6 +22,16 @@ function TabIcon({ name, color, size }: TabIconProps) {
 export default function TabLayout() {
   const { t } = useTranslation();
   const { colors } = useTheme();
+  const { width } = useWindowDimensions();
+  const { data: conversations } = useConversations();
+  const notificationCount = useUnreadCount();
+
+  const unreadMessages = conversations?.reduce((sum, c) => sum + (c.unreadCount || 0), 0) ?? 0;
+
+  // On wide web screens the sidebar handles navigation — render child route only
+  if (Platform.OS === 'web' && width >= WEB_DESKTOP_BREAKPOINT) {
+    return <Slot />;
+  }
 
   return (
     <Tabs
@@ -62,6 +77,8 @@ export default function TabLayout() {
           tabBarIcon: ({ color, size }) => (
             <TabIcon name="chatbubbles-outline" color={color} size={size} />
           ),
+          tabBarBadge: unreadMessages > 0 ? unreadMessages : undefined,
+          tabBarBadgeStyle: { backgroundColor: colors.primary, fontSize: 10 },
         }}
       />
       <Tabs.Screen
@@ -71,6 +88,8 @@ export default function TabLayout() {
           tabBarIcon: ({ color, size }) => (
             <TabIcon name="person-outline" color={color} size={size} />
           ),
+          tabBarBadge: notificationCount > 0 ? notificationCount : undefined,
+          tabBarBadgeStyle: { backgroundColor: '#EF4444', fontSize: 10 },
         }}
       />
     </Tabs>

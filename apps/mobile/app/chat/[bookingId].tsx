@@ -38,16 +38,16 @@ export default function ChatScreen() {
   const markAsRead = useMarkAsRead();
   const { isConnected, sendMessage: socketSend, sendTyping, isOtherTyping } = useSocket(bookingId);
 
-  // Mark as read only once on mount, and when new unread messages from others arrive
-  const hasMarkedRead = useRef(false);
+  // Mark as read when there are unread messages from the other user
+  const lastReadCount = useRef(0);
   useEffect(() => {
     if (!bookingId || !messages?.length) return;
-    const hasUnread = messages.some((m: any) => m.senderId !== user?.id && !m.isRead);
-    if (hasUnread || !hasMarkedRead.current) {
-      hasMarkedRead.current = true;
+    const unreadFromOther = messages.filter((m: any) => m.senderId !== user?.id && !m.isRead);
+    if (unreadFromOther.length > 0 && unreadFromOther.length !== lastReadCount.current) {
+      lastReadCount.current = unreadFromOther.length;
       markAsRead.mutate(bookingId);
     }
-  }, [bookingId, messages?.length]);
+  }, [bookingId, messages]);
 
   const handleSend = async () => {
     if (!messageText.trim() || !bookingId) return;
@@ -56,8 +56,8 @@ export default function ChatScreen() {
     setMessageText('');
 
     try {
-      // Send via REST API (source of truth) + socket (real-time delivery)
-      if (isConnected) socketSend(text);
+      // Send via REST API only (source of truth).
+      // The socket `newMessage` listener handles real-time cache invalidation.
       await sendMessage.mutateAsync({ bookingId, content: text });
     } catch {
       setMessageText(text);
@@ -166,6 +166,20 @@ export default function ChatScreen() {
             multiline
             maxLength={1000}
             textAlign={isRTL ? 'right' : 'left'}
+            {...(Platform.OS === 'web'
+              ? {
+                  onKeyPress: (e: any) => {
+                    if (e.nativeEvent.key === 'Enter' && !e.nativeEvent.shiftKey) {
+                      e.preventDefault();
+                      handleSend();
+                    }
+                  },
+                }
+              : {
+                  returnKeyType: 'send',
+                  onSubmitEditing: handleSend,
+                  blurOnSubmit: false,
+                })}
           />
           <TouchableOpacity
             onPress={handleSend}

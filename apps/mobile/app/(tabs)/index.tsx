@@ -1,16 +1,23 @@
 import { useState, useMemo, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, Platform, useWindowDimensions, ViewStyle, TextStyle, ActivityIndicator, RefreshControl, TouchableOpacity } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Platform,
+  useWindowDimensions,
+  ViewStyle,
+  TextStyle,
+  ActivityIndicator,
+  RefreshControl,
+  TouchableOpacity,
+} from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import Animated, {
-  FadeIn,
-  FadeInDown,
-  FadeInUp,
-  Layout,
-} from 'react-native-reanimated';
+import Animated, { FadeIn, FadeInDown, FadeInUp, Layout } from 'react-native-reanimated';
 
 import { useTheme } from '@/hooks/useTheme';
 import { useListings } from '@/hooks/useListings';
@@ -47,7 +54,12 @@ export default function HomeScreen() {
   const [searchDate, setSearchDate] = useState('');
 
   // Fetch real listings from API (server-side filtering for from/to/date)
-  const { data: apiListings, isLoading, isError, refetch } = useListings({
+  const {
+    data: apiListings,
+    isLoading,
+    isError,
+    refetch,
+  } = useListings({
     from: searchFrom || undefined,
     to: searchTo || undefined,
     date: searchDate || undefined,
@@ -75,11 +87,14 @@ export default function HomeScreen() {
   }, [allListings, activeTab]);
 
   // Calculate counts for tabs
-  const tabCounts = useMemo(() => ({
-    all: allListings.length,
-    offer: allListings.filter(l => l.type === 'offer').length,
-    request: allListings.filter(l => l.type === 'request').length,
-  }), [allListings]);
+  const tabCounts = useMemo(
+    () => ({
+      all: allListings.length,
+      offer: allListings.filter((l) => l.type === 'offer').length,
+      request: allListings.filter((l) => l.type === 'request').length,
+    }),
+    [allListings]
+  );
 
   const handleSwap = useCallback(() => {
     const temp = searchFrom;
@@ -87,32 +102,30 @@ export default function HomeScreen() {
     setSearchTo(temp);
   }, [searchFrom, searchTo]);
 
-  const handleListingPress = useCallback((listingId: string) => {
-    router.push(`/listing/${listingId}`);
-  }, [router]);
+  const handleListingPress = useCallback(
+    (listingId: string) => {
+      router.push(`/listing/${listingId}`);
+    },
+    [router]
+  );
 
   const notificationCount = useUnreadCount();
 
   // Gradient colors for hero
   const heroGradient = isDark
-    ? ['#1E293B', '#0F172A'] as const
-    : ['#F0F9FF', '#E0F2FE'] as const;
+    ? (['#1E293B', '#0F172A'] as const)
+    : (['#F0F9FF', '#E0F2FE'] as const);
 
-  // Web Layout
-  if (isWeb) {
+  // Desktop web layout (sidebar + topbar handle navigation chrome)
+  if (isWeb && isWideScreen) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
-        <HomeHeader notificationCount={notificationCount} />
-
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
         <ScrollView
           contentContainerStyle={[styles.scrollContent, isWideScreen && styles.scrollContentWide]}
           showsVerticalScrollIndicator={false}
         >
           {/* Hero Section with Gradient */}
-          <LinearGradient
-            colors={heroGradient}
-            style={styles.heroGradient}
-          >
+          <LinearGradient colors={heroGradient} style={styles.heroGradient}>
             <Animated.View
               entering={FadeInDown.duration(500).springify()}
               style={[styles.hero, isWideScreen && styles.heroWide]}
@@ -131,10 +144,7 @@ export default function HomeScreen() {
               </View>
 
               {/* Stats */}
-              <Animated.View
-                entering={FadeInUp.delay(200).duration(400)}
-                style={styles.statsRow}
-              >
+              <Animated.View entering={FadeInUp.delay(200).duration(400)} style={styles.statsRow}>
                 <View style={[styles.statItem, { backgroundColor: colors.card }]}>
                   <Text style={[styles.statValue, { color: colors.primary }]}>2.5K+</Text>
                   <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
@@ -179,11 +189,7 @@ export default function HomeScreen() {
             style={[styles.controlsRow, isWideScreen && styles.controlsRowWide]}
           >
             <View style={styles.tabsWrapper}>
-              <PostTypeTabs
-                value={activeTab}
-                onChange={setActiveTab}
-                counts={tabCounts}
-              />
+              <PostTypeTabs value={activeTab} onChange={setActiveTab} counts={tabCounts} />
             </View>
             <View style={styles.toggleWrapper}>
               <ViewToggle value={viewMode} onChange={setViewMode} />
@@ -247,20 +253,27 @@ export default function HomeScreen() {
             )}
           </Animated.View>
         </ScrollView>
-      </SafeAreaView>
+      </View>
     );
   }
 
   // Mobile Layout
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.background }]}
+      edges={['top']}
+    >
       <HomeHeader notificationCount={notificationCount} />
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={false} onRefresh={() => refetch()} tintColor={colors.primary} />
+          <RefreshControl
+            refreshing={false}
+            onRefresh={() => refetch()}
+            tintColor={colors.primary}
+          />
         }
       >
         {/* Mobile Hero */}
@@ -268,9 +281,7 @@ export default function HomeScreen() {
           <Text style={[styles.greeting, { color: colors.textSecondary }]}>
             {t('home.greeting')}
           </Text>
-          <Text style={[styles.title, { color: colors.text }]}>
-            {t('home.marketplace')}
-          </Text>
+          <Text style={[styles.title, { color: colors.text }]}>{t('home.marketplace')}</Text>
         </Animated.View>
 
         {/* Search */}
@@ -288,11 +299,7 @@ export default function HomeScreen() {
 
         {/* Tabs */}
         <Animated.View entering={FadeIn.delay(150).duration(400)}>
-          <PostTypeTabs
-            value={activeTab}
-            onChange={setActiveTab}
-            counts={tabCounts}
-          />
+          <PostTypeTabs value={activeTab} onChange={setActiveTab} counts={tabCounts} />
         </Animated.View>
 
         {/* View Toggle + Results */}
@@ -450,7 +457,7 @@ const styles = StyleSheet.create({
     flex: 1,
   } as ViewStyle,
   toggleWrapper: {
-    marginLeft: 16,
+    marginStart: 16,
     paddingTop: 4,
   } as ViewStyle,
 
@@ -537,7 +544,7 @@ const styles = StyleSheet.create({
   fab: {
     position: 'absolute',
     bottom: 24,
-    right: 20,
+    end: 20,
     width: 56,
     height: 56,
     borderRadius: 28,

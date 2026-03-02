@@ -6,7 +6,6 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
   Linking,
   ViewStyle,
   TextStyle,
@@ -21,6 +20,7 @@ import { Image } from 'expo-image';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
 import { useTheme } from '@/hooks/useTheme';
+import { showAlert } from '@/lib/alert';
 import { useImageUpload } from '@/hooks/useImageUpload';
 import { useSubmitPaymentProof } from '@/hooks/useBookings';
 
@@ -56,7 +56,7 @@ export default function PaymentScreen() {
 
   const handleConfirm = () => {
     if (!uploadedUrl) {
-      Alert.alert(t('common.errorTitle'), t('payment.uploadFirst'));
+      showAlert(t('common.errorTitle'), t('payment.uploadFirst'));
       return;
     }
 
@@ -64,15 +64,12 @@ export default function PaymentScreen() {
       { bookingId: params.bookingId, proofImageUrl: uploadedUrl },
       {
         onSuccess: () => {
-          Alert.alert(t('payment.successTitle'), t('payment.successMessage'), [
+          showAlert(t('payment.successTitle'), t('payment.successMessage'), [
             { text: 'OK', onPress: () => router.back() },
           ]);
         },
         onError: () => {
-          Alert.alert(
-            t('common.errorTitle'),
-            isRTL ? 'فشل تقديم إثبات الدفع' : 'Failed to submit payment proof'
-          );
+          showAlert(t('common.errorTitle'), t('payment.proofFailed'));
         },
       }
     );

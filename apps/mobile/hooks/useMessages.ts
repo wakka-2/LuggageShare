@@ -46,7 +46,9 @@ export function useMessages(bookingId: string | null) {
     queryKey: ['messages', bookingId],
     queryFn: async () => {
       const { data } = await apiClient.get(`/messages/conversations/${bookingId}`);
-      return data.data ?? data;
+      // API returns { messages: [...], nextCursor: ... }
+      const result = data.data ?? data;
+      return result.messages ?? result;
     },
     enabled: !!bookingId,
     refetchInterval: 5000,

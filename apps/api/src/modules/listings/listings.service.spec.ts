@@ -34,7 +34,7 @@ const makeListing = (overrides: Record<string, unknown> = {}) => ({
   departureDate: new Date('2026-03-15'),
   flightNumber: 'SV123',
   availableWeight: 10,
-  pricePerKg: 50,
+  price: 50,
   currency: 'SAR',
   preferences: null,
   notes: null,
@@ -54,7 +54,7 @@ const makeCreateDto = (overrides: Partial<CreateListingDto> = {}): CreateListing
   arrivalCity: 'Jeddah',
   departureDate: '2026-03-15',
   availableWeight: 10,
-  pricePerKg: 50,
+  price: 50,
   ...overrides,
 });
 
@@ -331,7 +331,7 @@ describe('ListingsService', () => {
           departureDate: new Date('2026-03-15'),
           flightNumber: undefined,
           availableWeight: 10,
-          pricePerKg: 50,
+          price: 50,
           currency: 'SAR',
           preferences: undefined,
           notes: undefined,
@@ -427,18 +427,14 @@ describe('ListingsService', () => {
     it('should update listing when user is the owner', async () => {
       const listing = makeListing();
       prisma.listing.findUnique.mockResolvedValue(listing);
-      prisma.listing.update.mockResolvedValue(makeListing({ pricePerKg: 60 }));
+      prisma.listing.update.mockResolvedValue(makeListing({ price: 60 }));
 
-      const result = await service.update(
-        CARRIER_ID,
-        LISTING_ID,
-        makeUpdateDto({ pricePerKg: 60 })
-      );
+      const result = await service.update(CARRIER_ID, LISTING_ID, makeUpdateDto({ price: 60 }));
 
-      expect(result.pricePerKg).toBe(60);
+      expect(result.price).toBe(60);
       expect(prisma.listing.update).toHaveBeenCalledWith({
         where: { id: LISTING_ID },
-        data: { pricePerKg: 60 },
+        data: { price: 60 },
       });
     });
 
@@ -446,7 +442,7 @@ describe('ListingsService', () => {
       prisma.listing.findUnique.mockResolvedValue(makeListing());
 
       await expect(
-        service.update(OTHER_USER_ID, LISTING_ID, makeUpdateDto({ pricePerKg: 60 }))
+        service.update(OTHER_USER_ID, LISTING_ID, makeUpdateDto({ price: 60 }))
       ).rejects.toThrow(ForbiddenException);
     });
 
@@ -454,7 +450,7 @@ describe('ListingsService', () => {
       prisma.listing.findUnique.mockResolvedValue(makeListing());
 
       await expect(
-        service.update(OTHER_USER_ID, LISTING_ID, makeUpdateDto({ pricePerKg: 60 }))
+        service.update(OTHER_USER_ID, LISTING_ID, makeUpdateDto({ price: 60 }))
       ).rejects.toThrow('You can only update your own listings');
     });
 
@@ -462,7 +458,7 @@ describe('ListingsService', () => {
       prisma.listing.findUnique.mockResolvedValue(null);
 
       await expect(
-        service.update(CARRIER_ID, 'nonexistent-id', makeUpdateDto({ pricePerKg: 60 }))
+        service.update(CARRIER_ID, 'nonexistent-id', makeUpdateDto({ price: 60 }))
       ).rejects.toThrow(NotFoundException);
     });
 
@@ -471,11 +467,11 @@ describe('ListingsService', () => {
       prisma.listing.update.mockResolvedValue(makeListing());
 
       // Pass a dto with an extra disallowed field
-      const dto = { pricePerKg: 60, carrierId: 'hacker-id' } as any;
+      const dto = { price: 60, carrierId: 'hacker-id' } as any;
       await service.update(CARRIER_ID, LISTING_ID, dto);
 
       const updateCall = prisma.listing.update.mock.calls[0][0];
-      expect(updateCall.data.pricePerKg).toBe(60);
+      expect(updateCall.data.price).toBe(60);
       expect(updateCall.data.carrierId).toBeUndefined();
     });
 
@@ -516,7 +512,7 @@ describe('ListingsService', () => {
       prisma.listing.findUnique.mockResolvedValue(makeListing());
 
       await expect(
-        service.update(OTHER_USER_ID, LISTING_ID, makeUpdateDto({ pricePerKg: 60 }))
+        service.update(OTHER_USER_ID, LISTING_ID, makeUpdateDto({ price: 60 }))
       ).rejects.toThrow();
 
       expect(prisma.listing.update).not.toHaveBeenCalled();

@@ -1,4 +1,4 @@
-import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, StyleSheet, I18nManager } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, {
   useAnimatedStyle,
@@ -31,35 +31,26 @@ export function ViewToggle({ value, onChange }: ViewToggleProps) {
     onChange(mode);
   };
 
+  const rtlMultiplier = I18nManager.isRTL ? -1 : 1;
   const indicatorStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: indicatorPosition.value * 40 }],
+    transform: [{ translateX: indicatorPosition.value * 40 * rtlMultiplier }],
   }));
 
   const gridIconStyle = useAnimatedStyle(() => ({
-    opacity: interpolateColor(
-      indicatorPosition.value,
-      [0, 1],
-      [1, 0.5]
-    ) as number,
+    opacity: interpolateColor(indicatorPosition.value, [0, 1], [1, 0.5]) as number,
   }));
 
   const listIconStyle = useAnimatedStyle(() => ({
-    opacity: interpolateColor(
-      indicatorPosition.value,
-      [0, 1],
-      [0.5, 1]
-    ) as number,
+    opacity: interpolateColor(indicatorPosition.value, [0, 1], [0.5, 1]) as number,
   }));
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background, borderColor: colors.border }]}>
+    <View
+      style={[styles.container, { backgroundColor: colors.background, borderColor: colors.border }]}
+    >
       {/* Animated Indicator */}
       <Animated.View
-        style={[
-          styles.indicator,
-          { backgroundColor: colors.primary },
-          indicatorStyle,
-        ]}
+        style={[styles.indicator, { backgroundColor: colors.primary }, indicatorStyle]}
       />
 
       {/* Grid Button */}
@@ -106,7 +97,7 @@ const styles = StyleSheet.create({
   indicator: {
     position: 'absolute',
     top: 3,
-    left: 3,
+    start: 3,
     width: 36,
     height: 32,
     borderRadius: 7,

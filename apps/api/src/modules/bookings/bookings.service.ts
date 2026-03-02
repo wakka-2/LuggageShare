@@ -127,7 +127,7 @@ export class BookingsService {
     }
 
     // Server-side price calculation — never trust client-supplied price
-    const totalPrice = Number(listing.pricePerKg) * Number(createBookingDto.totalWeight);
+    const totalPrice = Number(listing.price);
 
     const booking = await this.prisma.booking.create({
       data: {
@@ -137,9 +137,7 @@ export class BookingsService {
         status: 'pending',
         totalWeight: createBookingDto.totalWeight,
         totalPrice,
-        items: {
-          create: createBookingDto.items,
-        },
+        ...(createBookingDto.items?.length ? { items: { create: createBookingDto.items } } : {}),
       },
       include: {
         items: true,

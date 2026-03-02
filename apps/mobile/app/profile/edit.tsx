@@ -6,7 +6,6 @@ import {
   ScrollView,
   TouchableOpacity,
   TextInput,
-  Alert,
   ActivityIndicator,
   ViewStyle,
   TextStyle,
@@ -21,6 +20,7 @@ import { useProfile, useUpdateProfile } from '@/hooks/useProfile';
 import { useAuth } from '@/hooks/useAuth';
 import { useImageUpload } from '@/hooks/useImageUpload';
 import { Avatar } from '@/components/common';
+import { showAlert } from '@/lib/alert';
 
 export default function EditProfileScreen() {
   const { t, i18n } = useTranslation();
@@ -60,7 +60,7 @@ export default function EditProfileScreen() {
 
   const handleSave = async () => {
     if (!name.trim()) {
-      Alert.alert(t('common.errorTitle'), t('profile.nameRequired'));
+      showAlert(t('common.errorTitle'), t('profile.nameRequired'));
       return;
     }
 
@@ -77,11 +77,11 @@ export default function EditProfileScreen() {
       // Update local auth state
       updateUser({ displayName: name.trim() });
 
-      Alert.alert(t('profile.profileUpdated'), t('profile.profileUpdatedMessage'), [
+      showAlert(t('profile.profileUpdated'), t('profile.profileUpdatedMessage'), [
         { text: t('common.ok'), onPress: () => router.back() },
       ]);
     } catch {
-      Alert.alert(t('common.errorTitle'), t('profile.failedUpdate'));
+      showAlert(t('common.errorTitle'), t('profile.failedUpdate'));
     }
   };
 
