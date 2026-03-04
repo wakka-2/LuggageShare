@@ -29,6 +29,8 @@ import { ThrottlerGuard } from '@nestjs/throttler';
         DATABASE_URL: Joi.string().required(),
         JWT_SECRET: Joi.string().min(32).required(),
         JWT_REFRESH_SECRET: Joi.string().min(32).required(),
+        JWT_EXPIRES_IN: Joi.string().default('1h'),
+        JWT_REFRESH_EXPIRES_IN: Joi.string().default('7d'),
         GOOGLE_CLIENT_ID: Joi.string().optional(),
         APPLE_CLIENT_ID: Joi.string().optional(),
         CORS_ORIGINS: Joi.string().when('NODE_ENV', {

@@ -8,7 +8,6 @@ import {
   useWindowDimensions,
   ViewStyle,
   TextStyle,
-  ActivityIndicator,
   RefreshControl,
   TouchableOpacity,
 } from 'react-native';
@@ -25,7 +24,10 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withSpring,
+  withRepeat,
+  withTiming,
   ZoomIn,
+  Easing,
 } from 'react-native-reanimated';
 
 import { useTheme } from '@/hooks/useTheme';
@@ -43,6 +45,7 @@ import {
   ListingType,
 } from '@/components/listings';
 import { useUnreadCount } from '@/hooks/useNotifications';
+import { SkeletonCard, StaggeredItem } from '@/components/animations';
 
 type TabValue = ListingType | 'all';
 
@@ -61,6 +64,7 @@ export default function HomeScreen() {
   const [searchFrom, setSearchFrom] = useState('');
   const [searchTo, setSearchTo] = useState('');
   const [searchDate, setSearchDate] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
 
   // Fetch real listings from API (server-side filtering for from/to/date)
   const {
@@ -73,6 +77,24 @@ export default function HomeScreen() {
     to: searchTo || undefined,
     date: searchDate || undefined,
   });
+
+  // Airplane spin for pull-to-refresh
+  const airplaneRotation = useSharedValue(0);
+  const airplaneAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${airplaneRotation.value}deg` }],
+  }));
+
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    airplaneRotation.value = withRepeat(
+      withTiming(360, { duration: 1000, easing: Easing.linear }),
+      -1,
+      false
+    );
+    await refetch();
+    airplaneRotation.value = withTiming(0, { duration: 300 });
+    setRefreshing(false);
+  }, [refetch, airplaneRotation]);
 
   // Map API listings to the UI Listing type, fallback to mock data on error
   const allListings = useMemo(() => {
@@ -279,12 +301,23 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
-            refreshing={false}
-            onRefresh={() => refetch()}
-            tintColor={colors.primary}
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor="transparent"
+            colors={['transparent']}
+            progressBackgroundColor="transparent"
           />
         }
       >
+        {/* Airplane refresh indicator */}
+        {refreshing && (
+          <View style={styles.refreshIndicator}>
+            <Animated.View style={airplaneAnimatedStyle}>
+              <Ionicons name="airplane" size={28} color={colors.primary} />
+            </Animated.View>
+          </View>
+        )}
+
         {/* Mobile Hero */}
         <Animated.View entering={FadeInDown.duration(400)} style={styles.mobileHero}>
           <Text style={[styles.greeting, { color: colors.textSecondary }]}>
@@ -319,10 +352,14 @@ export default function HomeScreen() {
           <ViewToggle value={viewMode} onChange={setViewMode} />
         </Animated.View>
 
-        {/* Loading State */}
+        {/* Loading State — Skeleton Cards */}
         {isLoading && (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={colors.primary} />
+          <View style={styles.mobileListings}>
+            {[0, 1, 2].map((i) => (
+              <Animated.View key={`skel-${i}`} entering={FadeIn.delay(i * 100).duration(300)}>
+                <SkeletonCard />
+              </Animated.View>
+            ))}
           </View>
         )}
 
@@ -330,13 +367,14 @@ export default function HomeScreen() {
         {!isLoading && (
           <Animated.View layout={Layout.springify()} style={styles.mobileListings}>
             {filteredListings.map((listing, index) => (
-              <ListingCard
-                key={listing.id}
-                listing={listing}
-                index={index}
-                viewMode={viewMode}
-                onPress={() => handleListingPress(listing.id)}
-              />
+              <StaggeredItem key={listing.id} index={index} baseDelay={50}>
+                <ListingCard
+                  listing={listing}
+                  index={index}
+                  viewMode={viewMode}
+                  onPress={() => handleListingPress(listing.id)}
+                />
+              </StaggeredItem>
             ))}
 
             {filteredListings.length === 0 && (
@@ -521,6 +559,12 @@ const styles = StyleSheet.create({
     minHeight: 350,
     alignItems: 'center',
     justifyContent: 'center',
+  } as ViewStyle,
+
+  refreshIndicator: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
   } as ViewStyle,
 
   // Mobile styles

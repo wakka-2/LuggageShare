@@ -147,7 +147,8 @@
     "bankNameField": "Bank Name",
     "ibanField": "IBAN",
     "placeholderBankName": "e.g. Al Rajhi Bank",
-    "placeholderIban": "SA..."
+    "placeholderIban": "SA...",
+    "recentReviews": "Recent Reviews"
   },
   "listing": {
     "create": "Create Listing",
@@ -183,7 +184,8 @@
     "createdSuccess": "Listing created successfully",
     "failedCreate": "Failed to create listing",
     "selectDate": "Select departure date",
-    "departureDateRequired": "Departure date is required"
+    "departureDateRequired": "Departure date is required",
+    "carrierReviews": "Reviews"
   },
   "booking": {
     "request": "Request Booking",
@@ -411,7 +413,11 @@
     "lightMode": "Light Mode",
     "followsSystem": "Follows system",
     "restartRequired": "Restart Required",
-    "restartDescription": "Please restart the app to apply language direction"
+    "restartDescription": "Please restart the app to apply language direction",
+    "notifications": "Notifications",
+    "pushNotifications": "Push Notifications",
+    "about": "About",
+    "version": "Version"
   },
   "web": {
     "sidebar": {

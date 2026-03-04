@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -26,7 +26,8 @@ import { ThemeColors } from '@/providers/ThemeProvider';
 import { useBookings, getMockBookings, ApiBooking } from '@/hooks/useBookings';
 import { useAuth } from '@/hooks/useAuth';
 import { EmptyState, Avatar } from '@/components/common';
-import { LiveIndicator } from '@/components/status';
+import { LiveIndicator, MiniStepper } from '@/components/status';
+import { SkeletonLoader } from '@/components/animations';
 
 type FilterTab = 'all' | 'active' | 'completed' | 'cancelled';
 
@@ -52,7 +53,7 @@ const STATUS_KEYS: Record<string, string> = {
 
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
-function BookingCard({
+const BookingCard = React.memo(function BookingCard({
   booking,
   isRTL,
   colors,
@@ -118,6 +119,9 @@ function BookingCard({
         )}
       </View>
 
+      {/* Mini progress stepper */}
+      <MiniStepper currentStatus={booking.status} />
+
       <View style={styles.bookingDetails}>
         <View style={styles.detailItem}>
           <Ionicons name="calendar-outline" size={14} color={colors.textSecondary} />
@@ -148,7 +152,7 @@ function BookingCard({
       </View>
     </AnimatedTouchable>
   );
-}
+});
 
 export default function TripsScreen() {
   const { t, i18n } = useTranslation();
@@ -230,7 +234,40 @@ export default function TripsScreen() {
       >
         {isLoading && (
           <View style={styles.loading}>
-            <ActivityIndicator size="large" color={colors.primary} />
+            {[0, 1, 2].map((i) => (
+              <Animated.View
+                key={`skel-${i}`}
+                entering={FadeInDown.delay(i * 80).duration(300)}
+                style={styles.skeletonCard}
+              >
+                <SkeletonLoader width="60%" height={18} borderRadius={4} />
+                <SkeletonLoader
+                  width="35%"
+                  height={14}
+                  borderRadius={10}
+                  style={{ marginTop: 10 }}
+                />
+                <View style={{ flexDirection: 'row', gap: 16, marginTop: 12 }}>
+                  <SkeletonLoader width={80} height={14} borderRadius={4} />
+                  <SkeletonLoader width={60} height={14} borderRadius={4} />
+                  <SkeletonLoader width={70} height={14} borderRadius={4} />
+                </View>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 8,
+                    marginTop: 14,
+                    paddingTop: 12,
+                    borderTopWidth: 1,
+                    borderTopColor: colors.border,
+                  }}
+                >
+                  <SkeletonLoader width={32} height={32} borderRadius={16} />
+                  <SkeletonLoader width={100} height={14} borderRadius={4} />
+                </View>
+              </Animated.View>
+            ))}
           </View>
         )}
 
@@ -270,7 +307,13 @@ const styles = StyleSheet.create({
   filterChip: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20 } as ViewStyle,
   filterChipText: { fontSize: 14, fontWeight: '600' } as TextStyle,
   scrollContent: { padding: 16, paddingBottom: 32 } as ViewStyle,
-  loading: { paddingVertical: 60, alignItems: 'center' } as ViewStyle,
+  loading: { paddingVertical: 16 } as ViewStyle,
+  skeletonCard: {
+    backgroundColor: 'transparent',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 12,
+  } as ViewStyle,
   emptyState: { marginTop: 40 } as ViewStyle,
   bookingCard: { borderRadius: 16, padding: 16, marginBottom: 12 } as ViewStyle,
   bookingRoute: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 } as ViewStyle,

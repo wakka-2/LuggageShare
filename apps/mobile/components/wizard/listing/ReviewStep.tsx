@@ -13,7 +13,7 @@ export function ReviewStep({ data, goNext, goBack }: StepProps) {
   const { colors } = useTheme();
   const isRTL = i18n.language === 'ar';
 
-  const price = data.pricePerKg ?? 0;
+  const price = data.price ?? 0;
   const weight = data.availableWeight ?? 0;
   const estimatedTotal = price * weight;
   const categories = (data.acceptedCategories || []) as string[];

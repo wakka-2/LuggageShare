@@ -1,6 +1,7 @@
-import { View, Text, StyleSheet } from 'react-native';
+import { Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
+import Animated, { SlideInUp, SlideOutUp } from 'react-native-reanimated';
 
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 
@@ -11,10 +12,16 @@ export function OfflineBanner() {
   if (isConnected) return null;
 
   return (
-    <View style={styles.container} accessibilityRole="alert" accessibilityLiveRegion="polite">
+    <Animated.View
+      entering={SlideInUp.duration(300).springify()}
+      exiting={SlideOutUp.duration(200)}
+      style={styles.container}
+      accessibilityRole="alert"
+      accessibilityLiveRegion="polite"
+    >
       <Ionicons name="cloud-offline-outline" size={16} color="#FFFFFF" />
       <Text style={styles.text}>{t('common.offline', 'You are offline')}</Text>
-    </View>
+    </Animated.View>
   );
 }
 

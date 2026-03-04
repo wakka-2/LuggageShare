@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -16,9 +16,10 @@ import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
+import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
 
 import { useTheme } from '@/hooks/useTheme';
+import { SkeletonLoader } from '@/components/animations';
 import { showAlert } from '@/lib/alert';
 import {
   useWalletBalance,
@@ -98,43 +99,52 @@ export default function WalletScreen() {
     );
   };
 
-  const renderTransaction = ({ item }: { item: Transaction }) => {
-    const config = TYPE_CONFIG[item.type] || {
-      icon: 'ellipsis-horizontal',
-      color: colors.textSecondary,
-      labelKey: '',
-    };
-    const isPositive = Number(item.amount) > 0;
+  const renderTransaction = useCallback(
+    ({ item, index }: { item: Transaction; index: number }) => {
+      const config = TYPE_CONFIG[item.type] || {
+        icon: 'ellipsis-horizontal' as keyof typeof Ionicons.glyphMap,
+        color: colors.textSecondary,
+        labelKey: '',
+      };
+      const isPositive = Number(item.amount) > 0;
 
-    return (
-      <View style={[styles.txItem, { borderBottomColor: colors.border }]}>
-        <View style={[styles.txIcon, { backgroundColor: config.color + '15' }]}>
-          <Ionicons name={config.icon} size={20} color={config.color} />
-        </View>
-        <View style={styles.txContent}>
-          <Text style={[styles.txType, { color: colors.text }]}>
-            {config.labelKey ? t(config.labelKey) : item.type}
-          </Text>
-          {item.description && (
-            <Text style={[styles.txDesc, { color: colors.textSecondary }]} numberOfLines={1}>
-              {item.description}
+      return (
+        <Animated.View
+          entering={FadeInUp.delay(index * 50)
+            .duration(300)
+            .springify()}
+        >
+          <View style={[styles.txItem, { borderBottomColor: colors.border }]}>
+            <View style={[styles.txIcon, { backgroundColor: config.color + '15' }]}>
+              <Ionicons name={config.icon} size={20} color={config.color} />
+            </View>
+            <View style={styles.txContent}>
+              <Text style={[styles.txType, { color: colors.text }]}>
+                {config.labelKey ? t(config.labelKey) : item.type}
+              </Text>
+              {item.description && (
+                <Text style={[styles.txDesc, { color: colors.textSecondary }]} numberOfLines={1}>
+                  {item.description}
+                </Text>
+              )}
+              <Text style={[styles.txDate, { color: colors.textSecondary }]}>
+                {new Date(item.createdAt).toLocaleDateString(isRTL ? 'ar-SA' : 'en-US', {
+                  day: 'numeric',
+                  month: 'short',
+                  year: 'numeric',
+                })}
+              </Text>
+            </View>
+            <Text style={[styles.txAmount, { color: isPositive ? '#10B981' : '#EF4444' }]}>
+              {isPositive ? '+' : ''}
+              {Number(item.amount).toFixed(2)} {balance?.currency || 'SAR'}
             </Text>
-          )}
-          <Text style={[styles.txDate, { color: colors.textSecondary }]}>
-            {new Date(item.createdAt).toLocaleDateString(isRTL ? 'ar-SA' : 'en-US', {
-              day: 'numeric',
-              month: 'short',
-              year: 'numeric',
-            })}
-          </Text>
-        </View>
-        <Text style={[styles.txAmount, { color: isPositive ? '#10B981' : '#EF4444' }]}>
-          {isPositive ? '+' : ''}
-          {Number(item.amount).toFixed(2)} {balance?.currency || 'SAR'}
-        </Text>
-      </View>
-    );
-  };
+          </View>
+        </Animated.View>
+      );
+    },
+    [colors, t, isRTL, balance?.currency]
+  );
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -147,8 +157,25 @@ export default function WalletScreen() {
       </View>
 
       {isLoading ? (
-        <View style={styles.loading}>
-          <ActivityIndicator size="large" color={colors.primary} />
+        <View style={styles.skeletonContainer}>
+          <SkeletonLoader width="100%" height={160} borderRadius={20} style={{ margin: 16 }} />
+          <View style={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 12 }}>
+            <SkeletonLoader width={140} height={20} borderRadius={8} />
+          </View>
+          {[0, 1, 2, 3].map((i) => (
+            <Animated.View
+              key={`skel-${i}`}
+              entering={FadeIn.delay(i * 60).duration(200)}
+              style={styles.skeletonTx}
+            >
+              <SkeletonLoader width={40} height={40} borderRadius={12} />
+              <View style={{ flex: 1, gap: 6 }}>
+                <SkeletonLoader width="60%" height={14} borderRadius={6} />
+                <SkeletonLoader width="40%" height={12} borderRadius={6} />
+              </View>
+              <SkeletonLoader width={70} height={16} borderRadius={6} />
+            </Animated.View>
+          ))}
         </View>
       ) : (
         <FlatList
@@ -318,7 +345,14 @@ export default function WalletScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 } as ViewStyle,
-  loading: { flex: 1, alignItems: 'center', justifyContent: 'center' } as ViewStyle,
+  skeletonContainer: { flex: 1 } as ViewStyle,
+  skeletonTx: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+  } as ViewStyle,
   header: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -36,8 +36,9 @@ import { useBookingReview, useCreateReview } from '@/hooks/useReviews';
 import { useAuth } from '@/hooks/useAuth';
 import { Avatar } from '@/components/common';
 import { StarRating } from '@/components/common/StarRating';
-import { StatusStepper, getDefaultBookingSteps, LiveIndicator } from '@/components/status';
+import { StatusTimeline, LiveIndicator } from '@/components/status';
 import { VerificationBadge } from '@/components/trust';
+import { SkeletonLoader } from '@/components/animations';
 
 const STATUS_COLORS: Record<string, string> = {
   pending: '#F59E0B',
@@ -90,8 +91,26 @@ export default function BookingDetailScreen() {
   if (isLoading) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-        <View style={styles.loading}>
-          <ActivityIndicator size="large" color={colors.primary} />
+        <View style={[styles.header, { borderBottomColor: colors.border }]}>
+          <View style={styles.headerBtn} />
+          <SkeletonLoader width={120} height={18} borderRadius={6} />
+          <View style={styles.headerBtn} />
+        </View>
+        <View style={styles.scrollContent}>
+          <SkeletonLoader width="100%" height={48} borderRadius={14} style={{ marginBottom: 16 }} />
+          <SkeletonLoader
+            width="100%"
+            height={120}
+            borderRadius={16}
+            style={{ marginBottom: 16 }}
+          />
+          <SkeletonLoader
+            width="100%"
+            height={100}
+            borderRadius={16}
+            style={{ marginBottom: 16 }}
+          />
+          <SkeletonLoader width="100%" height={80} borderRadius={16} />
         </View>
       </SafeAreaView>
     );
@@ -221,7 +240,7 @@ export default function BookingDetailScreen() {
           )}
         </Animated.View>
 
-        {/* Status Stepper — show for active bookings */}
+        {/* Status Timeline — show for active bookings */}
         {!['rejected', 'cancelled'].includes(booking.status) && (
           <Animated.View
             entering={FadeInUp.delay(150).springify()}
@@ -230,12 +249,42 @@ export default function BookingDetailScreen() {
             <Text style={[styles.cardTitle, { color: colors.text }]}>
               {t('booking.progress', { defaultValue: 'Progress' })}
             </Text>
-            <StatusStepper steps={getDefaultBookingSteps()} currentStepKey={booking.status} />
+            <StatusTimeline
+              events={[
+                {
+                  key: 'pending',
+                  label: t('booking.statusPendingApproval'),
+                  icon: 'time-outline',
+                  date: booking.createdAt,
+                },
+                {
+                  key: 'accepted',
+                  label: t('booking.statusAccepted'),
+                  icon: 'checkmark-circle-outline',
+                  date: booking.status !== 'pending' ? booking.updatedAt : null,
+                },
+                { key: 'picked_up', label: t('booking.statusPickedUp'), icon: 'cube-outline' },
+                {
+                  key: 'in_transit',
+                  label: t('booking.statusInTransit'),
+                  icon: 'airplane-outline',
+                },
+                {
+                  key: 'delivered',
+                  label: t('booking.statusDelivered'),
+                  icon: 'checkmark-done-outline',
+                },
+              ]}
+              currentKey={booking.status}
+            />
           </Animated.View>
         )}
 
         {/* Route */}
-        <View style={[styles.card, { backgroundColor: colors.card }]}>
+        <Animated.View
+          entering={FadeInUp.delay(200).springify()}
+          style={[styles.card, { backgroundColor: colors.card }]}
+        >
           <View style={styles.routeRow}>
             <Text style={[styles.city, { color: colors.text }]}>
               {booking.listing.departureCity}
@@ -255,10 +304,13 @@ export default function BookingDetailScreen() {
               year: 'numeric',
             })}
           </Text>
-        </View>
+        </Animated.View>
 
         {/* Price Summary */}
-        <View style={[styles.card, { backgroundColor: colors.card }]}>
+        <Animated.View
+          entering={FadeInUp.delay(250).springify()}
+          style={[styles.card, { backgroundColor: colors.card }]}
+        >
           <View style={styles.priceRow}>
             <Text style={[styles.priceLabel, { color: colors.textSecondary }]}>
               {t('booking.weight')}
@@ -274,11 +326,14 @@ export default function BookingDetailScreen() {
               {Number(booking.totalPrice) || 0} {booking.currency || 'SAR'}
             </Text>
           </View>
-        </View>
+        </Animated.View>
 
         {/* Items with Photos */}
         {booking.items && booking.items.length > 0 && (
-          <View style={[styles.card, { backgroundColor: colors.card }]}>
+          <Animated.View
+            entering={FadeInUp.delay(300).springify()}
+            style={[styles.card, { backgroundColor: colors.card }]}
+          >
             <Text style={[styles.cardTitle, { color: colors.text }]}>
               {t('booking.items')} ({booking.items.length})
             </Text>
@@ -324,11 +379,14 @@ export default function BookingDetailScreen() {
                 )}
               </View>
             ))}
-          </View>
+          </Animated.View>
         )}
 
         {/* Other User */}
-        <View style={[styles.card, { backgroundColor: colors.card }]}>
+        <Animated.View
+          entering={FadeInUp.delay(350).springify()}
+          style={[styles.card, { backgroundColor: colors.card }]}
+        >
           <Text style={[styles.cardTitle, { color: colors.text }]}>
             {isCarrier ? t('booking.sender') : t('booking.carrier')}
           </Text>
@@ -352,7 +410,7 @@ export default function BookingDetailScreen() {
               <Ionicons name="chatbubble-outline" size={18} color={colors.primary} />
             </TouchableOpacity>
           </View>
-        </View>
+        </Animated.View>
 
         {/* Existing Review */}
         {existingReview && (

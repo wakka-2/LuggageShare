@@ -1,4 +1,14 @@
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, RefreshControl, ViewStyle, TextStyle } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  ActivityIndicator,
+  RefreshControl,
+  ViewStyle,
+  TextStyle,
+} from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -9,6 +19,10 @@ import { useTheme } from '@/hooks/useTheme';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { Avatar } from '@/components/common';
+import { SkeletonLoader } from '@/components/animations';
+import { VerificationBadge, BadgeRow } from '@/components/trust';
+import { ReviewCard } from '@/components/trust';
+import { useUserReviews, ReviewWithBooking } from '@/hooks/useReviews';
 
 export default function ProfileScreen() {
   const { t, i18n } = useTranslation();
@@ -18,12 +32,21 @@ export default function ProfileScreen() {
   const isRTL = i18n.language === 'ar';
 
   const { data: profile, isLoading, refetch } = useProfile();
+  const { data: reviews } = useUserReviews(profile?.id ?? null);
 
   const menuItems = [
     { icon: 'person-outline' as const, label: t('profile.editProfile'), route: '/profile/edit' },
-    { icon: 'shield-checkmark-outline' as const, label: t('profile.verification'), route: '/profile/verification' },
+    {
+      icon: 'shield-checkmark-outline' as const,
+      label: t('profile.verification'),
+      route: '/profile/verification',
+    },
     { icon: 'wallet-outline' as const, label: t('profile.wallet'), route: '/profile/wallet' },
-    { icon: 'notifications-outline' as const, label: t('profile.notifications'), route: '/notifications' },
+    {
+      icon: 'notifications-outline' as const,
+      label: t('profile.notifications'),
+      route: '/notifications',
+    },
     { icon: 'settings-outline' as const, label: t('profile.settings'), route: '/profile/settings' },
     { icon: 'help-circle-outline' as const, label: t('profile.help'), route: '/profile/help' },
   ];
@@ -34,21 +57,53 @@ export default function ProfileScreen() {
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={false} onRefresh={() => refetch()} tintColor={colors.primary} />}
+        refreshControl={
+          <RefreshControl
+            refreshing={false}
+            onRefresh={() => refetch()}
+            tintColor={colors.primary}
+          />
+        }
       >
         {/* Header */}
         <View style={styles.header}>
-          <Text style={[styles.title, { color: colors.text }]}>
-            {t('profile.title')}
-          </Text>
+          <Text style={[styles.title, { color: colors.text }]}>{t('profile.title')}</Text>
         </View>
 
         {isLoading ? (
-          <View style={styles.loading}><ActivityIndicator size="large" color={colors.primary} /></View>
+          <View style={styles.loading}>
+            <Animated.View
+              entering={FadeIn.duration(300)}
+              style={[styles.userCard, { backgroundColor: colors.card }]}
+            >
+              <SkeletonLoader width={72} height={72} borderRadius={36} />
+              <View style={{ flex: 1, gap: 8 }}>
+                <SkeletonLoader width="60%" height={20} borderRadius={4} />
+                <SkeletonLoader width="80%" height={14} borderRadius={4} />
+                <SkeletonLoader width="40%" height={12} borderRadius={4} />
+              </View>
+            </Animated.View>
+            <View style={[styles.statsRow, { marginTop: 16 }]}>
+              {[0, 1, 2].map((i) => (
+                <View key={i} style={[styles.statCard, { backgroundColor: colors.card }]}>
+                  <SkeletonLoader width={40} height={22} borderRadius={4} />
+                  <SkeletonLoader
+                    width={50}
+                    height={12}
+                    borderRadius={4}
+                    style={{ marginTop: 6 }}
+                  />
+                </View>
+              ))}
+            </View>
+          </View>
         ) : (
           <>
             {/* User Card */}
-            <Animated.View entering={FadeInDown.duration(300)} style={[styles.userCard, { backgroundColor: colors.card }]}>
+            <Animated.View
+              entering={FadeInDown.duration(300)}
+              style={[styles.userCard, { backgroundColor: colors.card }]}
+            >
               <Avatar
                 name={profile?.name || '?'}
                 avatarUrl={profile?.avatarUrl}
@@ -65,15 +120,14 @@ export default function ProfileScreen() {
                 {profile?.city && (
                   <View style={styles.locationRow}>
                     <Ionicons name="location-outline" size={14} color={colors.textSecondary} />
-                    <Text style={[styles.locationText, { color: colors.textSecondary }]}>{profile.city}</Text>
+                    <Text style={[styles.locationText, { color: colors.textSecondary }]}>
+                      {profile.city}
+                    </Text>
                   </View>
                 )}
                 {profile?.isVerified && (
-                  <View style={styles.verifiedBadge}>
-                    <Ionicons name="shield-checkmark" size={14} color={colors.primary} />
-                    <Text style={[styles.verifiedText, { color: colors.primary }]}>
-                      {t('profile.verified')}
-                    </Text>
+                  <View style={{ marginTop: 6 }}>
+                    <BadgeRow badges={['verified']} size="small" />
                   </View>
                 )}
               </View>
@@ -89,12 +143,20 @@ export default function ProfileScreen() {
             {stats && (
               <Animated.View entering={FadeIn.delay(100).duration(300)} style={styles.statsRow}>
                 <View style={[styles.statCard, { backgroundColor: colors.card }]}>
-                  <Text style={[styles.statValue, { color: colors.primary }]}>{stats.totalTrips}</Text>
-                  <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t('profile.trips')}</Text>
+                  <Text style={[styles.statValue, { color: colors.primary }]}>
+                    {stats.totalTrips}
+                  </Text>
+                  <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
+                    {t('profile.trips')}
+                  </Text>
                 </View>
                 <View style={[styles.statCard, { backgroundColor: colors.card }]}>
-                  <Text style={[styles.statValue, { color: colors.success || '#10B981' }]}>{stats.totalDeliveries}</Text>
-                  <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t('profile.deliveries')}</Text>
+                  <Text style={[styles.statValue, { color: colors.success || '#10B981' }]}>
+                    {stats.totalDeliveries}
+                  </Text>
+                  <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
+                    {t('profile.deliveries')}
+                  </Text>
                 </View>
                 <View style={[styles.statCard, { backgroundColor: colors.card }]}>
                   <Text style={[styles.statValue, { color: colors.warning || '#F59E0B' }]}>
@@ -110,7 +172,10 @@ export default function ProfileScreen() {
 
             {/* Bio */}
             {profile?.bio && (
-              <Animated.View entering={FadeIn.delay(150).duration(300)} style={[styles.bioCard, { backgroundColor: colors.card }]}>
+              <Animated.View
+                entering={FadeIn.delay(150).duration(300)}
+                style={[styles.bioCard, { backgroundColor: colors.card }]}
+              >
                 <Text style={[styles.bioText, { color: colors.text }]}>{profile.bio}</Text>
               </Animated.View>
             )}
@@ -121,11 +186,44 @@ export default function ProfileScreen() {
                 <Ionicons name="calendar-outline" size={14} color={colors.textSecondary} />
                 <Text style={[styles.memberSinceText, { color: colors.textSecondary }]}>
                   {t('profile.memberSince')}
-                  {new Date(profile.createdAt).toLocaleDateString(isRTL ? 'ar-SA' : 'en-US', { month: 'long', year: 'numeric' })}
+                  {new Date(profile.createdAt).toLocaleDateString(isRTL ? 'ar-SA' : 'en-US', {
+                    month: 'long',
+                    year: 'numeric',
+                  })}
                 </Text>
               </Animated.View>
             )}
           </>
+        )}
+
+        {/* Reviews Section */}
+        {reviews && reviews.length > 0 && (
+          <Animated.View entering={FadeIn.delay(250).duration(300)} style={styles.reviewsSection}>
+            <View style={styles.reviewsHeader}>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>
+                {t('profile.recentReviews')}
+              </Text>
+              <Text style={[styles.reviewCount, { color: colors.textSecondary }]}>
+                {reviews.length}
+              </Text>
+            </View>
+            {reviews.slice(0, 3).map((review, index) => (
+              <ReviewCard
+                key={review.id}
+                review={{
+                  id: review.id,
+                  rating: review.rating,
+                  comment: review.comment,
+                  createdAt: review.createdAt,
+                  reviewer: {
+                    name: review.reviewer.name,
+                    avatarUrl: review.reviewer.avatarUrl,
+                  },
+                }}
+                index={index}
+              />
+            ))}
+          </Animated.View>
         )}
 
         {/* Menu Items */}
@@ -140,11 +238,13 @@ export default function ProfileScreen() {
                 <View style={[styles.menuIconBox, { backgroundColor: colors.primary + '12' }]}>
                   <Ionicons name={item.icon} size={20} color={colors.primary} />
                 </View>
-                <Text style={[styles.menuItemLabel, { color: colors.text }]}>
-                  {item.label}
-                </Text>
+                <Text style={[styles.menuItemLabel, { color: colors.text }]}>{item.label}</Text>
               </View>
-              <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={20} color={colors.textSecondary} />
+              <Ionicons
+                name={isRTL ? 'chevron-back' : 'chevron-forward'}
+                size={20}
+                color={colors.textSecondary}
+              />
             </TouchableOpacity>
           ))}
         </View>
@@ -181,49 +281,85 @@ const styles = StyleSheet.create({
   userEmail: { fontSize: 14, marginTop: 2 } as TextStyle,
   locationRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 } as ViewStyle,
   locationText: { fontSize: 13 } as TextStyle,
-  verifiedBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 } as ViewStyle,
-  verifiedText: { fontSize: 12, fontWeight: '600' } as TextStyle,
   editBtn: {
-    width: 36, height: 36, borderRadius: 10, borderWidth: 1.5,
-    alignItems: 'center', justifyContent: 'center',
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
   } as ViewStyle,
 
   statsRow: {
-    flexDirection: 'row', gap: 12,
-    paddingHorizontal: 16, marginTop: 16,
+    flexDirection: 'row',
+    gap: 12,
+    paddingHorizontal: 16,
+    marginTop: 16,
   } as ViewStyle,
   statCard: {
-    flex: 1, alignItems: 'center', paddingVertical: 16, borderRadius: 14,
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 16,
+    borderRadius: 14,
   } as ViewStyle,
   statValue: { fontSize: 22, fontWeight: '700' } as TextStyle,
   statLabel: { fontSize: 12, marginTop: 4 } as TextStyle,
 
   bioCard: {
-    marginHorizontal: 16, marginTop: 16, padding: 16, borderRadius: 14,
+    marginHorizontal: 16,
+    marginTop: 16,
+    padding: 16,
+    borderRadius: 14,
   } as ViewStyle,
   bioText: { fontSize: 14, lineHeight: 21 } as TextStyle,
 
   memberSince: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    paddingHorizontal: 16, marginTop: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 16,
+    marginTop: 12,
   } as ViewStyle,
   memberSinceText: { fontSize: 13 } as TextStyle,
 
+  reviewsSection: { marginTop: 20, marginHorizontal: 16 } as ViewStyle,
+  reviewsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  } as ViewStyle,
+  sectionTitle: { fontSize: 18, fontWeight: '600' } as TextStyle,
+  reviewCount: { fontSize: 14 } as TextStyle,
+
   menu: { marginTop: 24, marginHorizontal: 16 } as ViewStyle,
   menuItem: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingVertical: 14, borderBottomWidth: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 14,
+    borderBottomWidth: 1,
   } as ViewStyle,
   menuItemLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 } as ViewStyle,
   menuIconBox: {
-    width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center',
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
   } as ViewStyle,
   menuItemLabel: { fontSize: 15, fontWeight: '500' } as TextStyle,
 
   signOutButton: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    marginHorizontal: 16, marginTop: 24, marginBottom: 40,
-    padding: 16, borderRadius: 12, gap: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginHorizontal: 16,
+    marginTop: 24,
+    marginBottom: 40,
+    padding: 16,
+    borderRadius: 12,
+    gap: 8,
   } as ViewStyle,
   signOutText: { fontSize: 16, fontWeight: '600', color: '#EF4444' } as TextStyle,
 });

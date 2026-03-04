@@ -1,6 +1,6 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import * as Sentry from '@sentry/react-native';
+import * as Sentry from '@/lib/sentry';
 
 interface Props {
   children: ReactNode;

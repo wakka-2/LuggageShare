@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'rea
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import Animated, { FadeIn, FadeInUp, ZoomIn } from 'react-native-reanimated';
 
 import { useTheme } from '@/hooks/useTheme';
 import { useGoogleAuth } from '@/hooks/useGoogleAuth';
@@ -75,11 +76,24 @@ export default function LoginScreen() {
       <View style={styles.content}>
         {/* Logo */}
         <View style={styles.logoContainer}>
-          <View style={[styles.logo, { backgroundColor: colors.primary }]}>
+          <Animated.View
+            entering={ZoomIn.delay(100).duration(500).springify()}
+            style={[styles.logo, { backgroundColor: colors.primary }]}
+          >
             <Ionicons name="briefcase" size={48} color="#FFFFFF" />
-          </View>
-          <Text style={[styles.appName, { color: colors.text }]}>LuggageShare</Text>
-          <Text style={[styles.tagline, { color: colors.textSecondary }]}>{t('auth.tagline')}</Text>
+          </Animated.View>
+          <Animated.Text
+            entering={FadeInUp.delay(250).duration(400)}
+            style={[styles.appName, { color: colors.text }]}
+          >
+            LuggageShare
+          </Animated.Text>
+          <Animated.Text
+            entering={FadeInUp.delay(350).duration(400)}
+            style={[styles.tagline, { color: colors.textSecondary }]}
+          >
+            {t('auth.tagline')}
+          </Animated.Text>
         </View>
 
         {/* Error message */}
@@ -91,7 +105,7 @@ export default function LoginScreen() {
         )}
 
         {/* Auth Buttons */}
-        <View style={styles.authButtons}>
+        <Animated.View entering={FadeInUp.delay(450).duration(400)} style={styles.authButtons}>
           {/* Google Sign In */}
           <TouchableOpacity
             style={[styles.authButton, styles.googleButton]}
@@ -111,28 +125,30 @@ export default function LoginScreen() {
             <Ionicons name="logo-apple" size={24} color="#FFFFFF" />
             <Text style={styles.appleButtonText}>{t('auth.continueWithApple')}</Text>
           </TouchableOpacity>
-        </View>
+        </Animated.View>
 
         {/* Dev Login */}
         {__DEV__ && (
-          <TouchableOpacity
-            style={[styles.authButton, styles.devButton]}
-            onPress={handleDevLogin}
-            disabled={isLoading}
-          >
-            {isDevLoading ? (
-              <ActivityIndicator color="#FFF" size="small" />
-            ) : (
-              <>
-                <Ionicons name="code-slash" size={24} color="#FFF" />
-                <Text style={styles.devButtonText}>Dev Login (Skip Auth)</Text>
-              </>
-            )}
-          </TouchableOpacity>
+          <Animated.View entering={FadeInUp.delay(550).duration(300)}>
+            <TouchableOpacity
+              style={[styles.authButton, styles.devButton]}
+              onPress={handleDevLogin}
+              disabled={isLoading}
+            >
+              {isDevLoading ? (
+                <ActivityIndicator color="#FFF" size="small" />
+              ) : (
+                <>
+                  <Ionicons name="code-slash" size={24} color="#FFF" />
+                  <Text style={styles.devButtonText}>Dev Login (Skip Auth)</Text>
+                </>
+              )}
+            </TouchableOpacity>
+          </Animated.View>
         )}
 
         {/* Terms */}
-        <View style={styles.terms}>
+        <Animated.View entering={FadeIn.delay(650).duration(500)} style={styles.terms}>
           <Text style={[styles.termsText, { color: colors.textSecondary }]}>
             {t('auth.termsPrefix')}{' '}
             <Text style={[styles.termsLink, { color: colors.primary }]}>
@@ -143,7 +159,7 @@ export default function LoginScreen() {
               {t('auth.privacyPolicy')}
             </Text>
           </Text>
-        </View>
+        </Animated.View>
       </View>
     </SafeAreaView>
   );

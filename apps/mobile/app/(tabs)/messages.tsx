@@ -1,3 +1,4 @@
+import React from 'react';
 import {
   View,
   Text,
@@ -19,8 +20,9 @@ import { useTheme } from '@/hooks/useTheme';
 import { ThemeColors } from '@/providers/ThemeProvider';
 import { useConversations, ApiConversation } from '@/hooks/useMessages';
 import { EmptyState, Avatar } from '@/components/common';
+import { SkeletonLoader } from '@/components/animations';
 
-function ConversationItem({
+const ConversationItem = React.memo(function ConversationItem({
   conversation,
   isRTL,
   colors,
@@ -78,7 +80,7 @@ function ConversationItem({
       </View>
     </TouchableOpacity>
   );
-}
+});
 
 export default function MessagesScreen() {
   const { t, i18n } = useTranslation();
@@ -110,7 +112,20 @@ export default function MessagesScreen() {
       >
         {isLoading && (
           <View style={styles.loading}>
-            <ActivityIndicator size="large" color={colors.primary} />
+            {[0, 1, 2, 3].map((i) => (
+              <Animated.View
+                key={`skel-${i}`}
+                entering={FadeInDown.delay(i * 60).duration(300)}
+                style={styles.skeletonConv}
+              >
+                <SkeletonLoader width={48} height={48} borderRadius={24} />
+                <View style={{ flex: 1, gap: 6 }}>
+                  <SkeletonLoader width="60%" height={16} borderRadius={4} />
+                  <SkeletonLoader width="40%" height={12} borderRadius={4} />
+                  <SkeletonLoader width="80%" height={14} borderRadius={4} />
+                </View>
+              </Animated.View>
+            ))}
           </View>
         )}
 
@@ -149,7 +164,15 @@ const styles = StyleSheet.create({
   header: { padding: 16, borderBottomWidth: 1 } as ViewStyle,
   title: { fontSize: 24, fontWeight: 'bold' } as TextStyle,
   scrollContent: { padding: 16, paddingBottom: 32 } as ViewStyle,
-  loading: { paddingVertical: 60, alignItems: 'center' } as ViewStyle,
+  loading: { paddingVertical: 8 } as ViewStyle,
+  skeletonConv: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 14,
+    borderRadius: 14,
+    marginBottom: 8,
+    gap: 12,
+  } as ViewStyle,
   emptyState: { marginTop: 40 } as ViewStyle,
 
   conversationItem: {

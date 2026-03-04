@@ -14,11 +14,13 @@ import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import Animated, { FadeIn, FadeInUp, ZoomIn } from 'react-native-reanimated';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { useTheme } from '@/hooks/useTheme';
 import { apiClient } from '@/lib/api';
 import { showAlert } from '@/lib/alert';
+import { SkeletonLoader } from '@/components/animations';
 
 const DOCUMENT_TYPES = [
   { key: 'national_id', icon: 'card-outline', labelKey: 'verification.nationalId' },
@@ -75,8 +77,19 @@ export default function VerificationScreen() {
   if (isLoading) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-        <View style={styles.loading}>
-          <ActivityIndicator size="large" color={colors.primary} />
+        <View style={[styles.header, { borderBottomColor: colors.border }]}>
+          <View style={styles.headerBtn} />
+          <SkeletonLoader width={140} height={18} borderRadius={6} />
+          <View style={styles.headerBtn} />
+        </View>
+        <View style={{ padding: 16, gap: 16 }}>
+          <SkeletonLoader width="100%" height={60} borderRadius={12} />
+          <SkeletonLoader width="60%" height={16} borderRadius={4} />
+          <View style={{ flexDirection: 'row', gap: 10 }}>
+            <SkeletonLoader width="31%" height={80} borderRadius={12} />
+            <SkeletonLoader width="31%" height={80} borderRadius={12} />
+            <SkeletonLoader width="31%" height={80} borderRadius={12} />
+          </View>
         </View>
       </SafeAreaView>
     );
@@ -96,15 +109,24 @@ export default function VerificationScreen() {
           <View style={styles.headerBtn} />
         </View>
         <View style={styles.verifiedContent}>
-          <View style={[styles.verifiedIcon, { backgroundColor: '#10B98115' }]}>
+          <Animated.View
+            entering={ZoomIn.delay(100).springify()}
+            style={[styles.verifiedIcon, { backgroundColor: '#10B98115' }]}
+          >
             <Ionicons name="shield-checkmark" size={64} color="#10B981" />
-          </View>
-          <Text style={[styles.verifiedTitle, { color: colors.text }]}>
+          </Animated.View>
+          <Animated.Text
+            entering={FadeInUp.delay(200).duration(400)}
+            style={[styles.verifiedTitle, { color: colors.text }]}
+          >
             {t('verification.identityVerified')}
-          </Text>
-          <Text style={[styles.verifiedDesc, { color: colors.textSecondary }]}>
+          </Animated.Text>
+          <Animated.Text
+            entering={FadeInUp.delay(300).duration(400)}
+            style={[styles.verifiedDesc, { color: colors.textSecondary }]}
+          >
             {t('verification.verifiedDescription')}
-          </Text>
+          </Animated.Text>
         </View>
       </SafeAreaView>
     );
@@ -124,22 +146,26 @@ export default function VerificationScreen() {
 
       <ScrollView style={styles.scrollContent} contentContainerStyle={styles.scrollInner}>
         {/* Info Card */}
-        <View style={[styles.infoCard, { backgroundColor: colors.primary + '10' }]}>
+        <Animated.View
+          entering={FadeIn.duration(300)}
+          style={[styles.infoCard, { backgroundColor: colors.primary + '10' }]}
+        >
           <Ionicons name="information-circle-outline" size={24} color={colors.primary} />
           <Text
             style={[styles.infoText, { color: colors.text, textAlign: isRTL ? 'right' : 'left' }]}
           >
             {t('verification.infoMessage')}
           </Text>
-        </View>
+        </Animated.View>
 
         {/* Document Type Selection */}
-        <Text
+        <Animated.Text
+          entering={FadeInUp.delay(100).duration(300)}
           style={[styles.sectionTitle, { color: colors.text, textAlign: isRTL ? 'right' : 'left' }]}
         >
           {t('verification.documentType')}
-        </Text>
-        <View style={styles.typeGrid}>
+        </Animated.Text>
+        <Animated.View entering={FadeInUp.delay(150).duration(300)} style={styles.typeGrid}>
           {DOCUMENT_TYPES.map((doc) => (
             <TouchableOpacity
               key={doc.key}
@@ -165,14 +191,15 @@ export default function VerificationScreen() {
               </Text>
             </TouchableOpacity>
           ))}
-        </View>
+        </Animated.View>
 
         {/* Document Number */}
-        <Text
+        <Animated.Text
+          entering={FadeInUp.delay(200).duration(300)}
           style={[styles.sectionTitle, { color: colors.text, textAlign: isRTL ? 'right' : 'left' }]}
         >
           {t('verification.documentNumber')}
-        </Text>
+        </Animated.Text>
         <TextInput
           style={[
             styles.input,
@@ -191,11 +218,12 @@ export default function VerificationScreen() {
         />
 
         {/* Full Name (Optional) */}
-        <Text
+        <Animated.Text
+          entering={FadeInUp.delay(250).duration(300)}
           style={[styles.sectionTitle, { color: colors.text, textAlign: isRTL ? 'right' : 'left' }]}
         >
           {t('verification.fullNameOptional')}
-        </Text>
+        </Animated.Text>
         <TextInput
           style={[
             styles.input,

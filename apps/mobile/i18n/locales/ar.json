@@ -147,7 +147,8 @@
     "bankNameField": "اسم البنك",
     "ibanField": "رقم الآيبان",
     "placeholderBankName": "مثال: بنك الراجحي",
-    "placeholderIban": "SA..."
+    "placeholderIban": "SA...",
+    "recentReviews": "التقييمات الأخيرة"
   },
   "listing": {
     "create": "إنشاء عرض",
@@ -183,7 +184,8 @@
     "createdSuccess": "تم إنشاء الإعلان بنجاح",
     "failedCreate": "فشل في إنشاء الإعلان",
     "selectDate": "اختر تاريخ المغادرة",
-    "departureDateRequired": "تاريخ المغادرة مطلوب"
+    "departureDateRequired": "تاريخ المغادرة مطلوب",
+    "carrierReviews": "التقييمات"
   },
   "booking": {
     "request": "طلب حجز",
@@ -411,7 +413,11 @@
     "lightMode": "الوضع الفاتح",
     "followsSystem": "يتبع النظام",
     "restartRequired": "إعادة تشغيل مطلوبة",
-    "restartDescription": "أعد تشغيل التطبيق لتطبيق اتجاه اللغة"
+    "restartDescription": "أعد تشغيل التطبيق لتطبيق اتجاه اللغة",
+    "notifications": "الإشعارات",
+    "pushNotifications": "إشعارات الدفع",
+    "about": "حول",
+    "version": "الإصدار"
   },
   "web": {
     "sidebar": {

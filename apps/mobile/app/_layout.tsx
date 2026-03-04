@@ -4,18 +4,18 @@ import { StatusBar } from 'expo-status-bar';
 import { I18nManager, Platform, useColorScheme } from 'react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import * as SplashScreen from 'expo-splash-screen';
-import * as Sentry from '@sentry/react-native';
 
 import { AuthProvider } from '@/providers/AuthProvider';
 import { ThemeProvider } from '@/providers/ThemeProvider';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import { OfflineBanner } from '@/components/common/OfflineBanner';
 import i18n, { syncRTL } from '../i18n';
+import * as Sentry from '@/lib/sentry';
 
 // Conditionally import WebShell only on web for tree-shaking
 const WebShell = Platform.OS === 'web' ? require('@/components/web').WebShell : null;
 
-// Initialize Sentry for crash reporting (no-op if DSN is empty)
+// Initialize Sentry for crash reporting (web stub is a no-op)
 Sentry.init({
   dsn: process.env.EXPO_PUBLIC_SENTRY_DSN || '',
   enabled: !__DEV__,

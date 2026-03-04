@@ -4,7 +4,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  ActivityIndicator,
   ViewStyle,
   TextStyle,
 } from 'react-native';
@@ -12,14 +11,18 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
+import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
 
 import { useTheme } from '@/hooks/useTheme';
 import { useListing } from '@/hooks/useListings';
 import { useBookings } from '@/hooks/useBookings';
+import { useUserReviews } from '@/hooks/useReviews';
 import { useAuth } from '@/hooks/useAuth';
 import { Avatar } from '@/components/common';
 import { MOCK_LISTINGS, adaptMockListing } from '@/components/listings';
+import { VerificationBadge } from '@/components/trust';
+import { ReviewCard, RatingBars } from '@/components/trust';
+import { SkeletonLoader } from '@/components/animations';
 import { showAlert } from '@/lib/alert';
 
 export default function ListingDetailScreen() {
@@ -30,12 +33,14 @@ export default function ListingDetailScreen() {
   const { user } = useAuth();
   const isRTL = i18n.language === 'ar';
 
-  const { data: apiListing, isLoading, isError } = useListing(id ?? null);
+  const { data: apiListing, isLoading } = useListing(id ?? null);
   const { data: bookings } = useBookings();
 
   // Fall back to mock data when the API doesn't return a result
   const mockMatch = !apiListing && id ? MOCK_LISTINGS.find((m) => m.id === id) : undefined;
   const listing = apiListing ?? (mockMatch ? adaptMockListing(mockMatch) : undefined);
+
+  const { data: carrierReviews } = useUserReviews(listing?.carrierId ?? null);
 
   // Check if the user already has an active booking for this listing
   const existingBooking = listing
@@ -47,8 +52,23 @@ export default function ListingDetailScreen() {
   if (isLoading) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
+        <View style={[styles.header, { borderBottomColor: colors.border }]}>
+          <View style={styles.headerButton} />
+          <SkeletonLoader width={120} height={18} borderRadius={6} />
+          <View style={styles.headerButton} />
+        </View>
+        <View style={styles.scrollContent}>
+          <SkeletonLoader
+            width="100%"
+            height={140}
+            borderRadius={16}
+            style={{ marginBottom: 16 }}
+          />
+          <View style={{ flexDirection: 'row', gap: 12, marginBottom: 16 }}>
+            <SkeletonLoader width="48%" height={100} borderRadius={16} />
+            <SkeletonLoader width="48%" height={100} borderRadius={16} />
+          </View>
+          <SkeletonLoader width="100%" height={120} borderRadius={16} />
         </View>
       </SafeAreaView>
     );
@@ -211,12 +231,7 @@ export default function ListingDetailScreen() {
                 </Text>
               )}
               {listing.carrier.isVerified && (
-                <View style={styles.verifiedBadge}>
-                  <Ionicons name="shield-checkmark" size={14} color={colors.primary} />
-                  <Text style={[styles.verifiedText, { color: colors.primary }]}>
-                    {t('common.verified')}
-                  </Text>
-                </View>
+                <VerificationBadge type="verified" size="small" animated={false} />
               )}
             </View>
           </View>
@@ -225,7 +240,54 @@ export default function ListingDetailScreen() {
               {listing.carrier.bio}
             </Text>
           )}
+
+          {/* Carrier Rating Summary */}
+          {carrierReviews && carrierReviews.length > 0 && (
+            <View style={[styles.ratingSection]}>
+              <RatingBars
+                distribution={(() => {
+                  const dist = [0, 0, 0, 0, 0];
+                  carrierReviews.forEach((r) => {
+                    if (r.rating >= 1 && r.rating <= 5) dist[5 - r.rating]++;
+                  });
+                  return dist;
+                })()}
+                average={
+                  carrierReviews.reduce((sum, r) => sum + r.rating, 0) / carrierReviews.length
+                }
+                total={carrierReviews.length}
+              />
+            </View>
+          )}
         </Animated.View>
+
+        {/* Carrier Reviews */}
+        {carrierReviews && carrierReviews.length > 0 && (
+          <Animated.View
+            entering={FadeInUp.delay(250).duration(400)}
+            style={[styles.section, { backgroundColor: colors.card }]}
+          >
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>
+              {t('listing.carrierReviews', { defaultValue: 'Reviews' })}
+            </Text>
+            {carrierReviews.slice(0, 3).map((review, index) => (
+              <ReviewCard
+                key={review.id}
+                review={{
+                  id: review.id,
+                  rating: review.rating,
+                  comment: review.comment,
+                  createdAt: review.createdAt,
+                  reviewer: {
+                    name: review.reviewer.name,
+                    avatarUrl: review.reviewer.avatarUrl,
+                  },
+                }}
+                index={index}
+              />
+            ))}
+          </Animated.View>
+        )}
       </ScrollView>
 
       {/* Bottom Action Bar */}
@@ -313,9 +375,13 @@ const styles = StyleSheet.create({
   carrierInfo: { flex: 1 } as ViewStyle,
   carrierName: { fontSize: 16, fontWeight: '600' } as TextStyle,
   carrierCity: { fontSize: 13, marginTop: 2 } as TextStyle,
-  verifiedBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 } as ViewStyle,
-  verifiedText: { fontSize: 12, fontWeight: '600' } as TextStyle,
   carrierBio: { fontSize: 14, lineHeight: 20, marginTop: 12 } as TextStyle,
+  ratingSection: {
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0,0,0,0.05)',
+  } as ViewStyle,
 
   // Action Bar
   actionBar: {

@@ -12,6 +12,7 @@ import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 
 import { useTheme } from '@/hooks/useTheme';
 
@@ -39,39 +40,55 @@ export default function HelpScreen() {
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* FAQ */}
-        <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>{t('help.faq')}</Text>
+        <Animated.Text
+          entering={FadeIn.delay(100).duration(300)}
+          style={[styles.sectionTitle, { color: colors.textSecondary }]}
+        >
+          {t('help.faq')}
+        </Animated.Text>
 
         {FAQ_KEYS.map((item, index) => (
-          <View key={index} style={[styles.faqCard, { backgroundColor: colors.card }]}>
+          <Animated.View
+            key={index}
+            entering={FadeInUp.delay(150 + index * 80)
+              .duration(300)
+              .springify()}
+            style={[styles.faqCard, { backgroundColor: colors.card }]}
+          >
             <Text style={[styles.faqQuestion, { color: colors.text }]}>{t(item.question)}</Text>
             <Text style={[styles.faqAnswer, { color: colors.textSecondary }]}>
               {t(item.answer)}
             </Text>
-          </View>
+          </Animated.View>
         ))}
 
         {/* Contact */}
-        <Text style={[styles.sectionTitle, { color: colors.textSecondary, marginTop: 24 }]}>
-          {t('help.contactUs')}
-        </Text>
-
-        <TouchableOpacity
-          style={[styles.contactCard, { backgroundColor: colors.card }]}
-          onPress={() => Linking.openURL('mailto:support@luggageshare.app')}
+        <Animated.Text
+          entering={FadeIn.delay(450).duration(300)}
+          style={[styles.sectionTitle, { color: colors.textSecondary, marginTop: 24 }]}
         >
-          <View style={[styles.contactIcon, { backgroundColor: colors.primary + '15' }]}>
-            <Ionicons name="mail-outline" size={22} color={colors.primary} />
-          </View>
-          <View style={styles.contactInfo}>
-            <Text style={[styles.contactLabel, { color: colors.text }]}>
-              {t('help.emailSupport')}
-            </Text>
-            <Text style={[styles.contactValue, { color: colors.textSecondary }]}>
-              support@luggageshare.app
-            </Text>
-          </View>
-          <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} />
-        </TouchableOpacity>
+          {t('help.contactUs')}
+        </Animated.Text>
+
+        <Animated.View entering={FadeInUp.delay(530).duration(300).springify()}>
+          <TouchableOpacity
+            style={[styles.contactCard, { backgroundColor: colors.card }]}
+            onPress={() => Linking.openURL('mailto:support@luggageshare.app')}
+          >
+            <View style={[styles.contactIcon, { backgroundColor: colors.primary + '15' }]}>
+              <Ionicons name="mail-outline" size={22} color={colors.primary} />
+            </View>
+            <View style={styles.contactInfo}>
+              <Text style={[styles.contactLabel, { color: colors.text }]}>
+                {t('help.emailSupport')}
+              </Text>
+              <Text style={[styles.contactValue, { color: colors.textSecondary }]}>
+                support@luggageshare.app
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} />
+          </TouchableOpacity>
+        </Animated.View>
       </ScrollView>
     </SafeAreaView>
   );

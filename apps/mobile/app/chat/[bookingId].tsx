@@ -8,7 +8,6 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
-  ActivityIndicator,
   ViewStyle,
   TextStyle,
 } from 'react-native';
@@ -16,12 +15,14 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import Animated, { FadeIn, FadeInUp, SlideInDown } from 'react-native-reanimated';
 
 import { useTheme } from '@/hooks/useTheme';
 import { useMessages, useSendMessage, useMarkAsRead } from '@/hooks/useMessages';
 import { useAuth } from '@/hooks/useAuth';
 import { useSocket } from '@/hooks/useSocket';
 import { Avatar } from '@/components/common';
+import { SkeletonLoader } from '@/components/animations';
 
 export default function ChatScreen() {
   const { bookingId } = useLocalSearchParams<{ bookingId: string }>();
@@ -74,7 +75,10 @@ export default function ChatScreen() {
       });
 
       return (
-        <View style={[styles.messageRow, isMe ? styles.messageRowMe : styles.messageRowOther]}>
+        <Animated.View
+          entering={FadeInUp.duration(250).springify()}
+          style={[styles.messageRow, isMe ? styles.messageRowMe : styles.messageRowOther]}
+        >
           {!isMe && <Avatar name={item.sender.name} avatarUrl={item.sender.avatarUrl} size={28} />}
           <View
             style={[
@@ -96,7 +100,7 @@ export default function ChatScreen() {
               {time}
             </Text>
           </View>
-        </View>
+        </Animated.View>
       );
     },
     [user?.id, isRTL, colors]
@@ -118,8 +122,20 @@ export default function ChatScreen() {
         keyboardVerticalOffset={0}
       >
         {isLoading ? (
-          <View style={styles.loading}>
-            <ActivityIndicator size="large" color={colors.primary} />
+          <View style={styles.skeletonChat}>
+            {[0, 1, 2, 3, 4].map((i) => (
+              <Animated.View
+                key={`skel-${i}`}
+                entering={FadeIn.delay(i * 60).duration(200)}
+                style={[
+                  styles.skeletonRow,
+                  i % 2 === 0 ? styles.skeletonRowRight : styles.skeletonRowLeft,
+                ]}
+              >
+                {i % 2 !== 0 && <SkeletonLoader width={28} height={28} borderRadius={14} />}
+                <SkeletonLoader width={i % 2 === 0 ? '55%' : '65%'} height={48} borderRadius={16} />
+              </Animated.View>
+            ))}
           </View>
         ) : (
           <FlatList
@@ -134,17 +150,18 @@ export default function ChatScreen() {
             windowSize={10}
             removeClippedSubviews
             ListEmptyComponent={
-              <View style={styles.emptyChat}>
+              <Animated.View entering={FadeIn.delay(200).duration(400)} style={styles.emptyChat}>
                 <Ionicons name="chatbubbles-outline" size={48} color={colors.textSecondary} />
                 <Text style={[styles.emptyChatText, { color: colors.textSecondary }]}>
                   {t('chat.startConversation')}
                 </Text>
-              </View>
+              </Animated.View>
             }
           />
         )}
 
-        <View
+        <Animated.View
+          entering={SlideInDown.duration(300).springify()}
           style={[styles.inputBar, { backgroundColor: colors.card, borderTopColor: colors.border }]}
         >
           {isOtherTyping && (
@@ -191,7 +208,7 @@ export default function ChatScreen() {
           >
             <Ionicons name="send" size={18} color="#FFF" />
           </TouchableOpacity>
-        </View>
+        </Animated.View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -200,7 +217,10 @@ export default function ChatScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 } as ViewStyle,
   flex1: { flex: 1 } as ViewStyle,
-  loading: { flex: 1, alignItems: 'center', justifyContent: 'center' } as ViewStyle,
+  skeletonChat: { flex: 1, padding: 16, gap: 12 } as ViewStyle,
+  skeletonRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 8 } as ViewStyle,
+  skeletonRowRight: { justifyContent: 'flex-end' } as ViewStyle,
+  skeletonRowLeft: { justifyContent: 'flex-start' } as ViewStyle,
   header: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -89,13 +89,15 @@ export function usePushNotifications(isAuthenticated: boolean) {
   }
 
   function navigateToScreen(data: Record<string, unknown>) {
-    if (!data?.type) return;
+    if (!data) return;
 
     switch (data.type) {
       case 'booking_created':
       case 'booking_accepted':
       case 'booking_rejected':
       case 'booking_delivered':
+      case 'booking_in_transit':
+      case 'booking_cancelled':
       case 'payment_proof':
         if (data.bookingId) {
           router.push(`/booking/${data.bookingId}` as any);
@@ -107,7 +109,12 @@ export function usePushNotifications(isAuthenticated: boolean) {
         }
         break;
       default:
-        router.push('/notifications' as any);
+        // Fallback: if no type but bookingId exists, go to booking
+        if (data.bookingId) {
+          router.push(`/booking/${data.bookingId}` as any);
+        } else {
+          router.push('/notifications' as any);
+        }
     }
   }
 }

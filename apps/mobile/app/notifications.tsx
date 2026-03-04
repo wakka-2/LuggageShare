@@ -1,12 +1,28 @@
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl, ViewStyle, TextStyle } from 'react-native';
+import React, { useCallback } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  TouchableOpacity,
+  RefreshControl,
+  ViewStyle,
+  TextStyle,
+} from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import Animated, { FadeIn } from 'react-native-reanimated';
+import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 
 import { useTheme } from '@/hooks/useTheme';
-import { useNotifications, useMarkNotificationRead, useMarkAllNotificationsRead, AppNotification } from '@/hooks/useNotifications';
+import {
+  useNotifications,
+  useMarkNotificationRead,
+  useMarkAllNotificationsRead,
+  AppNotification,
+} from '@/hooks/useNotifications';
+import { SkeletonLoader } from '@/components/animations';
 
 const NOTIFICATION_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
   booking_created: 'calendar-outline',
@@ -18,7 +34,11 @@ const NOTIFICATION_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
   payment_received: 'wallet-outline',
 };
 
-function getTimeAgo(dateStr: string, isRTL: boolean, t: (key: string, options?: Record<string, unknown>) => string): string {
+function getTimeAgo(
+  dateStr: string,
+  isRTL: boolean,
+  t: (key: string, options?: Record<string, unknown>) => string
+): string {
   const diff = Date.now() - new Date(dateStr).getTime();
   const minutes = Math.floor(diff / 60000);
   const hours = Math.floor(diff / 3600000);
@@ -28,7 +48,10 @@ function getTimeAgo(dateStr: string, isRTL: boolean, t: (key: string, options?: 
   if (minutes < 60) return t('notifications.minutesAgo', { count: minutes });
   if (hours < 24) return t('notifications.hoursAgo', { count: hours });
   if (days < 7) return t('notifications.daysAgo', { count: days });
-  return new Date(dateStr).toLocaleDateString(isRTL ? 'ar-SA' : 'en-US', { month: 'short', day: 'numeric' });
+  return new Date(dateStr).toLocaleDateString(isRTL ? 'ar-SA' : 'en-US', {
+    month: 'short',
+    day: 'numeric',
+  });
 }
 
 export default function NotificationsScreen() {
@@ -43,49 +66,80 @@ export default function NotificationsScreen() {
 
   const unreadCount = notifications?.filter((n) => !n.isRead).length ?? 0;
 
-  const handlePress = (notification: AppNotification) => {
-    if (!notification.isRead) {
-      markRead.mutate(notification.id);
-    }
-    // Navigate based on notification data
-    const data = notification.data as Record<string, string> | null;
-    if (data?.bookingId) {
-      router.push(`/booking/${data.bookingId}`);
-    } else if (data?.listingId) {
-      router.push(`/listing/${data.listingId}`);
-    }
-  };
+  const handlePress = useCallback(
+    (notification: AppNotification) => {
+      if (!notification.isRead) {
+        markRead.mutate(notification.id);
+      }
+      // Navigate based on notification data
+      const nd = notification.data as Record<string, string> | null;
+      if (nd?.bookingId) {
+        router.push(`/booking/${nd.bookingId}` as any);
+      } else if (nd?.listingId) {
+        router.push(`/listing/${nd.listingId}` as any);
+      }
+    },
+    [markRead, router]
+  );
 
-  const getIcon = (notification: AppNotification): keyof typeof Ionicons.glyphMap => {
-    const data = notification.data as Record<string, string> | null;
-    const type = data?.type as string | undefined;
+  const getIcon = useCallback((notification: AppNotification): keyof typeof Ionicons.glyphMap => {
+    const nd = notification.data as Record<string, string> | null;
+    const type = nd?.type as string | undefined;
     return (type && NOTIFICATION_ICONS[type]) || 'notifications-outline';
-  };
+  }, []);
 
-  const renderItem = ({ item }: { item: AppNotification }) => (
-    <TouchableOpacity
-      onPress={() => handlePress(item)}
-      style={[
-        styles.notifItem,
-        { backgroundColor: item.isRead ? 'transparent' : colors.primary + '08', borderBottomColor: colors.border },
-      ]}
-    >
-      <View style={[styles.iconBox, { backgroundColor: item.isRead ? colors.card : colors.primary + '15' }]}>
-        <Ionicons name={getIcon(item)} size={20} color={item.isRead ? colors.textSecondary : colors.primary} />
-      </View>
-      <View style={styles.notifContent}>
-        <Text style={[styles.notifTitle, { color: colors.text }, !item.isRead && styles.notifTitleUnread]}>
-          {item.title}
-        </Text>
-        <Text style={[styles.notifBody, { color: colors.textSecondary }]} numberOfLines={2}>
-          {item.body}
-        </Text>
-        <Text style={[styles.notifTime, { color: colors.textSecondary }]}>
-          {getTimeAgo(item.createdAt, isRTL, t)}
-        </Text>
-      </View>
-      {!item.isRead && <View style={[styles.unreadDot, { backgroundColor: colors.primary }]} />}
-    </TouchableOpacity>
+  const renderItem = useCallback(
+    ({ item, index }: { item: AppNotification; index: number }) => (
+      <Animated.View
+        entering={FadeInUp.delay(index * 50)
+          .duration(300)
+          .springify()}
+      >
+        <TouchableOpacity
+          onPress={() => handlePress(item)}
+          activeOpacity={0.7}
+          style={[
+            styles.notifItem,
+            {
+              backgroundColor: item.isRead ? 'transparent' : colors.primary + '08',
+              borderBottomColor: colors.border,
+            },
+          ]}
+        >
+          <View
+            style={[
+              styles.iconBox,
+              { backgroundColor: item.isRead ? colors.card : colors.primary + '15' },
+            ]}
+          >
+            <Ionicons
+              name={getIcon(item)}
+              size={20}
+              color={item.isRead ? colors.textSecondary : colors.primary}
+            />
+          </View>
+          <View style={styles.notifContent}>
+            <Text
+              style={[
+                styles.notifTitle,
+                { color: colors.text },
+                !item.isRead && styles.notifTitleUnread,
+              ]}
+            >
+              {item.title}
+            </Text>
+            <Text style={[styles.notifBody, { color: colors.textSecondary }]} numberOfLines={2}>
+              {item.body}
+            </Text>
+            <Text style={[styles.notifTime, { color: colors.textSecondary }]}>
+              {getTimeAgo(item.createdAt, isRTL, t)}
+            </Text>
+          </View>
+          {!item.isRead && <View style={[styles.unreadDot, { backgroundColor: colors.primary }]} />}
+        </TouchableOpacity>
+      </Animated.View>
+    ),
+    [colors, isRTL, t, handlePress, getIcon]
   );
 
   return (
@@ -94,9 +148,7 @@ export default function NotificationsScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.headerBtn}>
           <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>
-          {t('notifications.title')}
-        </Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>{t('notifications.title')}</Text>
         {unreadCount > 0 ? (
           <TouchableOpacity onPress={() => markAllRead.mutate()} style={styles.headerBtn}>
             <Ionicons name="checkmark-done-outline" size={22} color={colors.primary} />
@@ -107,13 +159,34 @@ export default function NotificationsScreen() {
       </View>
 
       {isLoading ? (
-        <View style={styles.loading}><ActivityIndicator size="large" color={colors.primary} /></View>
+        <View style={styles.skeletonList}>
+          {[0, 1, 2, 3, 4].map((i) => (
+            <Animated.View
+              key={`skel-${i}`}
+              entering={FadeIn.delay(i * 60).duration(200)}
+              style={styles.skeletonItem}
+            >
+              <SkeletonLoader width={40} height={40} borderRadius={12} />
+              <View style={{ flex: 1, gap: 6 }}>
+                <SkeletonLoader width="70%" height={14} borderRadius={4} />
+                <SkeletonLoader width="100%" height={12} borderRadius={4} />
+                <SkeletonLoader width="30%" height={10} borderRadius={4} />
+              </View>
+            </Animated.View>
+          ))}
+        </View>
       ) : (
         <FlatList
           data={notifications || []}
           renderItem={renderItem}
           keyExtractor={(item) => item.id}
-          refreshControl={<RefreshControl refreshing={false} onRefresh={() => refetch()} tintColor={colors.primary} />}
+          refreshControl={
+            <RefreshControl
+              refreshing={false}
+              onRefresh={() => refetch()}
+              tintColor={colors.primary}
+            />
+          }
           ListEmptyComponent={
             <Animated.View entering={FadeIn.duration(300)} style={styles.emptyState}>
               <Ionicons name="notifications-off-outline" size={56} color={colors.textSecondary} />
@@ -133,19 +206,30 @@ export default function NotificationsScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 } as ViewStyle,
-  loading: { flex: 1, alignItems: 'center', justifyContent: 'center' } as ViewStyle,
   header: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
   } as ViewStyle,
   headerBtn: { width: 40, alignItems: 'center' } as ViewStyle,
   headerTitle: { fontSize: 18, fontWeight: '600' } as TextStyle,
 
   notifItem: {
-    flexDirection: 'row', alignItems: 'flex-start', padding: 16, gap: 12, borderBottomWidth: 1,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    padding: 16,
+    gap: 12,
+    borderBottomWidth: 1,
   } as ViewStyle,
   iconBox: {
-    width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center',
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
   } as ViewStyle,
   notifContent: { flex: 1 } as ViewStyle,
   notifTitle: { fontSize: 15, fontWeight: '500', marginBottom: 2 } as TextStyle,
@@ -154,7 +238,20 @@ const styles = StyleSheet.create({
   notifTime: { fontSize: 12 } as TextStyle,
   unreadDot: { width: 8, height: 8, borderRadius: 4, marginTop: 6 } as ViewStyle,
 
-  emptyState: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 120, gap: 12 } as ViewStyle,
+  skeletonList: { padding: 16, gap: 0 } as ViewStyle,
+  skeletonItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+    paddingVertical: 14,
+  } as ViewStyle,
+  emptyState: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: 120,
+    gap: 12,
+  } as ViewStyle,
   emptyTitle: { fontSize: 18, fontWeight: '600' } as TextStyle,
   emptyDesc: { fontSize: 14, textAlign: 'center', paddingHorizontal: 40 } as TextStyle,
 });

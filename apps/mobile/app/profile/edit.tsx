@@ -14,12 +14,14 @@ import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import Animated, { FadeIn, FadeInUp, ZoomIn } from 'react-native-reanimated';
 
 import { useTheme } from '@/hooks/useTheme';
 import { useProfile, useUpdateProfile } from '@/hooks/useProfile';
 import { useAuth } from '@/hooks/useAuth';
 import { useImageUpload } from '@/hooks/useImageUpload';
 import { Avatar } from '@/components/common';
+import { SkeletonLoader } from '@/components/animations';
 import { showAlert } from '@/lib/alert';
 
 export default function EditProfileScreen() {
@@ -88,8 +90,26 @@ export default function EditProfileScreen() {
   if (isLoading) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-        <View style={styles.loading}>
-          <ActivityIndicator size="large" color={colors.primary} />
+        <View style={[styles.header, { borderBottomColor: colors.border }]}>
+          <View style={styles.headerBtn} />
+          <SkeletonLoader width={120} height={20} borderRadius={8} />
+          <View style={styles.headerBtn} />
+        </View>
+        <View style={styles.scrollContent}>
+          <View style={{ alignItems: 'center', marginBottom: 32, gap: 12 }}>
+            <SkeletonLoader width={96} height={96} borderRadius={48} />
+            <SkeletonLoader width={120} height={32} borderRadius={16} />
+          </View>
+          {[0, 1, 2, 3].map((i) => (
+            <Animated.View
+              key={`skel-${i}`}
+              entering={FadeIn.delay(i * 60).duration(200)}
+              style={{ marginBottom: 20 }}
+            >
+              <SkeletonLoader width={80} height={14} borderRadius={6} style={{ marginBottom: 8 }} />
+              <SkeletonLoader width="100%" height={52} borderRadius={12} />
+            </Animated.View>
+          ))}
         </View>
       </SafeAreaView>
     );
@@ -107,7 +127,10 @@ export default function EditProfileScreen() {
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Avatar Section */}
-        <View style={styles.avatarSection}>
+        <Animated.View
+          entering={ZoomIn.delay(100).duration(400).springify()}
+          style={styles.avatarSection}
+        >
           <Avatar name={name || '?'} avatarUrl={avatarUrl} size={96} />
           <TouchableOpacity
             onPress={handleChangePhoto}
@@ -125,11 +148,11 @@ export default function EditProfileScreen() {
               </>
             )}
           </TouchableOpacity>
-        </View>
+        </Animated.View>
 
         {/* Form Fields */}
         <View style={styles.form}>
-          <View style={styles.fieldGroup}>
+          <Animated.View entering={FadeInUp.delay(200).duration(300)} style={styles.fieldGroup}>
             <Text style={[styles.label, { color: colors.text }]}>
               {t('profile.name')} <Text style={{ color: '#EF4444' }}>*</Text>
             </Text>
@@ -144,9 +167,9 @@ export default function EditProfileScreen() {
               placeholderTextColor={colors.textSecondary}
               textAlign={isRTL ? 'right' : 'left'}
             />
-          </View>
+          </Animated.View>
 
-          <View style={styles.fieldGroup}>
+          <Animated.View entering={FadeInUp.delay(260).duration(300)} style={styles.fieldGroup}>
             <Text style={[styles.label, { color: colors.text }]}>{t('profile.email')}</Text>
             <View
               style={[
@@ -159,9 +182,9 @@ export default function EditProfileScreen() {
                 {profile?.email}
               </Text>
             </View>
-          </View>
+          </Animated.View>
 
-          <View style={styles.fieldGroup}>
+          <Animated.View entering={FadeInUp.delay(320).duration(300)} style={styles.fieldGroup}>
             <Text style={[styles.label, { color: colors.text }]}>{t('profile.city')}</Text>
             <TextInput
               style={[
@@ -174,9 +197,9 @@ export default function EditProfileScreen() {
               placeholderTextColor={colors.textSecondary}
               textAlign={isRTL ? 'right' : 'left'}
             />
-          </View>
+          </Animated.View>
 
-          <View style={styles.fieldGroup}>
+          <Animated.View entering={FadeInUp.delay(380).duration(300)} style={styles.fieldGroup}>
             <Text style={[styles.label, { color: colors.text }]}>{t('profile.bio')}</Text>
             <TextInput
               style={[
@@ -197,14 +220,17 @@ export default function EditProfileScreen() {
             <Text style={[styles.charCount, { color: colors.textSecondary }]}>
               {bio.length}/300
             </Text>
-          </View>
+          </Animated.View>
 
           {/* Bank Details Section */}
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+          <Animated.Text
+            entering={FadeInUp.delay(440).duration(300)}
+            style={[styles.sectionTitle, { color: colors.text }]}
+          >
             {t('profile.bankDetails')}
-          </Text>
+          </Animated.Text>
 
-          <View style={styles.fieldGroup}>
+          <Animated.View entering={FadeInUp.delay(500).duration(300)} style={styles.fieldGroup}>
             <Text style={[styles.label, { color: colors.text }]}>{t('profile.bankNameField')}</Text>
             <TextInput
               style={[
@@ -217,9 +243,9 @@ export default function EditProfileScreen() {
               placeholderTextColor={colors.textSecondary}
               textAlign={isRTL ? 'right' : 'left'}
             />
-          </View>
+          </Animated.View>
 
-          <View style={styles.fieldGroup}>
+          <Animated.View entering={FadeInUp.delay(560).duration(300)} style={styles.fieldGroup}>
             <Text style={[styles.label, { color: colors.text }]}>{t('profile.ibanField')}</Text>
             <TextInput
               style={[
@@ -233,7 +259,7 @@ export default function EditProfileScreen() {
               textAlign={isRTL ? 'right' : 'left'}
               autoCapitalize="characters"
             />
-          </View>
+          </Animated.View>
         </View>
       </ScrollView>
 
@@ -262,7 +288,6 @@ export default function EditProfileScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 } as ViewStyle,
-  loading: { flex: 1, alignItems: 'center', justifyContent: 'center' } as ViewStyle,
   header: {
     flexDirection: 'row',
     alignItems: 'center',

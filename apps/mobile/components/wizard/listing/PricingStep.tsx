@@ -13,14 +13,14 @@ export function PricingStep({ data, updateData, goNext }: StepProps) {
   const { colors } = useTheme();
   const isRTL = i18n.language === 'ar';
 
-  const price = data.pricePerKg ?? 15;
+  const price = data.price ?? 15;
   const weight = data.availableWeight ?? 5;
   const estimatedTotal = price * weight;
   const canAdvance = price > 0;
 
   const adjustPrice = (delta: number) => {
     const next = Math.max(1, Math.min(100, price + delta));
-    updateData({ pricePerKg: next });
+    updateData({ price: next });
   };
 
   return (
@@ -38,8 +38,8 @@ export function PricingStep({ data, updateData, goNext }: StepProps) {
           value={String(price)}
           onChangeText={(v) => {
             const num = parseInt(v, 10);
-            if (!isNaN(num) && num >= 0) updateData({ pricePerKg: num });
-            else if (v === '') updateData({ pricePerKg: 0 });
+            if (!isNaN(num) && num >= 0) updateData({ price: num });
+            else if (v === '') updateData({ price: 0 });
           }}
           keyboardType="numeric"
           textAlign="center"
