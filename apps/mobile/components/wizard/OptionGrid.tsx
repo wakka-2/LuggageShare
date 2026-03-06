@@ -7,7 +7,7 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
-import { useTheme, RADIUS } from '@/providers/ThemeProvider';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS } from '@/providers/ThemeProvider';
 import { ANIM, createStaggerDelay } from '@/lib/animations';
 
 export interface GridOption {
@@ -26,8 +26,6 @@ interface OptionGridProps {
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
 export function OptionGrid({ options, selected, onToggle, columns = 2 }: OptionGridProps) {
-  const { colors } = useTheme();
-
   return (
     <View style={[styles.grid, { gap: 12 }]}>
       {options.map((option, index) => (
@@ -38,7 +36,6 @@ export function OptionGrid({ options, selected, onToggle, columns = 2 }: OptionG
           onToggle={onToggle}
           index={index}
           columns={columns}
-          colors={colors}
         />
       ))}
     </View>
@@ -51,7 +48,6 @@ interface OptionGridItemProps {
   onToggle: (id: string) => void;
   index: number;
   columns: number;
-  colors: any;
 }
 
 const OptionGridItem = React.memo(function OptionGridItem({
@@ -60,7 +56,6 @@ const OptionGridItem = React.memo(function OptionGridItem({
   onToggle,
   index,
   columns,
-  colors,
 }: OptionGridItemProps) {
   const scale = useSharedValue(1);
 
@@ -89,21 +84,23 @@ const OptionGridItem = React.memo(function OptionGridItem({
         styles.item,
         {
           width: widthPercent as any,
-          backgroundColor: isSelected ? colors.primary + '10' : colors.surface,
-          borderColor: isSelected ? colors.primary : colors.border,
+          backgroundColor: isSelected ? V2_COLORS.primary + '08' : '#FFFFFF',
+          borderWidth: isSelected ? 1.5 : 0,
+          borderColor: isSelected ? V2_COLORS.primary : 'transparent',
         },
+        !isSelected && BUBBLE_SHADOWS.sm,
         animatedStyle,
       ]}
     >
       <Text style={styles.itemEmoji}>{option.emoji}</Text>
       <Text
-        style={[styles.itemLabel, { color: isSelected ? colors.primary : colors.text }]}
+        style={[styles.itemLabel, { color: isSelected ? V2_COLORS.primary : V2_COLORS.text }]}
         numberOfLines={1}
       >
         {option.label}
       </Text>
       {isSelected && (
-        <View style={[styles.checkBadge, { backgroundColor: colors.primary }]}>
+        <View style={styles.checkBadge}>
           <Ionicons name="checkmark" size={12} color="#FFFFFF" />
         </View>
       )}
@@ -121,8 +118,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 20,
     paddingHorizontal: 12,
-    borderRadius: RADIUS.button,
-    borderWidth: 1.5,
+    borderRadius: RADIUS.card,
     position: 'relative',
   },
   itemEmoji: {
@@ -141,6 +137,7 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: 10,
+    backgroundColor: V2_COLORS.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },

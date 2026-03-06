@@ -3,7 +3,7 @@ import { View, TextInput, StyleSheet } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { useTheme, RADIUS } from '@/providers/ThemeProvider';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS } from '@/providers/ThemeProvider';
 import { QuestionTitle } from '../QuestionTitle';
 import { AnimatedButton } from '@/components/animations/AnimatedButton';
 import { DatePickerInput } from '@/components/common/DatePickerInput';
@@ -11,7 +11,6 @@ import type { StepProps } from '../WizardContainer';
 
 export function DateFlightStep({ data, updateData, goNext }: StepProps) {
   const { t, i18n } = useTranslation();
-  const { colors } = useTheme();
   const isRTL = i18n.language === 'ar';
 
   const canAdvance = !!data.departureDate;
@@ -30,10 +29,6 @@ export function DateFlightStep({ data, updateData, goNext }: StepProps) {
           onChange={(date) => updateData({ departureDate: date?.toISOString() })}
           placeholder={t('listing.selectDate', { defaultValue: 'Select date' })}
           minimumDate={new Date()}
-          textColor={colors.text}
-          backgroundColor={colors.surface}
-          borderColor={colors.border}
-          placeholderColor={colors.textMuted}
           textAlign={isRTL ? 'right' : 'left'}
         />
       </Animated.View>
@@ -41,20 +36,17 @@ export function DateFlightStep({ data, updateData, goNext }: StepProps) {
       {/* Flight Number */}
       <Animated.View entering={FadeInUp.delay(250).springify()} style={styles.section}>
         <View style={styles.inputLabel}>
-          <Ionicons name="airplane" size={18} color={colors.primary} />
-          <Animated.Text style={[styles.label, { color: colors.textSecondary }]}>
+          <Ionicons name="airplane" size={18} color={V2_COLORS.primary} />
+          <Animated.Text style={styles.label}>
             {t('listing.wizard.date.flight', { defaultValue: 'Flight number (optional)' })}
           </Animated.Text>
         </View>
         <TextInput
-          style={[
-            styles.input,
-            { backgroundColor: colors.surface, color: colors.text, borderColor: colors.border },
-          ]}
+          style={styles.input}
           value={data.flightNumber || ''}
           onChangeText={(v) => updateData({ flightNumber: v })}
           placeholder="SV 123"
-          placeholderTextColor={colors.textMuted}
+          placeholderTextColor={V2_COLORS.textMuted}
           autoCapitalize="characters"
           textAlign={isRTL ? 'right' : 'left'}
         />
@@ -88,13 +80,16 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '600',
+    color: V2_COLORS.textSoft,
   },
   input: {
     height: 48,
     borderRadius: RADIUS.input,
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     fontSize: 16,
-    borderWidth: 1,
+    backgroundColor: '#FFFFFF',
+    color: V2_COLORS.text,
+    ...BUBBLE_SHADOWS.xs,
   },
   nextContainer: {
     marginTop: 8,

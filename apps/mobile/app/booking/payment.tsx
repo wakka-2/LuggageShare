@@ -18,8 +18,10 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import { Image } from 'expo-image';
 import Animated, { FadeInDown } from 'react-native-reanimated';
+import { LinearGradient } from 'expo-linear-gradient';
 
-import { useTheme } from '@/hooks/useTheme';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS, GRADIENTS } from '@/providers/ThemeProvider';
+import { BackgroundBlobs } from '@/components/common/BackgroundBlobs';
 import { showAlert } from '@/lib/alert';
 import { useImageUpload } from '@/hooks/useImageUpload';
 import { useSubmitPaymentProof } from '@/hooks/useBookings';
@@ -34,7 +36,6 @@ export default function PaymentScreen() {
     carrierBankName: string;
   }>();
   const { t, i18n } = useTranslation();
-  const { colors } = useTheme();
   const router = useRouter();
   const isRTL = i18n.language === 'ar';
 
@@ -76,71 +77,67 @@ export default function PaymentScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
+    <SafeAreaView style={styles.container}>
+      <BackgroundBlobs variant="subtle" />
+
+      <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.headerBtn}>
-          <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={colors.text} />
+          <Ionicons
+            name={isRTL ? 'arrow-forward' : 'arrow-back'}
+            size={20}
+            color={V2_COLORS.text}
+          />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>{t('payment.title')}</Text>
+        <Text style={styles.headerTitle}>{t('payment.title')}</Text>
         <View style={styles.headerBtn} />
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Amount Card */}
-        <Animated.View
-          entering={FadeInDown.duration(300)}
-          style={[styles.amountCard, { backgroundColor: colors.primary }]}
-        >
-          <Text style={styles.amountLabel}>{t('payment.amount')}</Text>
-          <Text style={styles.amountValue}>
-            {params.amount} <Text style={styles.amountCurrency}>{params.currency || 'SAR'}</Text>
-          </Text>
+        <Animated.View entering={FadeInDown.duration(300)}>
+          <LinearGradient
+            colors={[...GRADIENTS.primary]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.amountCard}
+          >
+            <Text style={styles.amountLabel}>{t('payment.amount')}</Text>
+            <Text style={styles.amountValue}>
+              {params.amount} <Text style={styles.amountCurrency}>{params.currency || 'SAR'}</Text>
+            </Text>
+          </LinearGradient>
         </Animated.View>
 
         {/* Bank Details Card */}
-        <Animated.View
-          entering={FadeInDown.duration(300).delay(100)}
-          style={[styles.card, { backgroundColor: colors.card }]}
-        >
-          <Text style={[styles.cardTitle, { color: colors.text }]}>{t('payment.bankDetails')}</Text>
+        <Animated.View entering={FadeInDown.duration(300).delay(100)} style={styles.card}>
+          <Text style={styles.cardTitle}>{t('payment.bankDetails')}</Text>
 
           <View style={styles.detailRow}>
-            <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>
-              {t('payment.accountHolder')}
-            </Text>
-            <Text style={[styles.detailValue, { color: colors.text }]}>{params.carrierName}</Text>
+            <Text style={styles.detailLabel}>{t('payment.accountHolder')}</Text>
+            <Text style={styles.detailValue}>{params.carrierName}</Text>
           </View>
 
           {params.carrierBankName && (
             <View style={styles.detailRow}>
-              <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>
-                {t('payment.bankName')}
-              </Text>
-              <Text style={[styles.detailValue, { color: colors.text }]}>
-                {params.carrierBankName}
-              </Text>
+              <Text style={styles.detailLabel}>{t('payment.bankName')}</Text>
+              <Text style={styles.detailValue}>{params.carrierBankName}</Text>
             </View>
           )}
 
           <View style={styles.detailRow}>
-            <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>
-              {t('payment.iban')}
-            </Text>
-            <Text style={[styles.ibanText, { color: colors.text }]} selectable>
+            <Text style={styles.detailLabel}>{t('payment.iban')}</Text>
+            <Text style={styles.ibanText} selectable>
               {params.carrierIban}
             </Text>
           </View>
 
-          <TouchableOpacity
-            onPress={handleCopyIban}
-            style={[styles.copyBtn, { borderColor: colors.primary }]}
-          >
+          <TouchableOpacity onPress={handleCopyIban} style={styles.copyBtn}>
             <Ionicons
               name={ibanCopied ? 'checkmark-circle' : 'copy-outline'}
               size={18}
-              color={colors.primary}
+              color={V2_COLORS.primary}
             />
-            <Text style={[styles.copyBtnText, { color: colors.primary }]}>
+            <Text style={styles.copyBtnText}>
               {ibanCopied ? t('payment.ibanCopied') : t('payment.copyIban')}
             </Text>
           </TouchableOpacity>
@@ -150,54 +147,39 @@ export default function PaymentScreen() {
         <Animated.View entering={FadeInDown.duration(300).delay(200)}>
           <TouchableOpacity
             onPress={() => Linking.openURL('https://www.alrajhibank.com.sa')}
-            style={[
-              styles.bankAppBtn,
-              { backgroundColor: colors.card, borderColor: colors.border },
-            ]}
+            style={styles.bankAppBtn}
           >
-            <Ionicons name="open-outline" size={20} color={colors.primary} />
-            <Text style={[styles.bankAppText, { color: colors.primary }]}>
-              {t('payment.openBankApp')}
-            </Text>
+            <Ionicons name="open-outline" size={20} color={V2_COLORS.primary} />
+            <Text style={styles.bankAppText}>{t('payment.openBankApp')}</Text>
           </TouchableOpacity>
         </Animated.View>
 
         {/* Divider */}
-        <View style={[styles.divider, { backgroundColor: colors.border }]} />
+        <View style={styles.divider} />
 
         {/* Upload Proof */}
-        <Animated.View
-          entering={FadeInDown.duration(300).delay(300)}
-          style={[styles.card, { backgroundColor: colors.card }]}
-        >
-          <Text style={[styles.cardTitle, { color: colors.text }]}>{t('payment.uploadProof')}</Text>
+        <Animated.View entering={FadeInDown.duration(300).delay(300)} style={styles.card}>
+          <Text style={styles.cardTitle}>{t('payment.uploadProof')}</Text>
 
           {uploadedUrl ? (
             <View style={styles.proofPreview}>
               <Image source={{ uri: uploadedUrl }} style={styles.proofImage} contentFit="cover" />
-              <TouchableOpacity
-                onPress={handleUploadProof}
-                style={[styles.changeImageBtn, { borderColor: colors.primary }]}
-              >
-                <Text style={[styles.changeImageText, { color: colors.primary }]}>
-                  {t('payment.changeImage')}
-                </Text>
+              <TouchableOpacity onPress={handleUploadProof} style={styles.changeImageBtn}>
+                <Text style={styles.changeImageText}>{t('payment.changeImage')}</Text>
               </TouchableOpacity>
             </View>
           ) : (
             <TouchableOpacity
               onPress={handleUploadProof}
               disabled={isUploading}
-              style={[styles.uploadBtn, { borderColor: colors.primary + '40' }]}
+              style={styles.uploadBtn}
             >
               {isUploading ? (
-                <ActivityIndicator color={colors.primary} />
+                <ActivityIndicator color={V2_COLORS.primary} />
               ) : (
                 <>
-                  <Ionicons name="camera-outline" size={32} color={colors.primary} />
-                  <Text style={[styles.uploadBtnText, { color: colors.primary }]}>
-                    {t('payment.uploadProof')}
-                  </Text>
+                  <Ionicons name="camera-outline" size={32} color={V2_COLORS.primary} />
+                  <Text style={styles.uploadBtnText}>{t('payment.uploadProof')}</Text>
                 </>
               )}
             </TouchableOpacity>
@@ -208,19 +190,20 @@ export default function PaymentScreen() {
         <TouchableOpacity
           onPress={handleConfirm}
           disabled={!uploadedUrl || submitProof.isPending}
-          style={[
-            styles.confirmBtn,
-            {
-              backgroundColor: colors.primary,
-              opacity: uploadedUrl && !submitProof.isPending ? 1 : 0.5,
-            },
-          ]}
+          style={[styles.confirmBtn, { opacity: uploadedUrl && !submitProof.isPending ? 1 : 0.5 }]}
         >
-          {submitProof.isPending ? (
-            <ActivityIndicator color="#FFF" />
-          ) : (
-            <Text style={styles.confirmBtnText}>{t('payment.confirmPayment')}</Text>
-          )}
+          <LinearGradient
+            colors={[...GRADIENTS.primary]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.confirmGradient}
+          >
+            {submitProof.isPending ? (
+              <ActivityIndicator color="#FFF" />
+            ) : (
+              <Text style={styles.confirmBtnText}>{t('payment.confirmPayment')}</Text>
+            )}
+          </LinearGradient>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
@@ -228,21 +211,28 @@ export default function PaymentScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 } as ViewStyle,
+  container: { flex: 1, backgroundColor: V2_COLORS.bg } as ViewStyle,
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    borderBottomWidth: 1,
   } as ViewStyle,
-  headerBtn: { width: 40, alignItems: 'center' } as ViewStyle,
-  headerTitle: { fontSize: 18, fontWeight: '600' } as TextStyle,
+  headerBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: RADIUS.pill,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...BUBBLE_SHADOWS.xs,
+  } as ViewStyle,
+  headerTitle: { fontSize: 18, fontWeight: '700', color: V2_COLORS.text } as TextStyle,
   scrollContent: { padding: 16, paddingBottom: 40 } as ViewStyle,
 
   amountCard: {
-    borderRadius: 20,
+    borderRadius: RADIUS.heroCard,
     padding: 24,
     alignItems: 'center',
     marginBottom: 16,
@@ -251,17 +241,34 @@ const styles = StyleSheet.create({
   amountValue: { color: '#FFF', fontSize: 36, fontWeight: '700', marginTop: 4 } as TextStyle,
   amountCurrency: { fontSize: 18, fontWeight: '500' } as TextStyle,
 
-  card: { borderRadius: 16, padding: 20, marginBottom: 16 } as ViewStyle,
-  cardTitle: { fontSize: 16, fontWeight: '700', marginBottom: 16 } as TextStyle,
+  card: {
+    borderRadius: RADIUS.card,
+    padding: 20,
+    marginBottom: 16,
+    backgroundColor: '#FFFFFF',
+    ...BUBBLE_SHADOWS.sm,
+  } as ViewStyle,
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    marginBottom: 16,
+    color: V2_COLORS.text,
+  } as TextStyle,
 
   detailRow: { marginBottom: 14 } as ViewStyle,
-  detailLabel: { fontSize: 13, fontWeight: '500', marginBottom: 4 } as TextStyle,
-  detailValue: { fontSize: 16, fontWeight: '600' } as TextStyle,
+  detailLabel: {
+    fontSize: 13,
+    fontWeight: '500',
+    marginBottom: 4,
+    color: V2_COLORS.textSoft,
+  } as TextStyle,
+  detailValue: { fontSize: 16, fontWeight: '600', color: V2_COLORS.text } as TextStyle,
   ibanText: {
     fontSize: 15,
     fontWeight: '600',
     fontFamily: 'monospace',
     letterSpacing: 1,
+    color: V2_COLORS.text,
   } as TextStyle,
 
   copyBtn: {
@@ -270,11 +277,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
     height: 44,
-    borderRadius: 12,
-    borderWidth: 1.5,
+    borderRadius: RADIUS.pill,
+    backgroundColor: V2_COLORS.primary + '10',
     marginTop: 4,
   } as ViewStyle,
-  copyBtnText: { fontSize: 15, fontWeight: '600' } as TextStyle,
+  copyBtnText: { fontSize: 15, fontWeight: '600', color: V2_COLORS.primary } as TextStyle,
 
   bankAppBtn: {
     flexDirection: 'row',
@@ -282,42 +289,49 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
     height: 48,
-    borderRadius: 12,
-    borderWidth: 1,
+    borderRadius: RADIUS.pill,
+    backgroundColor: '#FFFFFF',
     marginBottom: 16,
+    ...BUBBLE_SHADOWS.xs,
   } as ViewStyle,
-  bankAppText: { fontSize: 15, fontWeight: '600' } as TextStyle,
+  bankAppText: { fontSize: 15, fontWeight: '600', color: V2_COLORS.primary } as TextStyle,
 
-  divider: { height: 1, marginBottom: 16 } as ViewStyle,
+  divider: { height: 1, marginBottom: 16, backgroundColor: V2_COLORS.cardShadow } as ViewStyle,
 
   uploadBtn: {
     height: 140,
-    borderRadius: 14,
+    borderRadius: RADIUS.card,
     borderWidth: 2,
     borderStyle: 'dashed',
+    borderColor: V2_COLORS.primary + '40',
+    backgroundColor: V2_COLORS.primary + '08',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
   } as ViewStyle,
-  uploadBtnText: { fontSize: 15, fontWeight: '600' } as TextStyle,
+  uploadBtnText: { fontSize: 15, fontWeight: '600', color: V2_COLORS.primary } as TextStyle,
 
   proofPreview: { gap: 12 } as ViewStyle,
-  proofImage: { width: '100%', height: 200, borderRadius: 12 } as ImageStyle,
+  proofImage: { width: '100%', height: 200, borderRadius: RADIUS.card } as ImageStyle,
   changeImageBtn: {
     height: 40,
-    borderRadius: 10,
-    borderWidth: 1.5,
+    borderRadius: RADIUS.pill,
+    backgroundColor: V2_COLORS.primary + '10',
     alignItems: 'center',
     justifyContent: 'center',
   } as ViewStyle,
-  changeImageText: { fontSize: 14, fontWeight: '600' } as TextStyle,
+  changeImageText: { fontSize: 14, fontWeight: '600', color: V2_COLORS.primary } as TextStyle,
 
   confirmBtn: {
+    marginTop: 8,
+    borderRadius: RADIUS.pill,
+    overflow: 'hidden',
+  } as ViewStyle,
+  confirmGradient: {
     height: 56,
-    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 8,
+    borderRadius: RADIUS.pill,
   } as ViewStyle,
   confirmBtnText: { color: '#FFF', fontSize: 17, fontWeight: '700' } as TextStyle,
 });

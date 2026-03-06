@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import { ScrollView, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
-import { useTheme, RADIUS } from '@/providers/ThemeProvider';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS } from '@/providers/ThemeProvider';
 import { ANIM } from '@/lib/animations';
 
 export interface ChipOption {
@@ -43,7 +43,6 @@ interface ChipProps {
 }
 
 const Chip = React.memo(function Chip({ option, isSelected, onSelect }: ChipProps) {
-  const { colors } = useTheme();
   const scale = useSharedValue(1);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -64,16 +63,9 @@ const Chip = React.memo(function Chip({ option, isSelected, onSelect }: ChipProp
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
       activeOpacity={1}
-      style={[
-        styles.chip,
-        {
-          backgroundColor: isSelected ? colors.primary : 'transparent',
-          borderColor: isSelected ? colors.primary : colors.border,
-        },
-        animatedStyle,
-      ]}
+      style={[styles.chip, isSelected ? styles.chipSelected : styles.chipDefault, animatedStyle]}
     >
-      <Text style={[styles.chipText, { color: isSelected ? '#FFFFFF' : colors.textSecondary }]}>
+      <Text style={[styles.chipText, { color: isSelected ? '#FFFFFF' : V2_COLORS.textSoft }]}>
         {option.label}
       </Text>
     </AnimatedTouchable>
@@ -86,10 +78,16 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   chip: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 18,
     paddingVertical: 10,
-    borderRadius: RADIUS.badge,
-    borderWidth: 1.5,
+    borderRadius: RADIUS.pill,
+  },
+  chipDefault: {
+    backgroundColor: '#FFFFFF',
+    ...BUBBLE_SHADOWS.xs,
+  },
+  chipSelected: {
+    backgroundColor: V2_COLORS.primary,
   },
   chipText: {
     fontSize: 14,

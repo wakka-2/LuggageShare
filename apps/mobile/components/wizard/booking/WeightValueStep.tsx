@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
-import { useTheme, RADIUS } from '@/providers/ThemeProvider';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS } from '@/providers/ThemeProvider';
 import { QuestionTitle } from '../QuestionTitle';
 import { AnimatedButton } from '@/components/animations/AnimatedButton';
 import type { StepProps } from '../WizardContainer';
@@ -15,7 +15,6 @@ const SIZE_OPTIONS = [
 
 export function WeightValueStep({ data, updateData, goNext }: StepProps) {
   const { t, i18n } = useTranslation();
-  const { colors } = useTheme();
   const isRTL = i18n.language === 'ar';
 
   const weight = data.weight || '';
@@ -45,20 +44,21 @@ export function WeightValueStep({ data, updateData, goNext }: StepProps) {
               onPress={() => handleSizeSelect(opt)}
               style={[
                 styles.sizeCard,
-                {
-                  backgroundColor: isSelected ? colors.primary + '10' : colors.surface,
-                  borderColor: isSelected ? colors.primary : colors.border,
-                  transform: [{ translateY: isSelected ? -4 : 0 }],
-                },
+                isSelected && styles.sizeCardSelected,
+                !isSelected && BUBBLE_SHADOWS.sm,
+                { transform: [{ translateY: isSelected ? -4 : 0 }] },
               ]}
             >
               <Text style={styles.sizeEmoji}>{opt.emoji}</Text>
               <Text
-                style={[styles.sizeLabel, { color: isSelected ? colors.primary : colors.text }]}
+                style={[
+                  styles.sizeLabel,
+                  { color: isSelected ? V2_COLORS.primary : V2_COLORS.text },
+                ]}
               >
                 {opt.label}
               </Text>
-              <Text style={[styles.sizeRange, { color: colors.textSecondary }]}>{opt.range}</Text>
+              <Text style={styles.sizeRange}>{opt.range}</Text>
             </TouchableOpacity>
           );
         })}
@@ -66,18 +66,15 @@ export function WeightValueStep({ data, updateData, goNext }: StepProps) {
 
       {/* Exact Weight */}
       <Animated.View entering={FadeInUp.delay(250).springify()} style={styles.section}>
-        <Text style={[styles.label, { color: colors.textSecondary }]}>
+        <Text style={styles.label}>
           {t('booking.wizard.weight.exact', { defaultValue: 'Exact weight' })} (kg)
         </Text>
         <TextInput
-          style={[
-            styles.input,
-            { backgroundColor: colors.surface, color: colors.text, borderColor: colors.border },
-          ]}
+          style={styles.input}
           value={weight}
           onChangeText={(v) => updateData({ weight: v })}
           placeholder="0.0"
-          placeholderTextColor={colors.textMuted}
+          placeholderTextColor={V2_COLORS.textMuted}
           keyboardType="numeric"
           textAlign={isRTL ? 'right' : 'left'}
         />
@@ -85,22 +82,19 @@ export function WeightValueStep({ data, updateData, goNext }: StepProps) {
 
       {/* Declared Value */}
       <Animated.View entering={FadeInUp.delay(350).springify()} style={styles.section}>
-        <Text style={[styles.label, { color: colors.textSecondary }]}>
+        <Text style={styles.label}>
           {t('booking.wizard.weight.value', { defaultValue: 'Declared value' })} (SAR)
         </Text>
         <TextInput
-          style={[
-            styles.input,
-            { backgroundColor: colors.surface, color: colors.text, borderColor: colors.border },
-          ]}
+          style={styles.input}
           value={data.declaredValue || ''}
           onChangeText={(v) => updateData({ declaredValue: v })}
           placeholder="0"
-          placeholderTextColor={colors.textMuted}
+          placeholderTextColor={V2_COLORS.textMuted}
           keyboardType="numeric"
           textAlign={isRTL ? 'right' : 'left'}
         />
-        <Text style={[styles.hint, { color: colors.textMuted }]}>
+        <Text style={styles.hint}>
           {t('booking.wizard.weight.insurance', { defaultValue: '(for insurance purposes)' })}
         </Text>
       </Animated.View>
@@ -131,8 +125,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 16,
     paddingHorizontal: 8,
-    borderRadius: RADIUS.button,
+    borderRadius: RADIUS.card,
+    backgroundColor: '#FFFFFF',
+  },
+  sizeCardSelected: {
+    backgroundColor: V2_COLORS.primary + '08',
     borderWidth: 1.5,
+    borderColor: V2_COLORS.primary,
   },
   sizeEmoji: {
     fontSize: 28,
@@ -146,6 +145,7 @@ const styles = StyleSheet.create({
   sizeRange: {
     fontSize: 11,
     marginTop: 2,
+    color: V2_COLORS.textSoft,
   },
   section: {
     marginBottom: 20,
@@ -154,16 +154,20 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     marginBottom: 8,
+    color: V2_COLORS.textSoft,
   },
   input: {
     height: 48,
     borderRadius: RADIUS.input,
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     fontSize: 16,
-    borderWidth: 1,
+    backgroundColor: '#FFFFFF',
+    color: V2_COLORS.text,
+    ...BUBBLE_SHADOWS.xs,
   },
   hint: {
     fontSize: 12,
     marginTop: 4,
+    color: V2_COLORS.textMuted,
   },
 });

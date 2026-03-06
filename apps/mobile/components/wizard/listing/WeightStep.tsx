@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
-import { useTheme } from '@/providers/ThemeProvider';
+import { V2_COLORS } from '@/providers/ThemeProvider';
 import { QuestionTitle } from '../QuestionTitle';
 import { OptionChips, ChipOption } from '../OptionChips';
 import { AnimatedButton } from '@/components/animations/AnimatedButton';
@@ -19,7 +19,6 @@ const WEIGHT_OPTIONS: ChipOption[] = [
 
 export function WeightStep({ data, updateData, goNext }: StepProps) {
   const { t } = useTranslation();
-  const { colors } = useTheme();
 
   const weight = data.availableWeight ? String(data.availableWeight) : null;
   const canAdvance = !!weight && parseFloat(weight) > 0;
@@ -28,7 +27,6 @@ export function WeightStep({ data, updateData, goNext }: StepProps) {
     updateData({ availableWeight: parseFloat(id) });
   };
 
-  // Suitcase emoji scales with weight
   const weightNum = parseFloat(weight || '0');
   const suitcaseSize = 40 + Math.min(weightNum, 23) * 2.5;
 
@@ -43,10 +41,7 @@ export function WeightStep({ data, updateData, goNext }: StepProps) {
       <Animated.View entering={FadeIn.delay(150)} style={styles.suitcaseContainer}>
         <Text style={{ fontSize: suitcaseSize }}>🧳</Text>
         {canAdvance && (
-          <Animated.Text
-            entering={FadeIn.duration(200)}
-            style={[styles.weightDisplay, { color: colors.primary }]}
-          >
+          <Animated.Text entering={FadeIn.duration(200)} style={styles.weightDisplay}>
             {weightNum.toFixed(1)} kg
           </Animated.Text>
         )}
@@ -54,7 +49,7 @@ export function WeightStep({ data, updateData, goNext }: StepProps) {
 
       {/* Quick select */}
       <Animated.View entering={FadeInUp.delay(200).springify()} style={styles.section}>
-        <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>
+        <Text style={styles.sectionLabel}>
           {t('listing.wizard.weight.quickSelect', { defaultValue: 'Quick select:' })}
         </Text>
         <OptionChips options={WEIGHT_OPTIONS} selected={weight} onSelect={handleSelect} />
@@ -62,7 +57,7 @@ export function WeightStep({ data, updateData, goNext }: StepProps) {
 
       {/* Hint */}
       <Animated.View entering={FadeIn.delay(1000)} style={styles.hint}>
-        <Text style={[styles.hintText, { color: colors.textMuted }]}>
+        <Text style={styles.hintText}>
           💡 {t('listing.wizard.weight.hint', { defaultValue: 'Average carry: 5-10kg' })}
         </Text>
       </Animated.View>
@@ -91,6 +86,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '700',
     marginTop: 8,
+    color: V2_COLORS.primary,
   },
   section: {
     marginBottom: 24,
@@ -99,12 +95,14 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     marginBottom: 10,
+    color: V2_COLORS.textSoft,
   },
   hint: {
     marginBottom: 24,
   },
   hintText: {
     fontSize: 14,
+    color: V2_COLORS.textMuted,
   },
   nextContainer: {
     marginTop: 8,

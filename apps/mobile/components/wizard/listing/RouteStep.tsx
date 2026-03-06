@@ -3,7 +3,7 @@ import { View, TextInput, StyleSheet } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { useTheme, RADIUS } from '@/providers/ThemeProvider';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS } from '@/providers/ThemeProvider';
 import { QuestionTitle } from '../QuestionTitle';
 import { OptionChips, ChipOption } from '../OptionChips';
 import { AnimatedButton } from '@/components/animations/AnimatedButton';
@@ -25,7 +25,6 @@ const ROUTE_MAP: Record<string, { from: string; fromCode: string; to: string; to
 
 export function RouteStep({ data, updateData, goNext }: StepProps) {
   const { t, i18n } = useTranslation();
-  const { colors } = useTheme();
   const isRTL = i18n.language === 'ar';
 
   const canAdvance = !!data.departureCity?.trim() && !!data.arrivalCity?.trim();
@@ -52,31 +51,25 @@ export function RouteStep({ data, updateData, goNext }: StepProps) {
       {/* From */}
       <Animated.View entering={FadeInUp.delay(150).springify()} style={styles.inputGroup}>
         <View style={styles.inputLabel}>
-          <Ionicons name="airplane-outline" size={18} color={colors.primary} />
-          <Animated.Text style={[styles.label, { color: colors.textSecondary }]}>
+          <View style={[styles.dot, { backgroundColor: V2_COLORS.accent1 }]} />
+          <Animated.Text style={styles.label}>
             {t('listing.wizard.route.from', { defaultValue: 'From' })}
           </Animated.Text>
         </View>
         <TextInput
-          style={[
-            styles.input,
-            { backgroundColor: colors.surface, color: colors.text, borderColor: colors.border },
-          ]}
+          style={styles.input}
           value={data.departureCity || ''}
           onChangeText={(v) => updateData({ departureCity: v })}
           placeholder={t('listing.wizard.route.searchCity', { defaultValue: 'Search city...' })}
-          placeholderTextColor={colors.textMuted}
+          placeholderTextColor={V2_COLORS.textMuted}
           textAlign={isRTL ? 'right' : 'left'}
         />
         <TextInput
-          style={[
-            styles.codeInput,
-            { backgroundColor: colors.surface, color: colors.text, borderColor: colors.border },
-          ]}
+          style={styles.codeInput}
           value={data.departureCode || ''}
           onChangeText={(v) => updateData({ departureCode: v.toUpperCase() })}
           placeholder="RUH"
-          placeholderTextColor={colors.textMuted}
+          placeholderTextColor={V2_COLORS.textMuted}
           maxLength={4}
           autoCapitalize="characters"
           textAlign="center"
@@ -86,31 +79,25 @@ export function RouteStep({ data, updateData, goNext }: StepProps) {
       {/* To */}
       <Animated.View entering={FadeInUp.delay(200).springify()} style={styles.inputGroup}>
         <View style={styles.inputLabel}>
-          <Ionicons name="location-outline" size={18} color={colors.success} />
-          <Animated.Text style={[styles.label, { color: colors.textSecondary }]}>
+          <View style={[styles.dot, { backgroundColor: V2_COLORS.secondary }]} />
+          <Animated.Text style={styles.label}>
             {t('listing.wizard.route.to', { defaultValue: 'To' })}
           </Animated.Text>
         </View>
         <TextInput
-          style={[
-            styles.input,
-            { backgroundColor: colors.surface, color: colors.text, borderColor: colors.border },
-          ]}
+          style={styles.input}
           value={data.arrivalCity || ''}
           onChangeText={(v) => updateData({ arrivalCity: v })}
           placeholder={t('listing.wizard.route.searchCity', { defaultValue: 'Search city...' })}
-          placeholderTextColor={colors.textMuted}
+          placeholderTextColor={V2_COLORS.textMuted}
           textAlign={isRTL ? 'right' : 'left'}
         />
         <TextInput
-          style={[
-            styles.codeInput,
-            { backgroundColor: colors.surface, color: colors.text, borderColor: colors.border },
-          ]}
+          style={styles.codeInput}
           value={data.arrivalCode || ''}
           onChangeText={(v) => updateData({ arrivalCode: v.toUpperCase() })}
           placeholder="JED"
-          placeholderTextColor={colors.textMuted}
+          placeholderTextColor={V2_COLORS.textMuted}
           maxLength={4}
           autoCapitalize="characters"
           textAlign="center"
@@ -119,7 +106,7 @@ export function RouteStep({ data, updateData, goNext }: StepProps) {
 
       {/* Popular Routes */}
       <Animated.View entering={FadeInUp.delay(300).springify()} style={styles.popular}>
-        <Animated.Text style={[styles.popularLabel, { color: colors.textSecondary }]}>
+        <Animated.Text style={styles.popularLabel}>
           {t('listing.wizard.route.popular', { defaultValue: 'Popular Routes:' })}
         </Animated.Text>
         <OptionChips options={POPULAR_ROUTES} selected={null} onSelect={handlePopularRoute} />
@@ -147,20 +134,28 @@ const styles = StyleSheet.create({
   inputLabel: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
     marginBottom: 8,
+  },
+  dot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
   },
   label: {
     fontSize: 14,
     fontWeight: '600',
+    color: V2_COLORS.textSoft,
   },
   input: {
     height: 48,
     borderRadius: RADIUS.input,
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     fontSize: 16,
-    borderWidth: 1,
+    backgroundColor: '#FFFFFF',
+    color: V2_COLORS.text,
     marginBottom: 8,
+    ...BUBBLE_SHADOWS.xs,
   },
   codeInput: {
     height: 40,
@@ -169,8 +164,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     fontSize: 14,
     fontWeight: '700',
-    borderWidth: 1,
+    backgroundColor: '#FFFFFF',
+    color: V2_COLORS.text,
     letterSpacing: 1,
+    ...BUBBLE_SHADOWS.xs,
   },
   popular: {
     marginTop: 8,
@@ -179,6 +176,7 @@ const styles = StyleSheet.create({
   popularLabel: {
     fontSize: 14,
     fontWeight: '600',
+    color: V2_COLORS.textSoft,
     marginBottom: 8,
   },
   nextContainer: {

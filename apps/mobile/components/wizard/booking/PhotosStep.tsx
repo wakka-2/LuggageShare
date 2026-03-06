@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Image, ActivityIndicator } fr
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { useTheme, RADIUS } from '@/providers/ThemeProvider';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS } from '@/providers/ThemeProvider';
 import { QuestionTitle } from '../QuestionTitle';
 import { AnimatedButton } from '@/components/animations/AnimatedButton';
 import { useImageUpload } from '@/hooks/useImageUpload';
@@ -11,7 +11,6 @@ import type { StepProps } from '../WizardContainer';
 
 export function PhotosStep({ data, updateData, goNext }: StepProps) {
   const { t } = useTranslation();
-  const { colors } = useTheme();
   const imageUpload = useImageUpload();
 
   const imageUrls: string[] = data.imageUrls || [];
@@ -40,28 +39,23 @@ export function PhotosStep({ data, updateData, goNext }: StepProps) {
           <Animated.View key={url} entering={FadeIn.duration(300)} style={styles.photoWrapper}>
             <Image source={{ uri: url }} style={styles.photo} />
             <TouchableOpacity style={styles.removeBtn} onPress={() => handleRemoveImage(index)}>
-              <Ionicons name="close-circle" size={22} color="#EF4444" />
+              <Ionicons name="close-circle" size={22} color={V2_COLORS.secondary} />
             </TouchableOpacity>
           </Animated.View>
         ))}
 
         {imageUrls.length < 3 && (
           <TouchableOpacity
-            style={[
-              styles.addBtn,
-              { borderColor: colors.primary, backgroundColor: colors.primary + '08' },
-            ]}
+            style={styles.addBtn}
             onPress={handleAddImage}
             disabled={imageUpload.isUploading}
           >
             {imageUpload.isUploading ? (
-              <ActivityIndicator size="small" color={colors.primary} />
+              <ActivityIndicator size="small" color={V2_COLORS.primary} />
             ) : (
               <>
-                <Ionicons name="camera-outline" size={32} color={colors.primary} />
-                <Text style={[styles.addText, { color: colors.primary }]}>
-                  {t('booking.addPhoto', { defaultValue: 'Add' })}
-                </Text>
+                <Ionicons name="camera-outline" size={32} color={V2_COLORS.primary} />
+                <Text style={styles.addText}>{t('booking.addPhoto', { defaultValue: 'Add' })}</Text>
               </>
             )}
           </TouchableOpacity>
@@ -70,7 +64,7 @@ export function PhotosStep({ data, updateData, goNext }: StepProps) {
 
       {/* Hint */}
       <Animated.View entering={FadeIn.delay(500)} style={styles.hint}>
-        <Text style={[styles.hintText, { color: colors.textMuted }]}>
+        <Text style={styles.hintText}>
           💡{' '}
           {t('booking.wizard.photos.hint', {
             defaultValue: 'Clear photos help carriers feel confident',
@@ -112,7 +106,7 @@ const styles = StyleSheet.create({
   photo: {
     width: 100,
     height: 100,
-    borderRadius: RADIUS.button,
+    borderRadius: RADIUS.card,
   },
   removeBtn: {
     position: 'absolute',
@@ -124,9 +118,11 @@ const styles = StyleSheet.create({
   addBtn: {
     width: 100,
     height: 100,
-    borderRadius: RADIUS.button,
+    borderRadius: RADIUS.card,
     borderWidth: 2,
     borderStyle: 'dashed',
+    borderColor: V2_COLORS.primary + '40',
+    backgroundColor: V2_COLORS.primary + '08',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 4,
@@ -134,12 +130,14 @@ const styles = StyleSheet.create({
   addText: {
     fontSize: 12,
     fontWeight: '600',
+    color: V2_COLORS.primary,
   },
   hint: {
     marginBottom: 24,
   },
   hintText: {
     fontSize: 14,
+    color: V2_COLORS.textMuted,
   },
   actions: {
     alignItems: 'center',

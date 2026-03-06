@@ -1,7 +1,7 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { Text, StyleSheet } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { useTheme, TYPOGRAPHY } from '@/providers/ThemeProvider';
+import { V2_COLORS, TYPOGRAPHY } from '@/providers/ThemeProvider';
 
 interface QuestionTitleProps {
   emoji: string;
@@ -10,15 +10,11 @@ interface QuestionTitleProps {
 }
 
 export function QuestionTitle({ emoji, title, subtitle }: QuestionTitleProps) {
-  const { colors } = useTheme();
-
   return (
     <Animated.View entering={FadeInDown.delay(100).springify()} style={styles.container}>
       <Text style={styles.emoji}>{emoji}</Text>
-      <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
-      {subtitle && (
-        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{subtitle}</Text>
-      )}
+      <Text style={styles.title}>{title}</Text>
+      {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
     </Animated.View>
   );
 }
@@ -33,9 +29,11 @@ const styles = StyleSheet.create({
   },
   title: {
     ...TYPOGRAPHY.h2,
+    color: V2_COLORS.text,
     marginBottom: 4,
   },
   subtitle: {
     ...TYPOGRAPHY.caption,
+    color: V2_COLORS.textSoft,
   },
 });

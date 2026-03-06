@@ -2,7 +2,7 @@ import React from 'react';
 import { View, TextInput, Text, StyleSheet } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
-import { useTheme, RADIUS } from '@/providers/ThemeProvider';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS } from '@/providers/ThemeProvider';
 import { QuestionTitle } from '../QuestionTitle';
 import { OptionGrid, GridOption } from '../OptionGrid';
 import { AnimatedButton } from '@/components/animations/AnimatedButton';
@@ -19,7 +19,6 @@ const CATEGORY_OPTIONS: GridOption[] = [
 
 export function PreferencesStep({ data, updateData, goNext }: StepProps) {
   const { t, i18n } = useTranslation();
-  const { colors } = useTheme();
   const isRTL = i18n.language === 'ar';
 
   const selectedCategories: string[] = data.acceptedCategories || [];
@@ -51,18 +50,15 @@ export function PreferencesStep({ data, updateData, goNext }: StepProps) {
 
       {/* Notes */}
       <Animated.View entering={FadeInUp.delay(300).springify()} style={styles.section}>
-        <Text style={[styles.label, { color: colors.textSecondary }]}>
+        <Text style={styles.label}>
           {t('listing.notes', { defaultValue: 'Notes (optional):' })}
         </Text>
         <TextInput
-          style={[
-            styles.notesInput,
-            { backgroundColor: colors.surface, color: colors.text, borderColor: colors.border },
-          ]}
+          style={styles.notesInput}
           value={data.notes || ''}
           onChangeText={(v) => updateData({ notes: v })}
           placeholder={t('listing.placeholderNotes', { defaultValue: 'No liquids please...' })}
-          placeholderTextColor={colors.textMuted}
+          placeholderTextColor={V2_COLORS.textMuted}
           multiline
           numberOfLines={3}
           textAlignVertical="top"
@@ -97,14 +93,17 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     marginBottom: 8,
+    color: V2_COLORS.textSoft,
   },
   notesInput: {
     height: 80,
-    borderRadius: RADIUS.input,
-    paddingHorizontal: 16,
+    borderRadius: RADIUS.card,
+    paddingHorizontal: 20,
     paddingVertical: 12,
     fontSize: 15,
-    borderWidth: 1,
+    backgroundColor: '#FFFFFF',
+    color: V2_COLORS.text,
+    ...BUBBLE_SHADOWS.xs,
   },
   actions: {
     alignItems: 'center',

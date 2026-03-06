@@ -2,7 +2,7 @@ import React from 'react';
 import { View, TextInput, StyleSheet } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
-import { useTheme, RADIUS } from '@/providers/ThemeProvider';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS } from '@/providers/ThemeProvider';
 import { QuestionTitle } from '../QuestionTitle';
 import { OptionChips, ChipOption } from '../OptionChips';
 import { AnimatedButton } from '@/components/animations/AnimatedButton';
@@ -19,7 +19,6 @@ const CATEGORIES: ChipOption[] = [
 
 export function ItemDetailsStep({ data, updateData, goNext }: StepProps) {
   const { t, i18n } = useTranslation();
-  const { colors } = useTheme();
   const isRTL = i18n.language === 'ar';
 
   const canAdvance = !!data.itemName?.trim();
@@ -34,14 +33,11 @@ export function ItemDetailsStep({ data, updateData, goNext }: StepProps) {
       {/* Item Name */}
       <Animated.View entering={FadeInUp.delay(150).springify()} style={styles.section}>
         <TextInput
-          style={[
-            styles.input,
-            { backgroundColor: colors.surface, color: colors.text, borderColor: colors.border },
-          ]}
+          style={styles.input}
           value={data.itemName || ''}
           onChangeText={(v) => updateData({ itemName: v })}
           placeholder={t('booking.wizard.item.name', { defaultValue: 'Item name' })}
-          placeholderTextColor={colors.textMuted}
+          placeholderTextColor={V2_COLORS.textMuted}
           textAlign={isRTL ? 'right' : 'left'}
         />
       </Animated.View>
@@ -58,16 +54,13 @@ export function ItemDetailsStep({ data, updateData, goNext }: StepProps) {
       {/* Description */}
       <Animated.View entering={FadeInUp.delay(300).springify()} style={styles.section}>
         <TextInput
-          style={[
-            styles.textArea,
-            { backgroundColor: colors.surface, color: colors.text, borderColor: colors.border },
-          ]}
+          style={styles.textArea}
           value={data.description || ''}
           onChangeText={(v) => updateData({ description: v })}
           placeholder={t('booking.wizard.item.description', {
             defaultValue: 'Description (optional)',
           })}
-          placeholderTextColor={colors.textMuted}
+          placeholderTextColor={V2_COLORS.textMuted}
           multiline
           numberOfLines={3}
           textAlignVertical="top"
@@ -97,16 +90,20 @@ const styles = StyleSheet.create({
   input: {
     height: 48,
     borderRadius: RADIUS.input,
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     fontSize: 16,
-    borderWidth: 1,
+    backgroundColor: '#FFFFFF',
+    color: V2_COLORS.text,
+    ...BUBBLE_SHADOWS.xs,
   },
   textArea: {
     height: 80,
-    borderRadius: RADIUS.input,
-    paddingHorizontal: 16,
+    borderRadius: RADIUS.card,
+    paddingHorizontal: 20,
     paddingVertical: 12,
     fontSize: 15,
-    borderWidth: 1,
+    backgroundColor: '#FFFFFF',
+    color: V2_COLORS.text,
+    ...BUBBLE_SHADOWS.xs,
   },
 });

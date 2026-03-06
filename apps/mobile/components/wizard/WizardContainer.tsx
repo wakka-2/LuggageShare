@@ -12,7 +12,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { useTheme } from '@/providers/ThemeProvider';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS } from '@/providers/ThemeProvider';
+import { BackgroundBlobs } from '@/components/common/BackgroundBlobs';
 import { WizardProgress } from './WizardProgress';
 import { WizardStep } from './WizardStep';
 import { AnimatedButton } from '@/components/animations/AnimatedButton';
@@ -46,7 +47,6 @@ export function WizardContainer({
   title,
 }: WizardContainerProps) {
   const { t, i18n } = useTranslation();
-  const { colors } = useTheme();
   const router = useRouter();
   const isRTL = i18n.language === 'ar';
 
@@ -61,11 +61,9 @@ export function WizardContainer({
   const goNext = useCallback(() => {
     const config = steps[currentStep];
 
-    // Validate current step
     if (config.validate) {
       const result = config.validate(wizardData);
       if (result !== true && typeof result === 'string') {
-        // Validation failed with error message — don't advance
         return;
       }
       if (result === false) return;
@@ -75,7 +73,6 @@ export function WizardContainer({
       setDirection('forward');
       setCurrentStep((s) => s + 1);
     } else {
-      // Final step — complete
       onComplete(wizardData);
     }
   }, [currentStep, steps, wizardData, onComplete]);
@@ -85,7 +82,6 @@ export function WizardContainer({
       setDirection('backward');
       setCurrentStep((s) => s - 1);
     } else {
-      // First step — cancel the wizard
       if (onCancel) {
         onCancel();
       } else {
@@ -107,15 +103,21 @@ export function WizardContainer({
   const CurrentStepComponent = steps[currentStep].component;
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaView style={styles.container}>
+      <BackgroundBlobs variant="subtle" />
+
       {/* Header */}
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
+      <View style={styles.header}>
         <TouchableOpacity onPress={goBack} style={styles.headerButton}>
-          <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={colors.text} />
+          <Ionicons
+            name={isRTL ? 'arrow-forward' : 'arrow-back'}
+            size={20}
+            color={V2_COLORS.text}
+          />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>{title || ''}</Text>
+        <Text style={styles.headerTitle}>{title || ''}</Text>
         <TouchableOpacity onPress={onCancel ?? (() => router.back())} style={styles.headerButton}>
-          <Ionicons name="close" size={24} color={colors.textSecondary} />
+          <Ionicons name="close" size={20} color={V2_COLORS.textSoft} />
         </TouchableOpacity>
       </View>
 
@@ -144,6 +146,7 @@ export function WizardContainer({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: V2_COLORS.bg,
   },
   flex: {
     flex: 1,
@@ -154,17 +157,20 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    borderBottomWidth: 1,
   },
   headerButton: {
-    width: 40,
-    height: 40,
+    width: 36,
+    height: 36,
+    borderRadius: RADIUS.pill,
+    backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
+    ...BUBBLE_SHADOWS.xs,
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: '700',
+    color: V2_COLORS.text,
   },
   scrollContent: {
     padding: 24,
