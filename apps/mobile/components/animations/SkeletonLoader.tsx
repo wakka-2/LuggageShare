@@ -8,7 +8,7 @@ import Animated, {
   interpolate,
   Easing,
 } from 'react-native-reanimated';
-import { useTheme } from '@/providers/ThemeProvider';
+import { V2_COLORS } from '@/providers/ThemeProvider';
 
 interface SkeletonLoaderProps {
   width: number | string;
@@ -18,7 +18,6 @@ interface SkeletonLoaderProps {
 }
 
 export function SkeletonLoader({ width, height, borderRadius = 8, style }: SkeletonLoaderProps) {
-  const { colors, isDark } = useTheme();
   const shimmer = useSharedValue(0);
 
   useEffect(() => {
@@ -29,14 +28,11 @@ export function SkeletonLoader({ width, height, borderRadius = 8, style }: Skele
     );
   }, [shimmer]);
 
-  const baseColor = isDark ? '#334155' : '#E5E7EB';
-  const highlightColor = isDark ? '#475569' : '#F3F4F6';
+  const baseColor = V2_COLORS.cardShadow;
 
   const animatedStyle = useAnimatedStyle(() => {
-    const backgroundColor = interpolate(shimmer.value, [0, 0.5, 1], [0, 1, 0]);
-    // Interpolate between base and highlight colors via opacity
     return {
-      opacity: interpolate(shimmer.value, [0, 0.5, 1], [1, 0.6, 1]),
+      opacity: interpolate(shimmer.value, [0, 0.5, 1], [1, 0.5, 1]),
     };
   });
 

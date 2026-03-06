@@ -8,7 +8,7 @@ import {
   TextStyle,
 } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
-import { useTheme, RADIUS } from '@/providers/ThemeProvider';
+import { V2_COLORS, RADIUS } from '@/providers/ThemeProvider';
 import { ANIM } from '@/lib/animations';
 
 interface AnimatedButtonProps {
@@ -38,7 +38,6 @@ export function AnimatedButton({
   style,
   textStyle,
 }: AnimatedButtonProps) {
-  const { colors } = useTheme();
   const scale = useSharedValue(1);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -54,22 +53,22 @@ export function AnimatedButton({
   }, [scale]);
 
   const bg = disabled
-    ? colors.border
+    ? V2_COLORS.cardShadow
     : variant === 'primary'
-      ? colors.primary
+      ? V2_COLORS.primary
       : variant === 'secondary'
-        ? colors.card
+        ? '#FFFFFF'
         : 'transparent';
 
   const textColor = disabled
-    ? colors.textSecondary
+    ? V2_COLORS.textMuted
     : variant === 'primary'
       ? '#FFFFFF'
       : variant === 'secondary'
-        ? colors.text
-        : colors.primary;
+        ? V2_COLORS.text
+        : V2_COLORS.primary;
 
-  const borderColor = variant === 'outline' && !disabled ? colors.primary : 'transparent';
+  const borderColor = variant === 'outline' && !disabled ? V2_COLORS.primary : 'transparent';
 
   const padding =
     size === 'sm'

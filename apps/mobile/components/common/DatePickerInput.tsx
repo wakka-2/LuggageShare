@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { View, Text, TouchableOpacity, Platform, StyleSheet } from 'react-native';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS } from '@/providers/ThemeProvider';
 
 interface DatePickerInputProps {
   value: Date | null;
@@ -19,10 +20,9 @@ export function DatePickerInput({
   onChange,
   placeholder = 'Select date',
   minimumDate,
-  textColor = '#000',
-  backgroundColor = '#FFF',
-  borderColor = '#E5E7EB',
-  placeholderColor = '#9CA3AF',
+  textColor = V2_COLORS.text,
+  backgroundColor = '#FFFFFF',
+  placeholderColor = V2_COLORS.textMuted,
   textAlign = 'left',
 }: DatePickerInputProps) {
   const [show, setShow] = useState(false);
@@ -42,10 +42,7 @@ export function DatePickerInput({
 
   return (
     <View>
-      <TouchableOpacity
-        onPress={() => setShow(true)}
-        style={[styles.input, { backgroundColor, borderColor }]}
-      >
+      <TouchableOpacity onPress={() => setShow(true)} style={[styles.input, { backgroundColor }]}>
         <Text
           style={[
             styles.inputText,
@@ -73,10 +70,10 @@ export function DatePickerInput({
 const styles = StyleSheet.create({
   input: {
     height: 48,
-    borderRadius: 12,
-    paddingHorizontal: 16,
+    borderRadius: RADIUS.input,
+    paddingHorizontal: 20,
     justifyContent: 'center',
-    borderWidth: 1,
+    ...BUBBLE_SHADOWS.xs,
   },
   inputText: {
     fontSize: 16,

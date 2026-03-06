@@ -9,7 +9,7 @@ import Animated, {
   interpolate,
   Extrapolation,
 } from 'react-native-reanimated';
-import { useTheme, RADIUS, SHADOWS } from '@/providers/ThemeProvider';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS } from '@/providers/ThemeProvider';
 import { ANIM, createStaggerDelay } from '@/lib/animations';
 
 interface AnimatedCardProps {
@@ -23,7 +23,6 @@ interface AnimatedCardProps {
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
 export function AnimatedCard({ children, onPress, style, delay, index = 0 }: AnimatedCardProps) {
-  const { colors } = useTheme();
   const scale = useSharedValue(1);
   const elevation = useSharedValue(0);
 
@@ -59,11 +58,9 @@ export function AnimatedCard({ children, onPress, style, delay, index = 0 }: Ani
       style={[
         styles.card,
         {
-          backgroundColor: colors.card,
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 4 },
+          backgroundColor: '#FFFFFF',
+          shadowColor: V2_COLORS.primary,
         },
-        SHADOWS.m,
         pressStyle,
         shadowStyle,
         style,
@@ -78,5 +75,6 @@ const styles = StyleSheet.create({
   card: {
     borderRadius: RADIUS.card,
     overflow: 'hidden',
+    ...BUBBLE_SHADOWS.sm,
   },
 });

@@ -15,18 +15,24 @@ import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeIn, FadeInUp, ZoomIn } from 'react-native-reanimated';
+import { LinearGradient } from 'expo-linear-gradient';
 
-import { useTheme } from '@/hooks/useTheme';
+import {
+  V2_COLORS,
+  RADIUS,
+  BUBBLE_SHADOWS,
+  GRADIENTS,
+  TYPOGRAPHY,
+} from '@/providers/ThemeProvider';
 import { useProfile, useUpdateProfile } from '@/hooks/useProfile';
 import { useAuth } from '@/hooks/useAuth';
 import { useImageUpload } from '@/hooks/useImageUpload';
-import { Avatar } from '@/components/common';
+import { Avatar, BackgroundBlobs } from '@/components/common';
 import { SkeletonLoader } from '@/components/animations';
 import { showAlert } from '@/lib/alert';
 
 export default function EditProfileScreen() {
   const { t, i18n } = useTranslation();
-  const { colors } = useTheme();
   const router = useRouter();
   const isRTL = i18n.language === 'ar';
   const { updateUser } = useAuth();
@@ -76,7 +82,6 @@ export default function EditProfileScreen() {
         ...(avatarUrl !== profile?.avatarUrl ? { avatarUrl: avatarUrl || undefined } : {}),
       });
 
-      // Update local auth state
       updateUser({ displayName: name.trim() });
 
       showAlert(t('profile.profileUpdated'), t('profile.profileUpdatedMessage'), [
@@ -89,11 +94,11 @@ export default function EditProfileScreen() {
 
   if (isLoading) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-        <View style={[styles.header, { borderBottomColor: colors.border }]}>
-          <View style={styles.headerBtn} />
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <View style={styles.backBtn} />
           <SkeletonLoader width={120} height={20} borderRadius={8} />
-          <View style={styles.headerBtn} />
+          <View style={styles.backBtn} />
         </View>
         <View style={styles.scrollContent}>
           <View style={{ alignItems: 'center', marginBottom: 32, gap: 12 }}>
@@ -107,7 +112,7 @@ export default function EditProfileScreen() {
               style={{ marginBottom: 20 }}
             >
               <SkeletonLoader width={80} height={14} borderRadius={6} style={{ marginBottom: 8 }} />
-              <SkeletonLoader width="100%" height={52} borderRadius={12} />
+              <SkeletonLoader width="100%" height={52} borderRadius={RADIUS.pill} />
             </Animated.View>
           ))}
         </View>
@@ -116,146 +121,137 @@ export default function EditProfileScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.headerBtn}>
-          <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={colors.text} />
+    <SafeAreaView style={styles.container}>
+      <BackgroundBlobs />
+
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+          <Ionicons
+            name={isRTL ? 'arrow-forward' : 'arrow-back'}
+            size={20}
+            color={V2_COLORS.text}
+          />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>{t('profile.editProfile')}</Text>
-        <View style={styles.headerBtn} />
+        <Text style={styles.headerTitle}>{t('profile.editProfile')}</Text>
+        <View style={styles.backBtn} />
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Avatar Section */}
+        {/* Avatar Section with gradient ring */}
         <Animated.View
           entering={ZoomIn.delay(100).duration(400).springify()}
           style={styles.avatarSection}
         >
-          <Avatar name={name || '?'} avatarUrl={avatarUrl} size={96} />
+          <View style={styles.avatarRing}>
+            <LinearGradient
+              colors={[...GRADIENTS.primary]}
+              style={styles.avatarGradientBorder}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            >
+              <View style={styles.avatarInner}>
+                <Avatar name={name || '?'} avatarUrl={avatarUrl} size={88} />
+              </View>
+            </LinearGradient>
+            <TouchableOpacity
+              onPress={handleChangePhoto}
+              disabled={isUploading}
+              style={styles.cameraOverlay}
+            >
+              {isUploading ? (
+                <ActivityIndicator size="small" color="#FFF" />
+              ) : (
+                <Ionicons name="camera" size={16} color="#FFF" />
+              )}
+            </TouchableOpacity>
+          </View>
           <TouchableOpacity
             onPress={handleChangePhoto}
             disabled={isUploading}
-            style={[styles.changePhotoBtn, { borderColor: colors.primary }]}
+            style={styles.changePhotoBtn}
           >
-            {isUploading ? (
-              <ActivityIndicator size="small" color={colors.primary} />
-            ) : (
-              <>
-                <Ionicons name="camera-outline" size={16} color={colors.primary} />
-                <Text style={[styles.changePhotoText, { color: colors.primary }]}>
-                  {t('profile.changePhoto')}
-                </Text>
-              </>
-            )}
+            <Text style={styles.changePhotoText}>{t('profile.changePhoto')}</Text>
           </TouchableOpacity>
         </Animated.View>
 
         {/* Form Fields */}
         <View style={styles.form}>
           <Animated.View entering={FadeInUp.delay(200).duration(300)} style={styles.fieldGroup}>
-            <Text style={[styles.label, { color: colors.text }]}>
-              {t('profile.name')} <Text style={{ color: '#EF4444' }}>*</Text>
+            <Text style={styles.label}>
+              {t('profile.name')} <Text style={{ color: V2_COLORS.secondary }}>*</Text>
             </Text>
             <TextInput
-              style={[
-                styles.input,
-                { backgroundColor: colors.card, color: colors.text, borderColor: colors.border },
-              ]}
+              style={styles.input}
               value={name}
               onChangeText={setName}
               placeholder={t('profile.enterName')}
-              placeholderTextColor={colors.textSecondary}
+              placeholderTextColor={V2_COLORS.textMuted}
               textAlign={isRTL ? 'right' : 'left'}
             />
           </Animated.View>
 
           <Animated.View entering={FadeInUp.delay(260).duration(300)} style={styles.fieldGroup}>
-            <Text style={[styles.label, { color: colors.text }]}>{t('profile.email')}</Text>
-            <View
-              style={[
-                styles.input as any,
-                styles.disabledInput,
-                { backgroundColor: colors.card, borderColor: colors.border },
-              ]}
-            >
-              <Text style={[styles.disabledText, { color: colors.textSecondary }]}>
-                {profile?.email}
-              </Text>
+            <Text style={styles.label}>{t('profile.email')}</Text>
+            <View style={styles.disabledField}>
+              <Text style={styles.disabledText}>{profile?.email}</Text>
             </View>
           </Animated.View>
 
           <Animated.View entering={FadeInUp.delay(320).duration(300)} style={styles.fieldGroup}>
-            <Text style={[styles.label, { color: colors.text }]}>{t('profile.city')}</Text>
+            <Text style={styles.label}>{t('profile.city')}</Text>
             <TextInput
-              style={[
-                styles.input,
-                { backgroundColor: colors.card, color: colors.text, borderColor: colors.border },
-              ]}
+              style={styles.input}
               value={city}
               onChangeText={setCity}
               placeholder={t('profile.placeholderCity')}
-              placeholderTextColor={colors.textSecondary}
+              placeholderTextColor={V2_COLORS.textMuted}
               textAlign={isRTL ? 'right' : 'left'}
             />
           </Animated.View>
 
           <Animated.View entering={FadeInUp.delay(380).duration(300)} style={styles.fieldGroup}>
-            <Text style={[styles.label, { color: colors.text }]}>{t('profile.bio')}</Text>
+            <Text style={styles.label}>{t('profile.bio')}</Text>
             <TextInput
-              style={[
-                styles.input,
-                styles.textArea,
-                { backgroundColor: colors.card, color: colors.text, borderColor: colors.border },
-              ]}
+              style={[styles.input, styles.textArea]}
               value={bio}
               onChangeText={setBio}
               placeholder={t('profile.placeholderBio')}
-              placeholderTextColor={colors.textSecondary}
+              placeholderTextColor={V2_COLORS.textMuted}
               multiline
               numberOfLines={4}
               maxLength={300}
               textAlign={isRTL ? 'right' : 'left'}
               textAlignVertical="top"
             />
-            <Text style={[styles.charCount, { color: colors.textSecondary }]}>
-              {bio.length}/300
-            </Text>
+            <Text style={styles.charCount}>{bio.length}/300</Text>
           </Animated.View>
 
           {/* Bank Details Section */}
-          <Animated.Text
-            entering={FadeInUp.delay(440).duration(300)}
-            style={[styles.sectionTitle, { color: colors.text }]}
-          >
+          <Animated.Text entering={FadeInUp.delay(440).duration(300)} style={styles.sectionTitle}>
             {t('profile.bankDetails')}
           </Animated.Text>
 
           <Animated.View entering={FadeInUp.delay(500).duration(300)} style={styles.fieldGroup}>
-            <Text style={[styles.label, { color: colors.text }]}>{t('profile.bankNameField')}</Text>
+            <Text style={styles.label}>{t('profile.bankNameField')}</Text>
             <TextInput
-              style={[
-                styles.input,
-                { backgroundColor: colors.card, color: colors.text, borderColor: colors.border },
-              ]}
+              style={styles.input}
               value={bankName}
               onChangeText={setBankName}
               placeholder={t('profile.placeholderBankName')}
-              placeholderTextColor={colors.textSecondary}
+              placeholderTextColor={V2_COLORS.textMuted}
               textAlign={isRTL ? 'right' : 'left'}
             />
           </Animated.View>
 
           <Animated.View entering={FadeInUp.delay(560).duration(300)} style={styles.fieldGroup}>
-            <Text style={[styles.label, { color: colors.text }]}>{t('profile.ibanField')}</Text>
+            <Text style={styles.label}>{t('profile.ibanField')}</Text>
             <TextInput
-              style={[
-                styles.input,
-                { backgroundColor: colors.card, color: colors.text, borderColor: colors.border },
-              ]}
+              style={styles.input}
               value={iban}
               onChangeText={setIban}
               placeholder={t('profile.placeholderIban')}
-              placeholderTextColor={colors.textSecondary}
+              placeholderTextColor={V2_COLORS.textMuted}
               textAlign={isRTL ? 'right' : 'left'}
               autoCapitalize="characters"
             />
@@ -264,22 +260,24 @@ export default function EditProfileScreen() {
       </ScrollView>
 
       {/* Save Button */}
-      <View
-        style={[styles.bottomBar, { backgroundColor: colors.card, borderTopColor: colors.border }]}
-      >
+      <View style={styles.bottomBar}>
         <TouchableOpacity
           onPress={handleSave}
           disabled={updateProfile.isPending}
-          style={[
-            styles.saveBtn,
-            { backgroundColor: colors.primary, opacity: updateProfile.isPending ? 0.7 : 1 },
-          ]}
+          style={{ opacity: updateProfile.isPending ? 0.7 : 1 }}
         >
-          {updateProfile.isPending ? (
-            <ActivityIndicator color="#FFF" />
-          ) : (
-            <Text style={styles.saveBtnText}>{t('profile.saveChanges')}</Text>
-          )}
+          <LinearGradient
+            colors={[...GRADIENTS.primary]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.saveBtn}
+          >
+            {updateProfile.isPending ? (
+              <ActivityIndicator color="#FFF" />
+            ) : (
+              <Text style={styles.saveBtnText}>{t('profile.saveChanges')}</Text>
+            )}
+          </LinearGradient>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -287,51 +285,119 @@ export default function EditProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 } as ViewStyle,
+  container: { flex: 1, backgroundColor: V2_COLORS.bg } as ViewStyle,
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
+    paddingVertical: 10,
   } as ViewStyle,
-  headerBtn: { width: 40, alignItems: 'center' } as ViewStyle,
-  headerTitle: { fontSize: 18, fontWeight: '600' } as TextStyle,
+  backBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: RADIUS.pill,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...BUBBLE_SHADOWS.xs,
+  } as ViewStyle,
+  headerTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: V2_COLORS.text,
+  } as TextStyle,
   scrollContent: { padding: 16, paddingBottom: 100 } as ViewStyle,
 
   avatarSection: { alignItems: 'center', marginBottom: 32, gap: 12 } as ViewStyle,
-  changePhotoBtn: {
-    flexDirection: 'row',
+  avatarRing: { position: 'relative' } as ViewStyle,
+  avatarGradientBorder: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
     alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1.5,
+    justifyContent: 'center',
   } as ViewStyle,
-  changePhotoText: { fontSize: 14, fontWeight: '600' } as TextStyle,
+  avatarInner: {
+    width: 92,
+    height: 92,
+    borderRadius: 46,
+    backgroundColor: V2_COLORS.bg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  } as ViewStyle,
+  cameraOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: V2_COLORS.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 3,
+    borderColor: V2_COLORS.bg,
+  } as ViewStyle,
+  changePhotoBtn: {
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    borderRadius: RADIUS.pill,
+    backgroundColor: V2_COLORS.primary + '12',
+  } as ViewStyle,
+  changePhotoText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: V2_COLORS.primary,
+  } as TextStyle,
 
-  sectionTitle: { fontSize: 16, fontWeight: '700', marginTop: 12 } as TextStyle,
+  sectionTitle: {
+    ...TYPOGRAPHY.h3,
+    color: V2_COLORS.text,
+    marginTop: 12,
+  } as TextStyle,
   form: { gap: 20 } as ViewStyle,
   fieldGroup: { gap: 8 } as ViewStyle,
-  label: { fontSize: 14, fontWeight: '600' } as TextStyle,
+  label: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: V2_COLORS.text,
+  } as TextStyle,
   input: {
     height: 52,
-    borderRadius: 12,
-    paddingHorizontal: 16,
+    borderRadius: RADIUS.input,
+    paddingHorizontal: 20,
     fontSize: 16,
-    borderWidth: 1,
+    backgroundColor: '#FFFFFF',
+    color: V2_COLORS.text,
+    ...BUBBLE_SHADOWS.xs,
   } as TextStyle,
-  textArea: { height: 120, paddingTop: 14 } as TextStyle,
-  disabledInput: { justifyContent: 'center', opacity: 0.7 } as ViewStyle,
-  disabledText: { fontSize: 16 } as TextStyle,
-  charCount: { fontSize: 12, textAlign: 'right' } as TextStyle,
+  textArea: {
+    height: 120,
+    paddingTop: 14,
+    borderRadius: RADIUS.card,
+  } as TextStyle,
+  disabledField: {
+    height: 52,
+    borderRadius: RADIUS.input,
+    paddingHorizontal: 20,
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
+    opacity: 0.6,
+    ...BUBBLE_SHADOWS.xs,
+  } as ViewStyle,
+  disabledText: { fontSize: 16, color: V2_COLORS.textMuted } as TextStyle,
+  charCount: { fontSize: 12, textAlign: 'right', color: V2_COLORS.textMuted } as TextStyle,
 
-  bottomBar: { padding: 16, borderTopWidth: 1 } as ViewStyle,
+  bottomBar: {
+    padding: 16,
+    backgroundColor: '#FFFFFF',
+    ...BUBBLE_SHADOWS.md,
+  } as ViewStyle,
   saveBtn: {
     height: 52,
-    borderRadius: 12,
+    borderRadius: RADIUS.pill,
     alignItems: 'center',
     justifyContent: 'center',
   } as ViewStyle,

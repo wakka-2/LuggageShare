@@ -15,7 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 
-import { useTheme } from '@/hooks/useTheme';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS } from '@/providers/ThemeProvider';
 import {
   useNotifications,
   useMarkNotificationRead,
@@ -23,16 +23,18 @@ import {
   AppNotification,
 } from '@/hooks/useNotifications';
 import { SkeletonLoader } from '@/components/animations';
+import { BackgroundBlobs } from '@/components/common';
 
-const NOTIFICATION_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
-  booking_created: 'calendar-outline',
-  booking_accepted: 'checkmark-circle-outline',
-  booking_rejected: 'close-circle-outline',
-  booking_cancelled: 'ban-outline',
-  message_received: 'chatbubble-outline',
-  review_received: 'star-outline',
-  payment_received: 'wallet-outline',
-};
+const NOTIFICATION_ICONS: Record<string, { icon: keyof typeof Ionicons.glyphMap; color: string }> =
+  {
+    booking_created: { icon: 'calendar-outline', color: V2_COLORS.primary },
+    booking_accepted: { icon: 'checkmark-circle-outline', color: V2_COLORS.accent1 },
+    booking_rejected: { icon: 'close-circle-outline', color: V2_COLORS.secondary },
+    booking_cancelled: { icon: 'ban-outline', color: V2_COLORS.textMuted },
+    message_received: { icon: 'chatbubble-outline', color: V2_COLORS.accent3 },
+    review_received: { icon: 'star-outline', color: V2_COLORS.accent2 },
+    payment_received: { icon: 'wallet-outline', color: V2_COLORS.accent1 },
+  };
 
 function getTimeAgo(
   dateStr: string,
@@ -56,7 +58,6 @@ function getTimeAgo(
 
 export default function NotificationsScreen() {
   const { t, i18n } = useTranslation();
-  const { colors } = useTheme();
   const router = useRouter();
   const isRTL = i18n.language === 'ar';
 
@@ -71,7 +72,6 @@ export default function NotificationsScreen() {
       if (!notification.isRead) {
         markRead.mutate(notification.id);
       }
-      // Navigate based on notification data
       const nd = notification.data as Record<string, string> | null;
       if (nd?.bookingId) {
         router.push(`/booking/${nd.bookingId}` as any);
@@ -82,79 +82,73 @@ export default function NotificationsScreen() {
     [markRead, router]
   );
 
-  const getIcon = useCallback((notification: AppNotification): keyof typeof Ionicons.glyphMap => {
+  const getIconConfig = useCallback((notification: AppNotification) => {
     const nd = notification.data as Record<string, string> | null;
     const type = nd?.type as string | undefined;
-    return (type && NOTIFICATION_ICONS[type]) || 'notifications-outline';
+    return (
+      (type && NOTIFICATION_ICONS[type]) || {
+        icon: 'notifications-outline' as keyof typeof Ionicons.glyphMap,
+        color: V2_COLORS.primary,
+      }
+    );
   }, []);
 
   const renderItem = useCallback(
-    ({ item, index }: { item: AppNotification; index: number }) => (
-      <Animated.View
-        entering={FadeInUp.delay(index * 50)
-          .duration(300)
-          .springify()}
-      >
-        <TouchableOpacity
-          onPress={() => handlePress(item)}
-          activeOpacity={0.7}
-          style={[
-            styles.notifItem,
-            {
-              backgroundColor: item.isRead ? 'transparent' : colors.primary + '08',
-              borderBottomColor: colors.border,
-            },
-          ]}
+    ({ item, index }: { item: AppNotification; index: number }) => {
+      const config = getIconConfig(item);
+      return (
+        <Animated.View
+          entering={FadeInUp.delay(index * 50)
+            .duration(300)
+            .springify()}
         >
-          <View
-            style={[
-              styles.iconBox,
-              { backgroundColor: item.isRead ? colors.card : colors.primary + '15' },
-            ]}
+          <TouchableOpacity
+            onPress={() => handlePress(item)}
+            activeOpacity={0.7}
+            style={[styles.notifItem, !item.isRead && styles.notifItemUnread]}
           >
-            <Ionicons
-              name={getIcon(item)}
-              size={20}
-              color={item.isRead ? colors.textSecondary : colors.primary}
-            />
-          </View>
-          <View style={styles.notifContent}>
-            <Text
-              style={[
-                styles.notifTitle,
-                { color: colors.text },
-                !item.isRead && styles.notifTitleUnread,
-              ]}
-            >
-              {item.title}
-            </Text>
-            <Text style={[styles.notifBody, { color: colors.textSecondary }]} numberOfLines={2}>
-              {item.body}
-            </Text>
-            <Text style={[styles.notifTime, { color: colors.textSecondary }]}>
-              {getTimeAgo(item.createdAt, isRTL, t)}
-            </Text>
-          </View>
-          {!item.isRead && <View style={[styles.unreadDot, { backgroundColor: colors.primary }]} />}
-        </TouchableOpacity>
-      </Animated.View>
-    ),
-    [colors, isRTL, t, handlePress, getIcon]
+            <View style={[styles.iconCircle, { backgroundColor: config.color + '15' }]}>
+              <Ionicons name={config.icon} size={20} color={config.color} />
+            </View>
+            <View style={styles.notifContent}>
+              <Text style={[styles.notifTitle, !item.isRead && styles.notifTitleUnread]}>
+                {item.title}
+              </Text>
+              <Text style={styles.notifBody} numberOfLines={2}>
+                {item.body}
+              </Text>
+              <View style={styles.timePill}>
+                <Text style={styles.notifTime}>{getTimeAgo(item.createdAt, isRTL, t)}</Text>
+              </View>
+            </View>
+            {!item.isRead && <View style={styles.unreadDot} />}
+          </TouchableOpacity>
+        </Animated.View>
+      );
+    },
+    [isRTL, t, handlePress, getIconConfig]
   );
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.headerBtn}>
-          <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={colors.text} />
+    <SafeAreaView style={styles.container}>
+      <BackgroundBlobs />
+
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+          <Ionicons
+            name={isRTL ? 'arrow-forward' : 'arrow-back'}
+            size={20}
+            color={V2_COLORS.text}
+          />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>{t('notifications.title')}</Text>
+        <Text style={styles.headerTitle}>{t('notifications.title')}</Text>
         {unreadCount > 0 ? (
-          <TouchableOpacity onPress={() => markAllRead.mutate()} style={styles.headerBtn}>
-            <Ionicons name="checkmark-done-outline" size={22} color={colors.primary} />
+          <TouchableOpacity onPress={() => markAllRead.mutate()} style={styles.backBtn}>
+            <Ionicons name="checkmark-done-outline" size={20} color={V2_COLORS.primary} />
           </TouchableOpacity>
         ) : (
-          <View style={styles.headerBtn} />
+          <View style={styles.backBtn} />
         )}
       </View>
 
@@ -166,7 +160,7 @@ export default function NotificationsScreen() {
               entering={FadeIn.delay(i * 60).duration(200)}
               style={styles.skeletonItem}
             >
-              <SkeletonLoader width={40} height={40} borderRadius={12} />
+              <SkeletonLoader width={44} height={44} borderRadius={22} />
               <View style={{ flex: 1, gap: 6 }}>
                 <SkeletonLoader width="70%" height={14} borderRadius={4} />
                 <SkeletonLoader width="100%" height={12} borderRadius={4} />
@@ -180,22 +174,19 @@ export default function NotificationsScreen() {
           data={notifications || []}
           renderItem={renderItem}
           keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.listContent}
           refreshControl={
             <RefreshControl
               refreshing={false}
               onRefresh={() => refetch()}
-              tintColor={colors.primary}
+              tintColor={V2_COLORS.primary}
             />
           }
           ListEmptyComponent={
             <Animated.View entering={FadeIn.duration(300)} style={styles.emptyState}>
-              <Ionicons name="notifications-off-outline" size={56} color={colors.textSecondary} />
-              <Text style={[styles.emptyTitle, { color: colors.text }]}>
-                {t('notifications.noNotifications')}
-              </Text>
-              <Text style={[styles.emptyDesc, { color: colors.textSecondary }]}>
-                {t('notifications.noNotificationsDescription')}
-              </Text>
+              <Ionicons name="notifications-off-outline" size={56} color={V2_COLORS.textMuted} />
+              <Text style={styles.emptyTitle}>{t('notifications.noNotifications')}</Text>
+              <Text style={styles.emptyDesc}>{t('notifications.noNotificationsDescription')}</Text>
             </Animated.View>
           }
         />
@@ -205,45 +196,92 @@ export default function NotificationsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 } as ViewStyle,
+  container: { flex: 1, backgroundColor: V2_COLORS.bg } as ViewStyle,
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
+    paddingVertical: 10,
   } as ViewStyle,
-  headerBtn: { width: 40, alignItems: 'center' } as ViewStyle,
-  headerTitle: { fontSize: 18, fontWeight: '600' } as TextStyle,
+  backBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: RADIUS.pill,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...BUBBLE_SHADOWS.xs,
+  } as ViewStyle,
+  headerTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: V2_COLORS.text,
+  } as TextStyle,
+
+  listContent: { padding: 16, gap: 10 } as ViewStyle,
 
   notifItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    padding: 16,
+    padding: 14,
     gap: 12,
-    borderBottomWidth: 1,
+    backgroundColor: '#FFFFFF',
+    borderRadius: RADIUS.card,
+    ...BUBBLE_SHADOWS.sm,
   } as ViewStyle,
-  iconBox: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
+  notifItemUnread: {
+    backgroundColor: V2_COLORS.primary + '08',
+  } as ViewStyle,
+  iconCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
   } as ViewStyle,
   notifContent: { flex: 1 } as ViewStyle,
-  notifTitle: { fontSize: 15, fontWeight: '500', marginBottom: 2 } as TextStyle,
+  notifTitle: {
+    fontSize: 15,
+    fontWeight: '500',
+    color: V2_COLORS.text,
+    marginBottom: 2,
+  } as TextStyle,
   notifTitleUnread: { fontWeight: '700' } as TextStyle,
-  notifBody: { fontSize: 13, lineHeight: 19, marginBottom: 4 } as TextStyle,
-  notifTime: { fontSize: 12 } as TextStyle,
-  unreadDot: { width: 8, height: 8, borderRadius: 4, marginTop: 6 } as ViewStyle,
+  notifBody: {
+    fontSize: 13,
+    lineHeight: 19,
+    color: V2_COLORS.textSoft,
+    marginBottom: 6,
+  } as TextStyle,
+  timePill: {
+    alignSelf: 'flex-start',
+    backgroundColor: V2_COLORS.cardShadow,
+    borderRadius: RADIUS.pill,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+  } as ViewStyle,
+  notifTime: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: V2_COLORS.textMuted,
+  } as TextStyle,
+  unreadDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: V2_COLORS.primary,
+    marginTop: 6,
+  } as ViewStyle,
 
-  skeletonList: { padding: 16, gap: 0 } as ViewStyle,
+  skeletonList: { padding: 16, gap: 10 } as ViewStyle,
   skeletonItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 12,
-    paddingVertical: 14,
+    padding: 14,
+    backgroundColor: '#FFFFFF',
+    borderRadius: RADIUS.card,
   } as ViewStyle,
   emptyState: {
     flex: 1,
@@ -252,6 +290,15 @@ const styles = StyleSheet.create({
     paddingTop: 120,
     gap: 12,
   } as ViewStyle,
-  emptyTitle: { fontSize: 18, fontWeight: '600' } as TextStyle,
-  emptyDesc: { fontSize: 14, textAlign: 'center', paddingHorizontal: 40 } as TextStyle,
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: V2_COLORS.text,
+  } as TextStyle,
+  emptyDesc: {
+    fontSize: 14,
+    textAlign: 'center',
+    paddingHorizontal: 40,
+    color: V2_COLORS.textMuted,
+  } as TextStyle,
 });

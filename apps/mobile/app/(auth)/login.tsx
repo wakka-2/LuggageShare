@@ -4,8 +4,10 @@ import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeIn, FadeInUp, ZoomIn } from 'react-native-reanimated';
+import { LinearGradient } from 'expo-linear-gradient';
 
-import { useTheme } from '@/hooks/useTheme';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS, GRADIENTS } from '@/providers/ThemeProvider';
+import { BackgroundBlobs } from '@/components/common';
 import { useGoogleAuth } from '@/hooks/useGoogleAuth';
 import { useAppleAuth } from '@/hooks/useAppleAuth';
 import { useAuth } from '@/hooks/useAuth';
@@ -14,7 +16,6 @@ import { showAlert } from '@/lib/alert';
 
 export default function LoginScreen() {
   const { t } = useTranslation();
-  const { colors } = useTheme();
   const { signInWithGoogle, isLoading: isGoogleLoading } = useGoogleAuth();
   const { signInWithApple, isLoading: isAppleLoading } = useAppleAuth();
   const { signIn } = useAuth();
@@ -72,34 +73,34 @@ export default function LoginScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaView style={styles.container}>
+      <BackgroundBlobs />
+
       <View style={styles.content}>
         {/* Logo */}
         <View style={styles.logoContainer}>
-          <Animated.View
-            entering={ZoomIn.delay(100).duration(500).springify()}
-            style={[styles.logo, { backgroundColor: colors.primary }]}
-          >
-            <Ionicons name="briefcase" size={48} color="#FFFFFF" />
+          <Animated.View entering={ZoomIn.delay(100).duration(500).springify()}>
+            <LinearGradient
+              colors={[...GRADIENTS.primary]}
+              style={styles.logo}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            >
+              <Ionicons name="briefcase" size={48} color="#FFFFFF" />
+            </LinearGradient>
           </Animated.View>
-          <Animated.Text
-            entering={FadeInUp.delay(250).duration(400)}
-            style={[styles.appName, { color: colors.text }]}
-          >
+          <Animated.Text entering={FadeInUp.delay(250).duration(400)} style={styles.appName}>
             LuggageShare
           </Animated.Text>
-          <Animated.Text
-            entering={FadeInUp.delay(350).duration(400)}
-            style={[styles.tagline, { color: colors.textSecondary }]}
-          >
+          <Animated.Text entering={FadeInUp.delay(350).duration(400)} style={styles.tagline}>
             {t('auth.tagline')}
           </Animated.Text>
         </View>
 
         {/* Error message */}
         {error && (
-          <View style={[styles.errorBanner, { backgroundColor: '#FEE2E2' }]}>
-            <Ionicons name="alert-circle" size={18} color="#DC2626" />
+          <View style={styles.errorBanner}>
+            <Ionicons name="alert-circle" size={18} color={V2_COLORS.secondary} />
             <Text style={styles.errorText}>{error}</Text>
           </View>
         )}
@@ -108,7 +109,7 @@ export default function LoginScreen() {
         <Animated.View entering={FadeInUp.delay(450).duration(400)} style={styles.authButtons}>
           {/* Google Sign In */}
           <TouchableOpacity
-            style={[styles.authButton, styles.googleButton]}
+            style={styles.googleButton}
             onPress={handleGoogleSignIn}
             disabled={isLoading}
           >
@@ -118,7 +119,7 @@ export default function LoginScreen() {
 
           {/* Apple Sign In */}
           <TouchableOpacity
-            style={[styles.authButton, styles.appleButton]}
+            style={styles.appleButton}
             onPress={handleAppleSignIn}
             disabled={isLoading}
           >
@@ -131,7 +132,7 @@ export default function LoginScreen() {
         {__DEV__ && (
           <Animated.View entering={FadeInUp.delay(550).duration(300)}>
             <TouchableOpacity
-              style={[styles.authButton, styles.devButton]}
+              style={styles.devButton}
               onPress={handleDevLogin}
               disabled={isLoading}
             >
@@ -149,15 +150,9 @@ export default function LoginScreen() {
 
         {/* Terms */}
         <Animated.View entering={FadeIn.delay(650).duration(500)} style={styles.terms}>
-          <Text style={[styles.termsText, { color: colors.textSecondary }]}>
-            {t('auth.termsPrefix')}{' '}
-            <Text style={[styles.termsLink, { color: colors.primary }]}>
-              {t('auth.termsOfService')}
-            </Text>{' '}
-            {t('auth.and')}{' '}
-            <Text style={[styles.termsLink, { color: colors.primary }]}>
-              {t('auth.privacyPolicy')}
-            </Text>
+          <Text style={styles.termsText}>
+            {t('auth.termsPrefix')} <Text style={styles.termsLink}>{t('auth.termsOfService')}</Text>{' '}
+            {t('auth.and')} <Text style={styles.termsLink}>{t('auth.privacyPolicy')}</Text>
           </Text>
         </Animated.View>
       </View>
@@ -168,6 +163,7 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: V2_COLORS.bg,
   },
   content: {
     flex: 1,
@@ -181,42 +177,48 @@ const styles = StyleSheet.create({
   logo: {
     width: 100,
     height: 100,
-    borderRadius: 24,
+    borderRadius: 28,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
+    ...BUBBLE_SHADOWS.lg,
   },
   appName: {
     fontSize: 32,
-    fontWeight: 'bold',
+    fontWeight: '800',
     marginBottom: 8,
+    color: V2_COLORS.text,
   },
   tagline: {
     fontSize: 16,
     textAlign: 'center',
+    color: V2_COLORS.textSoft,
   },
   authButtons: {
-    gap: 16,
+    gap: 14,
   },
-  authButton: {
+  googleButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     padding: 16,
-    borderRadius: 12,
+    borderRadius: RADIUS.pill,
     gap: 12,
-  },
-  googleButton: {
     backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
+    ...BUBBLE_SHADOWS.sm,
   },
   googleButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1F2937',
+    color: V2_COLORS.text,
   },
   appleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
+    borderRadius: RADIUS.pill,
+    gap: 12,
     backgroundColor: '#000000',
   },
   appleButtonText: {
@@ -225,7 +227,13 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   devButton: {
-    backgroundColor: '#7C3AED',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
+    borderRadius: RADIUS.pill,
+    gap: 12,
+    backgroundColor: V2_COLORS.primary,
     marginTop: 8,
   },
   devButtonText: {
@@ -241,21 +249,24 @@ const styles = StyleSheet.create({
     fontSize: 12,
     textAlign: 'center',
     lineHeight: 18,
+    color: V2_COLORS.textMuted,
   },
   termsLink: {
     fontWeight: '600',
+    color: V2_COLORS.primary,
   },
   errorBanner: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
     padding: 12,
-    borderRadius: 10,
+    borderRadius: RADIUS.card,
     marginBottom: 16,
+    backgroundColor: V2_COLORS.secondary + '12',
   },
   errorText: {
     flex: 1,
     fontSize: 13,
-    color: '#DC2626',
+    color: V2_COLORS.secondary,
   },
 });
