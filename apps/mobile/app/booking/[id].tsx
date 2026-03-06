@@ -18,8 +18,15 @@ import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
+import { LinearGradient } from 'expo-linear-gradient';
 
-import { useTheme } from '@/hooks/useTheme';
+import {
+  V2_COLORS,
+  RADIUS,
+  BUBBLE_SHADOWS,
+  TYPOGRAPHY,
+  GRADIENTS,
+} from '@/providers/ThemeProvider';
 import { showAlert } from '@/lib/alert';
 import {
   useBooking,
@@ -34,20 +41,21 @@ import {
 } from '@/hooks/useBookings';
 import { useBookingReview, useCreateReview } from '@/hooks/useReviews';
 import { useAuth } from '@/hooks/useAuth';
-import { Avatar } from '@/components/common';
+import { Avatar, BackgroundBlobs, MetaChip } from '@/components/common';
+import { ScreenHeader } from '@/components/common/ScreenHeader';
 import { StarRating } from '@/components/common/StarRating';
 import { StatusTimeline, LiveIndicator } from '@/components/status';
 import { VerificationBadge } from '@/components/trust';
 import { SkeletonLoader } from '@/components/animations';
 
 const STATUS_COLORS: Record<string, string> = {
-  pending: '#F59E0B',
-  accepted: '#3B82F6',
-  picked_up: '#8B5CF6',
-  in_transit: '#6366F1',
-  delivered: '#10B981',
-  rejected: '#EF4444',
-  cancelled: '#6B7280',
+  pending: '#FFBE5C',
+  accepted: '#5CB8FF',
+  picked_up: '#7C6AFF',
+  in_transit: '#7C6AFF',
+  delivered: '#56D8B1',
+  rejected: '#FF6B9D',
+  cancelled: '#A8A5C0',
 };
 
 const BOOKING_STATUS_KEYS: Record<string, string> = {
@@ -63,7 +71,6 @@ const BOOKING_STATUS_KEYS: Record<string, string> = {
 export default function BookingDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { t, i18n } = useTranslation();
-  const { colors } = useTheme();
   const router = useRouter();
   const { user } = useAuth();
   const isRTL = i18n.language === 'ar';
@@ -90,27 +97,28 @@ export default function BookingDetailScreen() {
 
   if (isLoading) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-        <View style={[styles.header, { borderBottomColor: colors.border }]}>
-          <View style={styles.headerBtn} />
-          <SkeletonLoader width={120} height={18} borderRadius={6} />
-          <View style={styles.headerBtn} />
-        </View>
+      <SafeAreaView style={styles.container}>
+        <ScreenHeader title={t('booking.details')} />
         <View style={styles.scrollContent}>
-          <SkeletonLoader width="100%" height={48} borderRadius={14} style={{ marginBottom: 16 }} />
+          <SkeletonLoader
+            width="100%"
+            height={48}
+            borderRadius={RADIUS.pill}
+            style={{ marginBottom: 16 }}
+          />
           <SkeletonLoader
             width="100%"
             height={120}
-            borderRadius={16}
+            borderRadius={RADIUS.card}
             style={{ marginBottom: 16 }}
           />
           <SkeletonLoader
             width="100%"
             height={100}
-            borderRadius={16}
+            borderRadius={RADIUS.card}
             style={{ marginBottom: 16 }}
           />
-          <SkeletonLoader width="100%" height={80} borderRadius={16} />
+          <SkeletonLoader width="100%" height={80} borderRadius={RADIUS.card} />
         </View>
       </SafeAreaView>
     );
@@ -118,11 +126,11 @@ export default function BookingDetailScreen() {
 
   if (!booking) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <SafeAreaView style={styles.container}>
         <View style={styles.loading}>
-          <Text style={{ color: colors.textSecondary }}>{t('listing.notFound')}</Text>
+          <Text style={styles.emptyText}>{t('listing.notFound')}</Text>
           <TouchableOpacity onPress={() => router.back()} style={{ marginTop: 16 }}>
-            <Text style={{ color: colors.primary, fontWeight: '600' }}>{t('listing.goBack')}</Text>
+            <Text style={styles.goBackText}>{t('listing.goBack')}</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -131,7 +139,7 @@ export default function BookingDetailScreen() {
 
   const isCarrier = user?.id === booking.carrierId;
   const isSender = user?.id === booking.senderId;
-  const statusColor = STATUS_COLORS[booking.status] || colors.textSecondary;
+  const statusColor = STATUS_COLORS[booking.status] || V2_COLORS.textMuted;
   const statusKey = BOOKING_STATUS_KEYS[booking.status];
   const otherUser = isCarrier ? booking.sender : booking.carrier;
 
@@ -213,17 +221,12 @@ export default function BookingDetailScreen() {
   const canReview = booking.status === 'delivered' && !existingReview;
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.headerBtn}>
-          <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={colors.text} />
-        </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>{t('booking.details')}</Text>
-        <View style={styles.headerBtn} />
-      </View>
+    <SafeAreaView style={styles.container}>
+      <BackgroundBlobs variant="subtle" />
+      <ScreenHeader title={t('booking.details')} />
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Status */}
+        {/* Status Pill */}
         <Animated.View
           entering={FadeIn.duration(300)}
           style={[styles.statusCard, { backgroundColor: statusColor + '15' }]}
@@ -242,11 +245,8 @@ export default function BookingDetailScreen() {
 
         {/* Status Timeline — show for active bookings */}
         {!['rejected', 'cancelled'].includes(booking.status) && (
-          <Animated.View
-            entering={FadeInUp.delay(150).springify()}
-            style={[styles.card, { backgroundColor: colors.card }]}
-          >
-            <Text style={[styles.cardTitle, { color: colors.text }]}>
+          <Animated.View entering={FadeInUp.delay(150).springify()} style={styles.card}>
+            <Text style={styles.cardTitle}>
               {t('booking.progress', { defaultValue: 'Progress' })}
             </Text>
             <StatusTimeline
@@ -281,48 +281,41 @@ export default function BookingDetailScreen() {
         )}
 
         {/* Route */}
-        <Animated.View
-          entering={FadeInUp.delay(200).springify()}
-          style={[styles.card, { backgroundColor: colors.card }]}
-        >
+        <Animated.View entering={FadeInUp.delay(200).springify()} style={styles.card}>
           <View style={styles.routeRow}>
-            <Text style={[styles.city, { color: colors.text }]}>
-              {booking.listing.departureCity}
-            </Text>
+            <View style={[styles.routeDot, { backgroundColor: V2_COLORS.accent1 }]} />
+            <Text style={styles.city}>{booking.listing.departureCity}</Text>
             <Ionicons
               name="airplane"
               size={18}
-              color={colors.primary}
+              color={V2_COLORS.primary}
               style={{ marginHorizontal: 10 }}
             />
-            <Text style={[styles.city, { color: colors.text }]}>{booking.listing.arrivalCity}</Text>
+            <Text style={styles.city}>{booking.listing.arrivalCity}</Text>
+            <View style={[styles.routeDot, { backgroundColor: V2_COLORS.secondary }]} />
           </View>
-          <Text style={[styles.dateText, { color: colors.textSecondary }]}>
-            {new Date(booking.listing.departureDate).toLocaleDateString(isRTL ? 'ar-SA' : 'en-US', {
-              day: 'numeric',
-              month: 'long',
-              year: 'numeric',
-            })}
-          </Text>
+          <View style={styles.routeMetaRow}>
+            <MetaChip
+              icon="calendar"
+              label={new Date(booking.listing.departureDate).toLocaleDateString(
+                isRTL ? 'ar-SA' : 'en-US',
+                { day: 'numeric', month: 'long', year: 'numeric' }
+              )}
+              color={V2_COLORS.primary}
+            />
+          </View>
         </Animated.View>
 
         {/* Price Summary */}
-        <Animated.View
-          entering={FadeInUp.delay(250).springify()}
-          style={[styles.card, { backgroundColor: colors.card }]}
-        >
+        <Animated.View entering={FadeInUp.delay(250).springify()} style={styles.card}>
           <View style={styles.priceRow}>
-            <Text style={[styles.priceLabel, { color: colors.textSecondary }]}>
-              {t('booking.weight')}
-            </Text>
-            <Text style={[styles.priceValue, { color: colors.text }]}>
-              {Number(booking.totalWeight) || 0} kg
-            </Text>
+            <Text style={styles.priceLabel}>{t('booking.weight')}</Text>
+            <Text style={styles.priceValue}>{Number(booking.totalWeight) || 0} kg</Text>
           </View>
-          <View style={[styles.divider, { backgroundColor: colors.border }]} />
+          <View style={styles.priceDivider} />
           <View style={styles.priceRow}>
-            <Text style={[styles.totalLabel, { color: colors.text }]}>{t('booking.total')}</Text>
-            <Text style={[styles.totalValue, { color: colors.primary }]}>
+            <Text style={styles.totalLabel}>{t('booking.total')}</Text>
+            <Text style={styles.totalValue}>
               {Number(booking.totalPrice) || 0} {booking.currency || 'SAR'}
             </Text>
           </View>
@@ -330,11 +323,8 @@ export default function BookingDetailScreen() {
 
         {/* Items with Photos */}
         {booking.items && booking.items.length > 0 && (
-          <Animated.View
-            entering={FadeInUp.delay(300).springify()}
-            style={[styles.card, { backgroundColor: colors.card }]}
-          >
-            <Text style={[styles.cardTitle, { color: colors.text }]}>
+          <Animated.View entering={FadeInUp.delay(300).springify()} style={styles.card}>
+            <Text style={styles.cardTitle}>
               {t('booking.items')} ({booking.items.length})
             </Text>
             {booking.items.map((item, idx) => (
@@ -344,25 +334,25 @@ export default function BookingDetailScreen() {
                   styles.itemRow,
                   idx < booking.items.length - 1 && {
                     borderBottomWidth: 1,
-                    borderBottomColor: colors.border,
+                    borderBottomColor: V2_COLORS.cardShadow,
                   },
                 ]}
               >
                 <View style={styles.itemInfo}>
-                  <Text style={[styles.itemName, { color: colors.text }]}>{item.name}</Text>
-                  {item.description && (
-                    <Text style={[styles.itemDesc, { color: colors.textSecondary }]}>
-                      {item.description}
-                    </Text>
-                  )}
+                  <Text style={styles.itemName}>{item.name}</Text>
+                  {item.description && <Text style={styles.itemDesc}>{item.description}</Text>}
                   <View style={styles.itemMeta}>
-                    <Text style={[styles.itemMetaText, { color: colors.textSecondary }]}>
-                      {Number(item.weight)} kg
-                    </Text>
+                    <MetaChip
+                      icon="scale"
+                      label={`${Number(item.weight)} kg`}
+                      color={V2_COLORS.primary}
+                    />
                     {item.value > 0 && (
-                      <Text style={[styles.itemMetaText, { color: colors.textSecondary }]}>
-                        {Number(item.value)} SAR
-                      </Text>
+                      <MetaChip
+                        icon="pricetag"
+                        label={`${Number(item.value)} SAR`}
+                        color={V2_COLORS.accent2}
+                      />
                     )}
                   </View>
                 </View>
@@ -383,11 +373,8 @@ export default function BookingDetailScreen() {
         )}
 
         {/* Other User */}
-        <Animated.View
-          entering={FadeInUp.delay(350).springify()}
-          style={[styles.card, { backgroundColor: colors.card }]}
-        >
-          <Text style={[styles.cardTitle, { color: colors.text }]}>
+        <Animated.View entering={FadeInUp.delay(350).springify()} style={styles.card}>
+          <Text style={styles.cardTitle}>
             {isCarrier ? t('booking.sender') : t('booking.carrier')}
           </Text>
           <View style={styles.userRow}>
@@ -398,84 +385,64 @@ export default function BookingDetailScreen() {
               isVerified={otherUser.isVerified}
             />
             <View style={{ flex: 1 }}>
-              <Text style={[styles.userName, { color: colors.text }]}>{otherUser.name}</Text>
+              <Text style={styles.userName}>{otherUser.name}</Text>
               {otherUser.isVerified && (
                 <VerificationBadge type="verified" size="small" animated={false} />
               )}
             </View>
             <TouchableOpacity
               onPress={() => router.push(`/chat/${booking.id}`)}
-              style={[styles.chatBtn, { borderColor: colors.primary }]}
+              style={styles.chatBtn}
             >
-              <Ionicons name="chatbubble-outline" size={18} color={colors.primary} />
+              <Ionicons name="chatbubble-outline" size={18} color={V2_COLORS.primary} />
             </TouchableOpacity>
           </View>
         </Animated.View>
 
         {/* Existing Review */}
         {existingReview && (
-          <View style={[styles.card, { backgroundColor: colors.card }]}>
-            <Text style={[styles.cardTitle, { color: colors.text }]}>{t('booking.review')}</Text>
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>{t('booking.review')}</Text>
             <View style={styles.reviewDisplay}>
               <StarRating rating={existingReview.rating} size={22} />
               {existingReview.comment && (
-                <Text style={[styles.reviewComment, { color: colors.text }]}>
-                  {existingReview.comment}
-                </Text>
+                <Text style={styles.reviewComment}>{existingReview.comment}</Text>
               )}
-              <Text style={[styles.reviewAuthor, { color: colors.textSecondary }]}>
+              <Text style={styles.reviewAuthor}>
                 {t('booking.reviewBy')} {existingReview.reviewer.name}
               </Text>
             </View>
           </View>
         )}
 
-        {/* Review Form */}
+        {/* Review Prompt */}
         {canReview && !showReviewForm && (
-          <TouchableOpacity
-            onPress={() => setShowReviewForm(true)}
-            style={[
-              styles.reviewPrompt,
-              { backgroundColor: colors.primary + '10', borderColor: colors.primary + '30' },
-            ]}
-          >
-            <Ionicons name="star-outline" size={24} color={colors.primary} />
+          <TouchableOpacity onPress={() => setShowReviewForm(true)} style={styles.reviewPrompt}>
+            <Ionicons name="star-outline" size={24} color={V2_COLORS.primary} />
             <View style={{ flex: 1 }}>
-              <Text style={[styles.reviewPromptTitle, { color: colors.primary }]}>
-                {t('booking.rateExperience')}
-              </Text>
-              <Text style={[styles.reviewPromptDesc, { color: colors.textSecondary }]}>
-                {t('booking.shareExperience')}
-              </Text>
+              <Text style={styles.reviewPromptTitle}>{t('booking.rateExperience')}</Text>
+              <Text style={styles.reviewPromptDesc}>{t('booking.shareExperience')}</Text>
             </View>
             <Ionicons
               name={isRTL ? 'chevron-back' : 'chevron-forward'}
               size={20}
-              color={colors.primary}
+              color={V2_COLORS.primary}
             />
           </TouchableOpacity>
         )}
 
+        {/* Review Form */}
         {canReview && showReviewForm && (
-          <View style={[styles.card, { backgroundColor: colors.card }]}>
-            <Text style={[styles.cardTitle, { color: colors.text }]}>
-              {t('booking.yourReview')}
-            </Text>
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>{t('booking.yourReview')}</Text>
             <View style={styles.reviewFormContent}>
               <StarRating rating={reviewRating} onRate={setReviewRating} size={36} />
               <TextInput
-                style={[
-                  styles.reviewInput,
-                  {
-                    backgroundColor: colors.background,
-                    color: colors.text,
-                    borderColor: colors.border,
-                  },
-                ]}
+                style={styles.reviewInput}
                 value={reviewComment}
                 onChangeText={setReviewComment}
                 placeholder={t('booking.addComment')}
-                placeholderTextColor={colors.textSecondary}
+                placeholderTextColor={V2_COLORS.textMuted}
                 multiline
                 numberOfLines={3}
                 maxLength={500}
@@ -485,19 +452,14 @@ export default function BookingDetailScreen() {
               <View style={styles.reviewActions}>
                 <TouchableOpacity
                   onPress={() => setShowReviewForm(false)}
-                  style={[styles.reviewCancelBtn, { borderColor: colors.border }]}
+                  style={styles.reviewCancelBtn}
                 >
-                  <Text style={[styles.reviewCancelText, { color: colors.textSecondary }]}>
-                    {t('common.cancel')}
-                  </Text>
+                  <Text style={styles.reviewCancelText}>{t('common.cancel')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={handleSubmitReview}
                   disabled={createReview.isPending || reviewRating === 0}
-                  style={[
-                    styles.reviewSubmitBtn,
-                    { backgroundColor: colors.primary, opacity: reviewRating === 0 ? 0.5 : 1 },
-                  ]}
+                  style={[styles.reviewSubmitBtn, { opacity: reviewRating === 0 ? 0.5 : 1 }]}
                 >
                   {createReview.isPending ? (
                     <ActivityIndicator color="#FFF" size="small" />
@@ -513,12 +475,7 @@ export default function BookingDetailScreen() {
 
       {/* Payment Button for Sender */}
       {booking.status === 'accepted' && isSender && (
-        <View
-          style={[
-            styles.actionBar,
-            { backgroundColor: colors.card, borderTopColor: colors.border },
-          ]}
-        >
+        <View style={styles.actionBar}>
           <TouchableOpacity
             onPress={() =>
               router.push({
@@ -533,28 +490,30 @@ export default function BookingDetailScreen() {
                 },
               })
             }
-            style={[styles.acceptBtn, { backgroundColor: colors.primary }]}
+            style={styles.primaryBtn}
           >
-            <Ionicons name="card-outline" size={20} color="#FFF" style={{ marginEnd: 8 }} />
-            <Text style={styles.acceptText}>{t('payment.title')}</Text>
+            <LinearGradient
+              colors={[...GRADIENTS.primary]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.primaryBtnGradient}
+            >
+              <Ionicons name="card-outline" size={20} color="#FFF" style={{ marginEnd: 8 }} />
+              <Text style={styles.primaryBtnText}>{t('payment.title')}</Text>
+            </LinearGradient>
           </TouchableOpacity>
         </View>
       )}
 
       {/* Carrier: Confirm Payment */}
       {isCarrier && booking.paymentStatus === 'proof_submitted' && (
-        <View
-          style={[
-            styles.actionBar,
-            { backgroundColor: colors.card, borderTopColor: colors.border },
-          ]}
-        >
+        <View style={styles.actionBar}>
           <TouchableOpacity
             onPress={handleConfirmPayment}
             disabled={confirmPayment.isPending}
             style={[
-              styles.acceptBtn,
-              { backgroundColor: '#10B981', opacity: confirmPayment.isPending ? 0.7 : 1 },
+              styles.solidActionBtn,
+              { backgroundColor: V2_COLORS.accent1, opacity: confirmPayment.isPending ? 0.7 : 1 },
             ]}
           >
             {confirmPayment.isPending ? (
@@ -567,7 +526,7 @@ export default function BookingDetailScreen() {
                   color="#FFF"
                   style={{ marginEnd: 8 }}
                 />
-                <Text style={styles.acceptText}>{t('booking.confirmPayment')}</Text>
+                <Text style={styles.primaryBtnText}>{t('booking.confirmPayment')}</Text>
               </>
             )}
           </TouchableOpacity>
@@ -576,18 +535,13 @@ export default function BookingDetailScreen() {
 
       {/* Carrier Status Progression */}
       {isCarrier && booking.status === 'accepted' && (
-        <View
-          style={[
-            styles.actionBar,
-            { backgroundColor: colors.card, borderTopColor: colors.border },
-          ]}
-        >
+        <View style={styles.actionBar}>
           <TouchableOpacity
             onPress={handleMarkPickedUp}
             disabled={markPickedUp.isPending}
             style={[
-              styles.acceptBtn,
-              { backgroundColor: '#8B5CF6', opacity: markPickedUp.isPending ? 0.7 : 1 },
+              styles.solidActionBtn,
+              { backgroundColor: V2_COLORS.primary, opacity: markPickedUp.isPending ? 0.7 : 1 },
             ]}
           >
             {markPickedUp.isPending ? (
@@ -595,7 +549,7 @@ export default function BookingDetailScreen() {
             ) : (
               <>
                 <Ionicons name="cube-outline" size={20} color="#FFF" style={{ marginEnd: 8 }} />
-                <Text style={styles.acceptText}>{t('booking.markPickedUp')}</Text>
+                <Text style={styles.primaryBtnText}>{t('booking.markPickedUp')}</Text>
               </>
             )}
           </TouchableOpacity>
@@ -603,18 +557,13 @@ export default function BookingDetailScreen() {
       )}
 
       {isCarrier && booking.status === 'picked_up' && (
-        <View
-          style={[
-            styles.actionBar,
-            { backgroundColor: colors.card, borderTopColor: colors.border },
-          ]}
-        >
+        <View style={styles.actionBar}>
           <TouchableOpacity
             onPress={handleMarkInTransit}
             disabled={markInTransit.isPending}
             style={[
-              styles.acceptBtn,
-              { backgroundColor: '#6366F1', opacity: markInTransit.isPending ? 0.7 : 1 },
+              styles.solidActionBtn,
+              { backgroundColor: V2_COLORS.primary, opacity: markInTransit.isPending ? 0.7 : 1 },
             ]}
           >
             {markInTransit.isPending ? (
@@ -622,7 +571,7 @@ export default function BookingDetailScreen() {
             ) : (
               <>
                 <Ionicons name="airplane-outline" size={20} color="#FFF" style={{ marginEnd: 8 }} />
-                <Text style={styles.acceptText}>{t('booking.markInTransit')}</Text>
+                <Text style={styles.primaryBtnText}>{t('booking.markInTransit')}</Text>
               </>
             )}
           </TouchableOpacity>
@@ -630,18 +579,13 @@ export default function BookingDetailScreen() {
       )}
 
       {isCarrier && booking.status === 'in_transit' && (
-        <View
-          style={[
-            styles.actionBar,
-            { backgroundColor: colors.card, borderTopColor: colors.border },
-          ]}
-        >
+        <View style={styles.actionBar}>
           <TouchableOpacity
             onPress={handleMarkDelivered}
             disabled={markDelivered.isPending}
             style={[
-              styles.acceptBtn,
-              { backgroundColor: '#10B981', opacity: markDelivered.isPending ? 0.7 : 1 },
+              styles.solidActionBtn,
+              { backgroundColor: V2_COLORS.accent1, opacity: markDelivered.isPending ? 0.7 : 1 },
             ]}
           >
             {markDelivered.isPending ? (
@@ -654,45 +598,36 @@ export default function BookingDetailScreen() {
                   color="#FFF"
                   style={{ marginEnd: 8 }}
                 />
-                <Text style={styles.acceptText}>{t('booking.markDelivered')}</Text>
+                <Text style={styles.primaryBtnText}>{t('booking.markDelivered')}</Text>
               </>
             )}
           </TouchableOpacity>
         </View>
       )}
 
-      {/* Action Buttons */}
+      {/* Action Buttons — pending booking */}
       {booking.status === 'pending' && (
-        <View
-          style={[
-            styles.actionBar,
-            { backgroundColor: colors.card, borderTopColor: colors.border },
-          ]}
-        >
+        <View style={styles.actionBar}>
           {isCarrier && (
             <>
-              <TouchableOpacity
-                onPress={handleReject}
-                style={[styles.rejectBtn, { borderColor: '#EF4444' }]}
-              >
-                <Text style={[styles.rejectText, { color: '#EF4444' }]}>{t('booking.reject')}</Text>
+              <TouchableOpacity onPress={handleReject} style={styles.rejectBtn}>
+                <Text style={styles.rejectText}>{t('booking.reject')}</Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                onPress={handleAccept}
-                style={[styles.acceptBtn, { backgroundColor: colors.primary }]}
-              >
-                <Text style={styles.acceptText}>{t('booking.accept')}</Text>
+              <TouchableOpacity onPress={handleAccept} style={styles.primaryBtn}>
+                <LinearGradient
+                  colors={[...GRADIENTS.primary]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.primaryBtnGradient}
+                >
+                  <Text style={styles.primaryBtnText}>{t('booking.accept')}</Text>
+                </LinearGradient>
               </TouchableOpacity>
             </>
           )}
           {isSender && (
-            <TouchableOpacity
-              onPress={handleCancel}
-              style={[styles.cancelBtn, { borderColor: '#EF4444' }]}
-            >
-              <Text style={[styles.cancelText, { color: '#EF4444' }]}>
-                {t('booking.cancelBooking')}
-              </Text>
+            <TouchableOpacity onPress={handleCancel} style={styles.cancelBtn}>
+              <Text style={styles.cancelText}>{t('booking.cancelBooking')}</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -702,149 +637,190 @@ export default function BookingDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 } as ViewStyle,
+  container: { flex: 1, backgroundColor: V2_COLORS.bg } as ViewStyle,
   loading: { flex: 1, alignItems: 'center', justifyContent: 'center' } as ViewStyle,
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-  } as ViewStyle,
-  headerBtn: { width: 40, alignItems: 'center' } as ViewStyle,
-  headerTitle: { fontSize: 18, fontWeight: '600' } as TextStyle,
+  emptyText: { ...TYPOGRAPHY.caption, color: V2_COLORS.textSoft } as TextStyle,
+  goBackText: { ...TYPOGRAPHY.caption, fontWeight: '600', color: V2_COLORS.primary } as TextStyle,
   scrollContent: { padding: 16, paddingBottom: 100 } as ViewStyle,
 
+  // Status pill
   statusCard: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
-    borderRadius: 14,
+    borderRadius: RADIUS.pill,
     gap: 10,
     marginBottom: 16,
   } as ViewStyle,
   statusDot: { width: 10, height: 10, borderRadius: 5 } as ViewStyle,
   statusLabel: { fontSize: 16, fontWeight: '700' } as TextStyle,
 
-  card: { borderRadius: 16, padding: 20, marginBottom: 16 } as ViewStyle,
-  cardTitle: { fontSize: 15, fontWeight: '700', marginBottom: 12 } as TextStyle,
-  routeRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 } as ViewStyle,
-  city: { fontSize: 18, fontWeight: '700' } as TextStyle,
-  dateText: { fontSize: 14 } as TextStyle,
+  // Cards
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: RADIUS.card,
+    padding: 20,
+    marginBottom: 16,
+    ...BUBBLE_SHADOWS.md,
+  } as ViewStyle,
+  cardTitle: {
+    ...TYPOGRAPHY.caption,
+    fontWeight: '700',
+    color: V2_COLORS.text,
+    marginBottom: 12,
+  } as TextStyle,
 
+  // Route
+  routeRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 } as ViewStyle,
+  routeDot: { width: 10, height: 10, borderRadius: 5 } as ViewStyle,
+  city: { ...TYPOGRAPHY.h3, color: V2_COLORS.text } as TextStyle,
+  routeMetaRow: { marginTop: 8 } as ViewStyle,
+
+  // Price
   priceRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingVertical: 4,
   } as ViewStyle,
-  priceLabel: { fontSize: 14 } as TextStyle,
-  priceValue: { fontSize: 14, fontWeight: '500' } as TextStyle,
-  divider: { height: 1, marginVertical: 8 } as ViewStyle,
-  totalLabel: { fontSize: 16, fontWeight: '700' } as TextStyle,
-  totalValue: { fontSize: 20, fontWeight: '700' } as TextStyle,
+  priceLabel: { fontSize: 14, color: V2_COLORS.textSoft } as TextStyle,
+  priceValue: { fontSize: 14, fontWeight: '500', color: V2_COLORS.text } as TextStyle,
+  priceDivider: {
+    height: 1,
+    backgroundColor: V2_COLORS.cardShadow,
+    marginVertical: 8,
+  } as ViewStyle,
+  totalLabel: { ...TYPOGRAPHY.h3, color: V2_COLORS.text } as TextStyle,
+  totalValue: { ...TYPOGRAPHY.h2, color: V2_COLORS.primary } as TextStyle,
 
-  // Item display
+  // Items
   itemRow: { paddingVertical: 12 } as ViewStyle,
   itemInfo: { marginBottom: 8 } as ViewStyle,
-  itemName: { fontSize: 15, fontWeight: '600' } as TextStyle,
-  itemDesc: { fontSize: 13, marginTop: 2 } as TextStyle,
-  itemMeta: { flexDirection: 'row', gap: 12, marginTop: 4 } as ViewStyle,
-  itemMetaText: { fontSize: 12, fontWeight: '500' } as TextStyle,
+  itemName: { ...TYPOGRAPHY.caption, fontWeight: '600', color: V2_COLORS.text } as TextStyle,
+  itemDesc: { fontSize: 13, color: V2_COLORS.textSoft, marginTop: 2 } as TextStyle,
+  itemMeta: { flexDirection: 'row', gap: 8, marginTop: 6 } as ViewStyle,
   itemImageScroll: { marginTop: 4 } as ViewStyle,
   itemThumb: {
     width: 72,
     height: 72,
-    borderRadius: 10,
+    borderRadius: RADIUS.card / 2,
     marginEnd: 8,
   } as ImageStyle,
 
+  // User
   userRow: { flexDirection: 'row', alignItems: 'center', gap: 12 } as ViewStyle,
-  userName: { fontSize: 16, fontWeight: '600' } as TextStyle,
-  verifiedRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 } as ViewStyle,
-  verifiedText: { fontSize: 12, fontWeight: '600' } as TextStyle,
+  userName: { ...TYPOGRAPHY.h3, color: V2_COLORS.text } as TextStyle,
   chatBtn: {
     width: 40,
     height: 40,
-    borderRadius: 10,
+    borderRadius: RADIUS.pill,
     borderWidth: 1.5,
+    borderColor: V2_COLORS.primary,
     alignItems: 'center',
     justifyContent: 'center',
   } as ViewStyle,
 
   // Review display
   reviewDisplay: { gap: 8 } as ViewStyle,
-  reviewComment: { fontSize: 14, lineHeight: 21 } as TextStyle,
-  reviewAuthor: { fontSize: 12 } as TextStyle,
+  reviewComment: { fontSize: 14, lineHeight: 21, color: V2_COLORS.text } as TextStyle,
+  reviewAuthor: { fontSize: 12, color: V2_COLORS.textMuted } as TextStyle,
 
   // Review prompt
   reviewPrompt: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
-    borderRadius: 14,
+    borderRadius: RADIUS.card,
     gap: 12,
     marginBottom: 16,
+    backgroundColor: V2_COLORS.primary + '10',
     borderWidth: 1,
+    borderColor: V2_COLORS.primary + '30',
   } as ViewStyle,
-  reviewPromptTitle: { fontSize: 15, fontWeight: '600' } as TextStyle,
-  reviewPromptDesc: { fontSize: 13, marginTop: 2 } as TextStyle,
+  reviewPromptTitle: {
+    ...TYPOGRAPHY.caption,
+    fontWeight: '600',
+    color: V2_COLORS.primary,
+  } as TextStyle,
+  reviewPromptDesc: { fontSize: 13, color: V2_COLORS.textSoft, marginTop: 2 } as TextStyle,
 
   // Review form
   reviewFormContent: { gap: 16, alignItems: 'center' } as ViewStyle,
   reviewInput: {
     width: '100%',
     minHeight: 80,
-    borderRadius: 12,
+    borderRadius: RADIUS.input,
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 14,
     borderWidth: 1,
+    borderColor: V2_COLORS.cardShadow,
+    backgroundColor: V2_COLORS.bg,
+    color: V2_COLORS.text,
   } as TextStyle,
   reviewActions: { flexDirection: 'row', gap: 12, width: '100%' } as ViewStyle,
   reviewCancelBtn: {
     flex: 1,
     height: 44,
-    borderRadius: 10,
+    borderRadius: RADIUS.pill,
     borderWidth: 1.5,
+    borderColor: V2_COLORS.cardShadow,
     alignItems: 'center',
     justifyContent: 'center',
   } as ViewStyle,
-  reviewCancelText: { fontSize: 15, fontWeight: '600' } as TextStyle,
+  reviewCancelText: { fontSize: 15, fontWeight: '600', color: V2_COLORS.textSoft } as TextStyle,
   reviewSubmitBtn: {
     flex: 2,
     height: 44,
-    borderRadius: 10,
+    borderRadius: RADIUS.pill,
+    backgroundColor: V2_COLORS.primary,
     alignItems: 'center',
     justifyContent: 'center',
   } as ViewStyle,
   reviewSubmitText: { color: '#FFF', fontSize: 15, fontWeight: '700' } as TextStyle,
 
-  actionBar: { flexDirection: 'row', padding: 16, gap: 12, borderTopWidth: 1 } as ViewStyle,
+  // Action Bar
+  actionBar: {
+    flexDirection: 'row',
+    padding: 16,
+    gap: 12,
+    backgroundColor: '#FFFFFF',
+    ...BUBBLE_SHADOWS.lg,
+  } as ViewStyle,
+  primaryBtn: { flex: 2, overflow: 'hidden' as const, borderRadius: RADIUS.pill } as ViewStyle,
+  primaryBtnGradient: {
+    height: 50,
+    borderRadius: RADIUS.pill,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  } as ViewStyle,
+  primaryBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' } as TextStyle,
+  solidActionBtn: {
+    flex: 1,
+    height: 50,
+    borderRadius: RADIUS.pill,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  } as ViewStyle,
   rejectBtn: {
     flex: 1,
-    height: 48,
-    borderRadius: 12,
-    borderWidth: 2,
+    height: 50,
+    borderRadius: RADIUS.pill,
+    borderWidth: 1.5,
+    borderColor: V2_COLORS.secondary,
     alignItems: 'center',
     justifyContent: 'center',
   } as ViewStyle,
-  rejectText: { fontSize: 16, fontWeight: '600' } as TextStyle,
-  acceptBtn: {
-    flex: 2,
-    height: 48,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  } as ViewStyle,
-  acceptText: { color: '#FFF', fontSize: 16, fontWeight: '700' } as TextStyle,
+  rejectText: { fontSize: 16, fontWeight: '600', color: V2_COLORS.secondary } as TextStyle,
   cancelBtn: {
     flex: 1,
-    height: 48,
-    borderRadius: 12,
-    borderWidth: 2,
+    height: 50,
+    borderRadius: RADIUS.pill,
+    borderWidth: 1.5,
+    borderColor: V2_COLORS.secondary,
     alignItems: 'center',
     justifyContent: 'center',
   } as ViewStyle,
-  cancelText: { fontSize: 16, fontWeight: '600' } as TextStyle,
+  cancelText: { fontSize: 16, fontWeight: '600', color: V2_COLORS.secondary } as TextStyle,
 });

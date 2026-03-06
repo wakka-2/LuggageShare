@@ -1,9 +1,9 @@
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Pressable, ViewStyle, TextStyle } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-
 import { useRouter } from 'expo-router';
-import { useTheme } from '@/hooks/useTheme';
+
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS, TYPOGRAPHY } from '@/providers/ThemeProvider';
 
 interface ScreenHeaderProps {
   title: string;
@@ -14,7 +14,6 @@ interface ScreenHeaderProps {
 }
 
 export function ScreenHeader({ title, onBack, right }: ScreenHeaderProps) {
-  const { colors } = useTheme();
   const { i18n } = useTranslation();
   const router = useRouter();
   const goBack = () => {
@@ -27,7 +26,7 @@ export function ScreenHeader({ title, onBack, right }: ScreenHeaderProps) {
   const isRTL = i18n.language === 'ar';
 
   return (
-    <View style={[styles.header, { borderBottomColor: colors.border }]}>
+    <View style={styles.header}>
       <Pressable
         onPress={onBack ?? goBack}
         style={styles.headerBtn}
@@ -35,9 +34,9 @@ export function ScreenHeader({ title, onBack, right }: ScreenHeaderProps) {
         accessibilityRole="button"
         accessibilityLabel="Go back"
       >
-        <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={colors.text} />
+        <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={22} color={V2_COLORS.text} />
       </Pressable>
-      <Text style={[styles.headerTitle, { color: colors.text }]} numberOfLines={1}>
+      <Text style={styles.headerTitle} numberOfLines={1}>
         {title}
       </Text>
       {right ?? <View style={styles.headerBtn} />}
@@ -51,21 +50,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-  },
+    paddingVertical: 10,
+  } as ViewStyle,
   headerBtn: {
     width: 40,
     height: 40,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 20,
+    borderRadius: RADIUS.pill,
+    backgroundColor: '#FFFFFF',
+    ...BUBBLE_SHADOWS.xs,
     ...({ cursor: 'pointer' } as any),
-  },
+  } as ViewStyle,
   headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
+    ...TYPOGRAPHY.h3,
+    color: V2_COLORS.text,
     flex: 1,
     textAlign: 'center',
-  },
+  } as TextStyle,
 });

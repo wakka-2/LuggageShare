@@ -8,7 +8,7 @@ import Animated, {
   withTiming,
   Easing,
 } from 'react-native-reanimated';
-import { useTheme } from '@/providers/ThemeProvider';
+import { V2_COLORS } from '@/providers/ThemeProvider';
 
 interface LiveIndicatorProps {
   label?: string;
@@ -17,8 +17,7 @@ interface LiveIndicatorProps {
 }
 
 export function LiveIndicator({ label, color, size = 'small' }: LiveIndicatorProps) {
-  const { colors } = useTheme();
-  const dotColor = color || colors.success;
+  const dotColor = color || V2_COLORS.accent1;
   const dotSize = size === 'small' ? 8 : 12;
   const pulseSize = size === 'small' ? 18 : 24;
 
@@ -76,7 +75,7 @@ export function LiveIndicator({ label, color, size = 'small' }: LiveIndicatorPro
           ]}
         />
       </View>
-      {label && <Text style={[styles.label, { color: colors.text }]}>{label}</Text>}
+      {label && <Text style={styles.label}>{label}</Text>}
     </View>
   );
 }
@@ -97,6 +96,7 @@ const styles = StyleSheet.create({
   dot: {},
   label: {
     fontSize: 13,
-    fontWeight: '500',
+    fontWeight: '600',
+    color: V2_COLORS.text,
   },
 });

@@ -1,14 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import Animated, {
-  FadeIn,
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-  withDelay,
-} from 'react-native-reanimated';
+import Animated, { FadeIn } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
-import { useTheme, RADIUS } from '@/providers/ThemeProvider';
+import { V2_COLORS, RADIUS } from '@/providers/ThemeProvider';
 import { useTranslation } from 'react-i18next';
 
 export interface StatusStep {
@@ -44,9 +38,11 @@ function StepDot({
   isCurrent: boolean;
   index: number;
 }) {
-  const { colors } = useTheme();
-
-  const fillColor = isCompleted ? colors.success : isCurrent ? colors.primary : colors.border;
+  const fillColor = isCompleted
+    ? V2_COLORS.accent1
+    : isCurrent
+      ? V2_COLORS.primary
+      : V2_COLORS.cardShadow;
 
   return (
     <Animated.View
@@ -55,7 +51,7 @@ function StepDot({
         styles.dot,
         {
           backgroundColor: fillColor,
-          borderColor: isCurrent ? colors.primary : 'transparent',
+          borderColor: isCurrent ? V2_COLORS.primary : 'transparent',
           borderWidth: isCurrent ? 2 : 0,
         },
       ]}
@@ -66,7 +62,6 @@ function StepDot({
 }
 
 export function StatusStepper({ steps, currentStepKey }: StatusStepperProps) {
-  const { colors } = useTheme();
   const { t } = useTranslation();
 
   const currentIndex = steps.findIndex((s) => s.key === currentStepKey);
@@ -87,7 +82,7 @@ export function StatusStepper({ steps, currentStepKey }: StatusStepperProps) {
                   style={[
                     styles.connector,
                     {
-                      backgroundColor: isCompleted ? colors.success : colors.border,
+                      backgroundColor: isCompleted ? V2_COLORS.accent1 : V2_COLORS.cardShadow,
                     },
                   ]}
                 />
@@ -100,17 +95,23 @@ export function StatusStepper({ steps, currentStepKey }: StatusStepperProps) {
               <Ionicons
                 name={step.icon}
                 size={16}
-                color={isCompleted ? colors.success : isCurrent ? colors.primary : colors.textMuted}
+                color={
+                  isCompleted
+                    ? V2_COLORS.accent1
+                    : isCurrent
+                      ? V2_COLORS.primary
+                      : V2_COLORS.textMuted
+                }
               />
               <Text
                 style={[
                   styles.label,
                   {
                     color: isCompleted
-                      ? colors.success
+                      ? V2_COLORS.accent1
                       : isCurrent
-                        ? colors.text
-                        : colors.textMuted,
+                        ? V2_COLORS.text
+                        : V2_COLORS.textMuted,
                     fontWeight: isCurrent ? '600' : '400',
                   },
                 ]}
@@ -118,9 +119,7 @@ export function StatusStepper({ steps, currentStepKey }: StatusStepperProps) {
                 {step.label}
               </Text>
               {step.completedAt && (
-                <Text style={[styles.date, { color: colors.textMuted }]}>
-                  {new Date(step.completedAt).toLocaleDateString()}
-                </Text>
+                <Text style={styles.date}>{new Date(step.completedAt).toLocaleDateString()}</Text>
               )}
             </Animated.View>
           </View>
@@ -166,5 +165,6 @@ const styles = StyleSheet.create({
   },
   date: {
     fontSize: 11,
+    color: V2_COLORS.textMuted,
   },
 });

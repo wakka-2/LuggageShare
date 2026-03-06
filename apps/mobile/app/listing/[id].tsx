@@ -12,13 +12,21 @@ import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
+import { LinearGradient } from 'expo-linear-gradient';
 
-import { useTheme } from '@/hooks/useTheme';
+import {
+  V2_COLORS,
+  RADIUS,
+  BUBBLE_SHADOWS,
+  TYPOGRAPHY,
+  GRADIENTS,
+} from '@/providers/ThemeProvider';
 import { useListing } from '@/hooks/useListings';
 import { useBookings } from '@/hooks/useBookings';
 import { useUserReviews } from '@/hooks/useReviews';
 import { useAuth } from '@/hooks/useAuth';
-import { Avatar } from '@/components/common';
+import { Avatar, BackgroundBlobs, MetaChip, SectionHeader } from '@/components/common';
+import { ScreenHeader } from '@/components/common/ScreenHeader';
 import { MOCK_LISTINGS, adaptMockListing } from '@/components/listings';
 import { VerificationBadge } from '@/components/trust';
 import { ReviewCard, RatingBars } from '@/components/trust';
@@ -28,7 +36,6 @@ import { showAlert } from '@/lib/alert';
 export default function ListingDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { t, i18n } = useTranslation();
-  const { colors } = useTheme();
   const router = useRouter();
   const { user } = useAuth();
   const isRTL = i18n.language === 'ar';
@@ -51,24 +58,20 @@ export default function ListingDetailScreen() {
 
   if (isLoading) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-        <View style={[styles.header, { borderBottomColor: colors.border }]}>
-          <View style={styles.headerButton} />
-          <SkeletonLoader width={120} height={18} borderRadius={6} />
-          <View style={styles.headerButton} />
-        </View>
+      <SafeAreaView style={styles.container}>
+        <ScreenHeader title={t('listing.details')} />
         <View style={styles.scrollContent}>
           <SkeletonLoader
             width="100%"
             height={140}
-            borderRadius={16}
+            borderRadius={RADIUS.card}
             style={{ marginBottom: 16 }}
           />
           <View style={{ flexDirection: 'row', gap: 12, marginBottom: 16 }}>
-            <SkeletonLoader width="48%" height={100} borderRadius={16} />
-            <SkeletonLoader width="48%" height={100} borderRadius={16} />
+            <SkeletonLoader width="48%" height={100} borderRadius={RADIUS.card} />
+            <SkeletonLoader width="48%" height={100} borderRadius={RADIUS.card} />
           </View>
-          <SkeletonLoader width="100%" height={120} borderRadius={16} />
+          <SkeletonLoader width="100%" height={120} borderRadius={RADIUS.card} />
         </View>
       </SafeAreaView>
     );
@@ -76,16 +79,11 @@ export default function ListingDetailScreen() {
 
   if (!listing) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <Ionicons name="alert-circle-outline" size={48} color={colors.textSecondary} />
-          <Text style={[styles.errorText, { color: colors.textSecondary }]}>
-            {t('listing.notFound')}
-          </Text>
-          <TouchableOpacity
-            onPress={() => router.back()}
-            style={[styles.backButton, { backgroundColor: colors.primary }]}
-          >
+          <Ionicons name="alert-circle-outline" size={48} color={V2_COLORS.textMuted} />
+          <Text style={styles.errorText}>{t('listing.notFound')}</Text>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
             <Text style={styles.backButtonText}>{t('listing.goBack')}</Text>
           </TouchableOpacity>
         </View>
@@ -113,107 +111,84 @@ export default function ListingDetailScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      {/* Header */}
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.headerButton}>
-          <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={colors.text} />
-        </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>{t('listing.details')}</Text>
-        <View style={styles.headerButton} />
-      </View>
+    <SafeAreaView style={styles.container}>
+      <BackgroundBlobs variant="subtle" />
+      <ScreenHeader title={t('listing.details')} />
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Route Card */}
-        <Animated.View
-          entering={FadeInDown.duration(400)}
-          style={[styles.routeCard, { backgroundColor: colors.card }]}
-        >
+        <Animated.View entering={FadeInDown.duration(400)} style={styles.routeCard}>
           <View style={styles.routeRow}>
             <View style={styles.routePoint}>
-              <View style={[styles.routeDot, { backgroundColor: colors.primary }]} />
-              <Text style={[styles.cityName, { color: colors.text }]}>{listing.departureCity}</Text>
+              <View style={[styles.routeDot, { backgroundColor: V2_COLORS.accent1 }]} />
+              <Text style={styles.cityName}>{listing.departureCity}</Text>
               {listing.departureCode && (
-                <Text style={[styles.cityCode, { color: colors.textSecondary }]}>
-                  {listing.departureCode}
-                </Text>
+                <Text style={styles.cityCode}>{listing.departureCode}</Text>
               )}
             </View>
             <View style={styles.routeLine}>
-              <Ionicons name="airplane" size={20} color={colors.primary} />
+              <View style={styles.dashedLine} />
+              <Ionicons name="airplane" size={20} color={V2_COLORS.primary} />
+              <View style={styles.dashedLine} />
             </View>
             <View style={styles.routePoint}>
-              <View style={[styles.routeDot, { backgroundColor: colors.success }]} />
-              <Text style={[styles.cityName, { color: colors.text }]}>{listing.arrivalCity}</Text>
-              {listing.arrivalCode && (
-                <Text style={[styles.cityCode, { color: colors.textSecondary }]}>
-                  {listing.arrivalCode}
-                </Text>
-              )}
+              <View style={[styles.routeDot, { backgroundColor: V2_COLORS.secondary }]} />
+              <Text style={styles.cityName}>{listing.arrivalCity}</Text>
+              {listing.arrivalCode && <Text style={styles.cityCode}>{listing.arrivalCode}</Text>}
             </View>
           </View>
 
-          <View style={[styles.divider, { backgroundColor: colors.border }]} />
-
-          <View style={styles.detailsRow}>
-            <View style={styles.detailItem}>
-              <Ionicons name="calendar-outline" size={18} color={colors.textSecondary} />
-              <Text style={[styles.detailText, { color: colors.text }]}>
-                {departureDate.toLocaleDateString(isRTL ? 'ar-SA' : 'en-US', {
-                  day: 'numeric',
-                  month: 'short',
-                  year: 'numeric',
-                })}
-              </Text>
-            </View>
+          {/* Meta chips row replacing divider + details */}
+          <View style={styles.metaRow}>
+            <MetaChip
+              icon="calendar"
+              label={departureDate.toLocaleDateString(isRTL ? 'ar-SA' : 'en-US', {
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric',
+              })}
+              color={V2_COLORS.primary}
+            />
             {listing.flightNumber && (
-              <View style={styles.detailItem}>
-                <Ionicons name="airplane-outline" size={18} color={colors.textSecondary} />
-                <Text style={[styles.detailText, { color: colors.text }]}>
-                  {listing.flightNumber}
-                </Text>
-              </View>
+              <MetaChip icon="airplane" label={listing.flightNumber} color={V2_COLORS.accent3} />
             )}
           </View>
         </Animated.View>
 
-        {/* Weight & Price */}
+        {/* Weight & Price — side-by-side bubble cards */}
         <Animated.View entering={FadeIn.delay(100).duration(400)} style={styles.statsCards}>
-          <View style={[styles.statCard, { backgroundColor: colors.card }]}>
-            <Ionicons name="scale-outline" size={24} color={colors.primary} />
-            <Text style={[styles.statValue, { color: colors.text }]}>{weight} kg</Text>
-            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-              {t('listing.available')}
-            </Text>
+          <View style={styles.statCard}>
+            <View style={[styles.statIconCircle, { backgroundColor: V2_COLORS.primary + '15' }]}>
+              <Ionicons name="scale-outline" size={22} color={V2_COLORS.primary} />
+            </View>
+            <Text style={styles.statValue}>{weight} kg</Text>
+            <Text style={styles.statLabel}>{t('listing.available')}</Text>
           </View>
-          <View style={[styles.statCard, { backgroundColor: colors.card }]}>
-            <Ionicons name="pricetag-outline" size={24} color={colors.success} />
-            <Text style={[styles.statValue, { color: colors.text }]}>
+          <View style={styles.statCard}>
+            <View style={[styles.statIconCircle, { backgroundColor: V2_COLORS.accent2 + '15' }]}>
+              <Ionicons name="pricetag-outline" size={22} color={V2_COLORS.accent2} />
+            </View>
+            <Text style={styles.statValue}>
               {price} {listing.currency || 'SAR'}
             </Text>
-            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-              {t('listing.price')}
-            </Text>
+            <Text style={styles.statLabel}>{t('listing.price')}</Text>
           </View>
         </Animated.View>
 
-        {/* Notes */}
+        {/* Notes — amber-tinted card */}
         {listing.notes && (
-          <Animated.View
-            entering={FadeIn.delay(150).duration(400)}
-            style={[styles.section, { backgroundColor: colors.card }]}
-          >
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('listing.notes')}</Text>
-            <Text style={[styles.notesText, { color: colors.textSecondary }]}>{listing.notes}</Text>
+          <Animated.View entering={FadeIn.delay(150).duration(400)} style={styles.notesCard}>
+            <View style={styles.notesTitleRow}>
+              <Ionicons name="document-text-outline" size={16} color={V2_COLORS.accent2} />
+              <Text style={styles.notesTitleText}>{t('listing.notes')}</Text>
+            </View>
+            <Text style={styles.notesText}>{listing.notes}</Text>
           </Animated.View>
         )}
 
-        {/* Carrier Info */}
-        <Animated.View
-          entering={FadeIn.delay(200).duration(400)}
-          style={[styles.section, { backgroundColor: colors.card }]}
-        >
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('listing.carrier')}</Text>
+        {/* Carrier Info — bubble card */}
+        <Animated.View entering={FadeIn.delay(200).duration(400)} style={styles.section}>
+          <SectionHeader title={t('listing.carrier')} />
           <View style={styles.carrierRow}>
             <Avatar
               name={listing.carrier.name}
@@ -222,28 +197,23 @@ export default function ListingDetailScreen() {
               isVerified={listing.carrier.isVerified}
             />
             <View style={styles.carrierInfo}>
-              <Text style={[styles.carrierName, { color: colors.text }]}>
-                {listing.carrier.name}
-              </Text>
+              <Text style={styles.carrierName}>{listing.carrier.name}</Text>
               {listing.carrier.city && (
-                <Text style={[styles.carrierCity, { color: colors.textSecondary }]}>
-                  {listing.carrier.city}
-                </Text>
+                <View style={styles.carrierLocationRow}>
+                  <Ionicons name="location-outline" size={12} color={V2_COLORS.textMuted} />
+                  <Text style={styles.carrierCity}>{listing.carrier.city}</Text>
+                </View>
               )}
               {listing.carrier.isVerified && (
                 <VerificationBadge type="verified" size="small" animated={false} />
               )}
             </View>
           </View>
-          {listing.carrier.bio && (
-            <Text style={[styles.carrierBio, { color: colors.textSecondary }]}>
-              {listing.carrier.bio}
-            </Text>
-          )}
+          {listing.carrier.bio && <Text style={styles.carrierBio}>{listing.carrier.bio}</Text>}
 
           {/* Carrier Rating Summary */}
           {carrierReviews && carrierReviews.length > 0 && (
-            <View style={[styles.ratingSection]}>
+            <View style={styles.ratingSection}>
               <RatingBars
                 distribution={(() => {
                   const dist = [0, 0, 0, 0, 0];
@@ -263,13 +233,8 @@ export default function ListingDetailScreen() {
 
         {/* Carrier Reviews */}
         {carrierReviews && carrierReviews.length > 0 && (
-          <Animated.View
-            entering={FadeInUp.delay(250).duration(400)}
-            style={[styles.section, { backgroundColor: colors.card }]}
-          >
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>
-              {t('listing.carrierReviews', { defaultValue: 'Reviews' })}
-            </Text>
+          <Animated.View entering={FadeInUp.delay(250).duration(400)} style={styles.reviewsSection}>
+            <SectionHeader title={t('listing.carrierReviews', { defaultValue: 'Reviews' })} />
             {carrierReviews.slice(0, 3).map((review, index) => (
               <ReviewCard
                 key={review.id}
@@ -290,25 +255,22 @@ export default function ListingDetailScreen() {
         )}
       </ScrollView>
 
-      {/* Bottom Action Bar */}
+      {/* Bottom Action Bar — gradient CTA */}
       {!isOwner && (
-        <View
-          style={[
-            styles.actionBar,
-            { backgroundColor: colors.card, borderTopColor: colors.border },
-          ]}
-        >
-          <TouchableOpacity
-            onPress={handleMessage}
-            style={[styles.messageButton, { borderColor: colors.primary }]}
-          >
-            <Ionicons name="chatbubble-outline" size={20} color={colors.primary} />
+        <View style={styles.actionBar}>
+          <TouchableOpacity onPress={handleMessage} style={styles.messageButton}>
+            <Ionicons name="chatbubble-outline" size={20} color={V2_COLORS.primary} />
+            <Text style={styles.messageButtonText}>{t('messages.title')}</Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            onPress={handleBooking}
-            style={[styles.bookButton, { backgroundColor: colors.primary }]}
-          >
-            <Text style={styles.bookButtonText}>{t('listing.bookNow')}</Text>
+          <TouchableOpacity onPress={handleBooking} style={styles.bookButtonWrap}>
+            <LinearGradient
+              colors={[...GRADIENTS.primary]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.bookButton}
+            >
+              <Text style={styles.bookButtonText}>{t('listing.bookNow')}</Text>
+            </LinearGradient>
           </TouchableOpacity>
         </View>
       )}
@@ -317,33 +279,32 @@ export default function ListingDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 } as ViewStyle,
+  container: { flex: 1, backgroundColor: V2_COLORS.bg } as ViewStyle,
   loadingContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 16,
   } as ViewStyle,
-  errorText: { fontSize: 16, marginTop: 8 } as TextStyle,
-  backButton: { paddingHorizontal: 24, paddingVertical: 12, borderRadius: 8 } as ViewStyle,
-  backButtonText: { color: '#FFF', fontSize: 16, fontWeight: '600' } as TextStyle,
-
-  // Header
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
+  errorText: { ...TYPOGRAPHY.caption, color: V2_COLORS.textSoft, marginTop: 8 } as TextStyle,
+  backButton: {
+    paddingHorizontal: 24,
     paddingVertical: 12,
-    borderBottomWidth: 1,
+    borderRadius: RADIUS.pill,
+    backgroundColor: V2_COLORS.primary,
   } as ViewStyle,
-  headerButton: { width: 40, alignItems: 'center' } as ViewStyle,
-  headerTitle: { fontSize: 18, fontWeight: '600' } as TextStyle,
+  backButtonText: { color: '#FFF', fontSize: 15, fontWeight: '600' } as TextStyle,
 
   scrollContent: { padding: 16, paddingBottom: 100 } as ViewStyle,
 
   // Route Card
-  routeCard: { borderRadius: 16, padding: 20, marginBottom: 16 } as ViewStyle,
+  routeCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: RADIUS.card,
+    padding: 20,
+    marginBottom: 16,
+    ...BUBBLE_SHADOWS.lg,
+  } as ViewStyle,
   routeRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -351,61 +312,129 @@ const styles = StyleSheet.create({
   } as ViewStyle,
   routePoint: { alignItems: 'center', flex: 1 } as ViewStyle,
   routeDot: { width: 12, height: 12, borderRadius: 6, marginBottom: 8 } as ViewStyle,
-  cityName: { fontSize: 18, fontWeight: '700', textAlign: 'center' } as TextStyle,
-  cityCode: { fontSize: 13, marginTop: 2 } as TextStyle,
-  routeLine: { paddingHorizontal: 16 } as ViewStyle,
-  divider: { height: 1, marginVertical: 16 } as ViewStyle,
-  detailsRow: { flexDirection: 'row', gap: 24 } as ViewStyle,
-  detailItem: { flexDirection: 'row', alignItems: 'center', gap: 6 } as ViewStyle,
-  detailText: { fontSize: 14 } as TextStyle,
+  cityName: { ...TYPOGRAPHY.h2, color: V2_COLORS.text, textAlign: 'center' } as TextStyle,
+  cityCode: { fontSize: 13, color: V2_COLORS.textMuted, marginTop: 2 } as TextStyle,
+  routeLine: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    gap: 6,
+  } as ViewStyle,
+  dashedLine: {
+    width: 20,
+    height: 1.5,
+    backgroundColor: V2_COLORS.textMuted,
+    opacity: 0.3,
+  } as ViewStyle,
+  metaRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: V2_COLORS.cardShadow,
+  } as ViewStyle,
 
   // Stats
   statsCards: { flexDirection: 'row', gap: 12, marginBottom: 16 } as ViewStyle,
-  statCard: { flex: 1, borderRadius: 16, padding: 16, alignItems: 'center', gap: 8 } as ViewStyle,
-  statValue: { fontSize: 22, fontWeight: '700' } as TextStyle,
-  statLabel: { fontSize: 13 } as TextStyle,
+  statCard: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    borderRadius: RADIUS.card,
+    padding: 18,
+    alignItems: 'center',
+    gap: 8,
+    ...BUBBLE_SHADOWS.md,
+  } as ViewStyle,
+  statIconCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+  } as ViewStyle,
+  statValue: { ...TYPOGRAPHY.h2, color: V2_COLORS.text } as TextStyle,
+  statLabel: { fontSize: 13, color: V2_COLORS.textSoft } as TextStyle,
 
-  // Sections
-  section: { borderRadius: 16, padding: 20, marginBottom: 16 } as ViewStyle,
-  sectionTitle: { fontSize: 16, fontWeight: '700', marginBottom: 12 } as TextStyle,
-  notesText: { fontSize: 14, lineHeight: 22 } as TextStyle,
+  // Notes
+  notesCard: {
+    backgroundColor: V2_COLORS.accent2 + '12',
+    borderRadius: RADIUS.card,
+    padding: 18,
+    marginBottom: 16,
+  } as ViewStyle,
+  notesTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 8,
+  } as ViewStyle,
+  notesTitleText: {
+    ...TYPOGRAPHY.caption,
+    fontWeight: '700',
+    color: V2_COLORS.accent2,
+  } as TextStyle,
+  notesText: { fontSize: 14, lineHeight: 22, color: V2_COLORS.text } as TextStyle,
 
-  // Carrier
+  // Carrier section
+  section: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: RADIUS.card,
+    padding: 20,
+    marginBottom: 16,
+    ...BUBBLE_SHADOWS.md,
+  } as ViewStyle,
   carrierRow: { flexDirection: 'row', alignItems: 'center', gap: 12 } as ViewStyle,
   carrierInfo: { flex: 1 } as ViewStyle,
-  carrierName: { fontSize: 16, fontWeight: '600' } as TextStyle,
-  carrierCity: { fontSize: 13, marginTop: 2 } as TextStyle,
-  carrierBio: { fontSize: 14, lineHeight: 20, marginTop: 12 } as TextStyle,
+  carrierName: { ...TYPOGRAPHY.h3, color: V2_COLORS.text } as TextStyle,
+  carrierLocationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    marginTop: 2,
+  } as ViewStyle,
+  carrierCity: { fontSize: 12, color: V2_COLORS.textMuted } as TextStyle,
+  carrierBio: {
+    fontSize: 14,
+    lineHeight: 21,
+    color: V2_COLORS.textSoft,
+    marginTop: 12,
+  } as TextStyle,
   ratingSection: {
     marginTop: 16,
     paddingTop: 16,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(0,0,0,0.05)',
+    borderTopColor: V2_COLORS.cardShadow,
   } as ViewStyle,
+
+  // Reviews
+  reviewsSection: { marginBottom: 16 } as ViewStyle,
 
   // Action Bar
   actionBar: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
     flexDirection: 'row',
     padding: 16,
     gap: 12,
-    borderTopWidth: 1,
+    backgroundColor: '#FFFFFF',
+    ...BUBBLE_SHADOWS.lg,
   } as ViewStyle,
   messageButton: {
-    width: 52,
-    height: 52,
-    borderRadius: 12,
-    borderWidth: 2,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 6,
+    paddingHorizontal: 20,
+    height: 50,
+    borderRadius: RADIUS.pill,
+    borderWidth: 1.5,
+    borderColor: V2_COLORS.primary,
   } as ViewStyle,
+  messageButtonText: { fontSize: 14, fontWeight: '600', color: V2_COLORS.primary } as TextStyle,
+  bookButtonWrap: { flex: 1 } as ViewStyle,
   bookButton: {
-    flex: 1,
-    height: 52,
-    borderRadius: 12,
+    height: 50,
+    borderRadius: RADIUS.pill,
     alignItems: 'center',
     justifyContent: 'center',
   } as ViewStyle,

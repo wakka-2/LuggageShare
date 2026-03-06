@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import Animated, { FadeIn, ZoomIn } from 'react-native-reanimated';
+import Animated, { ZoomIn } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
-import { useTheme, RADIUS } from '@/providers/ThemeProvider';
+import { V2_COLORS, RADIUS } from '@/providers/ThemeProvider';
 
 type BadgeType = 'verified' | 'id_verified' | 'phone_verified' | 'top_carrier';
 
@@ -17,10 +17,10 @@ const BADGE_CONFIG: Record<
   BadgeType,
   { icon: keyof typeof Ionicons.glyphMap; defaultLabel: string; color: string }
 > = {
-  verified: { icon: 'shield-checkmark', defaultLabel: 'Verified', color: '#3B82F6' },
-  id_verified: { icon: 'id-card', defaultLabel: 'ID Verified', color: '#8B5CF6' },
-  phone_verified: { icon: 'call', defaultLabel: 'Phone Verified', color: '#10B981' },
-  top_carrier: { icon: 'star', defaultLabel: 'Top Carrier', color: '#F59E0B' },
+  verified: { icon: 'shield-checkmark', defaultLabel: 'Verified', color: V2_COLORS.accent3 },
+  id_verified: { icon: 'id-card', defaultLabel: 'ID Verified', color: V2_COLORS.primary },
+  phone_verified: { icon: 'call', defaultLabel: 'Phone Verified', color: V2_COLORS.accent1 },
+  top_carrier: { icon: 'star', defaultLabel: 'Top Carrier', color: V2_COLORS.accent2 },
 };
 
 const SIZE_MAP = {
@@ -72,7 +72,7 @@ interface BadgeRowProps {
 export function BadgeRow({ badges, size = 'small' }: BadgeRowProps) {
   return (
     <View style={styles.row}>
-      {badges.map((type, index) => (
+      {badges.map((type) => (
         <VerificationBadge key={type} type={type} size={size} />
       ))}
     </View>
@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
   badge: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: RADIUS.badge,
+    borderRadius: RADIUS.pill,
   },
   label: {
     fontWeight: '600',

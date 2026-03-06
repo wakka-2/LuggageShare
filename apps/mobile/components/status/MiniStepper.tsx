@@ -2,7 +2,7 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
-import { useTheme } from '@/providers/ThemeProvider';
+import { V2_COLORS } from '@/providers/ThemeProvider';
 
 const STEPS = ['pending', 'accepted', 'picked_up', 'in_transit', 'delivered'] as const;
 
@@ -12,10 +12,9 @@ interface MiniStepperProps {
 
 /**
  * Compact horizontal dot stepper for booking cards.
- * Shows 5 dots connected by lines — completed=green, active=primary, future=gray.
+ * Shows 5 dots connected by lines — completed=mint, active=primary, future=muted.
  */
 export function MiniStepper({ currentStatus }: MiniStepperProps) {
-  const { colors } = useTheme();
   const currentIndex = STEPS.indexOf(currentStatus as (typeof STEPS)[number]);
 
   // Don't render for terminal states
@@ -29,7 +28,11 @@ export function MiniStepper({ currentStatus }: MiniStepperProps) {
         const isCompleted = index < currentIndex;
         const isCurrent = index === currentIndex;
         const isLast = index === STEPS.length - 1;
-        const fillColor = isCompleted ? colors.success : isCurrent ? colors.primary : colors.border;
+        const fillColor = isCompleted
+          ? V2_COLORS.accent1
+          : isCurrent
+            ? V2_COLORS.primary
+            : V2_COLORS.cardShadow;
 
         return (
           <View key={step} style={styles.stepItem}>
@@ -50,7 +53,7 @@ export function MiniStepper({ currentStatus }: MiniStepperProps) {
               <View
                 style={[
                   styles.line,
-                  { backgroundColor: isCompleted ? colors.success : colors.border },
+                  { backgroundColor: isCompleted ? V2_COLORS.accent1 : V2_COLORS.cardShadow },
                 ]}
               />
             )}

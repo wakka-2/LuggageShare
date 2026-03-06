@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
-import { useTheme, RADIUS } from '@/providers/ThemeProvider';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS } from '@/providers/ThemeProvider';
 import { Avatar } from '@/components/common';
 
 interface ReviewCardProps {
@@ -21,8 +21,6 @@ interface ReviewCardProps {
 }
 
 export function ReviewCard({ review, index = 0 }: ReviewCardProps) {
-  const { colors } = useTheme();
-
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
     return date.toLocaleDateString('en-US', {
@@ -33,10 +31,7 @@ export function ReviewCard({ review, index = 0 }: ReviewCardProps) {
   };
 
   return (
-    <Animated.View
-      entering={FadeInUp.delay(index * 80).springify()}
-      style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}
-    >
+    <Animated.View entering={FadeInUp.delay(index * 80).springify()} style={styles.card}>
       {/* Header */}
       <View style={styles.header}>
         <Avatar
@@ -46,10 +41,8 @@ export function ReviewCard({ review, index = 0 }: ReviewCardProps) {
           verified={review.reviewer.isVerified}
         />
         <View style={styles.headerInfo}>
-          <Text style={[styles.name, { color: colors.text }]}>{review.reviewer.name}</Text>
-          <Text style={[styles.date, { color: colors.textMuted }]}>
-            {formatDate(review.createdAt)}
-          </Text>
+          <Text style={styles.name}>{review.reviewer.name}</Text>
+          <Text style={styles.date}>{formatDate(review.createdAt)}</Text>
         </View>
         <View style={styles.stars}>
           {[1, 2, 3, 4, 5].map((star) => (
@@ -57,26 +50,25 @@ export function ReviewCard({ review, index = 0 }: ReviewCardProps) {
               key={star}
               name={star <= review.rating ? 'star' : 'star-outline'}
               size={14}
-              color="#F59E0B"
+              color={V2_COLORS.accent2}
             />
           ))}
         </View>
       </View>
 
       {/* Comment */}
-      {review.comment && (
-        <Text style={[styles.comment, { color: colors.text }]}>{review.comment}</Text>
-      )}
+      {review.comment && <Text style={styles.comment}>{review.comment}</Text>}
     </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
+    backgroundColor: '#FFFFFF',
     borderRadius: RADIUS.card,
     padding: 14,
-    borderWidth: 1,
     marginBottom: 10,
+    ...BUBBLE_SHADOWS.sm,
   },
   header: {
     flexDirection: 'row',
@@ -89,10 +81,12 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 14,
     fontWeight: '600',
+    color: V2_COLORS.text,
   },
   date: {
     fontSize: 11,
     marginTop: 1,
+    color: V2_COLORS.textMuted,
   },
   stars: {
     flexDirection: 'row',
@@ -102,5 +96,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
     marginTop: 10,
+    color: V2_COLORS.text,
   },
 });

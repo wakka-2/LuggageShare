@@ -21,24 +21,23 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 
-import { useTheme } from '@/hooks/useTheme';
-import { ThemeColors } from '@/providers/ThemeProvider';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS, TYPOGRAPHY } from '@/providers/ThemeProvider';
 import { useBookings, getMockBookings, ApiBooking } from '@/hooks/useBookings';
 import { useAuth } from '@/hooks/useAuth';
-import { EmptyState, Avatar } from '@/components/common';
+import { EmptyState, Avatar, BackgroundBlobs, MetaChip } from '@/components/common';
 import { LiveIndicator, MiniStepper } from '@/components/status';
 import { SkeletonLoader } from '@/components/animations';
 
 type FilterTab = 'all' | 'active' | 'completed' | 'cancelled';
 
 const STATUS_COLORS: Record<string, string> = {
-  pending: '#F59E0B',
-  accepted: '#3B82F6',
-  picked_up: '#8B5CF6',
-  in_transit: '#6366F1',
-  delivered: '#10B981',
-  rejected: '#EF4444',
-  cancelled: '#6B7280',
+  pending: '#FFBE5C',
+  accepted: '#5CB8FF',
+  picked_up: '#7C6AFF',
+  in_transit: '#7C6AFF',
+  delivered: '#56D8B1',
+  rejected: '#FF6B9D',
+  cancelled: '#A8A5C0',
 };
 
 const STATUS_KEYS: Record<string, string> = {
@@ -56,16 +55,14 @@ const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 const BookingCard = React.memo(function BookingCard({
   booking,
   isRTL,
-  colors,
   onPress,
 }: {
   booking: ApiBooking;
   isRTL: boolean;
-  colors: ThemeColors;
   onPress: () => void;
 }) {
   const { t } = useTranslation();
-  const statusColor = STATUS_COLORS[booking.status] || colors.textSecondary;
+  const statusColor = STATUS_COLORS[booking.status] || V2_COLORS.textMuted;
   const date = new Date(booking.listing.departureDate);
   const statusKey = STATUS_KEYS[booking.status];
   const isInTransit = booking.status === 'in_transit';
@@ -84,25 +81,20 @@ const BookingCard = React.memo(function BookingCard({
       onPressOut={() => {
         scale.value = withSpring(1, { damping: 15, stiffness: 200 });
       }}
-      activeOpacity={0.9}
-      style={[styles.bookingCard, { backgroundColor: colors.card }, animatedStyle]}
+      activeOpacity={1}
+      style={[styles.bookingCard, animatedStyle]}
     >
+      {/* Route with colored dots */}
       <View style={styles.bookingRoute}>
-        <Text style={[styles.bookingCity, { color: colors.text }]}>
-          {booking.listing.departureCity}
-        </Text>
-        <Ionicons
-          name="arrow-forward"
-          size={16}
-          color={colors.textSecondary}
-          style={{ marginHorizontal: 8 }}
-        />
-        <Text style={[styles.bookingCity, { color: colors.text }]}>
-          {booking.listing.arrivalCity}
-        </Text>
+        <View style={[styles.routeDot, { backgroundColor: V2_COLORS.accent1 }]} />
+        <Text style={styles.bookingCity}>{booking.listing.departureCity}</Text>
+        <Ionicons name="airplane" size={14} color={V2_COLORS.textMuted} />
+        <Text style={styles.bookingCity}>{booking.listing.arrivalCity}</Text>
+        <View style={[styles.routeDot, { backgroundColor: V2_COLORS.secondary }]} />
       </View>
 
-      <View style={[styles.statusBadge, { backgroundColor: statusColor + '20' }]}>
+      {/* Status badge */}
+      <View style={[styles.statusBadge, { backgroundColor: statusColor + '15' }]}>
         {isInTransit ? (
           <LiveIndicator
             color={statusColor}
@@ -122,33 +114,32 @@ const BookingCard = React.memo(function BookingCard({
       {/* Mini progress stepper */}
       <MiniStepper currentStatus={booking.status} />
 
+      {/* Meta chips */}
       <View style={styles.bookingDetails}>
-        <View style={styles.detailItem}>
-          <Ionicons name="calendar-outline" size={14} color={colors.textSecondary} />
-          <Text style={[styles.detailText, { color: colors.textSecondary }]}>
-            {date.toLocaleDateString(isRTL ? 'ar-SA' : 'en-US', {
-              day: 'numeric',
-              month: 'short',
-            })}
-          </Text>
-        </View>
-        <View style={styles.detailItem}>
-          <Ionicons name="scale-outline" size={14} color={colors.textSecondary} />
-          <Text style={[styles.detailText, { color: colors.textSecondary }]}>
-            {Number(booking.totalWeight)} kg
-          </Text>
-        </View>
-        <View style={styles.detailItem}>
-          <Ionicons name="pricetag-outline" size={14} color={colors.textSecondary} />
-          <Text style={[styles.detailText, { color: colors.textSecondary }]}>
-            {Number(booking.totalPrice)} {booking.currency}
-          </Text>
-        </View>
+        <MetaChip
+          icon="calendar"
+          label={date.toLocaleDateString(isRTL ? 'ar-SA' : 'en-US', {
+            day: 'numeric',
+            month: 'short',
+          })}
+          color={V2_COLORS.primary}
+        />
+        <MetaChip
+          icon="scale"
+          label={`${Number(booking.totalWeight)} kg`}
+          color={V2_COLORS.accent1}
+        />
+        <MetaChip
+          icon="pricetag"
+          label={`${Number(booking.totalPrice)} ${booking.currency}`}
+          color={V2_COLORS.accent2}
+        />
       </View>
 
-      <View style={[styles.bookingUser, { borderTopColor: colors.border }]}>
+      {/* User footer */}
+      <View style={styles.bookingUser}>
         <Avatar name={booking.carrier.name} avatarUrl={booking.carrier.avatarUrl} size={32} />
-        <Text style={[styles.userName, { color: colors.text }]}>{booking.carrier.name}</Text>
+        <Text style={styles.userName}>{booking.carrier.name}</Text>
       </View>
     </AnimatedTouchable>
   );
@@ -156,7 +147,6 @@ const BookingCard = React.memo(function BookingCard({
 
 export default function TripsScreen() {
   const { t, i18n } = useTranslation();
-  const { colors } = useTheme();
   const router = useRouter();
   const isRTL = i18n.language === 'ar';
 
@@ -186,12 +176,11 @@ export default function TripsScreen() {
   ];
 
   return (
-    <SafeAreaView
-      style={[styles.container, { backgroundColor: colors.background }]}
-      edges={['top']}
-    >
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
-        <Text style={[styles.title, { color: colors.text }]}>{t('trips.title')}</Text>
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <BackgroundBlobs variant="subtle" />
+
+      <View style={styles.header}>
+        <Text style={styles.title}>{t('trips.title')}</Text>
       </View>
 
       <ScrollView
@@ -200,25 +189,20 @@ export default function TripsScreen() {
         style={styles.filterBar}
         contentContainerStyle={styles.filterBarContent}
       >
-        {filters.map((f) => (
-          <TouchableOpacity
-            key={f.key}
-            onPress={() => setActiveFilter(f.key)}
-            style={[
-              styles.filterChip,
-              { backgroundColor: activeFilter === f.key ? colors.primary : colors.card },
-            ]}
-          >
-            <Text
-              style={[
-                styles.filterChipText,
-                { color: activeFilter === f.key ? '#FFF' : colors.textSecondary },
-              ]}
+        {filters.map((f) => {
+          const isActive = activeFilter === f.key;
+          return (
+            <TouchableOpacity
+              key={f.key}
+              onPress={() => setActiveFilter(f.key)}
+              style={[styles.filterChip, isActive && styles.filterChipActive]}
             >
-              {t(f.labelKey)}
-            </Text>
-          </TouchableOpacity>
-        ))}
+              <Text style={[styles.filterChipText, isActive && styles.filterChipTextActive]}>
+                {t(f.labelKey)}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
       </ScrollView>
 
       <ScrollView
@@ -228,7 +212,7 @@ export default function TripsScreen() {
           <RefreshControl
             refreshing={false}
             onRefresh={() => refetch()}
-            tintColor={colors.primary}
+            tintColor={V2_COLORS.primary}
           />
         }
       >
@@ -240,31 +224,17 @@ export default function TripsScreen() {
                 entering={FadeInDown.delay(i * 80).duration(300)}
                 style={styles.skeletonCard}
               >
-                <SkeletonLoader width="60%" height={18} borderRadius={4} />
+                <SkeletonLoader width="60%" height={18} borderRadius={RADIUS.pill} />
                 <SkeletonLoader
                   width="35%"
                   height={14}
-                  borderRadius={10}
+                  borderRadius={RADIUS.pill}
                   style={{ marginTop: 10 }}
                 />
-                <View style={{ flexDirection: 'row', gap: 16, marginTop: 12 }}>
-                  <SkeletonLoader width={80} height={14} borderRadius={4} />
-                  <SkeletonLoader width={60} height={14} borderRadius={4} />
-                  <SkeletonLoader width={70} height={14} borderRadius={4} />
-                </View>
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    gap: 8,
-                    marginTop: 14,
-                    paddingTop: 12,
-                    borderTopWidth: 1,
-                    borderTopColor: colors.border,
-                  }}
-                >
-                  <SkeletonLoader width={32} height={32} borderRadius={16} />
-                  <SkeletonLoader width={100} height={14} borderRadius={4} />
+                <View style={{ flexDirection: 'row', gap: 8, marginTop: 12 }}>
+                  <SkeletonLoader width={80} height={26} borderRadius={RADIUS.pill} />
+                  <SkeletonLoader width={60} height={26} borderRadius={RADIUS.pill} />
+                  <SkeletonLoader width={70} height={26} borderRadius={RADIUS.pill} />
                 </View>
               </Animated.View>
             ))}
@@ -288,7 +258,6 @@ export default function TripsScreen() {
               <BookingCard
                 booking={booking}
                 isRTL={isRTL}
-                colors={colors}
                 onPress={() => router.push(`/booking/${booking.id}`)}
               />
             </Animated.View>
@@ -299,46 +268,68 @@ export default function TripsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 } as ViewStyle,
-  header: { padding: 16, borderBottomWidth: 1 } as ViewStyle,
-  title: { fontSize: 24, fontWeight: 'bold' } as TextStyle,
+  container: { flex: 1, backgroundColor: V2_COLORS.bg } as ViewStyle,
+  header: { padding: 16, paddingBottom: 8 } as ViewStyle,
+  title: { ...TYPOGRAPHY.h1, color: V2_COLORS.text } as TextStyle,
   filterBar: { maxHeight: 56 } as ViewStyle,
-  filterBarContent: { paddingHorizontal: 16, paddingVertical: 12, gap: 8 } as ViewStyle,
-  filterChip: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20 } as ViewStyle,
-  filterChipText: { fontSize: 14, fontWeight: '600' } as TextStyle,
+  filterBarContent: { paddingHorizontal: 16, paddingVertical: 10, gap: 8 } as ViewStyle,
+  filterChip: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: RADIUS.pill,
+    backgroundColor: '#FFFFFF',
+    ...BUBBLE_SHADOWS.xs,
+  } as ViewStyle,
+  filterChipActive: {
+    backgroundColor: V2_COLORS.primary,
+  } as ViewStyle,
+  filterChipText: { fontSize: 13, fontWeight: '600', color: V2_COLORS.textSoft } as TextStyle,
+  filterChipTextActive: { color: '#FFFFFF' } as TextStyle,
   scrollContent: { padding: 16, paddingBottom: 32 } as ViewStyle,
   loading: { paddingVertical: 16 } as ViewStyle,
   skeletonCard: {
-    backgroundColor: 'transparent',
-    borderRadius: 16,
-    padding: 16,
+    backgroundColor: '#FFFFFF',
+    borderRadius: RADIUS.card,
+    padding: 18,
     marginBottom: 12,
+    ...BUBBLE_SHADOWS.sm,
   } as ViewStyle,
   emptyState: { marginTop: 40 } as ViewStyle,
-  bookingCard: { borderRadius: 16, padding: 16, marginBottom: 12 } as ViewStyle,
-  bookingRoute: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 } as ViewStyle,
-  bookingCity: { fontSize: 16, fontWeight: '700' } as TextStyle,
+  bookingCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: RADIUS.card,
+    padding: 18,
+    marginBottom: 12,
+    ...BUBBLE_SHADOWS.lg,
+  } as ViewStyle,
+  bookingRoute: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 12,
+  } as ViewStyle,
+  routeDot: { width: 10, height: 10, borderRadius: 5 } as ViewStyle,
+  bookingCity: { ...TYPOGRAPHY.h3, color: V2_COLORS.text } as TextStyle,
   statusBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'flex-start',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: RADIUS.pill,
     gap: 6,
-    marginBottom: 12,
+    marginBottom: 10,
   } as ViewStyle,
-  statusDot: { width: 6, height: 6, borderRadius: 3 } as ViewStyle,
-  statusText: { fontSize: 12, fontWeight: '600' } as TextStyle,
-  bookingDetails: { flexDirection: 'row', gap: 16, marginBottom: 12 } as ViewStyle,
-  detailItem: { flexDirection: 'row', alignItems: 'center', gap: 4 } as ViewStyle,
-  detailText: { fontSize: 13 } as TextStyle,
+  statusDot: { width: 7, height: 7, borderRadius: 4 } as ViewStyle,
+  statusText: { fontSize: 12, fontWeight: '700' } as TextStyle,
+  bookingDetails: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 14 } as ViewStyle,
   bookingUser: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    paddingTop: 12,
+    gap: 10,
+    paddingTop: 14,
     borderTopWidth: 1,
+    borderTopColor: V2_COLORS.cardShadow,
   } as ViewStyle,
-  userName: { fontSize: 14, fontWeight: '500' } as TextStyle,
+  userName: { fontSize: 14, fontWeight: '600', color: V2_COLORS.text } as TextStyle,
 });

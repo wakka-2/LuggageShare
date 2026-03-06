@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Animated, {
-  FadeIn,
   FadeInUp,
   useSharedValue,
   useAnimatedStyle,
@@ -11,7 +10,7 @@ import Animated, {
   withSequence,
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
-import { useTheme, RADIUS } from '@/providers/ThemeProvider';
+import { V2_COLORS, RADIUS } from '@/providers/ThemeProvider';
 
 interface TimelineEvent {
   key: string;
@@ -57,7 +56,6 @@ function PulsingDot({ color, delay }: { color: string; delay: number }) {
 }
 
 export function StatusTimeline({ events, currentKey }: StatusTimelineProps) {
-  const { colors } = useTheme();
   const currentIndex = events.findIndex((e) => e.key === currentKey);
 
   return (
@@ -68,14 +66,18 @@ export function StatusTimeline({ events, currentKey }: StatusTimelineProps) {
         const isFuture = index > currentIndex;
         const isLast = index === events.length - 1;
 
-        const dotColor = isCompleted ? colors.success : isCurrent ? colors.primary : colors.border;
-
-        const textColor = isFuture ? colors.textMuted : colors.text;
-        const iconColor = isCompleted
-          ? colors.success
+        const dotColor = isCompleted
+          ? V2_COLORS.accent1
           : isCurrent
-            ? colors.primary
-            : colors.textMuted;
+            ? V2_COLORS.primary
+            : V2_COLORS.cardShadow;
+
+        const textColor = isFuture ? V2_COLORS.textMuted : V2_COLORS.text;
+        const iconColor = isCompleted
+          ? V2_COLORS.accent1
+          : isCurrent
+            ? V2_COLORS.primary
+            : V2_COLORS.textMuted;
 
         return (
           <Animated.View
@@ -103,8 +105,7 @@ export function StatusTimeline({ events, currentKey }: StatusTimelineProps) {
                   style={[
                     styles.connector,
                     {
-                      backgroundColor: isCompleted ? colors.success : colors.border,
-                      borderStyle: isFuture ? 'dashed' : 'solid',
+                      backgroundColor: isCompleted ? V2_COLORS.accent1 : V2_COLORS.cardShadow,
                     },
                   ]}
                 />
@@ -125,7 +126,7 @@ export function StatusTimeline({ events, currentKey }: StatusTimelineProps) {
                 </Text>
               </View>
               {event.date && (
-                <Text style={[styles.eventDate, { color: colors.textMuted }]}>
+                <Text style={styles.eventDate}>
                   {new Date(event.date).toLocaleDateString('en-US', {
                     month: 'short',
                     day: 'numeric',
@@ -134,11 +135,7 @@ export function StatusTimeline({ events, currentKey }: StatusTimelineProps) {
                   })}
                 </Text>
               )}
-              {event.description && (
-                <Text style={[styles.eventDesc, { color: colors.textSecondary }]}>
-                  {event.description}
-                </Text>
-              )}
+              {event.description && <Text style={styles.eventDesc}>{event.description}</Text>}
             </View>
           </Animated.View>
         );
@@ -193,10 +190,12 @@ const styles = StyleSheet.create({
     fontSize: 11,
     marginTop: 3,
     marginStart: 24,
+    color: V2_COLORS.textMuted,
   },
   eventDesc: {
     fontSize: 12,
     marginTop: 2,
     marginStart: 24,
+    color: V2_COLORS.textSoft,
   },
 });

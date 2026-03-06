@@ -8,7 +8,7 @@ import Animated, {
   FadeIn,
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
-import { useTheme, RADIUS } from '@/providers/ThemeProvider';
+import { V2_COLORS, RADIUS } from '@/providers/ThemeProvider';
 
 interface RatingBarsProps {
   distribution: number[]; // [count5, count4, count3, count2, count1]
@@ -27,7 +27,6 @@ function RatingBar({
   total: number;
   index: number;
 }) {
-  const { colors } = useTheme();
   const barWidth = useSharedValue(0);
   const percentage = total > 0 ? (count / total) * 100 : 0;
 
@@ -41,35 +40,33 @@ function RatingBar({
 
   return (
     <Animated.View entering={FadeIn.delay(index * 60).duration(300)} style={styles.barRow}>
-      <Text style={[styles.starLabel, { color: colors.textSecondary }]}>{star}</Text>
-      <Ionicons name="star" size={12} color="#F59E0B" />
-      <View style={[styles.barTrack, { backgroundColor: colors.border }]}>
-        <Animated.View style={[styles.barFill, { backgroundColor: '#F59E0B' }, animatedBarStyle]} />
+      <Text style={styles.starLabel}>{star}</Text>
+      <Ionicons name="star" size={12} color={V2_COLORS.accent2} />
+      <View style={styles.barTrack}>
+        <Animated.View style={[styles.barFill, animatedBarStyle]} />
       </View>
-      <Text style={[styles.countLabel, { color: colors.textMuted }]}>{count}</Text>
+      <Text style={styles.countLabel}>{count}</Text>
     </Animated.View>
   );
 }
 
 export function RatingBars({ distribution, average, total }: RatingBarsProps) {
-  const { colors } = useTheme();
-
   return (
     <View style={styles.container}>
       {/* Summary */}
       <Animated.View entering={FadeIn.duration(400)} style={styles.summary}>
-        <Text style={[styles.avgNumber, { color: colors.text }]}>{average.toFixed(1)}</Text>
+        <Text style={styles.avgNumber}>{average.toFixed(1)}</Text>
         <View style={styles.starsRow}>
           {[1, 2, 3, 4, 5].map((star) => (
             <Ionicons
               key={star}
               name={star <= Math.round(average) ? 'star' : 'star-outline'}
               size={16}
-              color="#F59E0B"
+              color={V2_COLORS.accent2}
             />
           ))}
         </View>
-        <Text style={[styles.totalLabel, { color: colors.textMuted }]}>{total} reviews</Text>
+        <Text style={styles.totalLabel}>{total} reviews</Text>
       </Animated.View>
 
       {/* Bars */}
@@ -95,6 +92,7 @@ const styles = StyleSheet.create({
   avgNumber: {
     fontSize: 32,
     fontWeight: '700',
+    color: V2_COLORS.text,
   },
   starsRow: {
     flexDirection: 'row',
@@ -104,6 +102,7 @@ const styles = StyleSheet.create({
   totalLabel: {
     fontSize: 12,
     marginTop: 4,
+    color: V2_COLORS.textMuted,
   },
   bars: {
     flex: 1,
@@ -118,20 +117,24 @@ const styles = StyleSheet.create({
     fontSize: 12,
     width: 12,
     textAlign: 'right',
+    color: V2_COLORS.textSoft,
   },
   barTrack: {
     flex: 1,
     height: 6,
     borderRadius: 3,
     overflow: 'hidden',
+    backgroundColor: V2_COLORS.cardShadow,
   },
   barFill: {
     height: '100%',
     borderRadius: 3,
+    backgroundColor: V2_COLORS.accent2,
   },
   countLabel: {
     fontSize: 11,
     width: 24,
     textAlign: 'right',
+    color: V2_COLORS.textMuted,
   },
 });

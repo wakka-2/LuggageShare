@@ -16,21 +16,18 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
-import { useTheme } from '@/hooks/useTheme';
-import { ThemeColors } from '@/providers/ThemeProvider';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS, TYPOGRAPHY } from '@/providers/ThemeProvider';
 import { useConversations, ApiConversation } from '@/hooks/useMessages';
-import { EmptyState, Avatar } from '@/components/common';
+import { EmptyState, Avatar, BackgroundBlobs } from '@/components/common';
 import { SkeletonLoader } from '@/components/animations';
 
 const ConversationItem = React.memo(function ConversationItem({
   conversation,
   isRTL,
-  colors,
   onPress,
 }: {
   conversation: ApiConversation;
   isRTL: boolean;
-  colors: ThemeColors;
   onPress: () => void;
 }) {
   const lastMessageDate = conversation.lastMessage?.createdAt
@@ -45,7 +42,7 @@ const ConversationItem = React.memo(function ConversationItem({
 
   return (
     <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
-      <View style={[styles.conversationItem, { backgroundColor: colors.card }]}>
+      <View style={styles.conversationItem}>
         <Avatar
           name={conversation.otherUser.name}
           avatarUrl={conversation.otherUser.avatarUrl}
@@ -53,27 +50,22 @@ const ConversationItem = React.memo(function ConversationItem({
         />
         <View style={styles.conversationContent}>
           <View style={styles.conversationHeader}>
-            <Text style={[styles.conversationName, { color: colors.text }]} numberOfLines={1}>
+            <Text style={styles.conversationName} numberOfLines={1}>
               {conversation.otherUser.name}
             </Text>
-            {timeString ? (
-              <Text style={[styles.conversationTime, { color: colors.textSecondary }]}>
-                {timeString}
-              </Text>
-            ) : null}
+            {timeString ? <Text style={styles.conversationTime}>{timeString}</Text> : null}
           </View>
-          <Text style={[styles.conversationRoute, { color: colors.primary }]} numberOfLines={1}>
-            {conversation.route}
-          </Text>
-          <Text
-            style={[styles.conversationMessage, { color: colors.textSecondary }]}
-            numberOfLines={1}
-          >
+          <View style={styles.routePill}>
+            <Text style={styles.conversationRoute} numberOfLines={1}>
+              {conversation.route}
+            </Text>
+          </View>
+          <Text style={styles.conversationMessage} numberOfLines={1}>
             {conversation.lastMessage?.content || ''}
           </Text>
         </View>
         {conversation.unreadCount > 0 && (
-          <View style={[styles.unreadBadge, { backgroundColor: colors.primary }]}>
+          <View style={styles.unreadBadge}>
             <Text style={styles.unreadText}>{conversation.unreadCount}</Text>
           </View>
         )}
@@ -84,19 +76,17 @@ const ConversationItem = React.memo(function ConversationItem({
 
 export default function MessagesScreen() {
   const { t, i18n } = useTranslation();
-  const { colors } = useTheme();
   const router = useRouter();
   const isRTL = i18n.language === 'ar';
 
   const { data: conversations, isLoading, refetch } = useConversations();
 
   return (
-    <SafeAreaView
-      style={[styles.container, { backgroundColor: colors.background }]}
-      edges={['top']}
-    >
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
-        <Text style={[styles.title, { color: colors.text }]}>{t('messages.title')}</Text>
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <BackgroundBlobs variant="subtle" />
+
+      <View style={styles.header}>
+        <Text style={styles.title}>{t('messages.title')}</Text>
       </View>
 
       <ScrollView
@@ -106,7 +96,7 @@ export default function MessagesScreen() {
           <RefreshControl
             refreshing={false}
             onRefresh={() => refetch()}
-            tintColor={colors.primary}
+            tintColor={V2_COLORS.primary}
           />
         }
       >
@@ -120,9 +110,9 @@ export default function MessagesScreen() {
               >
                 <SkeletonLoader width={48} height={48} borderRadius={24} />
                 <View style={{ flex: 1, gap: 6 }}>
-                  <SkeletonLoader width="60%" height={16} borderRadius={4} />
-                  <SkeletonLoader width="40%" height={12} borderRadius={4} />
-                  <SkeletonLoader width="80%" height={14} borderRadius={4} />
+                  <SkeletonLoader width="60%" height={16} borderRadius={RADIUS.pill} />
+                  <SkeletonLoader width="40%" height={12} borderRadius={RADIUS.pill} />
+                  <SkeletonLoader width="80%" height={14} borderRadius={RADIUS.pill} />
                 </View>
               </Animated.View>
             ))}
@@ -149,7 +139,6 @@ export default function MessagesScreen() {
               <ConversationItem
                 conversation={conversation}
                 isRTL={isRTL}
-                colors={colors}
                 onPress={() => router.push(`/chat/${conversation.bookingId}`)}
               />
             </Animated.View>
@@ -160,44 +149,63 @@ export default function MessagesScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 } as ViewStyle,
-  header: { padding: 16, borderBottomWidth: 1 } as ViewStyle,
-  title: { fontSize: 24, fontWeight: 'bold' } as TextStyle,
+  container: { flex: 1, backgroundColor: V2_COLORS.bg } as ViewStyle,
+  header: { padding: 16, paddingBottom: 8 } as ViewStyle,
+  title: { ...TYPOGRAPHY.h1, color: V2_COLORS.text } as TextStyle,
   scrollContent: { padding: 16, paddingBottom: 32 } as ViewStyle,
   loading: { paddingVertical: 8 } as ViewStyle,
   skeletonConv: {
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: '#FFFFFF',
     padding: 14,
-    borderRadius: 14,
-    marginBottom: 8,
+    borderRadius: RADIUS.card,
+    marginBottom: 10,
     gap: 12,
+    ...BUBBLE_SHADOWS.sm,
   } as ViewStyle,
   emptyState: { marginTop: 40 } as ViewStyle,
 
   conversationItem: {
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: '#FFFFFF',
     padding: 14,
-    borderRadius: 14,
-    marginBottom: 8,
+    borderRadius: RADIUS.card,
+    marginBottom: 10,
     gap: 12,
+    ...BUBBLE_SHADOWS.sm,
   } as ViewStyle,
   conversationContent: { flex: 1 } as ViewStyle,
   conversationHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 2,
+    marginBottom: 3,
   } as ViewStyle,
-  conversationName: { fontSize: 16, fontWeight: '600', flex: 1 } as TextStyle,
-  conversationTime: { fontSize: 12, marginStart: 8 } as TextStyle,
-  conversationRoute: { fontSize: 12, fontWeight: '500', marginBottom: 2 } as TextStyle,
-  conversationMessage: { fontSize: 14 } as TextStyle,
+  conversationName: {
+    ...TYPOGRAPHY.caption,
+    fontWeight: '700',
+    color: V2_COLORS.text,
+    flex: 1,
+  } as TextStyle,
+  conversationTime: { fontSize: 11, color: V2_COLORS.textMuted, marginStart: 8 } as TextStyle,
+  routePill: {
+    backgroundColor: V2_COLORS.accent3 + '15',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: RADIUS.pill,
+    alignSelf: 'flex-start',
+    marginBottom: 4,
+  } as ViewStyle,
+  conversationRoute: { fontSize: 11, fontWeight: '600', color: V2_COLORS.accent3 } as TextStyle,
+  conversationMessage: { fontSize: 13, color: V2_COLORS.textSoft } as TextStyle,
   unreadBadge: {
-    width: 22,
+    minWidth: 22,
     height: 22,
-    borderRadius: 11,
+    borderRadius: RADIUS.pill,
+    paddingHorizontal: 6,
+    backgroundColor: V2_COLORS.primary,
     alignItems: 'center',
     justifyContent: 'center',
   } as ViewStyle,
