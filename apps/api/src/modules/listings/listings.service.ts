@@ -64,6 +64,29 @@ export class ListingsService {
     };
   }
 
+  async findByUser(userId: string, params: { page?: number; limit?: number } = {}) {
+    const page = Number(params.page) || 1;
+    const limit = Math.min(Number(params.limit) || 20, 100);
+    const skip = (page - 1) * limit;
+
+    const where = { carrierId: userId };
+
+    const [data, total] = await Promise.all([
+      this.prisma.listing.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      this.prisma.listing.count({ where }),
+    ]);
+
+    return {
+      data,
+      meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
+    };
+  }
+
   async findById(id: string) {
     const listing = await this.prisma.listing.findUnique({
       where: { id },
@@ -95,7 +118,9 @@ export class ListingsService {
         carrierId: userId,
         status: 'active',
         departureCity: createListingDto.departureCity,
+        departureCode: createListingDto.departureCode,
         arrivalCity: createListingDto.arrivalCity,
+        arrivalCode: createListingDto.arrivalCode,
         departureDate: new Date(createListingDto.departureDate),
         flightNumber: createListingDto.flightNumber,
         availableWeight: createListingDto.availableWeight,
@@ -118,7 +143,9 @@ export class ListingsService {
     const allowedUpdates: Record<string, any> = {};
     const allowedFields = [
       'departureCity',
+      'departureCode',
       'arrivalCity',
+      'arrivalCode',
       'departureDate',
       'flightNumber',
       'availableWeight',

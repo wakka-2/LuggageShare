@@ -6,8 +6,6 @@ import {
   ScrollView,
   TouchableOpacity,
   TextInput,
-  ActivityIndicator,
-  Platform,
   Image,
   ViewStyle,
   TextStyle,
@@ -17,9 +15,10 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
+import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 
 import { useTheme } from '@/hooks/useTheme';
+import { useGoBack } from '@/hooks/useGoBack';
 import { showAlert } from '@/lib/alert';
 import {
   useBooking,
@@ -34,12 +33,21 @@ import {
 } from '@/hooks/useBookings';
 import { useBookingReview, useCreateReview } from '@/hooks/useReviews';
 import { useAuth } from '@/hooks/useAuth';
-import { Avatar } from '@/components/common';
+import { SolidCard, Avatar, ScreenHeader, GradientButton } from '@/components/common';
 import { StarRating } from '@/components/common/StarRating';
 import { StatusTimeline, LiveIndicator } from '@/components/status';
 import { VerificationBadge } from '@/components/trust';
 import { SkeletonLoader } from '@/components/animations';
+import {
+  ThemeColors,
+  RADIUS,
+  SHADOWS,
+  TYPOGRAPHY,
+  SPACING,
+  SECTION_TINTS,
+} from '@/providers/ThemeProvider';
 
+// ─── Status color map ────────────────────────────────────
 const STATUS_COLORS: Record<string, string> = {
   pending: '#F59E0B',
   accepted: '#3B82F6',
@@ -48,6 +56,16 @@ const STATUS_COLORS: Record<string, string> = {
   delivered: '#10B981',
   rejected: '#EF4444',
   cancelled: '#6B7280',
+};
+
+const STATUS_TINTS: Record<string, string> = {
+  pending: SECTION_TINTS.amber,
+  accepted: SECTION_TINTS.blue,
+  picked_up: SECTION_TINTS.purple,
+  in_transit: SECTION_TINTS.purple,
+  delivered: SECTION_TINTS.green,
+  rejected: SECTION_TINTS.pink,
+  cancelled: SECTION_TINTS.neutral,
 };
 
 const BOOKING_STATUS_KEYS: Record<string, string> = {
@@ -60,21 +78,25 @@ const BOOKING_STATUS_KEYS: Record<string, string> = {
   cancelled: 'booking.statusCancelled',
 };
 
+// ─── Component ───────────────────────────────────────────
 export default function BookingDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { t, i18n } = useTranslation();
   const { colors } = useTheme();
   const router = useRouter();
+  const goBack = useGoBack();
   const { user } = useAuth();
   const isRTL = i18n.language === 'ar';
 
+  // ── Data fetching ──────────────────────────────────────
   const { data: apiBooking, isLoading } = useBooking(id ?? null);
   const { data: existingReview } = useBookingReview(id ?? null);
 
-  // Fall back to mock bookings when the API doesn't return data
   const mockMatch =
     !apiBooking && id && user?.id ? getMockBookings(user.id).find((b) => b.id === id) : undefined;
   const booking = apiBooking ?? mockMatch;
+
+  // ── Mutations ──────────────────────────────────────────
   const acceptBooking = useAcceptBooking();
   const rejectBooking = useRejectBooking();
   const cancelBooking = useCancelBooking();
@@ -84,57 +106,81 @@ export default function BookingDetailScreen() {
   const markDelivered = useMarkDelivered();
   const createReview = useCreateReview();
 
+  // ── Local state ────────────────────────────────────────
   const [reviewRating, setReviewRating] = useState(0);
   const [reviewComment, setReviewComment] = useState('');
   const [showReviewForm, setShowReviewForm] = useState(false);
 
+  // ── Loading skeleton ───────────────────────────────────
   if (isLoading) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-        <View style={[styles.header, { borderBottomColor: colors.border }]}>
-          <View style={styles.headerBtn} />
-          <SkeletonLoader width={120} height={18} borderRadius={6} />
-          <View style={styles.headerBtn} />
+      <SafeAreaView style={[styles.container, { backgroundColor: '#FFFFFF' }]}>
+        <View style={[styles.skeletonHeader, { borderBottomColor: colors.border }]}>
+          <View style={styles.skeletonHeaderBtn} />
+          <SkeletonLoader width={120} height={18} borderRadius={RADIUS.badge} />
+          <View style={styles.skeletonHeaderBtn} />
         </View>
         <View style={styles.scrollContent}>
-          <SkeletonLoader width="100%" height={48} borderRadius={14} style={{ marginBottom: 16 }} />
+          <SkeletonLoader
+            width="100%"
+            height={48}
+            borderRadius={RADIUS.button}
+            style={{ marginBottom: SPACING[4] }}
+          />
           <SkeletonLoader
             width="100%"
             height={120}
-            borderRadius={16}
-            style={{ marginBottom: 16 }}
+            borderRadius={RADIUS.card}
+            style={{ marginBottom: SPACING[4] }}
           />
           <SkeletonLoader
             width="100%"
             height={100}
-            borderRadius={16}
-            style={{ marginBottom: 16 }}
+            borderRadius={RADIUS.card}
+            style={{ marginBottom: SPACING[4] }}
           />
-          <SkeletonLoader width="100%" height={80} borderRadius={16} />
+          <SkeletonLoader width="100%" height={80} borderRadius={RADIUS.card} />
         </View>
       </SafeAreaView>
     );
   }
 
+  // ── Not found ──────────────────────────────────────────
   if (!booking) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-        <View style={styles.loading}>
-          <Text style={{ color: colors.textSecondary }}>{t('listing.notFound')}</Text>
-          <TouchableOpacity onPress={() => router.back()} style={{ marginTop: 16 }}>
-            <Text style={{ color: colors.primary, fontWeight: '600' }}>{t('listing.goBack')}</Text>
+      <SafeAreaView style={[styles.container, { backgroundColor: '#FFFFFF' }]}>
+        <View style={styles.emptyState}>
+          <View style={[styles.emptyIcon, { backgroundColor: SECTION_TINTS.neutral }]}>
+            <Ionicons name="document-outline" size={32} color={colors.textMuted} />
+          </View>
+          <Text style={[TYPOGRAPHY.body, { color: colors.textSecondary, marginTop: SPACING[3] }]}>
+            {t('listing.notFound')}
+          </Text>
+          <TouchableOpacity
+            onPress={goBack}
+            style={[styles.goBackBtn, { backgroundColor: SECTION_TINTS.purple }]}
+            accessibilityRole="button"
+            accessibilityLabel={t('listing.goBack')}
+          >
+            <Text style={[TYPOGRAPHY.body, { color: colors.primary, fontWeight: '600' }]}>
+              {t('listing.goBack')}
+            </Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
     );
   }
 
+  // ── Derived data ───────────────────────────────────────
   const isCarrier = user?.id === booking.carrierId;
   const isSender = user?.id === booking.senderId;
   const statusColor = STATUS_COLORS[booking.status] || colors.textSecondary;
+  const statusTint = STATUS_TINTS[booking.status] || SECTION_TINTS.neutral;
   const statusKey = BOOKING_STATUS_KEYS[booking.status];
   const otherUser = isCarrier ? booking.sender : booking.carrier;
+  const canReview = booking.status === 'delivered' && !existingReview;
 
+  // ── Handlers ───────────────────────────────────────────
   const handleAccept = () => {
     showAlert(t('booking.acceptBooking'), t('booking.acceptBookingConfirm'), [
       { text: t('common.cancel'), style: 'cancel' },
@@ -210,641 +256,964 @@ export default function BookingDetailScreen() {
     }
   };
 
-  const canReview = booking.status === 'delivered' && !existingReview;
+  // ── Determine which bottom bar to show ─────────────────
+  const showPendingActions = booking.status === 'pending';
+  const showPaymentBtn = booking.status === 'accepted' && isSender;
+  const showConfirmPaymentBtn = isCarrier && booking.paymentStatus === 'proof_submitted';
+  const showPickedUpBtn = isCarrier && booking.status === 'accepted';
+  const showInTransitBtn = isCarrier && booking.status === 'picked_up';
+  const showDeliveredBtn = isCarrier && booking.status === 'in_transit';
+  const hasBottomBar =
+    showPendingActions ||
+    showPaymentBtn ||
+    showConfirmPaymentBtn ||
+    showPickedUpBtn ||
+    showInTransitBtn ||
+    showDeliveredBtn;
 
+  // ── Render ─────────────────────────────────────────────
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.headerBtn}>
-          <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={colors.text} />
-        </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>{t('booking.details')}</Text>
-        <View style={styles.headerBtn} />
-      </View>
+    <SafeAreaView style={[styles.container, { backgroundColor: '#FFFFFF' }]}>
+      <ScreenHeader title={t('booking.details')} onBack={goBack} />
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Status */}
-        <Animated.View
-          entering={FadeIn.duration(300)}
-          style={[styles.statusCard, { backgroundColor: statusColor + '15' }]}
-        >
-          {booking.status === 'in_transit' ? (
-            <LiveIndicator color={statusColor} label={statusKey ? t(statusKey) : booking.status} />
-          ) : (
-            <>
-              <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
-              <Text style={[styles.statusLabel, { color: statusColor }]}>
-                {statusKey ? t(statusKey) : booking.status}
-              </Text>
-            </>
-          )}
-        </Animated.View>
-
-        {/* Status Timeline — show for active bookings */}
-        {!['rejected', 'cancelled'].includes(booking.status) && (
-          <Animated.View
-            entering={FadeInUp.delay(150).springify()}
-            style={[styles.card, { backgroundColor: colors.card }]}
-          >
-            <Text style={[styles.cardTitle, { color: colors.text }]}>
-              {t('booking.progress', { defaultValue: 'Progress' })}
-            </Text>
-            <StatusTimeline
-              events={[
-                {
-                  key: 'pending',
-                  label: t('booking.statusPendingApproval'),
-                  icon: 'time-outline',
-                  date: booking.createdAt,
-                },
-                {
-                  key: 'accepted',
-                  label: t('booking.statusAccepted'),
-                  icon: 'checkmark-circle-outline',
-                  date: booking.status !== 'pending' ? booking.updatedAt : null,
-                },
-                { key: 'picked_up', label: t('booking.statusPickedUp'), icon: 'cube-outline' },
-                {
-                  key: 'in_transit',
-                  label: t('booking.statusInTransit'),
-                  icon: 'airplane-outline',
-                },
-                {
-                  key: 'delivered',
-                  label: t('booking.statusDelivered'),
-                  icon: 'checkmark-done-outline',
-                },
-              ]}
-              currentKey={booking.status}
-            />
-          </Animated.View>
-        )}
-
-        {/* Route */}
-        <Animated.View
-          entering={FadeInUp.delay(200).springify()}
-          style={[styles.card, { backgroundColor: colors.card }]}
-        >
-          <View style={styles.routeRow}>
-            <Text style={[styles.city, { color: colors.text }]}>
-              {booking.listing.departureCity}
-            </Text>
-            <Ionicons
-              name="airplane"
-              size={18}
-              color={colors.primary}
-              style={{ marginHorizontal: 10 }}
-            />
-            <Text style={[styles.city, { color: colors.text }]}>{booking.listing.arrivalCity}</Text>
-          </View>
-          <Text style={[styles.dateText, { color: colors.textSecondary }]}>
-            {new Date(booking.listing.departureDate).toLocaleDateString(isRTL ? 'ar-SA' : 'en-US', {
-              day: 'numeric',
-              month: 'long',
-              year: 'numeric',
-            })}
-          </Text>
-        </Animated.View>
-
-        {/* Price Summary */}
-        <Animated.View
-          entering={FadeInUp.delay(250).springify()}
-          style={[styles.card, { backgroundColor: colors.card }]}
-        >
-          <View style={styles.priceRow}>
-            <Text style={[styles.priceLabel, { color: colors.textSecondary }]}>
-              {t('booking.weight')}
-            </Text>
-            <Text style={[styles.priceValue, { color: colors.text }]}>
-              {Number(booking.totalWeight) || 0} kg
-            </Text>
-          </View>
-          <View style={[styles.divider, { backgroundColor: colors.border }]} />
-          <View style={styles.priceRow}>
-            <Text style={[styles.totalLabel, { color: colors.text }]}>{t('booking.total')}</Text>
-            <Text style={[styles.totalValue, { color: colors.primary }]}>
-              {Number(booking.totalPrice) || 0} {booking.currency || 'SAR'}
-            </Text>
-          </View>
-        </Animated.View>
-
-        {/* Items with Photos */}
-        {booking.items && booking.items.length > 0 && (
-          <Animated.View
-            entering={FadeInUp.delay(300).springify()}
-            style={[styles.card, { backgroundColor: colors.card }]}
-          >
-            <Text style={[styles.cardTitle, { color: colors.text }]}>
-              {t('booking.items')} ({booking.items.length})
-            </Text>
-            {booking.items.map((item, idx) => (
-              <View
-                key={item.id}
-                style={[
-                  styles.itemRow,
-                  idx < booking.items.length - 1 && {
-                    borderBottomWidth: 1,
-                    borderBottomColor: colors.border,
-                  },
-                ]}
-              >
-                <View style={styles.itemInfo}>
-                  <Text style={[styles.itemName, { color: colors.text }]}>{item.name}</Text>
-                  {item.description && (
-                    <Text style={[styles.itemDesc, { color: colors.textSecondary }]}>
-                      {item.description}
-                    </Text>
-                  )}
-                  <View style={styles.itemMeta}>
-                    <Text style={[styles.itemMetaText, { color: colors.textSecondary }]}>
-                      {Number(item.weight)} kg
-                    </Text>
-                    {item.value > 0 && (
-                      <Text style={[styles.itemMetaText, { color: colors.textSecondary }]}>
-                        {Number(item.value)} SAR
-                      </Text>
-                    )}
-                  </View>
-                </View>
-                {item.imageUrls && item.imageUrls.length > 0 && (
-                  <ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    style={styles.itemImageScroll}
-                  >
-                    {item.imageUrls.map((url, imgIdx) => (
-                      <Image key={imgIdx} source={{ uri: url }} style={styles.itemThumb} />
-                    ))}
-                  </ScrollView>
-                )}
-              </View>
-            ))}
-          </Animated.View>
-        )}
-
-        {/* Other User */}
-        <Animated.View
-          entering={FadeInUp.delay(350).springify()}
-          style={[styles.card, { backgroundColor: colors.card }]}
-        >
-          <Text style={[styles.cardTitle, { color: colors.text }]}>
-            {isCarrier ? t('booking.sender') : t('booking.carrier')}
-          </Text>
-          <View style={styles.userRow}>
-            <Avatar
-              name={otherUser.name}
-              avatarUrl={otherUser.avatarUrl}
-              size={44}
-              isVerified={otherUser.isVerified}
-            />
-            <View style={{ flex: 1 }}>
-              <Text style={[styles.userName, { color: colors.text }]}>{otherUser.name}</Text>
-              {otherUser.isVerified && (
-                <VerificationBadge type="verified" size="small" animated={false} />
-              )}
-            </View>
-            <TouchableOpacity
-              onPress={() => router.push(`/chat/${booking.id}`)}
-              style={[styles.chatBtn, { borderColor: colors.primary }]}
-            >
-              <Ionicons name="chatbubble-outline" size={18} color={colors.primary} />
-            </TouchableOpacity>
-          </View>
-        </Animated.View>
-
-        {/* Existing Review */}
-        {existingReview && (
-          <View style={[styles.card, { backgroundColor: colors.card }]}>
-            <Text style={[styles.cardTitle, { color: colors.text }]}>{t('booking.review')}</Text>
-            <View style={styles.reviewDisplay}>
-              <StarRating rating={existingReview.rating} size={22} />
-              {existingReview.comment && (
-                <Text style={[styles.reviewComment, { color: colors.text }]}>
-                  {existingReview.comment}
-                </Text>
-              )}
-              <Text style={[styles.reviewAuthor, { color: colors.textSecondary }]}>
-                {t('booking.reviewBy')} {existingReview.reviewer.name}
-              </Text>
-            </View>
-          </View>
-        )}
-
-        {/* Review Form */}
-        {canReview && !showReviewForm && (
-          <TouchableOpacity
-            onPress={() => setShowReviewForm(true)}
-            style={[
-              styles.reviewPrompt,
-              { backgroundColor: colors.primary + '10', borderColor: colors.primary + '30' },
-            ]}
-          >
-            <Ionicons name="star-outline" size={24} color={colors.primary} />
-            <View style={{ flex: 1 }}>
-              <Text style={[styles.reviewPromptTitle, { color: colors.primary }]}>
-                {t('booking.rateExperience')}
-              </Text>
-              <Text style={[styles.reviewPromptDesc, { color: colors.textSecondary }]}>
-                {t('booking.shareExperience')}
-              </Text>
-            </View>
-            <Ionicons
-              name={isRTL ? 'chevron-back' : 'chevron-forward'}
-              size={20}
-              color={colors.primary}
-            />
-          </TouchableOpacity>
-        )}
-
-        {canReview && showReviewForm && (
-          <View style={[styles.card, { backgroundColor: colors.card }]}>
-            <Text style={[styles.cardTitle, { color: colors.text }]}>
-              {t('booking.yourReview')}
-            </Text>
-            <View style={styles.reviewFormContent}>
-              <StarRating rating={reviewRating} onRate={setReviewRating} size={36} />
-              <TextInput
-                style={[
-                  styles.reviewInput,
-                  {
-                    backgroundColor: colors.background,
-                    color: colors.text,
-                    borderColor: colors.border,
-                  },
-                ]}
-                value={reviewComment}
-                onChangeText={setReviewComment}
-                placeholder={t('booking.addComment')}
-                placeholderTextColor={colors.textSecondary}
-                multiline
-                numberOfLines={3}
-                maxLength={500}
-                textAlign={isRTL ? 'right' : 'left'}
-                textAlignVertical="top"
-              />
-              <View style={styles.reviewActions}>
-                <TouchableOpacity
-                  onPress={() => setShowReviewForm(false)}
-                  style={[styles.reviewCancelBtn, { borderColor: colors.border }]}
-                >
-                  <Text style={[styles.reviewCancelText, { color: colors.textSecondary }]}>
-                    {t('common.cancel')}
+      <ScrollView
+        contentContainerStyle={[
+          styles.scrollContent,
+          hasBottomBar && { paddingBottom: SPACING[9] + SPACING[8] },
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* ── Status Badge (V2 — colored tint card) ──────────── */}
+        <Animated.View entering={FadeInDown.duration(400).springify()}>
+          <SolidCard tint={statusTint} accentColor={statusColor} style={styles.statusCard}>
+            <View style={styles.statusContent}>
+              {booking.status === 'in_transit' ? (
+                <LiveIndicator
+                  color={statusColor}
+                  label={statusKey ? t(statusKey) : booking.status}
+                  size="medium"
+                />
+              ) : (
+                <View style={styles.statusRow}>
+                  <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
+                  <Text style={[TYPOGRAPHY.h3, { color: statusColor }]}>
+                    {statusKey ? t(statusKey) : booking.status}
                   </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={handleSubmitReview}
-                  disabled={createReview.isPending || reviewRating === 0}
+                </View>
+              )}
+            </View>
+          </SolidCard>
+        </Animated.View>
+
+        {/* ── Status Timeline ─────────────────────────────── */}
+        {!['rejected', 'cancelled'].includes(booking.status) && (
+          <Animated.View entering={FadeInDown.delay(80).duration(400).springify()}>
+            <SolidCard style={styles.card}>
+              <View style={styles.cardTitleRow}>
+                <View style={[styles.cardTitleIcon, { backgroundColor: SECTION_TINTS.blue }]}>
+                  <Ionicons name="git-branch-outline" size={14} color="#3B82F6" />
+                </View>
+                <Text
+                  style={[TYPOGRAPHY.caption, styles.cardTitle, { color: colors.textSecondary }]}
+                >
+                  {t('booking.progress', { defaultValue: 'Progress' })}
+                </Text>
+              </View>
+              <StatusTimeline
+                events={[
+                  {
+                    key: 'pending',
+                    label: t('booking.statusPendingApproval'),
+                    icon: 'time-outline',
+                    date: booking.createdAt,
+                  },
+                  {
+                    key: 'accepted',
+                    label: t('booking.statusAccepted'),
+                    icon: 'checkmark-circle-outline',
+                    date: booking.status !== 'pending' ? booking.updatedAt : null,
+                  },
+                  { key: 'picked_up', label: t('booking.statusPickedUp'), icon: 'cube-outline' },
+                  {
+                    key: 'in_transit',
+                    label: t('booking.statusInTransit'),
+                    icon: 'airplane-outline',
+                  },
+                  {
+                    key: 'delivered',
+                    label: t('booking.statusDelivered'),
+                    icon: 'checkmark-done-outline',
+                  },
+                ]}
+                currentKey={booking.status}
+              />
+            </SolidCard>
+          </Animated.View>
+        )}
+
+        {/* ── Route Card (V2 — blue tint) ─────────────────── */}
+        <Animated.View entering={FadeInDown.delay(160).duration(400).springify()}>
+          <SolidCard tint={SECTION_TINTS.blue} accentColor="#3B82F6" style={styles.card}>
+            <View style={styles.cardTitleRow}>
+              <View style={[styles.cardTitleIcon, { backgroundColor: '#DBEAFE' }]}>
+                <Ionicons name="navigate-outline" size={14} color="#3B82F6" />
+              </View>
+              <Text style={[TYPOGRAPHY.caption, styles.cardTitle, { color: colors.textSecondary }]}>
+                {t('booking.route', { defaultValue: 'Route' })}
+              </Text>
+            </View>
+            <View style={styles.routeRow}>
+              <View style={styles.routeCity}>
+                <View style={[styles.routeDot, { backgroundColor: colors.primary }]} />
+                <Text style={[TYPOGRAPHY.h3, { color: colors.text }]}>
+                  {booking.listing.departureCity}
+                </Text>
+              </View>
+              <View style={styles.routeLine}>
+                <View style={[styles.routeDash, { backgroundColor: '#3B82F6' + '40' }]} />
+                <View style={[styles.routeAirplane, { backgroundColor: '#DBEAFE' }]}>
+                  <Ionicons name="airplane" size={16} color="#3B82F6" />
+                </View>
+                <View style={[styles.routeDash, { backgroundColor: '#3B82F6' + '40' }]} />
+              </View>
+              <View style={[styles.routeCity, { alignItems: 'flex-end' }]}>
+                <View style={[styles.routeDot, { backgroundColor: colors.success }]} />
+                <Text style={[TYPOGRAPHY.h3, { color: colors.text }]}>
+                  {booking.listing.arrivalCity}
+                </Text>
+              </View>
+            </View>
+            <View style={[styles.dateChip, { backgroundColor: '#DBEAFE' }]}>
+              <Ionicons name="calendar-outline" size={12} color="#3B82F6" />
+              <Text style={[TYPOGRAPHY.small, { color: '#3B82F6' }]}>
+                {new Date(booking.listing.departureDate).toLocaleDateString(
+                  isRTL ? 'ar-SA' : 'en-US',
+                  { day: 'numeric', month: 'long', year: 'numeric' }
+                )}
+              </Text>
+            </View>
+          </SolidCard>
+        </Animated.View>
+
+        {/* ── Price Summary (V2 — green tint) ────────────────── */}
+        <Animated.View entering={FadeInDown.delay(240).duration(400).springify()}>
+          <SolidCard tint={SECTION_TINTS.green} accentColor="#00C48C" style={styles.card}>
+            <View style={styles.cardTitleRow}>
+              <View style={[styles.cardTitleIcon, { backgroundColor: '#D1FAE5' }]}>
+                <Ionicons name="wallet-outline" size={14} color="#00C48C" />
+              </View>
+              <Text style={[TYPOGRAPHY.caption, styles.cardTitle, { color: colors.textSecondary }]}>
+                {t('booking.priceSummary', { defaultValue: 'Price Summary' })}
+              </Text>
+            </View>
+            <View style={styles.priceRow}>
+              <View style={styles.priceLabel}>
+                <View style={[styles.priceIcon, { backgroundColor: SECTION_TINTS.purple }]}>
+                  <Ionicons name="scale-outline" size={12} color={colors.primary} />
+                </View>
+                <Text style={[TYPOGRAPHY.caption, { color: colors.textSecondary }]}>
+                  {t('booking.weight')}
+                </Text>
+              </View>
+              <Text style={[TYPOGRAPHY.body, { color: colors.text, fontWeight: '600' }]}>
+                {Number(booking.totalWeight) || 0} kg
+              </Text>
+            </View>
+            <View style={[styles.divider, { backgroundColor: '#00C48C' + '20' }]} />
+            <View style={styles.priceRow}>
+              <Text style={[TYPOGRAPHY.h3, { color: colors.text }]}>{t('booking.total')}</Text>
+              <Text style={[TYPOGRAPHY.h2, { color: '#00C48C' }]}>
+                {Number(booking.totalPrice) || 0} {booking.currency || 'SAR'}
+              </Text>
+            </View>
+          </SolidCard>
+        </Animated.View>
+
+        {/* ── Items with Photos ────────────────────────────── */}
+        {booking.items && booking.items.length > 0 && (
+          <Animated.View entering={FadeInDown.delay(320).duration(400).springify()}>
+            <SolidCard style={styles.card}>
+              <View style={styles.cardTitleRow}>
+                <View style={[styles.cardTitleIcon, { backgroundColor: SECTION_TINTS.amber }]}>
+                  <Ionicons name="cube-outline" size={14} color="#F59E0B" />
+                </View>
+                <Text
+                  style={[TYPOGRAPHY.caption, styles.cardTitle, { color: colors.textSecondary }]}
+                >
+                  {t('booking.items')} ({booking.items.length})
+                </Text>
+              </View>
+              {booking.items.map((item: any, idx: number) => (
+                <View
+                  key={item.id}
                   style={[
-                    styles.reviewSubmitBtn,
-                    { backgroundColor: colors.primary, opacity: reviewRating === 0 ? 0.5 : 1 },
+                    styles.itemRow,
+                    idx < booking.items.length - 1 && {
+                      borderBottomWidth: 1,
+                      borderBottomColor: colors.borderSubtle,
+                    },
                   ]}
                 >
-                  {createReview.isPending ? (
-                    <ActivityIndicator color="#FFF" size="small" />
-                  ) : (
-                    <Text style={styles.reviewSubmitText}>{t('booking.submit')}</Text>
+                  <View style={styles.itemInfo}>
+                    <Text style={[TYPOGRAPHY.body, { color: colors.text, fontWeight: '600' }]}>
+                      {item.name}
+                    </Text>
+                    {item.description && (
+                      <Text
+                        style={[
+                          TYPOGRAPHY.caption,
+                          { color: colors.textSecondary, marginTop: SPACING[1] },
+                        ]}
+                      >
+                        {item.description}
+                      </Text>
+                    )}
+                    <View style={styles.itemMeta}>
+                      <View
+                        style={[styles.itemMetaChip, { backgroundColor: SECTION_TINTS.purple }]}
+                      >
+                        <Ionicons name="scale-outline" size={11} color={colors.primary} />
+                        <Text style={[TYPOGRAPHY.small, { color: colors.primary }]}>
+                          {Number(item.weight)} kg
+                        </Text>
+                      </View>
+                      {item.value > 0 && (
+                        <View
+                          style={[styles.itemMetaChip, { backgroundColor: SECTION_TINTS.green }]}
+                        >
+                          <Ionicons name="pricetag-outline" size={11} color="#00C48C" />
+                          <Text style={[TYPOGRAPHY.small, { color: '#00C48C' }]}>
+                            {Number(item.value)} SAR
+                          </Text>
+                        </View>
+                      )}
+                    </View>
+                  </View>
+                  {item.imageUrls && item.imageUrls.length > 0 && (
+                    <ScrollView
+                      horizontal
+                      showsHorizontalScrollIndicator={false}
+                      style={styles.itemImageScroll}
+                    >
+                      {item.imageUrls.map((url: string, imgIdx: number) => (
+                        <Image key={imgIdx} source={{ uri: url }} style={styles.itemThumb} />
+                      ))}
+                    </ScrollView>
                   )}
-                </TouchableOpacity>
+                </View>
+              ))}
+            </SolidCard>
+          </Animated.View>
+        )}
+
+        {/* ── Other User (V2 — with colored chat button) ──── */}
+        <Animated.View entering={FadeIn.delay(400).duration(300)}>
+          <SolidCard style={styles.card}>
+            <View style={styles.cardTitleRow}>
+              <View style={[styles.cardTitleIcon, { backgroundColor: SECTION_TINTS.purple }]}>
+                <Ionicons name="person-outline" size={14} color={colors.primary} />
               </View>
+              <Text style={[TYPOGRAPHY.caption, styles.cardTitle, { color: colors.textSecondary }]}>
+                {isCarrier ? t('booking.sender') : t('booking.carrier')}
+              </Text>
             </View>
-          </View>
+            <View style={styles.userRow}>
+              <Avatar
+                name={otherUser.name}
+                avatarUrl={otherUser.avatarUrl}
+                size={44}
+                isVerified={otherUser.isVerified}
+              />
+              <View style={{ flex: 1 }}>
+                <Text style={[TYPOGRAPHY.body, { color: colors.text, fontWeight: '600' }]}>
+                  {otherUser.name}
+                </Text>
+                {otherUser.isVerified && (
+                  <VerificationBadge type="verified" size="small" animated={false} />
+                )}
+              </View>
+              <TouchableOpacity
+                onPress={() => router.push(`/chat/${booking.id}`)}
+                style={[
+                  styles.chatBtn,
+                  {
+                    borderColor: colors.primary + '30',
+                    borderBottomColor: colors.primary,
+                    backgroundColor: SECTION_TINTS.purple,
+                  },
+                ]}
+                accessibilityRole="button"
+                accessibilityLabel={t('booking.openChat', { defaultValue: 'Open chat' })}
+              >
+                <Ionicons name="chatbubble-outline" size={18} color={colors.primary} />
+              </TouchableOpacity>
+            </View>
+          </SolidCard>
+        </Animated.View>
+
+        {/* ── Existing Review ─────────────────────────────── */}
+        {existingReview && (
+          <Animated.View entering={FadeIn.delay(480).duration(300)}>
+            <SolidCard tint={SECTION_TINTS.amber} accentColor="#F59E0B" style={styles.card}>
+              <View style={styles.cardTitleRow}>
+                <View style={[styles.cardTitleIcon, { backgroundColor: '#FEF3C7' }]}>
+                  <Ionicons name="star" size={14} color="#F59E0B" />
+                </View>
+                <Text
+                  style={[TYPOGRAPHY.caption, styles.cardTitle, { color: colors.textSecondary }]}
+                >
+                  {t('booking.review')}
+                </Text>
+              </View>
+              <View style={styles.reviewDisplay}>
+                <StarRating rating={existingReview.rating} size={22} />
+                {existingReview.comment && (
+                  <Text
+                    style={[
+                      TYPOGRAPHY.caption,
+                      { color: colors.text, lineHeight: 21, marginTop: SPACING[2] },
+                    ]}
+                  >
+                    {existingReview.comment}
+                  </Text>
+                )}
+                <Text
+                  style={[TYPOGRAPHY.small, { color: colors.textTertiary, marginTop: SPACING[2] }]}
+                >
+                  {t('booking.reviewBy')} {existingReview.reviewer.name}
+                </Text>
+              </View>
+            </SolidCard>
+          </Animated.View>
+        )}
+
+        {/* ── Review Prompt (tap to expand) ────────────────── */}
+        {canReview && !showReviewForm && (
+          <Animated.View entering={FadeIn.delay(480).duration(300)}>
+            <TouchableOpacity
+              onPress={() => setShowReviewForm(true)}
+              activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel={t('booking.rateExperience')}
+            >
+              <SolidCard
+                tint={SECTION_TINTS.purple}
+                accentColor={colors.primary}
+                style={styles.reviewPromptCard}
+              >
+                <View style={styles.reviewPromptRow}>
+                  <View
+                    style={[styles.reviewPromptIcon, { backgroundColor: colors.primary + '15' }]}
+                  >
+                    <Ionicons name="star-outline" size={22} color={colors.primary} />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[TYPOGRAPHY.body, { color: colors.primary, fontWeight: '600' }]}>
+                      {t('booking.rateExperience')}
+                    </Text>
+                    <Text
+                      style={[
+                        TYPOGRAPHY.caption,
+                        { color: colors.textSecondary, marginTop: SPACING[1] },
+                      ]}
+                    >
+                      {t('booking.shareExperience')}
+                    </Text>
+                  </View>
+                  <Ionicons
+                    name={isRTL ? 'chevron-back' : 'chevron-forward'}
+                    size={20}
+                    color={colors.primary}
+                  />
+                </View>
+              </SolidCard>
+            </TouchableOpacity>
+          </Animated.View>
+        )}
+
+        {/* ── Review Form ─────────────────────────────────── */}
+        {canReview && showReviewForm && (
+          <Animated.View entering={FadeInDown.duration(400).springify()}>
+            <SolidCard style={styles.card}>
+              <View style={styles.cardTitleRow}>
+                <View style={[styles.cardTitleIcon, { backgroundColor: SECTION_TINTS.amber }]}>
+                  <Ionicons name="create-outline" size={14} color="#F59E0B" />
+                </View>
+                <Text
+                  style={[TYPOGRAPHY.caption, styles.cardTitle, { color: colors.textSecondary }]}
+                >
+                  {t('booking.yourReview')}
+                </Text>
+              </View>
+              <View style={styles.reviewFormContent}>
+                <StarRating rating={reviewRating} onRate={setReviewRating} size={36} />
+                <TextInput
+                  style={[
+                    styles.reviewInput,
+                    {
+                      backgroundColor: SECTION_TINTS.neutral,
+                      color: colors.text,
+                      borderColor: colors.borderSubtle,
+                      ...TYPOGRAPHY.caption,
+                    },
+                  ]}
+                  value={reviewComment}
+                  onChangeText={setReviewComment}
+                  placeholder={t('booking.addComment')}
+                  placeholderTextColor={colors.textMuted}
+                  multiline
+                  numberOfLines={3}
+                  maxLength={500}
+                  textAlign={isRTL ? 'right' : 'left'}
+                  textAlignVertical="top"
+                  accessibilityLabel={t('booking.addComment')}
+                />
+                <View style={styles.reviewActions}>
+                  <TouchableOpacity
+                    onPress={() => setShowReviewForm(false)}
+                    style={[
+                      styles.reviewCancelBtn,
+                      {
+                        borderColor: colors.border,
+                        borderBottomColor: colors.textMuted,
+                      },
+                    ]}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('common.cancel')}
+                  >
+                    <Text
+                      style={[TYPOGRAPHY.body, { color: colors.textSecondary, fontWeight: '600' }]}
+                    >
+                      {t('common.cancel')}
+                    </Text>
+                  </TouchableOpacity>
+                  <GradientButton
+                    title={t('booking.submit')}
+                    onPress={handleSubmitReview}
+                    disabled={reviewRating === 0}
+                    loading={createReview.isPending}
+                    size="medium"
+                    style={{ flex: 2 }}
+                  />
+                </View>
+              </View>
+            </SolidCard>
+          </Animated.View>
         )}
       </ScrollView>
 
+      {/* ── Bottom Action Bars (V2 — solid white, no blur) ── */}
+
       {/* Payment Button for Sender */}
-      {booking.status === 'accepted' && isSender && (
+      {showPaymentBtn && (
         <View
           style={[
-            styles.actionBar,
-            { backgroundColor: colors.card, borderTopColor: colors.border },
+            styles.actionBarWrapper,
+            { backgroundColor: '#FFFFFF', borderTopColor: colors.border },
+            SHADOWS.m as ViewStyle,
           ]}
         >
-          <TouchableOpacity
-            onPress={() =>
-              router.push({
-                pathname: '/booking/payment',
-                params: {
-                  bookingId: booking.id,
-                  amount: String(Number(booking.totalPrice)),
-                  currency: booking.currency,
-                  carrierName: booking.carrier.name,
-                  carrierIban: booking.carrier.iban || '',
-                  carrierBankName: booking.carrier.bankName || '',
-                },
-              })
-            }
-            style={[styles.acceptBtn, { backgroundColor: colors.primary }]}
-          >
-            <Ionicons name="card-outline" size={20} color="#FFF" style={{ marginEnd: 8 }} />
-            <Text style={styles.acceptText}>{t('payment.title')}</Text>
-          </TouchableOpacity>
+          <View style={styles.actionBarContent}>
+            <GradientButton
+              title={t('payment.title')}
+              onPress={() =>
+                router.push({
+                  pathname: '/booking/payment',
+                  params: {
+                    bookingId: booking.id,
+                    amount: String(Number(booking.totalPrice)),
+                    currency: booking.currency,
+                    carrierName: booking.carrier.name,
+                    carrierIban: booking.carrier.iban || '',
+                    carrierBankName: booking.carrier.bankName || '',
+                  },
+                })
+              }
+              icon={<Ionicons name="card-outline" size={20} color="#FFF" />}
+              size="large"
+              fullWidth
+            />
+          </View>
         </View>
       )}
 
       {/* Carrier: Confirm Payment */}
-      {isCarrier && booking.paymentStatus === 'proof_submitted' && (
+      {showConfirmPaymentBtn && (
         <View
           style={[
-            styles.actionBar,
-            { backgroundColor: colors.card, borderTopColor: colors.border },
+            styles.actionBarWrapper,
+            { backgroundColor: '#FFFFFF', borderTopColor: colors.border },
+            SHADOWS.m as ViewStyle,
           ]}
         >
-          <TouchableOpacity
-            onPress={handleConfirmPayment}
-            disabled={confirmPayment.isPending}
-            style={[
-              styles.acceptBtn,
-              { backgroundColor: '#10B981', opacity: confirmPayment.isPending ? 0.7 : 1 },
-            ]}
-          >
-            {confirmPayment.isPending ? (
-              <ActivityIndicator color="#FFF" size="small" />
-            ) : (
+          <View style={styles.actionBarContent}>
+            <GradientButton
+              title={t('booking.confirmPayment')}
+              onPress={handleConfirmPayment}
+              loading={confirmPayment.isPending}
+              disabled={confirmPayment.isPending}
+              icon={<Ionicons name="checkmark-done-outline" size={20} color="#FFF" />}
+              colors={['#10B981', '#059669']}
+              size="large"
+              fullWidth
+            />
+          </View>
+        </View>
+      )}
+
+      {/* Carrier: Mark Picked Up */}
+      {showPickedUpBtn && !showConfirmPaymentBtn && (
+        <View
+          style={[
+            styles.actionBarWrapper,
+            { backgroundColor: '#FFFFFF', borderTopColor: colors.border },
+            SHADOWS.m as ViewStyle,
+          ]}
+        >
+          <View style={styles.actionBarContent}>
+            <GradientButton
+              title={t('booking.markPickedUp')}
+              onPress={handleMarkPickedUp}
+              loading={markPickedUp.isPending}
+              disabled={markPickedUp.isPending}
+              icon={<Ionicons name="cube-outline" size={20} color="#FFF" />}
+              colors={['#8B5CF6', '#7C3AED']}
+              size="large"
+              fullWidth
+            />
+          </View>
+        </View>
+      )}
+
+      {/* Carrier: Mark In Transit */}
+      {showInTransitBtn && (
+        <View
+          style={[
+            styles.actionBarWrapper,
+            { backgroundColor: '#FFFFFF', borderTopColor: colors.border },
+            SHADOWS.m as ViewStyle,
+          ]}
+        >
+          <View style={styles.actionBarContent}>
+            <GradientButton
+              title={t('booking.markInTransit')}
+              onPress={handleMarkInTransit}
+              loading={markInTransit.isPending}
+              disabled={markInTransit.isPending}
+              icon={<Ionicons name="airplane-outline" size={20} color="#FFF" />}
+              colors={['#6366F1', '#4F46E5']}
+              size="large"
+              fullWidth
+            />
+          </View>
+        </View>
+      )}
+
+      {/* Carrier: Mark Delivered */}
+      {showDeliveredBtn && (
+        <View
+          style={[
+            styles.actionBarWrapper,
+            { backgroundColor: '#FFFFFF', borderTopColor: colors.border },
+            SHADOWS.m as ViewStyle,
+          ]}
+        >
+          <View style={styles.actionBarContent}>
+            <GradientButton
+              title={t('booking.markDelivered')}
+              onPress={handleMarkDelivered}
+              loading={markDelivered.isPending}
+              disabled={markDelivered.isPending}
+              icon={<Ionicons name="checkmark-circle-outline" size={20} color="#FFF" />}
+              colors={['#10B981', '#059669']}
+              size="large"
+              fullWidth
+            />
+          </View>
+        </View>
+      )}
+
+      {/* Pending: Accept/Reject (carrier) or Cancel (sender) */}
+      {showPendingActions && (
+        <View
+          style={[
+            styles.actionBarWrapper,
+            { backgroundColor: '#FFFFFF', borderTopColor: colors.border },
+            SHADOWS.m as ViewStyle,
+          ]}
+        >
+          <View style={styles.actionBarContent}>
+            {isCarrier && (
               <>
-                <Ionicons
-                  name="checkmark-done-outline"
-                  size={20}
-                  color="#FFF"
-                  style={{ marginEnd: 8 }}
+                <TouchableOpacity
+                  onPress={handleReject}
+                  style={[
+                    styles.rejectBtn,
+                    {
+                      borderColor: colors.error + '30',
+                      borderBottomColor: colors.error,
+                      backgroundColor: SECTION_TINTS.pink,
+                    },
+                  ]}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('booking.reject')}
+                >
+                  <Text style={[TYPOGRAPHY.body, { color: colors.error, fontWeight: '600' }]}>
+                    {t('booking.reject')}
+                  </Text>
+                </TouchableOpacity>
+                <GradientButton
+                  title={t('booking.accept')}
+                  onPress={handleAccept}
+                  size="large"
+                  style={{ flex: 2 }}
                 />
-                <Text style={styles.acceptText}>{t('booking.confirmPayment')}</Text>
               </>
             )}
-          </TouchableOpacity>
-        </View>
-      )}
-
-      {/* Carrier Status Progression */}
-      {isCarrier && booking.status === 'accepted' && (
-        <View
-          style={[
-            styles.actionBar,
-            { backgroundColor: colors.card, borderTopColor: colors.border },
-          ]}
-        >
-          <TouchableOpacity
-            onPress={handleMarkPickedUp}
-            disabled={markPickedUp.isPending}
-            style={[
-              styles.acceptBtn,
-              { backgroundColor: '#8B5CF6', opacity: markPickedUp.isPending ? 0.7 : 1 },
-            ]}
-          >
-            {markPickedUp.isPending ? (
-              <ActivityIndicator color="#FFF" size="small" />
-            ) : (
-              <>
-                <Ionicons name="cube-outline" size={20} color="#FFF" style={{ marginEnd: 8 }} />
-                <Text style={styles.acceptText}>{t('booking.markPickedUp')}</Text>
-              </>
-            )}
-          </TouchableOpacity>
-        </View>
-      )}
-
-      {isCarrier && booking.status === 'picked_up' && (
-        <View
-          style={[
-            styles.actionBar,
-            { backgroundColor: colors.card, borderTopColor: colors.border },
-          ]}
-        >
-          <TouchableOpacity
-            onPress={handleMarkInTransit}
-            disabled={markInTransit.isPending}
-            style={[
-              styles.acceptBtn,
-              { backgroundColor: '#6366F1', opacity: markInTransit.isPending ? 0.7 : 1 },
-            ]}
-          >
-            {markInTransit.isPending ? (
-              <ActivityIndicator color="#FFF" size="small" />
-            ) : (
-              <>
-                <Ionicons name="airplane-outline" size={20} color="#FFF" style={{ marginEnd: 8 }} />
-                <Text style={styles.acceptText}>{t('booking.markInTransit')}</Text>
-              </>
-            )}
-          </TouchableOpacity>
-        </View>
-      )}
-
-      {isCarrier && booking.status === 'in_transit' && (
-        <View
-          style={[
-            styles.actionBar,
-            { backgroundColor: colors.card, borderTopColor: colors.border },
-          ]}
-        >
-          <TouchableOpacity
-            onPress={handleMarkDelivered}
-            disabled={markDelivered.isPending}
-            style={[
-              styles.acceptBtn,
-              { backgroundColor: '#10B981', opacity: markDelivered.isPending ? 0.7 : 1 },
-            ]}
-          >
-            {markDelivered.isPending ? (
-              <ActivityIndicator color="#FFF" size="small" />
-            ) : (
-              <>
+            {isSender && (
+              <TouchableOpacity
+                onPress={handleCancel}
+                style={[
+                  styles.cancelBtn,
+                  {
+                    borderColor: colors.error + '30',
+                    borderBottomColor: colors.error,
+                    backgroundColor: SECTION_TINTS.pink,
+                  },
+                ]}
+                accessibilityRole="button"
+                accessibilityLabel={t('booking.cancelBooking')}
+              >
                 <Ionicons
-                  name="checkmark-circle-outline"
+                  name="close-circle-outline"
                   size={20}
-                  color="#FFF"
-                  style={{ marginEnd: 8 }}
+                  color={colors.error}
+                  style={{ marginEnd: SPACING[2] }}
                 />
-                <Text style={styles.acceptText}>{t('booking.markDelivered')}</Text>
-              </>
+                <Text style={[TYPOGRAPHY.body, { color: colors.error, fontWeight: '600' }]}>
+                  {t('booking.cancelBooking')}
+                </Text>
+              </TouchableOpacity>
             )}
-          </TouchableOpacity>
-        </View>
-      )}
-
-      {/* Action Buttons */}
-      {booking.status === 'pending' && (
-        <View
-          style={[
-            styles.actionBar,
-            { backgroundColor: colors.card, borderTopColor: colors.border },
-          ]}
-        >
-          {isCarrier && (
-            <>
-              <TouchableOpacity
-                onPress={handleReject}
-                style={[styles.rejectBtn, { borderColor: '#EF4444' }]}
-              >
-                <Text style={[styles.rejectText, { color: '#EF4444' }]}>{t('booking.reject')}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={handleAccept}
-                style={[styles.acceptBtn, { backgroundColor: colors.primary }]}
-              >
-                <Text style={styles.acceptText}>{t('booking.accept')}</Text>
-              </TouchableOpacity>
-            </>
-          )}
-          {isSender && (
-            <TouchableOpacity
-              onPress={handleCancel}
-              style={[styles.cancelBtn, { borderColor: '#EF4444' }]}
-            >
-              <Text style={[styles.cancelText, { color: '#EF4444' }]}>
-                {t('booking.cancelBooking')}
-              </Text>
-            </TouchableOpacity>
-          )}
+          </View>
         </View>
       )}
     </SafeAreaView>
   );
 }
 
+// ─── Styles (V2 — solid, colorful) ──────────────────────
 const styles = StyleSheet.create({
-  container: { flex: 1 } as ViewStyle,
-  loading: { flex: 1, alignItems: 'center', justifyContent: 'center' } as ViewStyle,
-  header: {
+  container: {
+    flex: 1,
+  } as ViewStyle,
+
+  // Loading / Empty
+  emptyState: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: SPACING[6],
+  } as ViewStyle,
+
+  emptyIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+  } as ViewStyle,
+
+  goBackBtn: {
+    marginTop: SPACING[4],
+    paddingHorizontal: SPACING[5],
+    paddingVertical: SPACING[3],
+    borderRadius: RADIUS.pill,
+  } as ViewStyle,
+
+  skeletonHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: SPACING[4],
+    paddingVertical: SPACING[3],
     borderBottomWidth: 1,
   } as ViewStyle,
-  headerBtn: { width: 40, alignItems: 'center' } as ViewStyle,
-  headerTitle: { fontSize: 18, fontWeight: '600' } as TextStyle,
-  scrollContent: { padding: 16, paddingBottom: 100 } as ViewStyle,
 
-  statusCard: {
+  skeletonHeaderBtn: {
+    width: 40,
+    alignItems: 'center',
+  } as ViewStyle,
+
+  scrollContent: {
+    padding: SPACING[4],
+    paddingBottom: SPACING[9],
+  } as ViewStyle,
+
+  // Cards
+  card: {
+    marginBottom: SPACING[4],
+  } as ViewStyle,
+
+  cardTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
-    borderRadius: 14,
-    gap: 10,
-    marginBottom: 16,
+    gap: SPACING[2],
+    marginBottom: SPACING[3],
   } as ViewStyle,
-  statusDot: { width: 10, height: 10, borderRadius: 5 } as ViewStyle,
-  statusLabel: { fontSize: 16, fontWeight: '700' } as TextStyle,
 
-  card: { borderRadius: 16, padding: 20, marginBottom: 16 } as ViewStyle,
-  cardTitle: { fontSize: 15, fontWeight: '700', marginBottom: 12 } as TextStyle,
-  routeRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 } as ViewStyle,
-  city: { fontSize: 18, fontWeight: '700' } as TextStyle,
-  dateText: { fontSize: 14 } as TextStyle,
+  cardTitleIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  } as ViewStyle,
 
+  cardTitle: {
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  } as TextStyle,
+
+  // Status card
+  statusCard: {
+    marginBottom: SPACING[4],
+  } as ViewStyle,
+
+  statusContent: {
+    paddingStart: SPACING[1],
+  } as ViewStyle,
+
+  statusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING[3],
+  } as ViewStyle,
+
+  statusDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+  } as ViewStyle,
+
+  // Route
+  routeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: SPACING[3],
+  } as ViewStyle,
+
+  routeCity: {
+    flex: 1,
+    gap: SPACING[1],
+  } as ViewStyle,
+
+  routeDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  } as ViewStyle,
+
+  routeLine: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING[1],
+    paddingHorizontal: SPACING[2],
+  } as ViewStyle,
+
+  routeDash: {
+    height: 2,
+    width: SPACING[5],
+    borderRadius: 1,
+  } as ViewStyle,
+
+  routeAirplane: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  } as ViewStyle,
+
+  dateChip: {
+    flexDirection: 'row',
+    alignSelf: 'flex-start',
+    alignItems: 'center',
+    gap: SPACING[1],
+    paddingHorizontal: SPACING[3],
+    paddingVertical: SPACING[1],
+    borderRadius: RADIUS.pill,
+  } as ViewStyle,
+
+  // Price
   priceRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 4,
+    alignItems: 'center',
+    paddingVertical: SPACING[1],
   } as ViewStyle,
-  priceLabel: { fontSize: 14 } as TextStyle,
-  priceValue: { fontSize: 14, fontWeight: '500' } as TextStyle,
-  divider: { height: 1, marginVertical: 8 } as ViewStyle,
-  totalLabel: { fontSize: 16, fontWeight: '700' } as TextStyle,
-  totalValue: { fontSize: 20, fontWeight: '700' } as TextStyle,
 
-  // Item display
-  itemRow: { paddingVertical: 12 } as ViewStyle,
-  itemInfo: { marginBottom: 8 } as ViewStyle,
-  itemName: { fontSize: 15, fontWeight: '600' } as TextStyle,
-  itemDesc: { fontSize: 13, marginTop: 2 } as TextStyle,
-  itemMeta: { flexDirection: 'row', gap: 12, marginTop: 4 } as ViewStyle,
-  itemMetaText: { fontSize: 12, fontWeight: '500' } as TextStyle,
-  itemImageScroll: { marginTop: 4 } as ViewStyle,
+  priceLabel: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING[2],
+  } as ViewStyle,
+
+  priceIcon: {
+    width: 24,
+    height: 24,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  } as ViewStyle,
+
+  divider: {
+    height: 1,
+    marginVertical: SPACING[3],
+  } as ViewStyle,
+
+  // Items
+  itemRow: {
+    paddingVertical: SPACING[3],
+  } as ViewStyle,
+
+  itemInfo: {
+    marginBottom: SPACING[2],
+  } as ViewStyle,
+
+  itemMeta: {
+    flexDirection: 'row',
+    gap: SPACING[2],
+    marginTop: SPACING[2],
+  } as ViewStyle,
+
+  itemMetaChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING[1],
+    paddingHorizontal: SPACING[2],
+    paddingVertical: 2,
+    borderRadius: RADIUS.pill,
+  } as ViewStyle,
+
+  itemImageScroll: {
+    marginTop: SPACING[2],
+  } as ViewStyle,
+
   itemThumb: {
     width: 72,
     height: 72,
-    borderRadius: 10,
-    marginEnd: 8,
+    borderRadius: RADIUS.button,
+    marginEnd: SPACING[2],
   } as ImageStyle,
 
-  userRow: { flexDirection: 'row', alignItems: 'center', gap: 12 } as ViewStyle,
-  userName: { fontSize: 16, fontWeight: '600' } as TextStyle,
-  verifiedRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 } as ViewStyle,
-  verifiedText: { fontSize: 12, fontWeight: '600' } as TextStyle,
+  // User
+  userRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING[3],
+  } as ViewStyle,
+
   chatBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 10,
-    borderWidth: 1.5,
+    width: 42,
+    height: 42,
+    borderRadius: RADIUS.button,
+    borderWidth: 1,
+    borderBottomWidth: 3,
     alignItems: 'center',
     justifyContent: 'center',
   } as ViewStyle,
 
   // Review display
-  reviewDisplay: { gap: 8 } as ViewStyle,
-  reviewComment: { fontSize: 14, lineHeight: 21 } as TextStyle,
-  reviewAuthor: { fontSize: 12 } as TextStyle,
+  reviewDisplay: {
+    gap: SPACING[1],
+  } as ViewStyle,
 
   // Review prompt
-  reviewPrompt: {
+  reviewPromptCard: {
+    marginBottom: SPACING[4],
+  } as ViewStyle,
+
+  reviewPromptRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
-    borderRadius: 14,
-    gap: 12,
-    marginBottom: 16,
-    borderWidth: 1,
+    gap: SPACING[3],
   } as ViewStyle,
-  reviewPromptTitle: { fontSize: 15, fontWeight: '600' } as TextStyle,
-  reviewPromptDesc: { fontSize: 13, marginTop: 2 } as TextStyle,
+
+  reviewPromptIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: RADIUS.button,
+    alignItems: 'center',
+    justifyContent: 'center',
+  } as ViewStyle,
 
   // Review form
-  reviewFormContent: { gap: 16, alignItems: 'center' } as ViewStyle,
+  reviewFormContent: {
+    gap: SPACING[4],
+    alignItems: 'center',
+  } as ViewStyle,
+
   reviewInput: {
     width: '100%',
     minHeight: 80,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 14,
+    borderRadius: RADIUS.input,
+    paddingHorizontal: SPACING[4],
+    paddingVertical: SPACING[3],
     borderWidth: 1,
   } as TextStyle,
-  reviewActions: { flexDirection: 'row', gap: 12, width: '100%' } as ViewStyle,
+
+  reviewActions: {
+    flexDirection: 'row',
+    gap: SPACING[3],
+    width: '100%',
+  } as ViewStyle,
+
   reviewCancelBtn: {
     flex: 1,
-    height: 44,
-    borderRadius: 10,
-    borderWidth: 1.5,
+    height: 48,
+    borderRadius: RADIUS.button,
+    borderWidth: 1,
+    borderBottomWidth: 3,
     alignItems: 'center',
     justifyContent: 'center',
   } as ViewStyle,
-  reviewCancelText: { fontSize: 15, fontWeight: '600' } as TextStyle,
-  reviewSubmitBtn: {
-    flex: 2,
-    height: 44,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  } as ViewStyle,
-  reviewSubmitText: { color: '#FFF', fontSize: 15, fontWeight: '700' } as TextStyle,
 
-  actionBar: { flexDirection: 'row', padding: 16, gap: 12, borderTopWidth: 1 } as ViewStyle,
+  // Bottom action bar (V2 — solid white)
+  actionBarWrapper: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    borderTopWidth: 1,
+  } as ViewStyle,
+
+  actionBarContent: {
+    flexDirection: 'row',
+    padding: SPACING[4],
+    gap: SPACING[3],
+  } as ViewStyle,
+
   rejectBtn: {
     flex: 1,
-    height: 48,
-    borderRadius: 12,
-    borderWidth: 2,
+    height: 52,
+    borderRadius: RADIUS.button,
+    borderWidth: 1,
+    borderBottomWidth: 3,
     alignItems: 'center',
     justifyContent: 'center',
   } as ViewStyle,
-  rejectText: { fontSize: 16, fontWeight: '600' } as TextStyle,
-  acceptBtn: {
-    flex: 2,
-    height: 48,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  } as ViewStyle,
-  acceptText: { color: '#FFF', fontSize: 16, fontWeight: '700' } as TextStyle,
+
   cancelBtn: {
     flex: 1,
-    height: 48,
-    borderRadius: 12,
-    borderWidth: 2,
+    height: 52,
+    borderRadius: RADIUS.button,
+    borderWidth: 1,
+    borderBottomWidth: 3,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
   } as ViewStyle,
-  cancelText: { fontSize: 16, fontWeight: '600' } as TextStyle,
 });

@@ -62,10 +62,26 @@ export default function RootLayout() {
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="listing/[id]" options={{ headerShown: false, presentation: 'card' }} />
       <Stack.Screen name="listing/create" options={{ headerShown: false, presentation: 'modal' }} />
+      <Stack.Screen name="trip/[id]" options={{ headerShown: false, presentation: 'card' }} />
+      <Stack.Screen name="trip/create" options={{ headerShown: false, presentation: 'modal' }} />
+      <Stack.Screen
+        name="trip/[id]/offer"
+        options={{ headerShown: false, presentation: 'modal' }}
+      />
+      <Stack.Screen name="request/[id]" options={{ headerShown: false, presentation: 'card' }} />
+      <Stack.Screen name="request/create" options={{ headerShown: false, presentation: 'modal' }} />
+      <Stack.Screen
+        name="request/[id]/offer"
+        options={{ headerShown: false, presentation: 'modal' }}
+      />
       <Stack.Screen name="booking/[id]" options={{ headerShown: false, presentation: 'card' }} />
       <Stack.Screen name="booking/create" options={{ headerShown: false, presentation: 'modal' }} />
       <Stack.Screen
         name="chat/[bookingId]"
+        options={{ headerShown: false, presentation: 'card' }}
+      />
+      <Stack.Screen
+        name="chat/offer/[offerId]"
         options={{ headerShown: false, presentation: 'card' }}
       />
       <Stack.Screen name="notifications" options={{ headerShown: false, presentation: 'card' }} />

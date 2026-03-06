@@ -11,6 +11,7 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { useTheme } from '@/hooks/useTheme';
+import { RADIUS, SPACING, TYPOGRAPHY, SECTION_TINTS } from '@/providers/ThemeProvider';
 
 interface SearchBarProps {
   from: string;
@@ -31,17 +32,29 @@ const POPULAR_ROUTES = [
 ];
 
 const QUICK_DATES = [
-  { key: 'today', labelKey: 'searchBar.today', getValue: () => new Date().toISOString().split('T')[0] },
-  { key: 'tomorrow', labelKey: 'searchBar.tomorrow', getValue: () => {
-    const d = new Date();
-    d.setDate(d.getDate() + 1);
-    return d.toISOString().split('T')[0];
-  }},
-  { key: 'week', labelKey: 'searchBar.thisWeek', getValue: () => {
-    const d = new Date();
-    d.setDate(d.getDate() + 7);
-    return d.toISOString().split('T')[0];
-  }},
+  {
+    key: 'today',
+    labelKey: 'searchBar.today',
+    getValue: () => new Date().toISOString().split('T')[0],
+  },
+  {
+    key: 'tomorrow',
+    labelKey: 'searchBar.tomorrow',
+    getValue: () => {
+      const d = new Date();
+      d.setDate(d.getDate() + 1);
+      return d.toISOString().split('T')[0];
+    },
+  },
+  {
+    key: 'week',
+    labelKey: 'searchBar.thisWeek',
+    getValue: () => {
+      const d = new Date();
+      d.setDate(d.getDate() + 7);
+      return d.toISOString().split('T')[0];
+    },
+  },
 ];
 
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
@@ -94,9 +107,16 @@ export function SearchBar({
     <Animated.View entering={FadeIn} style={styles.container}>
       {/* Search Inputs */}
       <View style={[styles.searchRow, isWeb && styles.searchRowWeb]}>
-        {/* From Input */}
-        <View style={[styles.inputWrapper, { backgroundColor: colors.background, borderColor: colors.border }]}>
-          <Ionicons name="location" size={20} color={colors.primary} />
+        {/* From Input — V2: solid white with colored left accent */}
+        <View
+          style={[
+            styles.inputWrapper,
+            { backgroundColor: SECTION_TINTS.purple, borderColor: colors.primary + '20' },
+          ]}
+        >
+          <View style={[styles.inputIcon, { backgroundColor: colors.primary + '20' }]}>
+            <Ionicons name="location" size={16} color={colors.primary} />
+          </View>
           <TextInput
             style={[styles.input, { color: colors.text }]}
             placeholder={t('searchBar.from')}
@@ -111,19 +131,29 @@ export function SearchBar({
           )}
         </View>
 
-        {/* Swap Button */}
+        {/* Swap Button — V2: solid primary pill */}
         <AnimatedTouchable
           onPress={handleSwap}
-          style={[styles.swapButton, { backgroundColor: colors.card, borderColor: colors.border }]}
+          style={[
+            styles.swapButton,
+            { backgroundColor: colors.primary + '12', borderColor: colors.primary + '25' },
+          ]}
         >
           <Animated.View style={swapAnimatedStyle}>
-            <Ionicons name="swap-horizontal" size={20} color={colors.primary} />
+            <Ionicons name="swap-vertical" size={20} color={colors.primary} />
           </Animated.View>
         </AnimatedTouchable>
 
-        {/* To Input */}
-        <View style={[styles.inputWrapper, { backgroundColor: colors.background, borderColor: colors.border }]}>
-          <Ionicons name="navigate" size={20} color={colors.success} />
+        {/* To Input — V2: solid white with colored accent */}
+        <View
+          style={[
+            styles.inputWrapper,
+            { backgroundColor: SECTION_TINTS.green, borderColor: colors.success + '20' },
+          ]}
+        >
+          <View style={[styles.inputIcon, { backgroundColor: colors.success + '20' }]}>
+            <Ionicons name="navigate" size={16} color={colors.success} />
+          </View>
           <TextInput
             style={[styles.input, { color: colors.text }]}
             placeholder={t('searchBar.to')}
@@ -138,9 +168,17 @@ export function SearchBar({
           )}
         </View>
 
-        {/* Date Input */}
-        <View style={[styles.inputWrapper, styles.dateInput, { backgroundColor: colors.background, borderColor: colors.border }]}>
-          <Ionicons name="calendar" size={20} color={colors.warning} />
+        {/* Date Input — V2: solid white with amber accent */}
+        <View
+          style={[
+            styles.inputWrapper,
+            styles.dateInput,
+            { backgroundColor: SECTION_TINTS.amber, borderColor: colors.warning + '20' },
+          ]}
+        >
+          <View style={[styles.inputIcon, { backgroundColor: colors.warning + '20' }]}>
+            <Ionicons name="calendar" size={16} color={colors.warning} />
+          </View>
           {isWeb ? (
             <input
               type="date"
@@ -174,17 +212,14 @@ export function SearchBar({
           )}
         </View>
 
-        {/* Search Button */}
+        {/* Search Button — V2: chunky 3D Duolingo style */}
         <TouchableOpacity
           style={[styles.searchButton, { backgroundColor: colors.primary }]}
           onPress={onSearch}
+          activeOpacity={0.8}
         >
           <Ionicons name="search" size={20} color="#FFFFFF" />
-          {isWeb && (
-            <Text style={styles.searchButtonText}>
-              {t('searchBar.search')}
-            </Text>
-          )}
+          {isWeb && <Text style={styles.searchButtonText}>{t('searchBar.search')}</Text>}
         </TouchableOpacity>
       </View>
 
@@ -200,8 +235,12 @@ export function SearchBar({
               {QUICK_DATES.map((item, index) => (
                 <TouchableOpacity
                   key={item.key}
-                  style={[styles.quickChip, { backgroundColor: colors.warning + '15', borderColor: colors.warning + '30' }]}
+                  style={[
+                    styles.quickChip,
+                    { backgroundColor: colors.warning + '12', borderColor: colors.warning + '30' },
+                  ]}
                   onPress={() => onDateChange(item.getValue())}
+                  activeOpacity={0.7}
                 >
                   <Ionicons name="calendar-outline" size={14} color={colors.warning} />
                   <Text style={[styles.quickChipText, { color: colors.warning }]}>
@@ -221,11 +260,15 @@ export function SearchBar({
               {POPULAR_ROUTES.map((route, index) => (
                 <TouchableOpacity
                   key={index}
-                  style={[styles.quickChip, { backgroundColor: colors.primary + '10', borderColor: colors.primary + '20' }]}
+                  style={[
+                    styles.quickChip,
+                    { backgroundColor: colors.primary + '10', borderColor: colors.primary + '25' },
+                  ]}
                   onPress={() => {
                     onFromChange(route.from);
                     onToChange(route.to);
                   }}
+                  activeOpacity={0.7}
                 >
                   <Ionicons name="airplane-outline" size={14} color={colors.primary} />
                   <Text style={[styles.quickChipText, { color: colors.primary }]}>
@@ -243,7 +286,12 @@ export function SearchBar({
         <Animated.View entering={FadeIn} style={styles.activeFilters}>
           <View style={styles.filterTags}>
             {from && (
-              <View style={[styles.filterTag, { backgroundColor: colors.primary + '15' }]}>
+              <View
+                style={[
+                  styles.filterTag,
+                  { backgroundColor: colors.primary + '12', borderColor: colors.primary + '25' },
+                ]}
+              >
                 <Text style={[styles.filterTagText, { color: colors.primary }]}>
                   {t('searchBar.fromLabel')} {from}
                 </Text>
@@ -253,7 +301,12 @@ export function SearchBar({
               </View>
             )}
             {to && (
-              <View style={[styles.filterTag, { backgroundColor: colors.success + '15' }]}>
+              <View
+                style={[
+                  styles.filterTag,
+                  { backgroundColor: colors.success + '12', borderColor: colors.success + '25' },
+                ]}
+              >
                 <Text style={[styles.filterTagText, { color: colors.success }]}>
                   {t('searchBar.toLabel')} {to}
                 </Text>
@@ -263,7 +316,12 @@ export function SearchBar({
               </View>
             )}
             {date && (
-              <View style={[styles.filterTag, { backgroundColor: colors.warning + '15' }]}>
+              <View
+                style={[
+                  styles.filterTag,
+                  { backgroundColor: colors.warning + '12', borderColor: colors.warning + '25' },
+                ]}
+              >
                 <Text style={[styles.filterTagText, { color: colors.warning }]}>
                   {formatDateDisplay(date)}
                 </Text>
@@ -286,7 +344,7 @@ export function SearchBar({
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 16,
+    marginBottom: 8,
   },
   searchRow: {
     flexDirection: 'column',
@@ -297,16 +355,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexWrap: 'wrap',
   },
+  // V2: Solid pastel-tinted input with rounded icon
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 12,
-    borderWidth: 1,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    gap: 10,
+    borderRadius: RADIUS.input,
+    borderWidth: 1.5,
+    paddingHorizontal: SPACING[2], // 8
+    paddingVertical: SPACING[2], // 8
+    gap: SPACING[2], // 8
     flex: 1,
     minWidth: 120,
+  },
+  inputIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   dateInput: {
     minWidth: 140,
@@ -317,28 +383,33 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '500',
   },
+  // V2: Chunky swap button
   swapButton: {
     width: 40,
     height: 40,
-    borderRadius: 20,
-    borderWidth: 1,
+    borderRadius: 12,
+    borderWidth: 1.5,
     justifyContent: 'center',
     alignItems: 'center',
     alignSelf: 'center',
   },
+  // V2: Chunky 3D search button (Duolingo-style)
   searchButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-    borderRadius: 12,
-    gap: 8,
+    paddingHorizontal: SPACING[5], // 20
+    paddingVertical: SPACING[3], // 12
+    borderRadius: RADIUS.button,
+    gap: SPACING[2],
+    // 3D bottom border effect
+    borderBottomWidth: 3,
+    borderBottomColor: '#5A52D5',
   },
   searchButtonText: {
     color: '#FFFFFF',
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   quickOptions: {
     marginTop: 16,
@@ -349,27 +420,28 @@ const styles = StyleSheet.create({
   },
   quickLabel: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '700',
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: 0.8,
   },
   quickChips: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
   },
+  // V2: Solid pill chips with visible borders
   quickChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
-    gap: 6,
+    paddingHorizontal: SPACING[3],
+    paddingVertical: SPACING[2],
+    borderRadius: RADIUS.pill,
+    borderWidth: 1.5,
+    gap: SPACING[1],
   },
   quickChipText: {
-    fontSize: 13,
-    fontWeight: '600',
+    ...TYPOGRAPHY.small,
+    fontWeight: '700',
   },
   activeFilters: {
     flexDirection: 'row',
@@ -377,8 +449,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginTop: 12,
     paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(0,0,0,0.05)',
+    borderTopWidth: 1.5,
+    borderTopColor: 'rgba(0,0,0,0.06)',
   },
   filterTags: {
     flexDirection: 'row',
@@ -386,20 +458,22 @@ const styles = StyleSheet.create({
     gap: 8,
     flex: 1,
   },
+  // V2: Solid colored filter tags with borders
   filterTag: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 10,
     paddingVertical: 6,
-    borderRadius: 16,
+    borderRadius: RADIUS.badge,
+    borderWidth: 1,
     gap: 6,
   },
   filterTagText: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   clearAllText: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '700',
   },
 });

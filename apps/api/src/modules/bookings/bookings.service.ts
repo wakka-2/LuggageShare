@@ -30,6 +30,24 @@ export class BookingsService {
         where,
         include: {
           listing: true,
+          trip: {
+            select: {
+              id: true,
+              departureCity: true,
+              arrivalCity: true,
+              departureDate: true,
+              transportType: true,
+            },
+          },
+          request: {
+            select: {
+              id: true,
+              departureCity: true,
+              arrivalCity: true,
+              neededByDate: true,
+            },
+          },
+          offer: { select: { id: true, status: true } },
           sender: {
             select: {
               id: true,
@@ -69,6 +87,9 @@ export class BookingsService {
       where: { id },
       include: {
         listing: true,
+        trip: true,
+        request: true,
+        offer: true,
         sender: {
           select: {
             id: true,
@@ -335,13 +356,36 @@ export class BookingsService {
       throw new BadRequestException('This booking cannot be cancelled');
     }
 
-    return this.prisma.booking.update({
-      where: { id },
-      data: {
-        status: 'cancelled',
-        cancelledBy: userId,
-        cancelledAt: new Date(),
-      },
+    return this.prisma.$transaction(async (tx) => {
+      const updated = await tx.booking.update({
+        where: { id },
+        data: {
+          status: 'cancelled',
+          cancelledBy: userId,
+          cancelledAt: new Date(),
+        },
+      });
+
+      // Restore trip remaining weight if this was a trip-based booking
+      if (booking.tripId) {
+        await tx.trip.update({
+          where: { id: booking.tripId },
+          data: {
+            remainingWeight: { increment: Number(booking.totalWeight) },
+            status: 'active', // Re-open if it was full
+          },
+        });
+      }
+
+      // Re-open request if this was a request-based booking
+      if (booking.requestId) {
+        await tx.request.update({
+          where: { id: booking.requestId },
+          data: { status: 'active' },
+        });
+      }
+
+      return updated;
     });
   }
 }

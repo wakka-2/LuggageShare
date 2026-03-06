@@ -76,6 +76,20 @@ export function useListing(id: string | null) {
   });
 }
 
+export function useMyListings(params: { page?: number; limit?: number } = {}) {
+  return useQuery<ApiListing[]>({
+    queryKey: ['myListings', params],
+    queryFn: async () => {
+      const searchParams = new URLSearchParams();
+      if (params.page) searchParams.set('page', String(params.page));
+      if (params.limit) searchParams.set('limit', String(params.limit));
+
+      const { data } = await apiClient.get(`/listings/my?${searchParams.toString()}`);
+      return data.data ?? data;
+    },
+  });
+}
+
 export function useCreateListing() {
   const queryClient = useQueryClient();
 
@@ -86,6 +100,7 @@ export function useCreateListing() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['listings'] });
+      queryClient.invalidateQueries({ queryKey: ['myListings'] });
     },
   });
 }

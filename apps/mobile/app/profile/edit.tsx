@@ -17,10 +17,11 @@ import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeIn, FadeInUp, ZoomIn } from 'react-native-reanimated';
 
 import { useTheme } from '@/hooks/useTheme';
+import { useGoBack } from '@/hooks/useGoBack';
 import { useProfile, useUpdateProfile } from '@/hooks/useProfile';
 import { useAuth } from '@/hooks/useAuth';
 import { useImageUpload } from '@/hooks/useImageUpload';
-import { Avatar } from '@/components/common';
+import { Avatar, ScreenHeader } from '@/components/common';
 import { SkeletonLoader } from '@/components/animations';
 import { showAlert } from '@/lib/alert';
 
@@ -28,6 +29,7 @@ export default function EditProfileScreen() {
   const { t, i18n } = useTranslation();
   const { colors } = useTheme();
   const router = useRouter();
+  const goBack = useGoBack();
   const isRTL = i18n.language === 'ar';
   const { updateUser } = useAuth();
 
@@ -80,7 +82,7 @@ export default function EditProfileScreen() {
       updateUser({ displayName: name.trim() });
 
       showAlert(t('profile.profileUpdated'), t('profile.profileUpdatedMessage'), [
-        { text: t('common.ok'), onPress: () => router.back() },
+        { text: t('common.ok'), onPress: goBack },
       ]);
     } catch {
       showAlert(t('common.errorTitle'), t('profile.failedUpdate'));
@@ -117,13 +119,7 @@ export default function EditProfileScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.headerBtn}>
-          <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={colors.text} />
-        </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>{t('profile.editProfile')}</Text>
-        <View style={styles.headerBtn} />
-      </View>
+      <ScreenHeader title={t('profile.editProfile')} onBack={goBack} />
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Avatar Section */}

@@ -17,6 +17,7 @@ import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import Constants from 'expo-constants';
 
 import { useTheme } from '@/hooks/useTheme';
+import { ScreenHeader } from '@/components/common';
 import { changeLanguage } from '@/i18n';
 
 export default function SettingsScreen() {
@@ -34,13 +35,7 @@ export default function SettingsScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.headerBtn}>
-          <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={colors.text} />
-        </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>{t('profile.settings')}</Text>
-        <View style={styles.headerBtn} />
-      </View>
+      <ScreenHeader title={t('profile.settings')} />
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Language */}
@@ -165,16 +160,6 @@ export default function SettingsScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 } as ViewStyle,
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-  } as ViewStyle,
-  headerBtn: { width: 40, alignItems: 'center' } as ViewStyle,
-  headerTitle: { fontSize: 18, fontWeight: '600' } as TextStyle,
   scrollContent: { padding: 16, gap: 16, paddingBottom: 40 } as ViewStyle,
   section: { borderRadius: 14, padding: 16 } as ViewStyle,
   sectionTitle: {

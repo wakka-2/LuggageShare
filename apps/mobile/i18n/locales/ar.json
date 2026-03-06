@@ -69,7 +69,11 @@
     "clearFilters": "مسح الفلاتر",
     "allTab": "الكل",
     "offersTab": "عروض",
-    "requestsTab": "طلبات"
+    "requestsTab": "طلبات",
+    "postTrip": "أنشئ رحلة",
+    "postTripSub": "اربح من حمل الأمتعة",
+    "postRequest": "أرسل طرد",
+    "postRequestSub": "ابحث عن مسافر"
   },
   "status": {
     "pending": "قيد الانتظار",
@@ -418,6 +422,135 @@
     "pushNotifications": "إشعارات الدفع",
     "about": "حول",
     "version": "الإصدار"
+  },
+  "tripWizard": {
+    "title": "نشر رحلة",
+    "createdSuccess": "تم نشر رحلتك!",
+    "failedCreate": "فشل في إنشاء الرحلة",
+    "transport": {
+      "title": "كيف تسافر؟",
+      "flight": "طيران",
+      "car": "سيارة",
+      "bus": "حافلة",
+      "train": "قطار"
+    },
+    "date": {
+      "title": "متى تغادر؟",
+      "selectDate": "اختر تاريخ المغادرة",
+      "flightNumber": "رقم الرحلة (اختياري)"
+    },
+    "pricing": {
+      "title": "حدد سعراً مقترحاً",
+      "subtitle": "يمكن للمرسلين التفاوض — هذا مجرد نقطة بداية.",
+      "average": "المتوسط: ١٢-٢٠ ريال/كجم",
+      "estimated": "الأرباح المحتملة",
+      "ifFullyBooked": "إذا تم حجز كل {{weight}} كجم"
+    },
+    "review": {
+      "title": "راجع رحلتك",
+      "available": "متاح",
+      "suggested": "(مقترح)",
+      "earnings": "الأرباح المحتملة:",
+      "ifBooked": "(إذا تم الحجز بالكامل)",
+      "postTrip": "نشر الرحلة"
+    }
+  },
+  "requestWizard": {
+    "title": "نشر طلب",
+    "createdSuccess": "تم نشر طلبك!",
+    "failedCreate": "فشل في إنشاء الطلب",
+    "weightDesc": {
+      "title": "ماذا تريد أن ترسل؟",
+      "weight": "الوزن (كجم)",
+      "description": "الوصف (اختياري)",
+      "descPlaceholder": "صف ما تريد إرساله...",
+      "itemTypes": "أنواع الأغراض (اختياري)",
+      "itemTypesPlaceholder": "مثال: إلكترونيات، مستندات"
+    },
+    "budget": {
+      "title": "ما هي ميزانيتك؟",
+      "amount": "الميزانية (ريال) — اختياري",
+      "currency": "العملة"
+    },
+    "prohibited": {
+      "title": "إقرار بالأغراض المحظورة",
+      "warningTitle": "أغراض لا يمكنك إرسالها",
+      "declaration": "أؤكد أن أغراضي لا تتضمن أي أغراض محظورة مذكورة أعلاه",
+      "mustDeclare": "يجب أن تقر بأن أغراضك ليست محظورة"
+    },
+    "review": {
+      "title": "راجع طلبك",
+      "from": "من",
+      "to": "إلى",
+      "neededBy": "مطلوب قبل",
+      "weight": "الوزن",
+      "budget": "الميزانية",
+      "description": "الوصف",
+      "submit": "نشر الطلب"
+    }
+  },
+  "tripDetail": {
+    "title": "تفاصيل الرحلة",
+    "notFound": "الرحلة غير موجودة",
+    "transport": "وسيلة النقل",
+    "suggestedPrice": "السعر المقترح",
+    "remainingWeight": "الوزن المتاح",
+    "makeOffer": "تقديم عرض"
+  },
+  "requests": {
+    "requestDetails": "تفاصيل الطلب",
+    "notFound": "الطلب غير موجود",
+    "description": "الوصف",
+    "itemTypes": "أنواع الأغراض",
+    "offers": "العروض",
+    "offerAccepted": "تم قبول العرض!",
+    "offerToCarry": "عرض للنقل"
+  },
+  "offers": {
+    "makeOffer": "تقديم عرض",
+    "offerToCarry": "عرض للنقل",
+    "sendOffer": "إرسال العرض",
+    "offerSent": "تم إرسال عرضك!",
+    "failedSend": "فشل إرسال العرض",
+    "weightRequired": "يرجى إدخال الوزن",
+    "priceRequired": "يرجى إدخال السعر المطلوب",
+    "weightExceeds": "الوزن يتجاوز السعة المتاحة",
+    "weight": "الوزن (كجم)",
+    "price": "السعر (ريال)",
+    "message": "رسالة (اختياري)",
+    "messagePlaceholder": "أخبر الناقل عن أغراضك...",
+    "carrierMessagePlaceholder": "أخبر المرسل عن تفاصيل رحلتك...",
+    "available": "متاح",
+    "suggested": "مقترح",
+    "budgetLabel": "الميزانية",
+    "negotiation": "التفاوض",
+    "startNegotiation": "ابدأ التفاوض...",
+    "myOffers": "عروضي",
+    "status": {
+      "pending": "قيد الانتظار",
+      "accepted": "مقبول",
+      "rejected": "مرفوض",
+      "withdrawn": "تم السحب",
+      "expired": "منتهي"
+    }
+  },
+  "myTrips": {
+    "bookings": "الحجوزات",
+    "listings": "إعلاناتي",
+    "trips": "رحلاتي",
+    "requests": "طلباتي",
+    "offers": "عروضي",
+    "noListings": "لا توجد إعلانات بعد",
+    "noListingsDesc": "انشر إعلاناً لتبدأ الكسب من سفرك",
+    "createListing": "إنشاء إعلان",
+    "noTrips": "لا توجد رحلات منشورة",
+    "noTripsDesc": "انشر رحلة لتبدأ الكسب من سفرك",
+    "noRequests": "لا توجد طلبات منشورة",
+    "noRequestsDesc": "انشر طلباً للعثور على ناقل لأغراضك",
+    "noOffers": "لا توجد عروض بعد",
+    "noOffersDesc": "تصفح الرحلات والطلبات لتقديم عروض",
+    "postTrip": "نشر رحلة",
+    "postRequest": "نشر طلب"
   },
   "web": {
     "sidebar": {

@@ -8,13 +8,13 @@ import {
   ViewStyle,
   TextStyle,
 } from 'react-native';
-import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 
 import { useTheme } from '@/hooks/useTheme';
+import { ScreenHeader } from '@/components/common';
 
 const FAQ_KEYS = [
   { question: 'help.howItWorks', answer: 'help.howItWorksAnswer' },
@@ -23,20 +23,12 @@ const FAQ_KEYS = [
 ] as const;
 
 export default function HelpScreen() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { colors } = useTheme();
-  const router = useRouter();
-  const isRTL = i18n.language === 'ar';
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.headerBtn}>
-          <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={colors.text} />
-        </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>{t('profile.help')}</Text>
-        <View style={styles.headerBtn} />
-      </View>
+      <ScreenHeader title={t('profile.help')} />
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* FAQ */}
@@ -96,16 +88,6 @@ export default function HelpScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 } as ViewStyle,
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-  } as ViewStyle,
-  headerBtn: { width: 40, alignItems: 'center' } as ViewStyle,
-  headerTitle: { fontSize: 18, fontWeight: '600' } as TextStyle,
   scrollContent: { padding: 16 } as ViewStyle,
   sectionTitle: {
     fontSize: 13,

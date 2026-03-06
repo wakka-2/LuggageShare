@@ -203,6 +203,229 @@ async function main() {
 
   console.log('✅ Listings created');
 
+  // ── Trips (Supply Side) ──────────────────────────────────────
+
+  // Sara's flight trip — dev user can make an offer
+  const trip1 = await prisma.trip.create({
+    data: {
+      posterId: sara.id,
+      departureCity: 'Jeddah',
+      departureCode: 'JED',
+      arrivalCity: 'Dubai',
+      arrivalCode: 'DXB',
+      departureDate: inDays(3),
+      transportType: 'flight',
+      flightNumber: 'SV 553',
+      availableWeight: 10,
+      remainingWeight: 7, // 3kg already booked
+      suggestedPrice: 80,
+      currency: 'SAR',
+      notes: 'Direct flight, can carry electronics and documents',
+      status: 'active',
+    },
+  });
+
+  // Mohammed's car trip — dev user can make an offer
+  const trip2 = await prisma.trip.create({
+    data: {
+      posterId: mohammed.id,
+      departureCity: 'Riyadh',
+      departureCode: 'RUH',
+      arrivalCity: 'Dammam',
+      departureDate: inDays(2),
+      transportType: 'car',
+      availableWeight: 25,
+      remainingWeight: 25,
+      suggestedPrice: 20,
+      currency: 'SAR',
+      notes: 'Driving, can carry heavy items',
+      status: 'active',
+    },
+  });
+
+  // Fatima's flight trip — dev user can make an offer
+  const trip3 = await prisma.trip.create({
+    data: {
+      posterId: fatima.id,
+      departureCity: 'Riyadh',
+      departureCode: 'RUH',
+      arrivalCity: 'Cairo',
+      arrivalCode: 'CAI',
+      departureDate: inDays(7),
+      transportType: 'flight',
+      flightNumber: 'MS 614',
+      availableWeight: 8,
+      remainingWeight: 8,
+      suggestedPrice: 60,
+      currency: 'SAR',
+      notes: 'Monthly trip, no liquids please',
+      status: 'active',
+    },
+  });
+
+  // Dev user's own trips (carrier flow — others can offer)
+  const devTrip1 = await prisma.trip.create({
+    data: {
+      posterId: devUser.id,
+      departureCity: 'Riyadh',
+      departureCode: 'RUH',
+      arrivalCity: 'Istanbul',
+      arrivalCode: 'IST',
+      departureDate: inDays(4),
+      transportType: 'flight',
+      flightNumber: 'TK 143',
+      availableWeight: 12,
+      remainingWeight: 9, // 3kg booked
+      suggestedPrice: 70,
+      currency: 'SAR',
+      notes: 'Direct flight, can carry up to 12kg extra',
+      status: 'active',
+    },
+  });
+
+  // Omar's bus trip
+  const trip4 = await prisma.trip.create({
+    data: {
+      posterId: omar.id,
+      departureCity: 'Medina',
+      arrivalCity: 'Mecca',
+      departureDate: inDays(1),
+      transportType: 'bus',
+      availableWeight: 15,
+      remainingWeight: 15,
+      suggestedPrice: 15,
+      currency: 'SAR',
+      notes: 'Regular bus trip, documents and small parcels',
+      status: 'active',
+    },
+  });
+
+  console.log('✅ Trips created');
+
+  // ── Requests (Demand Side) ──────────────────────────────────
+
+  // Dev user's request — others can offer to carry
+  const devRequest1 = await prisma.request.create({
+    data: {
+      posterId: devUser.id,
+      departureCity: 'Jeddah',
+      arrivalCity: 'London',
+      neededByDate: inDays(14),
+      weight: 5,
+      budget: 250,
+      currency: 'SAR',
+      description: 'Winter clothing for my daughter studying in London',
+      itemTypes: ['clothing'],
+      prohibitedItemsDeclared: true,
+      status: 'active',
+    },
+  });
+
+  // Sara's request — dev user can offer to carry
+  const request1 = await prisma.request.create({
+    data: {
+      posterId: sara.id,
+      departureCity: 'Dubai',
+      arrivalCity: 'Jeddah',
+      neededByDate: inDays(10),
+      weight: 3,
+      budget: 150,
+      currency: 'SAR',
+      description: 'Returning electronics from Dubai',
+      itemTypes: ['electronics'],
+      prohibitedItemsDeclared: true,
+      status: 'active',
+    },
+  });
+
+  // Mohammed's request
+  const request2 = await prisma.request.create({
+    data: {
+      posterId: mohammed.id,
+      departureCity: 'Riyadh',
+      arrivalCity: 'Amman',
+      neededByDate: inDays(8),
+      weight: 7,
+      budget: 200,
+      currency: 'SAR',
+      description: 'Books and documents for university',
+      itemTypes: ['documents', 'books'],
+      prohibitedItemsDeclared: true,
+      status: 'active',
+    },
+  });
+
+  console.log('✅ Requests created');
+
+  // ── Offers ──────────────────────────────────────────────────
+
+  // Pending offer: dev user → Sara's trip (sender offering on a trip)
+  const offer1 = await prisma.offer.create({
+    data: {
+      tripId: trip1.id,
+      userId: devUser.id,
+      offeredWeight: 3,
+      offeredPrice: 240,
+      currency: 'SAR',
+      message: 'I need to send a package to Dubai, 3kg of electronics',
+      status: 'pending',
+    },
+  });
+
+  // Accepted offer: Sara → dev user's trip (created booking below)
+  const offer2 = await prisma.offer.create({
+    data: {
+      tripId: devTrip1.id,
+      userId: sara.id,
+      offeredWeight: 3,
+      offeredPrice: 210,
+      currency: 'SAR',
+      message: 'I have documents to send to Istanbul',
+      status: 'accepted',
+    },
+  });
+
+  // Pending offer: Omar → dev user's request (traveler offering on a request)
+  const offer3 = await prisma.offer.create({
+    data: {
+      requestId: devRequest1.id,
+      userId: omar.id,
+      offeredWeight: 5,
+      offeredPrice: 200,
+      currency: 'SAR',
+      message: "I'm flying to London next week, happy to carry your items",
+      status: 'pending',
+    },
+  });
+
+  // Pending offer: dev user → Mohammed's car trip
+  const offer4 = await prisma.offer.create({
+    data: {
+      tripId: trip2.id,
+      userId: devUser.id,
+      offeredWeight: 8,
+      offeredPrice: 160,
+      currency: 'SAR',
+      message: 'Need to send furniture parts to Dammam',
+      status: 'pending',
+    },
+  });
+
+  // Rejected offer: Fatima → dev user's request
+  const offer5 = await prisma.offer.create({
+    data: {
+      requestId: devRequest1.id,
+      userId: fatima.id,
+      offeredWeight: 5,
+      offeredPrice: 300,
+      currency: 'SAR',
+      message: 'I can carry this on my Cairo trip with a London connection',
+      status: 'rejected',
+    },
+  });
+
+  console.log('✅ Offers created');
+
   // ── Bookings at every status (full lifecycle demo) ──────────
 
   // 1. PENDING: Sara booked dev user's Istanbul listing (carrier flow — dev can accept/reject)
@@ -296,6 +519,20 @@ async function main() {
       status: 'rejected',
       totalWeight: 5,
       totalPrice: 500,
+      currency: 'SAR',
+    },
+  });
+
+  // 8. OFFER-BASED PENDING: Booking from accepted offer (Sara → Dev's Istanbul trip)
+  const bookingOfferBased = await prisma.booking.create({
+    data: {
+      offerId: offer2.id,
+      tripId: devTrip1.id,
+      senderId: sara.id,
+      carrierId: devUser.id,
+      status: 'pending',
+      totalWeight: 3,
+      totalPrice: 210,
       currency: 'SAR',
     },
   });
@@ -442,6 +679,53 @@ async function main() {
     ],
   });
 
+  // Offer chat conversation (pre-booking: dev user ↔ Sara on trip1 offer)
+  await prisma.message.createMany({
+    data: [
+      {
+        offerId: offer1.id,
+        senderId: devUser.id,
+        content: 'Hi Sara! Can I send 3kg of electronics to Dubai on your flight?',
+        isRead: true,
+        createdAt: new Date(now.getTime() - 6 * 60 * 60 * 1000),
+      },
+      {
+        offerId: offer1.id,
+        senderId: sara.id,
+        content: 'Sure! What kind of electronics? I need to make sure it fits in my luggage.',
+        isRead: true,
+        createdAt: new Date(now.getTime() - 5.5 * 60 * 60 * 1000),
+      },
+      {
+        offerId: offer1.id,
+        senderId: devUser.id,
+        content: 'A laptop and some cables. Already packed in a padded bag.',
+        isRead: false,
+        createdAt: new Date(now.getTime() - 5 * 60 * 60 * 1000),
+      },
+    ],
+  });
+
+  // Offer chat: Omar offering on dev user's request
+  await prisma.message.createMany({
+    data: [
+      {
+        offerId: offer3.id,
+        senderId: omar.id,
+        content: "I'm flying to London on the 18th. I can carry your winter clothes.",
+        isRead: true,
+        createdAt: new Date(now.getTime() - 4 * 60 * 60 * 1000),
+      },
+      {
+        offerId: offer3.id,
+        senderId: devUser.id,
+        content: "That's great! The package is about 5kg of winter jackets. Is that okay?",
+        isRead: true,
+        createdAt: new Date(now.getTime() - 3.5 * 60 * 60 * 1000),
+      },
+    ],
+  });
+
   console.log('✅ Messages created');
 
   // ── Notifications ──────────────────────────────────────────
@@ -491,6 +775,36 @@ async function main() {
     ],
   });
 
+  // Offer-related notifications
+  await prisma.notification.createMany({
+    data: [
+      {
+        userId: devUser.id,
+        title: 'New Offer on Your Request',
+        body: 'Omar Hassan offered to carry your items to London for 200 SAR',
+        data: { type: 'offer_received', offerId: offer3.id, requestId: devRequest1.id },
+        isRead: false,
+        createdAt: new Date(now.getTime() - 4 * 60 * 60 * 1000),
+      },
+      {
+        userId: devUser.id,
+        title: 'Offer Accepted',
+        body: 'Sara accepted your offer on her Jeddah → Istanbul trip',
+        data: { type: 'offer_accepted', offerId: offer2.id, tripId: devTrip1.id },
+        isRead: true,
+        createdAt: new Date(now.getTime() - 8 * 60 * 60 * 1000),
+      },
+      {
+        userId: sara.id,
+        title: 'New Offer on Your Trip',
+        body: 'Dev User wants to send 3kg to Dubai for 240 SAR',
+        data: { type: 'offer_received', offerId: offer1.id, tripId: trip1.id },
+        isRead: false,
+        createdAt: new Date(now.getTime() - 6 * 60 * 60 * 1000),
+      },
+    ],
+  });
+
   console.log('✅ Notifications created');
 
   // ── Balance History (wallet transactions) ──────────────────
@@ -521,15 +835,18 @@ async function main() {
 
   console.log("\n🎉 Seed complete! Here's what was created:\n");
   console.log(`  👤 Users: 5 (dev + sara + mohammed + fatima + omar)`);
-  console.log(`  📋 Listings: 6 (4 from others + 2 from dev user)`);
-  console.log(
-    `  📦 Bookings: 7 (pending, accepted, picked_up, in_transit, delivered, cancelled, rejected)`
-  );
+  console.log(`  📋 Listings: 6 (legacy — 4 from others + 2 from dev user)`);
+  console.log(`  ✈️  Trips: 5 (3 from others + 1 from dev + 1 bus trip)`);
+  console.log(`  📬 Requests: 3 (1 from dev + 2 from others)`);
+  console.log(`  🤝 Offers: 5 (2 pending on trips, 1 pending on request, 1 accepted, 1 rejected)`);
+  console.log(`  📦 Bookings: 8 (7 legacy + 1 offer-based)`);
   console.log(`  📦 Items: 4 (on various bookings)`);
-  console.log(`  💬 Messages: 10 (across 3 conversations)`);
-  console.log(`  🔔 Notifications: 5`);
+  console.log(`  💬 Messages: 15 (3 booking chats + 2 offer chats)`);
+  console.log(`  🔔 Notifications: 8 (5 booking + 3 offer)`);
   console.log(`  💰 Balance entries: 2`);
   console.log(`\n  Login via dev-login endpoint to test as: dev@luggageshare.com`);
+  console.log(`  Trip flow: browse trips → make offer → chat → accept → booking`);
+  console.log(`  Request flow: post request → receive offers → chat → accept → booking`);
   console.log(
     `  Carrier bookings: pending (accept/reject), accepted (mark picked up), picked_up (mark in transit)`
   );

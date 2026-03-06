@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 
 import { useTheme } from '@/hooks/useTheme';
+import { RADIUS, SHADOWS, TYPOGRAPHY } from '@/providers/ThemeProvider';
 import {
   SIDEBAR_WIDTH,
   SIDEBAR_COLLAPSED_WIDTH,
@@ -124,6 +125,27 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
         })}
       </View>
 
+      {/* Create Action */}
+      <View style={styles.createSection}>
+        <View style={[styles.divider, { backgroundColor: colors.border }]} />
+        <TouchableOpacity
+          style={[
+            styles.createButton,
+            collapsed && styles.createButtonCollapsed,
+            { backgroundColor: colors.primary },
+            SHADOWS.glow,
+          ]}
+          onPress={() => router.push('/listing/create' as any)}
+        >
+          <Ionicons name="add" size={20} color="#FFF" />
+          {!collapsed && (
+            <Text style={styles.createButtonText}>
+              {t('sidebar.createListing', { defaultValue: 'Create Listing' })}
+            </Text>
+          )}
+        </TouchableOpacity>
+      </View>
+
       {/* Bottom section */}
       <View style={styles.bottomSection}>
         <View style={[styles.divider, { backgroundColor: colors.border }]} />
@@ -193,6 +215,29 @@ const styles = StyleSheet.create({
   },
   navLabelActive: {
     fontWeight: '600',
+  },
+  createSection: {
+    paddingHorizontal: 12,
+    gap: 8,
+    marginBottom: 8,
+  },
+  createButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: RADIUS.button,
+    gap: 10,
+    ...({ cursor: 'pointer' } as any),
+  },
+  createButtonCollapsed: {
+    paddingHorizontal: 0,
+  },
+  createButtonText: {
+    ...TYPOGRAPHY.caption,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
   bottomSection: {
     paddingHorizontal: 16,

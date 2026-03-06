@@ -4,16 +4,12 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  Platform,
-  useWindowDimensions,
+  RefreshControl,
   ViewStyle,
   TextStyle,
-  RefreshControl,
-  TouchableOpacity,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, {
@@ -23,18 +19,17 @@ import Animated, {
   Layout,
   useAnimatedStyle,
   useSharedValue,
-  withSpring,
   withRepeat,
   withTiming,
-  ZoomIn,
   Easing,
 } from 'react-native-reanimated';
 
 import { useTheme } from '@/hooks/useTheme';
+import { RADIUS, SHADOWS, TYPOGRAPHY, SPACING, SECTION_TINTS } from '@/providers/ThemeProvider';
 import { useListings } from '@/hooks/useListings';
 import { mapApiListingToListing } from '@/lib/mappers';
 import { HomeHeader } from '@/components/home';
-import { EmptyState } from '@/components/common';
+import { EmptyState, SolidCard } from '@/components/common';
 import {
   ListingCard,
   ViewToggle,
@@ -47,18 +42,31 @@ import {
 import { useUnreadCount } from '@/hooks/useNotifications';
 import { SkeletonCard, StaggeredItem } from '@/components/animations';
 
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+
 type TabValue = ListingType | 'all';
+
+interface StatCardData {
+  value: string;
+  label: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  color: string;
+  tint: string;
+}
+
+// ---------------------------------------------------------------------------
+// Home Screen
+// ---------------------------------------------------------------------------
 
 export default function HomeScreen() {
   const { t, i18n } = useTranslation();
   const { colors, isDark } = useTheme();
-  const { width } = useWindowDimensions();
   const router = useRouter();
-  const isWeb = Platform.OS === 'web';
-  const isWideScreen = width > 768;
   const isRTL = i18n.language === 'ar';
 
-  // State
+  // ── State ──────────────────────────────────────────────
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [activeTab, setActiveTab] = useState<TabValue>('all');
   const [searchFrom, setSearchFrom] = useState('');
@@ -66,7 +74,7 @@ export default function HomeScreen() {
   const [searchDate, setSearchDate] = useState('');
   const [refreshing, setRefreshing] = useState(false);
 
-  // Fetch real listings from API (server-side filtering for from/to/date)
+  // ── Data Fetching ──────────────────────────────────────
   const {
     data: apiListings,
     isLoading,
@@ -78,7 +86,7 @@ export default function HomeScreen() {
     date: searchDate || undefined,
   });
 
-  // Airplane spin for pull-to-refresh
+  // ── Pull-to-Refresh Airplane Animation ─────────────────
   const airplaneRotation = useSharedValue(0);
   const airplaneAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ rotate: `${airplaneRotation.value}deg` }],
@@ -96,7 +104,7 @@ export default function HomeScreen() {
     setRefreshing(false);
   }, [refetch, airplaneRotation]);
 
-  // Map API listings to the UI Listing type, fallback to mock data on error
+  // ── Data Mapping (API -> UI, with mock fallback) ───────
   const allListings = useMemo(() => {
     if (apiListings && apiListings.length > 0) {
       return apiListings.map(mapApiListingToListing);
@@ -107,7 +115,7 @@ export default function HomeScreen() {
     return [];
   }, [apiListings, isLoading, isError]);
 
-  // Client-side filtering by tab type (server doesn't know about offer/request yet)
+  // ── Client-Side Tab Filtering ──────────────────────────
   const filteredListings = useMemo(() => {
     return allListings.filter((listing) => {
       if (activeTab !== 'all' && listing.type !== activeTab) {
@@ -117,7 +125,7 @@ export default function HomeScreen() {
     });
   }, [allListings, activeTab]);
 
-  // Calculate counts for tabs
+  // ── Tab Counts ─────────────────────────────────────────
   const tabCounts = useMemo(
     () => ({
       all: allListings.length,
@@ -127,6 +135,7 @@ export default function HomeScreen() {
     [allListings]
   );
 
+  // ── Handlers ───────────────────────────────────────────
   const handleSwap = useCallback(() => {
     const temp = searchFrom;
     setSearchFrom(searchTo);
@@ -140,160 +149,46 @@ export default function HomeScreen() {
     [router]
   );
 
+  const handleClearFilters = useCallback(() => {
+    setSearchFrom('');
+    setSearchTo('');
+    setSearchDate('');
+    setActiveTab('all');
+  }, []);
+
   const notificationCount = useUnreadCount();
 
-  // Gradient colors for hero
-  const heroGradient = isDark
-    ? (['#1E293B', '#0F172A'] as const)
-    : (['#F0F9FF', '#E0F2FE'] as const);
+  // ── Stat Cards (V2 — bold colors with tints) ──────────
+  const statCards: StatCardData[] = [
+    {
+      value: '2.5K+',
+      label: t('home.travelers', { defaultValue: 'Travelers' }),
+      icon: 'people',
+      color: colors.primary,
+      tint: SECTION_TINTS.purple,
+    },
+    {
+      value: '15K+',
+      label: t('home.deliveries', { defaultValue: 'Deliveries' }),
+      icon: 'cube',
+      color: colors.success,
+      tint: SECTION_TINTS.green,
+    },
+    {
+      value: '4.8',
+      label: t('home.rating', { defaultValue: 'Rating' }),
+      icon: 'star',
+      color: colors.warning,
+      tint: SECTION_TINTS.amber,
+    },
+  ];
 
-  // Desktop web layout (sidebar + topbar handle navigation chrome)
-  if (isWeb && isWideScreen) {
-    return (
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
-        <ScrollView
-          contentContainerStyle={[styles.scrollContent, isWideScreen && styles.scrollContentWide]}
-          showsVerticalScrollIndicator={false}
-        >
-          {/* Hero Section with Gradient */}
-          <LinearGradient colors={heroGradient} style={styles.heroGradient}>
-            <Animated.View
-              entering={FadeInDown.duration(500).springify()}
-              style={[styles.hero, isWideScreen && styles.heroWide]}
-            >
-              <View style={styles.heroTextContainer}>
-                <Text style={[styles.heroLabel, { color: colors.primary }]}>
-                  {t('home.welcomeTo')}
-                </Text>
-                <Text style={[styles.heroTitle, { color: colors.text }]}>
-                  {t('home.appName')}
-                  <Text style={{ color: colors.primary }}>Share</Text>
-                </Text>
-                <Text style={[styles.heroSubtitle, { color: colors.textSecondary }]}>
-                  {t('home.heroDescription')}
-                </Text>
-              </View>
+  const hasActiveFilters = searchFrom || searchTo || searchDate;
 
-              {/* Stats */}
-              <Animated.View entering={FadeInUp.delay(200).duration(400)} style={styles.statsRow}>
-                <View style={[styles.statItem, { backgroundColor: colors.card }]}>
-                  <Text style={[styles.statValue, { color: colors.primary }]}>2.5K+</Text>
-                  <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-                    {t('home.travelers')}
-                  </Text>
-                </View>
-                <View style={[styles.statItem, { backgroundColor: colors.card }]}>
-                  <Text style={[styles.statValue, { color: colors.success }]}>15K+</Text>
-                  <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-                    {t('home.deliveries')}
-                  </Text>
-                </View>
-                <View style={[styles.statItem, { backgroundColor: colors.card }]}>
-                  <Text style={[styles.statValue, { color: colors.warning }]}>4.8</Text>
-                  <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-                    {t('home.rating')}
-                  </Text>
-                </View>
-              </Animated.View>
-            </Animated.View>
-          </LinearGradient>
-
-          {/* Search Bar */}
-          <Animated.View
-            entering={FadeIn.delay(100).duration(400)}
-            style={[styles.searchContainer, isWideScreen && styles.searchContainerWide]}
-          >
-            <SearchBar
-              from={searchFrom}
-              to={searchTo}
-              date={searchDate}
-              onFromChange={setSearchFrom}
-              onToChange={setSearchTo}
-              onDateChange={setSearchDate}
-              onSwap={handleSwap}
-            />
-          </Animated.View>
-
-          {/* Controls Row: Tabs + View Toggle */}
-          <Animated.View
-            entering={FadeIn.delay(150).duration(400)}
-            style={[styles.controlsRow, isWideScreen && styles.controlsRowWide]}
-          >
-            <View style={styles.tabsWrapper}>
-              <PostTypeTabs value={activeTab} onChange={setActiveTab} counts={tabCounts} />
-            </View>
-            <View style={styles.toggleWrapper}>
-              <ViewToggle value={viewMode} onChange={setViewMode} />
-            </View>
-          </Animated.View>
-
-          {/* Results Header */}
-          <Animated.View
-            entering={FadeIn.delay(200).duration(400)}
-            style={[styles.resultsHeader, isWideScreen && styles.resultsHeaderWide]}
-          >
-            <Text style={[styles.resultsTitle, { color: colors.text }]}>
-              {t('home.availableListings')}
-            </Text>
-            <Text style={[styles.resultsCount, { color: colors.textSecondary }]}>
-              {filteredListings.length} {t('home.listings')}
-              {(searchFrom || searchTo || searchDate) && (
-                <Text style={{ color: colors.primary }}> • {t('home.filtered')}</Text>
-              )}
-            </Text>
-          </Animated.View>
-
-          {/* Listings Grid/List */}
-          <Animated.View
-            layout={Layout.springify()}
-            style={[
-              styles.listingsContainer,
-              isWideScreen && styles.listingsContainerWide,
-              viewMode === 'grid' && isWideScreen && styles.listingsGrid,
-            ]}
-          >
-            {filteredListings.map((listing, index) => (
-              <Animated.View
-                key={listing.id}
-                layout={Layout.springify()}
-                style={viewMode === 'grid' && isWideScreen ? styles.gridItem : undefined}
-              >
-                <ListingCard
-                  listing={listing}
-                  index={index}
-                  viewMode={viewMode}
-                  onPress={() => handleListingPress(listing.id)}
-                />
-              </Animated.View>
-            ))}
-
-            {filteredListings.length === 0 && (
-              <EmptyState
-                lottieAnimation="search"
-                title={t('home.noListings')}
-                description={t('home.noListingsDescription')}
-                actionLabel={t('home.clearFilters')}
-                onAction={() => {
-                  setSearchFrom('');
-                  setSearchTo('');
-                  setSearchDate('');
-                  setActiveTab('all');
-                }}
-                style={styles.emptyState}
-              />
-            )}
-          </Animated.View>
-        </ScrollView>
-      </View>
-    );
-  }
-
-  // Mobile Layout
+  // ── Render ─────────────────────────────────────────────
   return (
-    <SafeAreaView
-      style={[styles.container, { backgroundColor: colors.background }]}
-      edges={['top']}
-    >
+    <SafeAreaView style={[styles.container, { backgroundColor: '#FFFFFF' }]} edges={['top']}>
+      {/* ── Header ─────────────────────────────────────── */}
       <HomeHeader notificationCount={notificationCount} />
 
       <ScrollView
@@ -309,7 +204,7 @@ export default function HomeScreen() {
           />
         }
       >
-        {/* Airplane refresh indicator */}
+        {/* ── Airplane Refresh Indicator ──────────────── */}
         {refreshing && (
           <View style={styles.refreshIndicator}>
             <Animated.View style={airplaneAnimatedStyle}>
@@ -318,54 +213,113 @@ export default function HomeScreen() {
           </View>
         )}
 
-        {/* Mobile Hero */}
-        <Animated.View entering={FadeInDown.duration(400)} style={styles.mobileHero}>
-          <Text style={[styles.greeting, { color: colors.textSecondary }]}>
-            {t('home.greeting')}
+        {/* ── Hero Section (V2 — clean white, bold text) ── */}
+        <Animated.View entering={FadeInDown.duration(400).springify()} style={styles.hero}>
+          <Text style={[styles.heroLabel, { color: colors.textTertiary }]}>
+            {t('home.welcomeTo', { defaultValue: 'Welcome to' })}
           </Text>
-          <Text style={[styles.title, { color: colors.text }]}>{t('home.marketplace')}</Text>
-        </Animated.View>
-
-        {/* Search */}
-        <Animated.View entering={FadeIn.delay(100).duration(400)}>
-          <SearchBar
-            from={searchFrom}
-            to={searchTo}
-            date={searchDate}
-            onFromChange={setSearchFrom}
-            onToChange={setSearchTo}
-            onDateChange={setSearchDate}
-            onSwap={handleSwap}
-          />
-        </Animated.View>
-
-        {/* Tabs */}
-        <Animated.View entering={FadeIn.delay(150).duration(400)}>
-          <PostTypeTabs value={activeTab} onChange={setActiveTab} counts={tabCounts} />
-        </Animated.View>
-
-        {/* View Toggle + Results */}
-        <Animated.View entering={FadeIn.delay(200).duration(400)} style={styles.mobileControlsRow}>
-          <Text style={[styles.resultsCount, { color: colors.textSecondary }]}>
-            {isLoading ? t('common.loading') : `${filteredListings.length} ${t('home.listings')}`}
+          <Text style={[styles.heroTitle, { color: colors.text }]}>
+            {t('home.discoverCarriers', { defaultValue: 'Discover' })}
+            {'\n'}
+            <Text style={{ color: colors.primary }}>
+              {t('home.carriers', { defaultValue: 'Carriers' })}
+            </Text>
           </Text>
-          <ViewToggle value={viewMode} onChange={setViewMode} />
+          <Text style={[styles.heroSubtitle, { color: colors.textSecondary }]}>
+            {t('home.heroDescription', {
+              defaultValue: 'Connect with travelers to send or carry packages worldwide',
+            })}
+          </Text>
         </Animated.View>
 
-        {/* Loading State — Skeleton Cards */}
+        {/* ── Search Section (V2 — solid card, no glass) ─ */}
+        <Animated.View entering={FadeIn.delay(80).duration(400)} style={styles.searchSection}>
+          <SolidCard accentColor={colors.primary} style={styles.searchCard}>
+            <SearchBar
+              from={searchFrom}
+              to={searchTo}
+              date={searchDate}
+              onFromChange={setSearchFrom}
+              onToChange={setSearchTo}
+              onDateChange={setSearchDate}
+              onSwap={handleSwap}
+            />
+          </SolidCard>
+        </Animated.View>
+
+        {/* ── Quick Stats (V2 — solid tinted cards with 3D borders) ── */}
+        <Animated.View entering={FadeInUp.delay(150).duration(400)} style={styles.statsRow}>
+          {statCards.map((stat, index) => (
+            <Animated.View
+              key={stat.label}
+              entering={FadeInUp.delay(150 + index * 80)
+                .duration(400)
+                .springify()}
+              style={styles.statCardWrapper}
+            >
+              <SolidCard
+                accentColor={stat.color}
+                tint={stat.tint}
+                style={styles.statCard}
+                radius={RADIUS.button}
+              >
+                <View style={[styles.statIconCircle, { backgroundColor: stat.color + '20' }]}>
+                  <Ionicons name={stat.icon} size={18} color={stat.color} />
+                </View>
+                <Text style={[styles.statValue, { color: stat.color }]}>{stat.value}</Text>
+                <Text style={[styles.statLabel, { color: colors.textSecondary }]} numberOfLines={1}>
+                  {stat.label}
+                </Text>
+              </SolidCard>
+            </Animated.View>
+          ))}
+        </Animated.View>
+
+        {/* ── Section Divider ────────────────────────────── */}
+        <View style={[styles.sectionDivider, { backgroundColor: SECTION_TINTS.neutral }]}>
+          <View style={styles.sectionDividerInner}>
+            {/* ── Tabs + View Toggle Row ──────────────────── */}
+            <Animated.View entering={FadeIn.delay(200).duration(400)} style={styles.controlsRow}>
+              <View style={styles.tabsWrapper}>
+                <PostTypeTabs value={activeTab} onChange={setActiveTab} counts={tabCounts} />
+              </View>
+              <View style={styles.toggleWrapper}>
+                <ViewToggle value={viewMode} onChange={setViewMode} />
+              </View>
+            </Animated.View>
+
+            {/* ── Results Count ───────────────────────────── */}
+            <Animated.View entering={FadeIn.delay(250).duration(400)} style={styles.resultsRow}>
+              <Text style={[styles.resultsCount, { color: colors.textSecondary }]}>
+                {isLoading
+                  ? t('common.loading', { defaultValue: 'Loading...' })
+                  : `${filteredListings.length} ${t('home.listings', { defaultValue: 'listings' })}`}
+              </Text>
+              {hasActiveFilters && (
+                <View style={[styles.filteredPill, { backgroundColor: colors.primary + '15' }]}>
+                  <Text style={[styles.filteredBadge, { color: colors.primary }]}>
+                    {t('home.filtered', { defaultValue: 'Filtered' })}
+                  </Text>
+                </View>
+              )}
+            </Animated.View>
+          </View>
+        </View>
+
+        {/* ── Loading State: Skeleton Cards ────────────── */}
         {isLoading && (
-          <View style={styles.mobileListings}>
+          <View style={styles.listingsContainer}>
             {[0, 1, 2].map((i) => (
-              <Animated.View key={`skel-${i}`} entering={FadeIn.delay(i * 100).duration(300)}>
+              <Animated.View key={`skeleton-${i}`} entering={FadeIn.delay(i * 100).duration(300)}>
                 <SkeletonCard />
               </Animated.View>
             ))}
           </View>
         )}
 
-        {/* Listings */}
+        {/* ── Listings ────────────────────────────────── */}
         {!isLoading && (
-          <Animated.View layout={Layout.springify()} style={styles.mobileListings}>
+          <Animated.View layout={Layout.springify()} style={styles.listingsContainer}>
             {filteredListings.map((listing, index) => (
               <StaggeredItem key={listing.id} index={index} baseDelay={50}>
                 <ListingCard
@@ -377,183 +331,191 @@ export default function HomeScreen() {
               </StaggeredItem>
             ))}
 
+            {/* ── Empty State ──────────────────────────── */}
             {filteredListings.length === 0 && (
               <EmptyState
                 lottieAnimation="search"
-                title={t('home.noListings')}
-                description={t('home.noListingsDescriptionShort')}
-                actionLabel={t('home.clearFilters')}
-                onAction={() => {
-                  setSearchFrom('');
-                  setSearchTo('');
-                  setSearchDate('');
-                  setActiveTab('all');
-                }}
+                title={t('home.noListings', {
+                  defaultValue: 'No listings found',
+                })}
+                description={t('home.noListingsDescriptionShort', {
+                  defaultValue: 'Try adjusting your search or filters',
+                })}
+                actionLabel={t('home.clearFilters', {
+                  defaultValue: 'Clear Filters',
+                })}
+                onAction={handleClearFilters}
                 style={styles.emptyState}
               />
             )}
           </Animated.View>
         )}
-      </ScrollView>
 
-      {/* Floating Action Button - Create Listing */}
-      <Animated.View entering={ZoomIn.delay(400).springify()}>
-        <TouchableOpacity
-          onPress={() => router.push('/listing/create')}
-          style={[styles.fab, { backgroundColor: colors.primary }]}
-          activeOpacity={0.85}
-        >
-          <Ionicons name="add" size={28} color="#FFF" />
-        </TouchableOpacity>
-      </Animated.View>
+        {/* ── Bottom Spacer for Absolute Tab Bar ───────── */}
+        <View style={styles.tabBarSpacer} />
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
+// ---------------------------------------------------------------------------
+// V2 Styles — Solid, colorful, Duolingo-inspired
+// ---------------------------------------------------------------------------
+
 const styles = StyleSheet.create({
+  // ── Layout ─────────────────────────────────────────────
   container: {
     flex: 1,
   } as ViewStyle,
+
   scrollContent: {
-    paddingBottom: 32,
-  } as ViewStyle,
-  scrollContentWide: {
-    paddingBottom: 48,
+    paddingBottom: SPACING[7], // 32
   } as ViewStyle,
 
-  // Hero Section
-  heroGradient: {
-    marginBottom: 24,
+  // ── Refresh ────────────────────────────────────────────
+  refreshIndicator: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: SPACING[4], // 16
   } as ViewStyle,
+
+  // ── Hero Section (V2 — clean white, no gradient) ──────
   hero: {
-    paddingHorizontal: 16,
-    paddingVertical: 32,
+    paddingHorizontal: SPACING[5], // 20
+    paddingTop: SPACING[2], // 8
+    paddingBottom: SPACING[5], // 20
   } as ViewStyle,
-  heroWide: {
-    maxWidth: 1200,
-    alignSelf: 'center',
-    width: '100%',
-    paddingHorizontal: 24,
-    paddingVertical: 48,
-  } as ViewStyle,
-  heroTextContainer: {
-    marginBottom: 28,
-  } as ViewStyle,
+
   heroLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    letterSpacing: 1,
+    ...TYPOGRAPHY.small,
+    letterSpacing: 2,
     textTransform: 'uppercase',
-    marginBottom: 8,
+    marginBottom: SPACING[1], // 4
+    fontWeight: '700',
   } as TextStyle,
+
   heroTitle: {
-    fontSize: 42,
+    fontSize: 36,
     fontWeight: '800',
-    marginBottom: 12,
-    letterSpacing: -1,
+    lineHeight: 42,
+    letterSpacing: -0.8,
+    marginBottom: SPACING[2], // 8
   } as TextStyle,
+
   heroSubtitle: {
-    fontSize: 17,
-    lineHeight: 26,
-    maxWidth: 500,
+    ...TYPOGRAPHY.body,
+    lineHeight: 22,
+    maxWidth: 300,
   } as TextStyle,
+
+  // ── Search Section (V2 — solid card) ──────────────────
+  searchSection: {
+    paddingHorizontal: SPACING[4], // 16
+    marginBottom: SPACING[5], // 20
+  } as ViewStyle,
+
+  searchCard: {
+    borderRadius: RADIUS.card, // 20
+  } as ViewStyle,
+
+  // ── Stats Row (V2 — solid tinted cards) ───────────────
   statsRow: {
     flexDirection: 'row',
-    gap: 16,
+    paddingHorizontal: SPACING[4], // 16
+    marginBottom: SPACING[5], // 20
+    gap: SPACING[3], // 12
   } as ViewStyle,
-  statItem: {
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-    borderRadius: 14,
-    minWidth: 100,
+
+  statCardWrapper: {
+    flex: 1,
   } as ViewStyle,
+
+  statCard: {
+    alignItems: 'center',
+    paddingVertical: SPACING[4], // 16
+    paddingHorizontal: SPACING[2], // 8
+  } as ViewStyle,
+
+  statIconCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: SPACING[2], // 8
+  } as ViewStyle,
+
   statValue: {
-    fontSize: 24,
-    fontWeight: '700',
+    fontSize: 20,
+    fontWeight: '800',
+    letterSpacing: -0.3,
     marginBottom: 2,
   } as TextStyle,
+
   statLabel: {
-    fontSize: 13,
+    ...TYPOGRAPHY.micro,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   } as TextStyle,
 
-  // Search styles
-  searchContainer: {
-    paddingHorizontal: 16,
-    marginBottom: 20,
-  } as ViewStyle,
-  searchContainerWide: {
-    maxWidth: 1200,
-    alignSelf: 'center',
-    width: '100%',
-    paddingHorizontal: 24,
+  // ── Section Divider (V2 — soft tinted background) ─────
+  sectionDivider: {
+    marginBottom: SPACING[3], // 12
+    paddingVertical: SPACING[4], // 16
   } as ViewStyle,
 
-  // Controls row
+  sectionDividerInner: {
+    paddingHorizontal: SPACING[4], // 16
+  } as ViewStyle,
+
+  // ── Controls Row (Tabs + View Toggle) ──────────────────
   controlsRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    marginBottom: 8,
+    marginBottom: SPACING[2], // 8
   } as ViewStyle,
-  controlsRowWide: {
-    maxWidth: 1200,
-    alignSelf: 'center',
-    width: '100%',
-    paddingHorizontal: 24,
-  } as ViewStyle,
+
   tabsWrapper: {
     flex: 1,
   } as ViewStyle,
+
   toggleWrapper: {
-    marginStart: 16,
-    paddingTop: 4,
+    marginStart: SPACING[4], // 16
+    paddingTop: SPACING[1], // 4
   } as ViewStyle,
 
-  // Results header
-  resultsHeader: {
-    paddingHorizontal: 16,
-    marginBottom: 16,
+  // ── Results Row ────────────────────────────────────────
+  resultsRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    gap: SPACING[2], // 8
   } as ViewStyle,
-  resultsHeaderWide: {
-    maxWidth: 1200,
-    alignSelf: 'center',
-    width: '100%',
-    paddingHorizontal: 24,
-  } as ViewStyle,
-  resultsTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-  } as TextStyle,
+
   resultsCount: {
-    fontSize: 14,
-    fontWeight: '500',
+    ...TYPOGRAPHY.caption,
+    fontWeight: '600',
   } as TextStyle,
 
-  // Listings container
-  listingsContainer: {
-    paddingHorizontal: 16,
-  } as ViewStyle,
-  listingsContainerWide: {
-    maxWidth: 1200,
-    alignSelf: 'center',
-    width: '100%',
-    paddingHorizontal: 24,
-  } as ViewStyle,
-  listingsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 20,
-  } as ViewStyle,
-  gridItem: {
-    width: '48%',
-    minWidth: 340,
+  filteredPill: {
+    paddingHorizontal: SPACING[2], // 8
+    paddingVertical: 2,
+    borderRadius: RADIUS.badge,
   } as ViewStyle,
 
-  // Empty state
+  filteredBadge: {
+    ...TYPOGRAPHY.micro,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  } as TextStyle,
+
+  // ── Listings ───────────────────────────────────────────
+  listingsContainer: {
+    paddingHorizontal: SPACING[4], // 16
+  } as ViewStyle,
+
+  // ── Empty State ────────────────────────────────────────
   emptyState: {
     width: '100%',
     minHeight: 350,
@@ -561,54 +523,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   } as ViewStyle,
 
-  refreshIndicator: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 16,
-  } as ViewStyle,
-
-  // Mobile styles
-  mobileHero: {
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    marginBottom: 20,
-  } as ViewStyle,
-  greeting: {
-    fontSize: 14,
-    marginBottom: 4,
-  } as TextStyle,
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-  } as TextStyle,
-  mobileControlsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    marginBottom: 16,
-  } as ViewStyle,
-  mobileListings: {
-    paddingHorizontal: 16,
-  } as ViewStyle,
-  loadingContainer: {
-    paddingVertical: 60,
-    alignItems: 'center',
-    justifyContent: 'center',
-  } as ViewStyle,
-  fab: {
-    position: 'absolute',
-    bottom: 24,
-    end: 20,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-    elevation: 6,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.27,
-    shadowRadius: 4.65,
+  // ── Tab Bar Spacer ─────────────────────────────────────
+  tabBarSpacer: {
+    height: 80,
   } as ViewStyle,
 });

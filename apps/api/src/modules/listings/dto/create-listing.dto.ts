@@ -7,6 +7,7 @@ import {
   IsOptional,
   IsBoolean,
   IsDateString,
+  IsArray,
   Min,
   Max,
   MaxLength,
@@ -14,6 +15,16 @@ import {
 } from 'class-validator';
 
 export class ListingPreferencesDto {
+  @ApiPropertyOptional({
+    description: 'Accepted item category IDs',
+    example: ['documents', 'clothing', 'electronics'],
+    type: [String],
+  })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  acceptedCategories?: string[];
+
   @ApiPropertyOptional({
     description: 'Whether fragile items are accepted',
     example: true,
@@ -66,6 +77,15 @@ export class CreateListingDto {
   @IsNotEmpty()
   departureCity: string;
 
+  @ApiPropertyOptional({
+    description: 'IATA airport code for departure',
+    example: 'RUH',
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(4)
+  departureCode?: string;
+
   @ApiProperty({
     description: 'City of arrival',
     example: 'Jeddah',
@@ -73,6 +93,15 @@ export class CreateListingDto {
   @IsString()
   @IsNotEmpty()
   arrivalCity: string;
+
+  @ApiPropertyOptional({
+    description: 'IATA airport code for arrival',
+    example: 'JED',
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(4)
+  arrivalCode?: string;
 
   @ApiProperty({
     description: 'Departure date in ISO 8601 format',

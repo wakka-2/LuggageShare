@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { View, Text, TouchableOpacity, Platform, StyleSheet } from 'react-native';
-import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 
 interface DatePickerInputProps {
   value: Date | null;
@@ -13,6 +12,10 @@ interface DatePickerInputProps {
   placeholderColor?: string;
   textAlign?: 'left' | 'right';
 }
+
+const formatDate = (date: Date) => {
+  return date.toLocaleDateString('en-CA'); // YYYY-MM-DD format
+};
 
 export function DatePickerInput({
   value,
@@ -27,17 +30,49 @@ export function DatePickerInput({
 }: DatePickerInputProps) {
   const [show, setShow] = useState(false);
 
-  const handleChange = (_event: DateTimePickerEvent, selectedDate?: Date) => {
+  // Web: use native HTML date input
+  if (Platform.OS === 'web') {
+    return (
+      <View>
+        <input
+          type="date"
+          value={value ? formatDate(value) : ''}
+          min={minimumDate ? formatDate(minimumDate) : undefined}
+          onChange={(e) => {
+            const d = new Date(e.target.value + 'T00:00:00');
+            if (!isNaN(d.getTime())) onChange(d);
+          }}
+          placeholder={placeholder}
+          style={{
+            height: 48,
+            borderRadius: 12,
+            paddingLeft: 16,
+            paddingRight: 16,
+            fontSize: 16,
+            border: `1px solid ${borderColor}`,
+            backgroundColor,
+            color: value ? textColor : placeholderColor,
+            textAlign,
+            outline: 'none',
+            width: '100%',
+            boxSizing: 'border-box' as const,
+            cursor: 'pointer',
+          }}
+        />
+      </View>
+    );
+  }
+
+  // Native: lazy-load the native picker to avoid web bundling issues
+  const DateTimePicker = require('@react-native-community/datetimepicker').default;
+
+  const handleChange = (_event: any, selectedDate?: Date) => {
     if (Platform.OS === 'android') {
       setShow(false);
     }
     if (selectedDate) {
       onChange(selectedDate);
     }
-  };
-
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString('en-CA'); // YYYY-MM-DD format
   };
 
   return (

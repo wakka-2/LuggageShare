@@ -19,6 +19,8 @@ import { useRouter } from 'expo-router';
 import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
 
 import { useTheme } from '@/hooks/useTheme';
+import { useGoBack } from '@/hooks/useGoBack';
+import { ScreenHeader } from '@/components/common';
 import { SkeletonLoader } from '@/components/animations';
 import { showAlert } from '@/lib/alert';
 import {
@@ -46,6 +48,7 @@ export default function WalletScreen() {
   const { t, i18n } = useTranslation();
   const { colors } = useTheme();
   const router = useRouter();
+  const goBack = useGoBack();
   const isRTL = i18n.language === 'ar';
 
   const { data: balance, isLoading: balanceLoading, refetch: refetchBalance } = useWalletBalance();
@@ -148,13 +151,7 @@ export default function WalletScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.headerBtn}>
-          <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={colors.text} />
-        </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>{t('wallet.title')}</Text>
-        <View style={styles.headerBtn} />
-      </View>
+      <ScreenHeader title={t('wallet.title')} onBack={goBack} />
 
       {isLoading ? (
         <View style={styles.skeletonContainer}>

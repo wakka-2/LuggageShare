@@ -8,14 +8,13 @@ import { QuestionTitle } from '../QuestionTitle';
 import { AnimatedButton } from '@/components/animations/AnimatedButton';
 import type { StepProps } from '../WizardContainer';
 
-export function ReviewStep({ data, goNext, goBack }: StepProps) {
+export function ReviewStep({ data, goNext }: StepProps) {
   const { t, i18n } = useTranslation();
   const { colors } = useTheme();
   const isRTL = i18n.language === 'ar';
 
   const price = data.price ?? 0;
   const weight = data.availableWeight ?? 0;
-  const estimatedTotal = price * weight;
   const categories = (data.acceptedCategories || []) as string[];
 
   const formatDate = (iso: string) => {
@@ -63,29 +62,13 @@ export function ReviewStep({ data, goNext, goBack }: StepProps) {
           />
         )}
         <SummaryRow icon="scale" label={`${weight} kg available`} colors={colors} delay={350} />
-        <SummaryRow icon="cash" label={`SAR ${price}/kg`} colors={colors} delay={400} />
+        <SummaryRow icon="cash" label={`SAR ${price}`} colors={colors} delay={400} />
         {categories.length > 0 && (
           <SummaryRow icon="cube" label={categories.join(', ')} colors={colors} delay={450} />
         )}
         {data.notes && (
           <SummaryRow icon="document-text" label={data.notes} colors={colors} delay={500} />
         )}
-      </Animated.View>
-
-      {/* Estimated Earnings */}
-      <Animated.View
-        entering={FadeInUp.delay(400).springify()}
-        style={[styles.earningsCard, { backgroundColor: colors.primary + '08' }]}
-      >
-        <Text style={[styles.earningsLabel, { color: colors.textSecondary }]}>
-          {t('listing.wizard.review.earnings', { defaultValue: 'Estimated earnings:' })}
-        </Text>
-        <Text style={[styles.earningsValue, { color: colors.primary }]}>
-          SAR {estimatedTotal.toFixed(2)}
-        </Text>
-        <Text style={[styles.earningsNote, { color: colors.textMuted }]}>
-          {t('listing.wizard.review.ifBooked', { defaultValue: '(if fully booked)' })}
-        </Text>
       </Animated.View>
 
       {/* Publish */}
@@ -138,23 +121,5 @@ const styles = StyleSheet.create({
   rowText: {
     fontSize: 15,
     flex: 1,
-  },
-  earningsCard: {
-    borderRadius: RADIUS.card,
-    padding: 20,
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  earningsLabel: {
-    fontSize: 14,
-    marginBottom: 4,
-  },
-  earningsValue: {
-    fontSize: 32,
-    fontWeight: '700',
-  },
-  earningsNote: {
-    fontSize: 13,
-    marginTop: 4,
   },
 });
