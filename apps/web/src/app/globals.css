@@ -33,8 +33,8 @@
     --accent-foreground: 0 0% 100%;
     --destructive: 340 100% 71%;
     --destructive-foreground: 0 0% 100%;
-    --border: 252 100% 71% / 0.12;
-    --input: 252 100% 71% / 0.12;
+    --border: 252 30% 91%;
+    --input: 252 30% 91%;
     --ring: 252 100% 71%;
     --radius: 22px;
   }
