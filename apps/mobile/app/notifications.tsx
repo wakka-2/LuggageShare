@@ -16,6 +16,8 @@ import { useRouter } from 'expo-router';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 
 import { useTheme } from '@/hooks/useTheme';
+import { ScreenHeader } from '@/components/common';
+import { useGoBack } from '@/hooks/useGoBack';
 import {
   useNotifications,
   useMarkNotificationRead,
@@ -144,19 +146,16 @@ export default function NotificationsScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.headerBtn}>
-          <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={colors.text} />
-        </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>{t('notifications.title')}</Text>
-        {unreadCount > 0 ? (
-          <TouchableOpacity onPress={() => markAllRead.mutate()} style={styles.headerBtn}>
-            <Ionicons name="checkmark-done-outline" size={22} color={colors.primary} />
-          </TouchableOpacity>
-        ) : (
-          <View style={styles.headerBtn} />
-        )}
-      </View>
+      <ScreenHeader
+        title={t('notifications.title')}
+        right={
+          unreadCount > 0 ? (
+            <TouchableOpacity onPress={() => markAllRead.mutate()} style={styles.headerBtn}>
+              <Ionicons name="checkmark-done-outline" size={22} color={colors.primary} />
+            </TouchableOpacity>
+          ) : undefined
+        }
+      />
 
       {isLoading ? (
         <View style={styles.skeletonList}>

@@ -20,25 +20,38 @@ const LISTING_STEPS: WizardStepConfig[] = [
   {
     component: RouteStep,
     validate: (data) => !!data.departureCity?.trim() && !!data.arrivalCity?.trim(),
+    icon: 'airplane',
   },
   {
     component: DateFlightStep,
-    validate: (data) => !!data.departureDate,
+    validate: (data) => {
+      if (!data.departureDate) return false;
+      const d = new Date(data.departureDate);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (d < today) return 'Past date';
+      return true;
+    },
+    icon: 'calendar',
   },
   {
     component: WeightStep,
     validate: (data) => !!data.availableWeight && parseFloat(data.availableWeight) > 0,
+    icon: 'scale',
   },
   {
     component: PricingStep,
     validate: (data) => !!data.price && parseFloat(data.price) > 0,
+    icon: 'cash',
   },
   {
     component: PreferencesStep,
     canSkip: true,
+    icon: 'options',
   },
   {
     component: ReviewStep,
+    icon: 'checkmark-done',
   },
 ];
 

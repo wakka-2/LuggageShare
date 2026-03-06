@@ -11,7 +11,7 @@ import {
   TextStyle,
   ImageStyle,
 } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -20,6 +20,8 @@ import { Image } from 'expo-image';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
 import { useTheme } from '@/hooks/useTheme';
+import { useGoBack } from '@/hooks/useGoBack';
+import { ScreenHeader } from '@/components/common';
 import { showAlert } from '@/lib/alert';
 import { useImageUpload } from '@/hooks/useImageUpload';
 import { useSubmitPaymentProof } from '@/hooks/useBookings';
@@ -35,7 +37,7 @@ export default function PaymentScreen() {
   }>();
   const { t, i18n } = useTranslation();
   const { colors } = useTheme();
-  const router = useRouter();
+  const goBack = useGoBack();
   const isRTL = i18n.language === 'ar';
 
   const { pickAndUpload, isUploading, uploadedUrl } = useImageUpload();
@@ -65,7 +67,7 @@ export default function PaymentScreen() {
       {
         onSuccess: () => {
           showAlert(t('payment.successTitle'), t('payment.successMessage'), [
-            { text: 'OK', onPress: () => router.back() },
+            { text: 'OK', onPress: () => goBack() },
           ]);
         },
         onError: () => {
@@ -77,13 +79,7 @@ export default function PaymentScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.headerBtn}>
-          <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={colors.text} />
-        </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>{t('payment.title')}</Text>
-        <View style={styles.headerBtn} />
-      </View>
+      <ScreenHeader title={t('payment.title')} onBack={goBack} />
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Amount Card */}
@@ -229,16 +225,6 @@ export default function PaymentScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 } as ViewStyle,
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-  } as ViewStyle,
-  headerBtn: { width: 40, alignItems: 'center' } as ViewStyle,
-  headerTitle: { fontSize: 18, fontWeight: '600' } as TextStyle,
   scrollContent: { padding: 16, paddingBottom: 40 } as ViewStyle,
 
   amountCard: {

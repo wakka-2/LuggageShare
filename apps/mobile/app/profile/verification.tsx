@@ -18,6 +18,8 @@ import Animated, { FadeIn, FadeInUp, ZoomIn } from 'react-native-reanimated';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { useTheme } from '@/hooks/useTheme';
+import { useGoBack } from '@/hooks/useGoBack';
+import { ScreenHeader } from '@/components/common';
 import { apiClient } from '@/lib/api';
 import { showAlert } from '@/lib/alert';
 import { SkeletonLoader } from '@/components/animations';
@@ -32,6 +34,7 @@ export default function VerificationScreen() {
   const { t, i18n } = useTranslation();
   const { colors } = useTheme();
   const router = useRouter();
+  const goBack = useGoBack();
   const queryClient = useQueryClient();
   const isRTL = i18n.language === 'ar';
 
@@ -99,15 +102,7 @@ export default function VerificationScreen() {
   if (status?.isVerified) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-        <View style={[styles.header, { borderBottomColor: colors.border }]}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.headerBtn}>
-            <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={colors.text} />
-          </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: colors.text }]}>
-            {t('profile.verification')}
-          </Text>
-          <View style={styles.headerBtn} />
-        </View>
+        <ScreenHeader title={t('profile.verification')} onBack={goBack} />
         <View style={styles.verifiedContent}>
           <Animated.View
             entering={ZoomIn.delay(100).springify()}
@@ -134,15 +129,7 @@ export default function VerificationScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.headerBtn}>
-          <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={colors.text} />
-        </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>
-          {t('profile.verification')}
-        </Text>
-        <View style={styles.headerBtn} />
-      </View>
+      <ScreenHeader title={t('profile.verification')} onBack={goBack} />
 
       <ScrollView style={styles.scrollContent} contentContainerStyle={styles.scrollInner}>
         {/* Info Card */}

@@ -18,10 +18,11 @@ import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeIn, FadeInUp, SlideInDown } from 'react-native-reanimated';
 
 import { useTheme } from '@/hooks/useTheme';
+import { useGoBack } from '@/hooks/useGoBack';
 import { useMessages, useSendMessage, useMarkAsRead } from '@/hooks/useMessages';
 import { useAuth } from '@/hooks/useAuth';
 import { useSocket } from '@/hooks/useSocket';
-import { Avatar } from '@/components/common';
+import { Avatar, ScreenHeader } from '@/components/common';
 import { SkeletonLoader } from '@/components/animations';
 
 export default function ChatScreen() {
@@ -29,6 +30,7 @@ export default function ChatScreen() {
   const { t, i18n } = useTranslation();
   const { colors } = useTheme();
   const router = useRouter();
+  const goBack = useGoBack();
   const { user } = useAuth();
   const isRTL = i18n.language === 'ar';
   const flatListRef = useRef<FlatList>(null);
@@ -108,13 +110,7 @@ export default function ChatScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.headerBtn}>
-          <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={colors.text} />
-        </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>{t('chat.title')}</Text>
-        <View style={styles.headerBtn} />
-      </View>
+      <ScreenHeader title={t('chat.title')} onBack={goBack} />
 
       <KeyboardAvoidingView
         style={styles.flex1}

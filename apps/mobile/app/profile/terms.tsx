@@ -9,20 +9,20 @@ import {
   ViewStyle,
   TextStyle,
 } from 'react-native';
-import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
 import { useTheme } from '@/hooks/useTheme';
+import { useGoBack } from '@/hooks/useGoBack';
+import { ScreenHeader } from '@/components/common';
 import { apiClient } from '@/lib/api';
 import { showAlert } from '@/lib/alert';
 
 export default function TermsScreen() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { colors } = useTheme();
-  const router = useRouter();
-  const isRTL = i18n.language === 'ar';
+  const goBack = useGoBack();
   const [accepting, setAccepting] = useState(false);
 
   const handleAccept = async () => {
@@ -30,7 +30,7 @@ export default function TermsScreen() {
     try {
       await apiClient.post('/users/me/accept-tos');
       showAlert(t('common.success'), t('profile.tosAccepted'), [
-        { text: t('common.ok'), onPress: () => router.back() },
+        { text: t('common.ok'), onPress: goBack },
       ]);
     } catch {
       showAlert(t('common.errorTitle'), t('profile.tosAcceptFailed'));
@@ -41,15 +41,7 @@ export default function TermsScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.headerBtn}>
-          <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={colors.text} />
-        </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>
-          {t('profile.termsOfService')}
-        </Text>
-        <View style={styles.headerBtn} />
-      </View>
+      <ScreenHeader title={t('profile.termsOfService')} onBack={goBack} />
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('profile.tosTitle')}</Text>
