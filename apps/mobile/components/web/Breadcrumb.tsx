@@ -3,7 +3,7 @@ import { usePathname, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 
-import { useTheme } from '@/hooks/useTheme';
+import { V2_COLORS, RADIUS } from '@/providers/ThemeProvider';
 
 const ROUTE_LABELS: Record<string, string> = {
   '(tabs)': 'web.breadcrumb.home',
@@ -24,7 +24,6 @@ export function Breadcrumb() {
   const pathname = usePathname();
   const router = useRouter();
   const { t } = useTranslation();
-  const { colors } = useTheme();
 
   const segments = pathname.split('/').filter(Boolean);
 
@@ -63,20 +62,22 @@ export function Breadcrumb() {
               <Ionicons
                 name="chevron-forward"
                 size={14}
-                color={colors.textTertiary}
+                color={V2_COLORS.textMuted}
                 style={styles.separator}
               />
             )}
             {isLast ? (
-              <Text style={[styles.label, { color: colors.text }]} numberOfLines={1}>
-                {crumb.label}
-              </Text>
+              <View style={styles.activeCrumb}>
+                <Text style={styles.activeLabel} numberOfLines={1}>
+                  {crumb.label}
+                </Text>
+              </View>
             ) : (
-              <TouchableOpacity onPress={() => router.push(crumb.path as any)}>
-                <Text
-                  style={[styles.label, styles.clickable, { color: colors.primary }]}
-                  numberOfLines={1}
-                >
+              <TouchableOpacity
+                onPress={() => router.push(crumb.path as any)}
+                style={styles.crumbButton}
+              >
+                <Text style={styles.clickableLabel} numberOfLines={1}>
                   {crumb.label}
                 </Text>
               </TouchableOpacity>
@@ -101,11 +102,26 @@ const styles = StyleSheet.create({
   separator: {
     marginHorizontal: 6,
   },
-  label: {
+  crumbButton: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: RADIUS.pill,
+    ...({ cursor: 'pointer' } as any),
+  },
+  clickableLabel: {
     fontSize: 13,
     fontWeight: '500',
+    color: V2_COLORS.primary,
   },
-  clickable: {
-    ...({ cursor: 'pointer' } as any),
+  activeCrumb: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: RADIUS.pill,
+    backgroundColor: V2_COLORS.primary + '10',
+  },
+  activeLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: V2_COLORS.text,
   },
 });

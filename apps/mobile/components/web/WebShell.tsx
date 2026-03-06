@@ -3,8 +3,8 @@ import { View, StyleSheet, useWindowDimensions } from 'react-native';
 import { usePathname } from 'expo-router';
 import Animated, { FadeIn } from 'react-native-reanimated';
 
-import { useTheme } from '@/hooks/useTheme';
 import { useAuth } from '@/hooks/useAuth';
+import { V2_COLORS } from '@/providers/ThemeProvider';
 import {
   SIDEBAR_WIDTH,
   SIDEBAR_COLLAPSED_WIDTH,
@@ -21,7 +21,6 @@ interface WebShellProps {
 
 export function WebShell({ children }: WebShellProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const { colors } = useTheme();
   const { isAuthenticated } = useAuth();
   const pathname = usePathname();
   const { width } = useWindowDimensions();
@@ -37,7 +36,7 @@ export function WebShell({ children }: WebShellProps) {
   const sidebarWidth = sidebarCollapsed ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_WIDTH;
 
   return (
-    <View style={[styles.shell, { backgroundColor: colors.background }]}>
+    <View style={styles.shell}>
       {/* Sidebar */}
       <Sidebar collapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed((prev) => !prev)} />
 
@@ -64,6 +63,7 @@ const styles = StyleSheet.create({
   shell: {
     flex: 1,
     minHeight: '100vh' as any,
+    backgroundColor: V2_COLORS.bg,
   },
   content: {
     flex: 1,

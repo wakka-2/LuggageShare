@@ -4,18 +4,17 @@ import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 
-import { useTheme } from '@/hooks/useTheme';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS } from '@/providers/ThemeProvider';
 import {
   useNotifications,
   useMarkNotificationRead,
   useUnreadCount,
 } from '@/hooks/useNotifications';
-import { glassBackground, glassBorder, webTransition } from './styles';
+import { webTransition } from './styles';
 
 export function NotificationDropdown() {
   const [open, setOpen] = useState(false);
   const { t } = useTranslation();
-  const { colors, isDark } = useTheme();
   const router = useRouter();
   const dropdownRef = useRef<View>(null);
 
@@ -55,37 +54,21 @@ export function NotificationDropdown() {
 
   return (
     <View {...({ 'data-notification-dropdown': true } as any)} style={styles.wrapper}>
-      <TouchableOpacity
-        onPress={() => setOpen(!open)}
-        style={[
-          styles.bellButton,
-          { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)' },
-        ]}
-      >
-        <Ionicons name="notifications-outline" size={20} color={colors.text} />
+      <TouchableOpacity onPress={() => setOpen(!open)} style={styles.bellButton}>
+        <Ionicons name="notifications-outline" size={20} color={V2_COLORS.text} />
         {unreadCount > 0 && (
-          <View style={[styles.badge, { backgroundColor: colors.error }]}>
+          <View style={styles.badge}>
             <Text style={styles.badgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
           </View>
         )}
       </TouchableOpacity>
 
       {open && (
-        <View
-          ref={dropdownRef}
-          style={[
-            styles.dropdown,
-            glassBackground(colors, isDark),
-            glassBorder(isDark),
-            { borderColor: colors.border },
-          ]}
-        >
+        <View ref={dropdownRef} style={styles.dropdown}>
           <View style={styles.header}>
-            <Text style={[styles.headerText, { color: colors.text }]}>
-              {t('web.notifications.title')}
-            </Text>
+            <Text style={styles.headerText}>{t('web.notifications.title')}</Text>
             {unreadCount > 0 && (
-              <View style={[styles.headerBadge, { backgroundColor: colors.primary }]}>
+              <View style={styles.headerBadge}>
                 <Text style={styles.headerBadgeText}>{unreadCount}</Text>
               </View>
             )}
@@ -94,10 +77,8 @@ export function NotificationDropdown() {
           <ScrollView style={styles.list} showsVerticalScrollIndicator={false}>
             {recent.length === 0 ? (
               <View style={styles.emptyState}>
-                <Ionicons name="notifications-off-outline" size={32} color={colors.textTertiary} />
-                <Text style={[styles.emptyText, { color: colors.textTertiary }]}>
-                  {t('web.notifications.empty')}
-                </Text>
+                <Ionicons name="notifications-off-outline" size={32} color={V2_COLORS.textMuted} />
+                <Text style={styles.emptyText}>{t('web.notifications.empty')}</Text>
               </View>
             ) : (
               recent.map((notif) => (
@@ -105,34 +86,23 @@ export function NotificationDropdown() {
                   key={notif.id}
                   style={[
                     styles.notifItem,
-                    !notif.isRead && {
-                      backgroundColor: isDark
-                        ? 'rgba(74, 122, 184, 0.1)'
-                        : 'rgba(46, 90, 143, 0.05)',
-                    },
+                    !notif.isRead && styles.notifItemUnread,
                     webTransition('background-color', '0.15s'),
                   ]}
                   onPress={() => handleNotificationPress(notif.id)}
                 >
                   <View style={styles.notifContent}>
                     <View style={styles.notifRow}>
-                      <Text style={[styles.notifTitle, { color: colors.text }]} numberOfLines={1}>
+                      <Text style={styles.notifTitle} numberOfLines={1}>
                         {notif.title}
                       </Text>
-                      <Text style={[styles.notifTime, { color: colors.textTertiary }]}>
-                        {timeAgo(notif.createdAt)}
-                      </Text>
+                      <Text style={styles.notifTime}>{timeAgo(notif.createdAt)}</Text>
                     </View>
-                    <Text
-                      style={[styles.notifBody, { color: colors.textSecondary }]}
-                      numberOfLines={2}
-                    >
+                    <Text style={styles.notifBody} numberOfLines={2}>
                       {notif.body}
                     </Text>
                   </View>
-                  {!notif.isRead && (
-                    <View style={[styles.unreadDot, { backgroundColor: colors.primary }]} />
-                  )}
+                  {!notif.isRead && <View style={styles.unreadDot} />}
                 </TouchableOpacity>
               ))
             )}
@@ -140,16 +110,14 @@ export function NotificationDropdown() {
 
           {recent.length > 0 && (
             <TouchableOpacity
-              style={[styles.viewAll, { borderTopColor: colors.border }]}
+              style={styles.viewAll}
               onPress={() => {
                 setOpen(false);
                 router.push('/notifications');
               }}
             >
-              <Text style={[styles.viewAllText, { color: colors.primary }]}>
-                {t('web.notifications.viewAll')}
-              </Text>
-              <Ionicons name="arrow-forward" size={14} color={colors.primary} />
+              <Text style={styles.viewAllText}>{t('web.notifications.viewAll')}</Text>
+              <Ionicons name="arrow-forward" size={14} color={V2_COLORS.primary} />
             </TouchableOpacity>
           )}
         </View>
@@ -165,9 +133,10 @@ const styles = StyleSheet.create({
   bellButton: {
     width: 40,
     height: 40,
-    borderRadius: 12,
+    borderRadius: RADIUS.pill,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: V2_COLORS.bg,
     ...({ cursor: 'pointer' } as any),
   },
   badge: {
@@ -180,6 +149,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 3,
+    backgroundColor: V2_COLORS.secondary,
   },
   badgeText: {
     color: '#FFFFFF',
@@ -192,9 +162,10 @@ const styles = StyleSheet.create({
     end: 0,
     width: 360,
     maxHeight: 440,
-    borderRadius: 16,
+    borderRadius: RADIUS.card,
     overflow: 'hidden',
-    ...({ boxShadow: '0 8px 32px rgba(0,0,0,0.12)' } as any),
+    backgroundColor: '#FFFFFF',
+    ...BUBBLE_SHADOWS.md,
   },
   header: {
     flexDirection: 'row',
@@ -206,6 +177,7 @@ const styles = StyleSheet.create({
   headerText: {
     fontSize: 16,
     fontWeight: '700',
+    color: V2_COLORS.text,
   },
   headerBadge: {
     minWidth: 22,
@@ -214,6 +186,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 6,
+    backgroundColor: V2_COLORS.primary,
   },
   headerBadgeText: {
     color: '#FFFFFF',
@@ -230,13 +203,19 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 13,
+    color: V2_COLORS.textMuted,
   },
   notifItem: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
+    borderRadius: RADIUS.card,
+    marginHorizontal: 8,
     ...({ cursor: 'pointer' } as any),
+  },
+  notifItemUnread: {
+    backgroundColor: V2_COLORS.primary + '08',
   },
   notifContent: {
     flex: 1,
@@ -251,20 +230,24 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
     flex: 1,
+    color: V2_COLORS.text,
   },
   notifTime: {
     fontSize: 11,
     marginStart: 8,
+    color: V2_COLORS.textMuted,
   },
   notifBody: {
     fontSize: 12,
     lineHeight: 16,
+    color: V2_COLORS.textSoft,
   },
   unreadDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
     marginStart: 8,
+    backgroundColor: V2_COLORS.primary,
   },
   viewAll: {
     flexDirection: 'row',
@@ -272,11 +255,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 12,
     borderTopWidth: 1,
+    borderTopColor: V2_COLORS.cardShadow,
     gap: 4,
     ...({ cursor: 'pointer' } as any),
   },
   viewAllText: {
     fontSize: 13,
     fontWeight: '600',
+    color: V2_COLORS.primary,
   },
 });

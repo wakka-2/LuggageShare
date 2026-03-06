@@ -44,13 +44,13 @@ const POPULAR_ROUTES = [
 
 export function PopularRoutes() {
   return (
-    <section className="py-16 px-4 bg-gray-50">
+    <section className="py-16 px-4">
       <div className="max-w-6xl mx-auto">
         <div className="flex items-center justify-between mb-8">
-          <h2 className="text-2xl font-bold text-gray-900">الوجهات الشائعة</h2>
+          <h2 className="text-2xl font-bold text-v2-text">الوجهات الشائعة</h2>
           <Link
             href="/routes"
-            className="text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1"
+            className="text-v2-primary hover:text-v2-primary-light font-medium flex items-center gap-1 px-4 py-2 rounded-full hover:bg-v2-primary/5 transition-all"
           >
             عرض الكل
             <ChevronLeft className="w-4 h-4" />
@@ -62,28 +62,32 @@ export function PopularRoutes() {
             <Link
               key={route.id}
               href={`/search?from=${route.fromEn}&to=${route.toEn}`}
-              className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow border border-gray-100"
+              className="bg-white rounded-[22px] p-6 shadow-bubble-sm hover:shadow-bubble-md transition-all group"
             >
               <div className="flex items-center gap-3 mb-4">
-                <span className="text-lg font-semibold text-gray-900">
-                  {route.from}
-                </span>
-                <Plane className="w-5 h-5 text-primary-500 rotate-180 rtl:rotate-0" />
-                <span className="text-lg font-semibold text-gray-900">
-                  {route.to}
-                </span>
+                {/* From dot */}
+                <div className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full bg-v2-mint" />
+                  <span className="text-lg font-semibold text-v2-text">{route.from}</span>
+                </div>
+                <Plane className="w-5 h-5 text-v2-primary rotate-180 rtl:rotate-0 group-hover:text-v2-primary-light transition-colors" />
+                {/* To dot */}
+                <div className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full bg-v2-secondary" />
+                  <span className="text-lg font-semibold text-v2-text">{route.to}</span>
+                </div>
               </div>
 
               <div className="flex items-center justify-between text-sm">
                 <div>
-                  <span className="text-gray-500">يبدأ من</span>
-                  <p className="font-semibold text-primary-600">
-                    {route.price} ر.س
-                  </p>
+                  <span className="text-v2-text-muted text-xs">يبدأ من</span>
+                  <p className="font-semibold text-v2-primary">{route.price} ر.س</p>
                 </div>
                 <div className="text-left">
-                  <span className="text-gray-500">ناقلين متاحين</span>
-                  <p className="font-semibold text-gray-900">{route.carriers}</p>
+                  <span className="text-v2-text-muted text-xs">ناقلين متاحين</span>
+                  <p className="font-semibold text-v2-text bg-v2-mint/10 px-3 py-0.5 rounded-full text-center">
+                    {route.carriers}
+                  </p>
                 </div>
               </div>
             </Link>

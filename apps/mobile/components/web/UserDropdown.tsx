@@ -4,10 +4,10 @@ import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 
-import { useTheme } from '@/hooks/useTheme';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS } from '@/providers/ThemeProvider';
 import { useAuth } from '@/hooks/useAuth';
 import { Avatar } from '@/components/common';
-import { glassBackground, glassBorder, webTransition } from './styles';
+import { webTransition } from './styles';
 
 interface MenuItem {
   key: string;
@@ -48,7 +48,6 @@ const MENU_ITEMS: MenuItem[] = [
 export function UserDropdown() {
   const [open, setOpen] = useState(false);
   const { t } = useTranslation();
-  const { colors, isDark } = useTheme();
   const { user, signOut } = useAuth();
   const router = useRouter();
 
@@ -78,39 +77,26 @@ export function UserDropdown() {
 
   return (
     <View {...({ 'data-user-dropdown': true } as any)} style={styles.wrapper}>
-      <TouchableOpacity
-        onPress={() => setOpen(!open)}
-        style={[
-          styles.avatarButton,
-          { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)' },
-        ]}
-      >
+      <TouchableOpacity onPress={() => setOpen(!open)} style={styles.avatarButton}>
         <Avatar source={user?.avatarUrl} name={user?.displayName || '?'} size="small" />
       </TouchableOpacity>
 
       {open && (
-        <View
-          style={[
-            styles.dropdown,
-            glassBackground(colors, isDark),
-            glassBorder(isDark),
-            { borderColor: colors.border },
-          ]}
-        >
+        <View style={styles.dropdown}>
           {/* User info header */}
           <View style={styles.userInfo}>
             <Avatar source={user?.avatarUrl} name={user?.displayName || '?'} size="medium" />
             <View style={styles.userText}>
-              <Text style={[styles.userName, { color: colors.text }]} numberOfLines={1}>
+              <Text style={styles.userName} numberOfLines={1}>
                 {user?.displayName || t('profile.guest')}
               </Text>
-              <Text style={[styles.userEmail, { color: colors.textSecondary }]} numberOfLines={1}>
+              <Text style={styles.userEmail} numberOfLines={1}>
                 {user?.email || ''}
               </Text>
             </View>
           </View>
 
-          <View style={[styles.divider, { backgroundColor: colors.border }]} />
+          <View style={styles.divider} />
 
           {/* Menu items */}
           {MENU_ITEMS.map((item) => (
@@ -123,15 +109,24 @@ export function UserDropdown() {
               ]}
               onPress={() => handleItemPress(item)}
             >
-              <Ionicons
-                name={item.icon}
-                size={18}
-                color={item.action === 'logout' ? colors.error : colors.textSecondary}
-              />
+              <View
+                style={[
+                  styles.menuIconCircle,
+                  item.action === 'logout'
+                    ? { backgroundColor: V2_COLORS.secondary + '15' }
+                    : { backgroundColor: V2_COLORS.primary + '15' },
+                ]}
+              >
+                <Ionicons
+                  name={item.icon}
+                  size={16}
+                  color={item.action === 'logout' ? V2_COLORS.secondary : V2_COLORS.primary}
+                />
+              </View>
               <Text
                 style={[
                   styles.menuLabel,
-                  { color: item.action === 'logout' ? colors.error : colors.text },
+                  { color: item.action === 'logout' ? V2_COLORS.secondary : V2_COLORS.text },
                 ]}
               >
                 {t(item.labelKey)}
@@ -149,7 +144,7 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   avatarButton: {
-    borderRadius: 20,
+    borderRadius: RADIUS.pill,
     padding: 4,
     ...({ cursor: 'pointer' } as any),
   },
@@ -158,10 +153,11 @@ const styles = StyleSheet.create({
     top: 48,
     end: 0,
     width: 260,
-    borderRadius: 16,
+    borderRadius: RADIUS.card,
     overflow: 'hidden',
     paddingVertical: 8,
-    ...({ boxShadow: '0 8px 32px rgba(0,0,0,0.12)' } as any),
+    backgroundColor: '#FFFFFF',
+    ...BUBBLE_SHADOWS.md,
   },
   userInfo: {
     flexDirection: 'row',
@@ -176,15 +172,18 @@ const styles = StyleSheet.create({
   userName: {
     fontSize: 14,
     fontWeight: '600',
+    color: V2_COLORS.text,
   },
   userEmail: {
     fontSize: 12,
     marginTop: 2,
+    color: V2_COLORS.textSoft,
   },
   divider: {
     height: 1,
     marginHorizontal: 12,
     marginVertical: 4,
+    backgroundColor: V2_COLORS.cardShadow,
   },
   menuItem: {
     flexDirection: 'row',
@@ -192,7 +191,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 10,
     gap: 12,
+    borderRadius: RADIUS.pill,
+    marginHorizontal: 8,
     ...({ cursor: 'pointer' } as any),
+  },
+  menuIconCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   logoutItem: {
     marginTop: 4,

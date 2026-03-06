@@ -3,14 +3,8 @@ import { usePathname, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 
-import { useTheme } from '@/hooks/useTheme';
-import {
-  SIDEBAR_WIDTH,
-  SIDEBAR_COLLAPSED_WIDTH,
-  glassBackground,
-  glassBorder,
-  webTransition,
-} from './styles';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS } from '@/providers/ThemeProvider';
+import { SIDEBAR_WIDTH, SIDEBAR_COLLAPSED_WIDTH, webTransition } from './styles';
 
 interface NavItem {
   route: string;
@@ -60,7 +54,6 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { t } = useTranslation();
-  const { colors, isDark } = useTheme();
 
   const isActive = (item: NavItem) =>
     item.matchPaths.some((p) => pathname === p || pathname.startsWith(p + '/'));
@@ -68,22 +61,12 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const width = collapsed ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_WIDTH;
 
   return (
-    <View
-      style={[
-        styles.container,
-        glassBackground(colors, isDark),
-        glassBorder(isDark),
-        webTransition('width'),
-        { width, borderEndWidth: 1, borderEndColor: colors.border },
-      ]}
-    >
+    <View style={[styles.container, webTransition('width'), { width }]}>
       {/* Logo area */}
       <View style={styles.logoArea}>
-        {!collapsed && (
-          <Text style={[styles.logoText, { color: colors.primary }]}>LuggageShare</Text>
-        )}
+        {!collapsed && <Text style={styles.logoText}>LuggageShare</Text>}
         <TouchableOpacity onPress={onToggle} style={styles.toggleButton}>
-          <Ionicons name={collapsed ? 'menu' : 'close'} size={22} color={colors.text} />
+          <Ionicons name={collapsed ? 'menu' : 'close'} size={22} color={V2_COLORS.text} />
         </TouchableOpacity>
       </View>
 
@@ -97,7 +80,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
               style={[
                 styles.navItem,
                 collapsed && styles.navItemCollapsed,
-                active && [styles.navItemActive, { backgroundColor: colors.primary }],
+                active && styles.navItemActive,
                 !active && webTransition('background-color', '0.15s'),
               ]}
               onPress={() => router.push(item.route as any)}
@@ -105,13 +88,13 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
               <Ionicons
                 name={active ? item.activeIcon : item.icon}
                 size={20}
-                color={active ? '#FFFFFF' : colors.textSecondary}
+                color={active ? '#FFFFFF' : V2_COLORS.textSoft}
               />
               {!collapsed && (
                 <Text
                   style={[
                     styles.navLabel,
-                    { color: active ? '#FFFFFF' : colors.text },
+                    { color: active ? '#FFFFFF' : V2_COLORS.text },
                     active && styles.navLabelActive,
                   ]}
                   numberOfLines={1}
@@ -126,10 +109,8 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
 
       {/* Bottom section */}
       <View style={styles.bottomSection}>
-        <View style={[styles.divider, { backgroundColor: colors.border }]} />
-        {!collapsed && (
-          <Text style={[styles.versionText, { color: colors.textTertiary }]}>v1.0.0</Text>
-        )}
+        <View style={styles.divider} />
+        {!collapsed && <Text style={styles.versionText}>v1.0.0</Text>}
       </View>
     </View>
   );
@@ -144,6 +125,8 @@ const styles = StyleSheet.create({
     zIndex: 100,
     flexDirection: 'column',
     overflow: 'hidden',
+    backgroundColor: '#FFFFFF',
+    ...BUBBLE_SHADOWS.sm,
   },
   logoArea: {
     flexDirection: 'row',
@@ -156,13 +139,15 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '800',
     letterSpacing: -0.3,
+    color: V2_COLORS.primary,
   },
   toggleButton: {
     width: 36,
     height: 36,
-    borderRadius: 10,
+    borderRadius: RADIUS.pill,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: V2_COLORS.bg,
     ...({ cursor: 'pointer' } as any),
   },
   navList: {
@@ -176,7 +161,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 10,
     paddingHorizontal: 12,
-    borderRadius: 12,
+    borderRadius: RADIUS.pill,
     gap: 12,
     ...({ cursor: 'pointer' } as any),
   },
@@ -185,7 +170,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 0,
   },
   navItemActive: {
-    ...({ boxShadow: '0 2px 8px rgba(46, 90, 143, 0.25)' } as any),
+    backgroundColor: V2_COLORS.primary,
+    ...BUBBLE_SHADOWS.sm,
   },
   navLabel: {
     fontSize: 14,
@@ -201,9 +187,11 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
+    backgroundColor: V2_COLORS.cardShadow,
   },
   versionText: {
     fontSize: 11,
     textAlign: 'center',
+    color: V2_COLORS.textMuted,
   },
 });
