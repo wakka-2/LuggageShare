@@ -6,7 +6,6 @@ import {
   ScrollView,
   TouchableOpacity,
   RefreshControl,
-  ActivityIndicator,
   ViewStyle,
   TextStyle,
 } from 'react-native';
@@ -22,14 +21,20 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { useTheme } from '@/hooks/useTheme';
-import { ThemeColors } from '@/providers/ThemeProvider';
+import { ThemeColors, RADIUS, SPACING, TYPOGRAPHY, SECTION_TINTS } from '@/providers/ThemeProvider';
 import { useBookings, getMockBookings, ApiBooking } from '@/hooks/useBookings';
+import { useMyListings } from '@/hooks/useListings';
 import { useAuth } from '@/hooks/useAuth';
-import { EmptyState, Avatar } from '@/components/common';
+import { SolidCard, EmptyState, Avatar } from '@/components/common';
 import { LiveIndicator, MiniStepper } from '@/components/status';
 import { SkeletonLoader } from '@/components/animations';
 
+// ─── Types ───────────────────────────────────────────────
+
+type Segment = 'bookings' | 'listings';
 type FilterTab = 'all' | 'active' | 'completed' | 'cancelled';
+
+// ─── Constants ───────────────────────────────────────────
 
 const STATUS_COLORS: Record<string, string> = {
   pending: '#F59E0B',
@@ -39,6 +44,10 @@ const STATUS_COLORS: Record<string, string> = {
   delivered: '#10B981',
   rejected: '#EF4444',
   cancelled: '#6B7280',
+  active: '#10B981',
+  fulfilled: '#3B82F6',
+  expired: '#6B7280',
+  withdrawn: '#9CA3AF',
 };
 
 const STATUS_KEYS: Record<string, string> = {
@@ -52,6 +61,8 @@ const STATUS_KEYS: Record<string, string> = {
 };
 
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
+
+// ─── BookingCard (V2 — solid card with colored left strip) ─
 
 const BookingCard = React.memo(function BookingCard({
   booking,
@@ -84,75 +95,168 @@ const BookingCard = React.memo(function BookingCard({
       onPressOut={() => {
         scale.value = withSpring(1, { damping: 15, stiffness: 200 });
       }}
-      activeOpacity={0.9}
-      style={[styles.bookingCard, { backgroundColor: colors.card }, animatedStyle]}
+      activeOpacity={1}
+      style={animatedStyle}
     >
-      <View style={styles.bookingRoute}>
-        <Text style={[styles.bookingCity, { color: colors.text }]}>
-          {booking.listing.departureCity}
-        </Text>
-        <Ionicons
-          name="arrow-forward"
-          size={16}
-          color={colors.textSecondary}
-          style={{ marginHorizontal: 8 }}
-        />
-        <Text style={[styles.bookingCity, { color: colors.text }]}>
-          {booking.listing.arrivalCity}
-        </Text>
-      </View>
+      <View style={cardStyles.cardOuter}>
+        {/* Colored left strip */}
+        <View style={[cardStyles.leftStrip, { backgroundColor: statusColor }]} />
 
-      <View style={[styles.statusBadge, { backgroundColor: statusColor + '20' }]}>
-        {isInTransit ? (
-          <LiveIndicator
-            color={statusColor}
-            size="small"
-            label={statusKey ? t(statusKey) : booking.status}
-          />
-        ) : (
-          <>
-            <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
-            <Text style={[styles.statusText, { color: statusColor }]}>
-              {statusKey ? t(statusKey) : booking.status}
-            </Text>
-          </>
-        )}
-      </View>
+        <SolidCard accentColor={statusColor} style={cardStyles.card} noPadding>
+          <View style={cardStyles.cardInner}>
+            {/* Route */}
+            <View style={cardStyles.routeRow}>
+              <Text style={[TYPOGRAPHY.h3 as TextStyle, { color: colors.text }]}>
+                {booking.listing.departureCity}
+              </Text>
+              <View style={[cardStyles.routeArrowCircle, { backgroundColor: statusColor + '15' }]}>
+                <Ionicons name="airplane" size={14} color={statusColor} />
+              </View>
+              <Text style={[TYPOGRAPHY.h3 as TextStyle, { color: colors.text }]}>
+                {booking.listing.arrivalCity}
+              </Text>
+            </View>
 
-      {/* Mini progress stepper */}
-      <MiniStepper currentStatus={booking.status} />
+            {/* Status Badge */}
+            <View style={[cardStyles.statusBadge, { backgroundColor: statusColor + '15' }]}>
+              {isInTransit ? (
+                <LiveIndicator
+                  color={statusColor}
+                  size="small"
+                  label={statusKey ? t(statusKey) : booking.status}
+                />
+              ) : (
+                <>
+                  <View style={[cardStyles.statusDot, { backgroundColor: statusColor }]} />
+                  <Text style={[TYPOGRAPHY.small, { color: statusColor, fontWeight: '700' }]}>
+                    {statusKey ? t(statusKey) : booking.status}
+                  </Text>
+                </>
+              )}
+            </View>
 
-      <View style={styles.bookingDetails}>
-        <View style={styles.detailItem}>
-          <Ionicons name="calendar-outline" size={14} color={colors.textSecondary} />
-          <Text style={[styles.detailText, { color: colors.textSecondary }]}>
-            {date.toLocaleDateString(isRTL ? 'ar-SA' : 'en-US', {
-              day: 'numeric',
-              month: 'short',
-            })}
-          </Text>
-        </View>
-        <View style={styles.detailItem}>
-          <Ionicons name="scale-outline" size={14} color={colors.textSecondary} />
-          <Text style={[styles.detailText, { color: colors.textSecondary }]}>
-            {Number(booking.totalWeight)} kg
-          </Text>
-        </View>
-        <View style={styles.detailItem}>
-          <Ionicons name="pricetag-outline" size={14} color={colors.textSecondary} />
-          <Text style={[styles.detailText, { color: colors.textSecondary }]}>
-            {Number(booking.totalPrice)} {booking.currency}
-          </Text>
-        </View>
-      </View>
+            {/* Mini Stepper */}
+            <MiniStepper currentStatus={booking.status} />
 
-      <View style={[styles.bookingUser, { borderTopColor: colors.border }]}>
-        <Avatar name={booking.carrier.name} avatarUrl={booking.carrier.avatarUrl} size={32} />
-        <Text style={[styles.userName, { color: colors.text }]}>{booking.carrier.name}</Text>
+            {/* Details Row */}
+            <View style={cardStyles.detailsRow}>
+              <View style={[cardStyles.detailChip, { backgroundColor: SECTION_TINTS.blue }]}>
+                <Ionicons name="calendar-outline" size={12} color="#3B82F6" />
+                <Text style={[TYPOGRAPHY.small, { color: '#3B82F6' }]}>
+                  {date.toLocaleDateString(isRTL ? 'ar-SA' : 'en-US', {
+                    day: 'numeric',
+                    month: 'short',
+                  })}
+                </Text>
+              </View>
+              <View style={[cardStyles.detailChip, { backgroundColor: SECTION_TINTS.purple }]}>
+                <Ionicons name="scale-outline" size={12} color="#6C63FF" />
+                <Text style={[TYPOGRAPHY.small, { color: '#6C63FF' }]}>
+                  {Number(booking.totalWeight)} kg
+                </Text>
+              </View>
+              <View style={[cardStyles.detailChip, { backgroundColor: SECTION_TINTS.green }]}>
+                <Ionicons name="pricetag-outline" size={12} color="#00C48C" />
+                <Text style={[TYPOGRAPHY.small, { color: '#00C48C' }]}>
+                  {Number(booking.totalPrice)} {booking.currency}
+                </Text>
+              </View>
+            </View>
+
+            {/* Carrier Row */}
+            <View style={[cardStyles.carrierRow, { borderTopColor: colors.borderSubtle }]}>
+              <Avatar name={booking.carrier.name} avatarUrl={booking.carrier.avatarUrl} size={32} />
+              <Text style={[TYPOGRAPHY.small, { color: colors.text, fontWeight: '600' }]}>
+                {booking.carrier.name}
+              </Text>
+            </View>
+          </View>
+        </SolidCard>
       </View>
     </AnimatedTouchable>
   );
 });
+
+// ─── RouteCard (V2 — solid card for listings) ─────────────
+
+const RouteCard = React.memo(function RouteCard({
+  departureCity,
+  arrivalCity,
+  status,
+  date,
+  detail,
+  isRTL,
+  colors,
+  onPress,
+}: {
+  departureCity: string;
+  arrivalCity: string;
+  status: string;
+  date: string;
+  detail: string;
+  isRTL: boolean;
+  colors: ThemeColors;
+  onPress: () => void;
+}) {
+  const statusColor = STATUS_COLORS[status] || colors.textSecondary;
+  const dateObj = new Date(date);
+
+  const scale = useSharedValue(1);
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  return (
+    <AnimatedTouchable
+      onPress={onPress}
+      onPressIn={() => {
+        scale.value = withSpring(0.98, { damping: 20, stiffness: 300 });
+      }}
+      onPressOut={() => {
+        scale.value = withSpring(1, { damping: 15, stiffness: 200 });
+      }}
+      activeOpacity={1}
+      style={animatedStyle}
+    >
+      <SolidCard accentColor={colors.primary} style={cardStyles.card}>
+        {/* Route */}
+        <View style={cardStyles.routeRow}>
+          <Text style={[TYPOGRAPHY.h3 as TextStyle, { color: colors.text }]}>{departureCity}</Text>
+          <View style={[cardStyles.routeArrowCircle, { backgroundColor: colors.primary + '15' }]}>
+            <Ionicons name="airplane" size={14} color={colors.primary} />
+          </View>
+          <Text style={[TYPOGRAPHY.h3 as TextStyle, { color: colors.text }]}>{arrivalCity}</Text>
+        </View>
+
+        {/* Status Badge */}
+        <View style={[cardStyles.statusBadge, { backgroundColor: statusColor + '15' }]}>
+          <View style={[cardStyles.statusDot, { backgroundColor: statusColor }]} />
+          <Text style={[TYPOGRAPHY.small, { color: statusColor, fontWeight: '700' }]}>
+            {status}
+          </Text>
+        </View>
+
+        {/* Details Row */}
+        <View style={cardStyles.detailsRow}>
+          <View style={[cardStyles.detailChip, { backgroundColor: SECTION_TINTS.blue }]}>
+            <Ionicons name="calendar-outline" size={12} color="#3B82F6" />
+            <Text style={[TYPOGRAPHY.small, { color: '#3B82F6' }]}>
+              {dateObj.toLocaleDateString(isRTL ? 'ar-SA' : 'en-US', {
+                day: 'numeric',
+                month: 'short',
+              })}
+            </Text>
+          </View>
+          <View style={[cardStyles.detailChip, { backgroundColor: SECTION_TINTS.purple }]}>
+            <Text style={[TYPOGRAPHY.small, { color: '#6C63FF' }]}>{detail}</Text>
+          </View>
+        </View>
+      </SolidCard>
+    </AnimatedTouchable>
+  );
+});
+
+// ─── TripsScreen ─────────────────────────────────────────
 
 export default function TripsScreen() {
   const { t, i18n } = useTranslation();
@@ -161,10 +265,16 @@ export default function TripsScreen() {
   const isRTL = i18n.language === 'ar';
 
   const { user } = useAuth();
+  const [segment, setSegment] = useState<Segment>('bookings');
   const [activeFilter, setActiveFilter] = useState<FilterTab>('all');
-  const { data: apiBookings, isLoading, refetch } = useBookings();
 
-  // Fall back to mock bookings when the API doesn't return data
+  const { data: apiBookings, isLoading: bookingsLoading, refetch: refetchBookings } = useBookings();
+  const {
+    data: myListings,
+    isLoading: listingsLoading,
+    refetch: refetchListings,
+  } = useMyListings();
+
   const bookings = apiBookings?.length ? apiBookings : user?.id ? getMockBookings(user.id) : [];
 
   const filteredBookings = useMemo(() => {
@@ -178,167 +288,429 @@ export default function TripsScreen() {
     return bookings.filter((b) => ['rejected', 'cancelled'].includes(b.status));
   }, [bookings, activeFilter]);
 
-  const filters: { key: FilterTab; labelKey: string }[] = [
-    { key: 'all', labelKey: 'trips.filterAll' },
-    { key: 'active', labelKey: 'trips.filterActive' },
-    { key: 'completed', labelKey: 'trips.filterDone' },
-    { key: 'cancelled', labelKey: 'trips.filterCancelled' },
+  const filters: { key: FilterTab; labelKey: string; tint: string; activeColor: string }[] = [
+    {
+      key: 'all',
+      labelKey: 'trips.filterAll',
+      tint: SECTION_TINTS.purple,
+      activeColor: colors.primary,
+    },
+    {
+      key: 'active',
+      labelKey: 'trips.filterActive',
+      tint: SECTION_TINTS.blue,
+      activeColor: '#3B82F6',
+    },
+    {
+      key: 'completed',
+      labelKey: 'trips.filterDone',
+      tint: SECTION_TINTS.green,
+      activeColor: '#00C48C',
+    },
+    {
+      key: 'cancelled',
+      labelKey: 'trips.filterCancelled',
+      tint: SECTION_TINTS.pink,
+      activeColor: '#FF647C',
+    },
   ];
 
+  const segments: { key: Segment; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
+    {
+      key: 'bookings',
+      label: t('myTrips.bookings', { defaultValue: 'Bookings' }),
+      icon: 'receipt-outline',
+    },
+    {
+      key: 'listings',
+      label: t('myTrips.listings', { defaultValue: 'My Listings' }),
+      icon: 'list-outline',
+    },
+  ];
+
+  const isLoading = segment === 'bookings' ? bookingsLoading : listingsLoading;
+
+  const handleRefresh = useCallback(() => {
+    if (segment === 'bookings') refetchBookings();
+    else refetchListings();
+  }, [segment, refetchBookings, refetchListings]);
+
+  // ─── Skeleton Loading ────────────────────────────────
+
+  const renderSkeletons = () => (
+    <View style={styles.skeletonContainer}>
+      {[0, 1, 2].map((i) => (
+        <Animated.View key={`skel-${i}`} entering={FadeInDown.delay(i * 80).duration(300)}>
+          <SolidCard accentColor={colors.primary} style={cardStyles.card}>
+            <SkeletonLoader width="65%" height={20} borderRadius={RADIUS.button} />
+            <SkeletonLoader
+              width="35%"
+              height={SPACING[6]}
+              borderRadius={RADIUS.pill}
+              style={{ marginTop: SPACING[3] }}
+            />
+            <View style={styles.skeletonDetailsRow}>
+              <SkeletonLoader width={80} height={SPACING[4]} borderRadius={RADIUS.button} />
+              <SkeletonLoader width={60} height={SPACING[4]} borderRadius={RADIUS.button} />
+              <SkeletonLoader width={70} height={SPACING[4]} borderRadius={RADIUS.button} />
+            </View>
+            <View style={styles.skeletonCarrierRow}>
+              <SkeletonLoader width={32} height={32} borderRadius={SPACING[4]} />
+              <SkeletonLoader width={100} height={SPACING[4]} borderRadius={RADIUS.button} />
+            </View>
+          </SolidCard>
+        </Animated.View>
+      ))}
+    </View>
+  );
+
+  // ─── Render ──────────────────────────────────────────
+
   return (
-    <SafeAreaView
-      style={[styles.container, { backgroundColor: colors.background }]}
-      edges={['top']}
-    >
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
-        <Text style={[styles.title, { color: colors.text }]}>{t('trips.title')}</Text>
+    <SafeAreaView style={[styles.container, { backgroundColor: '#FFFFFF' }]} edges={['top']}>
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={[TYPOGRAPHY.h1, { color: colors.text }]}>{t('trips.title')}</Text>
       </View>
 
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.filterBar}
-        contentContainerStyle={styles.filterBarContent}
-      >
-        {filters.map((f) => (
-          <TouchableOpacity
-            key={f.key}
-            onPress={() => setActiveFilter(f.key)}
-            style={[
-              styles.filterChip,
-              { backgroundColor: activeFilter === f.key ? colors.primary : colors.card },
-            ]}
-          >
-            <Text
+      {/* Segment Control (V2 — solid pills with icons) */}
+      <View style={styles.segmentBar}>
+        {segments.map((s) => {
+          const isActive = segment === s.key;
+          return (
+            <TouchableOpacity
+              key={s.key}
+              onPress={() => setSegment(s.key)}
               style={[
-                styles.filterChipText,
-                { color: activeFilter === f.key ? '#FFF' : colors.textSecondary },
+                styles.segmentPill,
+                {
+                  backgroundColor: isActive ? colors.primary : SECTION_TINTS.purple,
+                },
               ]}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: isActive }}
             >
-              {t(f.labelKey)}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+              <Ionicons
+                name={s.icon}
+                size={16}
+                color={isActive ? '#FFFFFF' : colors.primary}
+                style={styles.segmentIcon}
+              />
+              <Text
+                style={[
+                  TYPOGRAPHY.small,
+                  styles.segmentPillText,
+                  { color: isActive ? '#FFFFFF' : colors.primary },
+                ]}
+              >
+                {s.label}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
 
+      {/* Filter Chips (V2 — colored tint backgrounds) */}
+      {segment === 'bookings' && (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.filterBar}
+          contentContainerStyle={styles.filterBarContent}
+        >
+          {filters.map((f) => {
+            const isActive = activeFilter === f.key;
+            return (
+              <TouchableOpacity
+                key={f.key}
+                onPress={() => setActiveFilter(f.key)}
+                style={[
+                  styles.filterPill,
+                  {
+                    backgroundColor: isActive ? f.activeColor : f.tint,
+                    borderColor: isActive ? f.activeColor : f.activeColor + '20',
+                  },
+                ]}
+                accessibilityRole="tab"
+                accessibilityState={{ selected: isActive }}
+              >
+                <Text
+                  style={[
+                    TYPOGRAPHY.small,
+                    { color: isActive ? '#FFFFFF' : f.activeColor, fontWeight: '600' },
+                  ]}
+                >
+                  {t(f.labelKey)}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+      )}
+
+      {/* Content */}
       <ScrollView
+        style={styles.flex1}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl
-            refreshing={false}
-            onRefresh={() => refetch()}
-            tintColor={colors.primary}
-          />
+          <RefreshControl refreshing={false} onRefresh={handleRefresh} tintColor={colors.primary} />
         }
       >
-        {isLoading && (
-          <View style={styles.loading}>
-            {[0, 1, 2].map((i) => (
+        {isLoading && renderSkeletons()}
+
+        {/* Bookings Segment */}
+        {!isLoading && segment === 'bookings' && (
+          <>
+            {filteredBookings.length === 0 && (
+              <EmptyState
+                lottieAnimation="search"
+                title={t('trips.empty')}
+                description={t('trips.emptyDescription')}
+                actionLabel={t('messages.browseListings')}
+                onAction={() => router.push('/(tabs)')}
+                style={styles.emptyState}
+              />
+            )}
+            {filteredBookings.map((booking, index) => (
               <Animated.View
-                key={`skel-${i}`}
-                entering={FadeInDown.delay(i * 80).duration(300)}
-                style={styles.skeletonCard}
+                key={booking.id}
+                entering={FadeInDown.delay(index * 50)
+                  .duration(300)
+                  .springify()}
               >
-                <SkeletonLoader width="60%" height={18} borderRadius={4} />
-                <SkeletonLoader
-                  width="35%"
-                  height={14}
-                  borderRadius={10}
-                  style={{ marginTop: 10 }}
+                <BookingCard
+                  booking={booking}
+                  isRTL={isRTL}
+                  colors={colors}
+                  onPress={() => router.push(`/booking/${booking.id}`)}
                 />
-                <View style={{ flexDirection: 'row', gap: 16, marginTop: 12 }}>
-                  <SkeletonLoader width={80} height={14} borderRadius={4} />
-                  <SkeletonLoader width={60} height={14} borderRadius={4} />
-                  <SkeletonLoader width={70} height={14} borderRadius={4} />
-                </View>
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    gap: 8,
-                    marginTop: 14,
-                    paddingTop: 12,
-                    borderTopWidth: 1,
-                    borderTopColor: colors.border,
-                  }}
-                >
-                  <SkeletonLoader width={32} height={32} borderRadius={16} />
-                  <SkeletonLoader width={100} height={14} borderRadius={4} />
-                </View>
               </Animated.View>
             ))}
-          </View>
+          </>
         )}
 
-        {!isLoading && filteredBookings.length === 0 && (
-          <EmptyState
-            lottieAnimation="search"
-            title={t('trips.empty')}
-            description={t('trips.emptyDescription')}
-            actionLabel={t('messages.browseListings')}
-            onAction={() => router.push('/(tabs)')}
-            style={styles.emptyState}
-          />
-        )}
-
-        {!isLoading &&
-          filteredBookings.map((booking, index) => (
-            <Animated.View key={booking.id} entering={FadeInDown.delay(index * 50).duration(300)}>
-              <BookingCard
-                booking={booking}
-                isRTL={isRTL}
-                colors={colors}
-                onPress={() => router.push(`/booking/${booking.id}`)}
+        {/* My Listings Segment */}
+        {!isLoading && segment === 'listings' && (
+          <>
+            {(!myListings || myListings.length === 0) && (
+              <EmptyState
+                lottieAnimation="search"
+                title={t('myTrips.noListings', {
+                  defaultValue: 'No listings yet',
+                })}
+                description={t('myTrips.noListingsDesc', {
+                  defaultValue: 'Post a listing to start earning from your travels',
+                })}
+                actionLabel={t('myTrips.createListing', {
+                  defaultValue: 'Create Listing',
+                })}
+                onAction={() => router.push('/listing/create' as any)}
+                style={styles.emptyState}
               />
-            </Animated.View>
-          ))}
+            )}
+            {myListings?.map((listing, index) => (
+              <Animated.View
+                key={listing.id}
+                entering={FadeInDown.delay(index * 50)
+                  .duration(300)
+                  .springify()}
+              >
+                <RouteCard
+                  departureCity={listing.departureCity}
+                  arrivalCity={listing.arrivalCity}
+                  status={listing.status}
+                  date={listing.departureDate}
+                  detail={`${Number(listing.availableWeight)} kg - SAR ${Number(listing.price)}`}
+                  isRTL={isRTL}
+                  colors={colors}
+                  onPress={() => router.push(`/listing/${listing.id}` as any)}
+                />
+              </Animated.View>
+            ))}
+          </>
+        )}
+
+        {/* Bottom spacer for tab bar */}
+        <View style={styles.bottomSpacer} />
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1 } as ViewStyle,
-  header: { padding: 16, borderBottomWidth: 1 } as ViewStyle,
-  title: { fontSize: 24, fontWeight: 'bold' } as TextStyle,
-  filterBar: { maxHeight: 56 } as ViewStyle,
-  filterBarContent: { paddingHorizontal: 16, paddingVertical: 12, gap: 8 } as ViewStyle,
-  filterChip: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20 } as ViewStyle,
-  filterChipText: { fontSize: 14, fontWeight: '600' } as TextStyle,
-  scrollContent: { padding: 16, paddingBottom: 32 } as ViewStyle,
-  loading: { paddingVertical: 16 } as ViewStyle,
-  skeletonCard: {
-    backgroundColor: 'transparent',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
+// ─── Card Styles (V2 — solid with colored accents) ──────
+
+const cardStyles = StyleSheet.create({
+  cardOuter: {
+    flexDirection: 'row',
+    marginBottom: SPACING[3],
   } as ViewStyle,
-  emptyState: { marginTop: 40 } as ViewStyle,
-  bookingCard: { borderRadius: 16, padding: 16, marginBottom: 12 } as ViewStyle,
-  bookingRoute: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 } as ViewStyle,
-  bookingCity: { fontSize: 16, fontWeight: '700' } as TextStyle,
+
+  leftStrip: {
+    width: 4,
+    borderRadius: 2,
+    marginRight: -1,
+    marginVertical: 4,
+  } as ViewStyle,
+
+  card: {
+    flex: 1,
+    marginBottom: SPACING[3],
+  } as ViewStyle,
+
+  cardInner: {
+    padding: SPACING[4],
+  } as ViewStyle,
+
+  routeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: SPACING[3],
+  } as ViewStyle,
+
+  routeArrowCircle: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginHorizontal: SPACING[2],
+  } as ViewStyle,
+
   statusBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'flex-start',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-    gap: 6,
-    marginBottom: 12,
+    paddingHorizontal: SPACING[3],
+    paddingVertical: SPACING[1],
+    borderRadius: RADIUS.pill,
+    gap: SPACING[2],
+    marginBottom: SPACING[3],
   } as ViewStyle,
-  statusDot: { width: 6, height: 6, borderRadius: 3 } as ViewStyle,
-  statusText: { fontSize: 12, fontWeight: '600' } as TextStyle,
-  bookingDetails: { flexDirection: 'row', gap: 16, marginBottom: 12 } as ViewStyle,
-  detailItem: { flexDirection: 'row', alignItems: 'center', gap: 4 } as ViewStyle,
-  detailText: { fontSize: 13 } as TextStyle,
-  bookingUser: {
+
+  statusDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+  } as ViewStyle,
+
+  detailsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: SPACING[2],
+    marginBottom: SPACING[3],
+  } as ViewStyle,
+
+  detailChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    paddingTop: 12,
+    gap: SPACING[1],
+    paddingHorizontal: SPACING[2],
+    paddingVertical: SPACING[1],
+    borderRadius: RADIUS.badge,
+  } as ViewStyle,
+
+  detailItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING[1],
+  } as ViewStyle,
+
+  carrierRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING[2],
+    paddingTop: SPACING[3],
     borderTopWidth: 1,
   } as ViewStyle,
-  userName: { fontSize: 14, fontWeight: '500' } as TextStyle,
+});
+
+// ─── Screen Styles (V2) ─────────────────────────────────
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  } as ViewStyle,
+
+  flex1: {
+    flex: 1,
+  } as ViewStyle,
+
+  header: {
+    paddingHorizontal: SPACING[5],
+    paddingVertical: SPACING[3],
+  } as ViewStyle,
+
+  segmentBar: {
+    flexDirection: 'row',
+    paddingHorizontal: SPACING[4],
+    paddingBottom: SPACING[3],
+    gap: SPACING[3],
+  } as ViewStyle,
+
+  segmentPill: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: SPACING[3],
+    borderRadius: RADIUS.button,
+    gap: SPACING[1],
+  } as ViewStyle,
+
+  segmentIcon: {
+    marginRight: 2,
+  } as TextStyle,
+
+  segmentPillText: {
+    fontWeight: '700',
+  } as TextStyle,
+
+  filterBar: {
+    maxHeight: SPACING[9],
+  } as ViewStyle,
+
+  filterBarContent: {
+    paddingHorizontal: SPACING[4],
+    paddingBottom: SPACING[3],
+    gap: SPACING[2],
+  } as ViewStyle,
+
+  filterPill: {
+    paddingHorizontal: SPACING[4],
+    paddingVertical: SPACING[2],
+    borderRadius: RADIUS.pill,
+    borderWidth: 1,
+  } as ViewStyle,
+
+  scrollContent: {
+    paddingHorizontal: SPACING[4],
+    paddingTop: SPACING[3],
+  } as ViewStyle,
+
+  skeletonContainer: {
+    gap: SPACING[3],
+  } as ViewStyle,
+
+  skeletonDetailsRow: {
+    flexDirection: 'row',
+    gap: SPACING[4],
+    marginTop: SPACING[3],
+  } as ViewStyle,
+
+  skeletonCarrierRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING[2],
+    marginTop: SPACING[4],
+    paddingTop: SPACING[3],
+  } as ViewStyle,
+
+  emptyState: {
+    marginTop: SPACING[8],
+  } as ViewStyle,
+
+  bottomSpacer: {
+    height: 80,
+  } as ViewStyle,
 });

@@ -1,6 +1,6 @@
-import React from 'react';
-import { View, TextInput, StyleSheet } from 'react-native';
-import Animated, { FadeInUp } from 'react-native-reanimated';
+import React, { useState, useMemo } from 'react';
+import { View, TextInput, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import Animated, { FadeInUp, FadeIn } from 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme, RADIUS } from '@/providers/ThemeProvider';
@@ -23,10 +23,67 @@ const ROUTE_MAP: Record<string, { from: string; fromCode: string; to: string; to
   'ruh-amm': { from: 'Riyadh', fromCode: 'RUH', to: 'Amman', toCode: 'AMM' },
 };
 
+interface CityEntry {
+  name: string;
+  nameAr: string;
+  code: string;
+  country: string;
+}
+
+const CITIES: CityEntry[] = [
+  { name: 'Riyadh', nameAr: 'الرياض', code: 'RUH', country: 'SA' },
+  { name: 'Jeddah', nameAr: 'جدة', code: 'JED', country: 'SA' },
+  { name: 'Dammam', nameAr: 'الدمام', code: 'DMM', country: 'SA' },
+  { name: 'Medina', nameAr: 'المدينة', code: 'MED', country: 'SA' },
+  { name: 'Abha', nameAr: 'أبها', code: 'AHB', country: 'SA' },
+  { name: 'Tabuk', nameAr: 'تبوك', code: 'TUU', country: 'SA' },
+  { name: 'Dubai', nameAr: 'دبي', code: 'DXB', country: 'AE' },
+  { name: 'Abu Dhabi', nameAr: 'أبوظبي', code: 'AUH', country: 'AE' },
+  { name: 'Sharjah', nameAr: 'الشارقة', code: 'SHJ', country: 'AE' },
+  { name: 'Cairo', nameAr: 'القاهرة', code: 'CAI', country: 'EG' },
+  { name: 'Alexandria', nameAr: 'الإسكندرية', code: 'HBE', country: 'EG' },
+  { name: 'Amman', nameAr: 'عمّان', code: 'AMM', country: 'JO' },
+  { name: 'Beirut', nameAr: 'بيروت', code: 'BEY', country: 'LB' },
+  { name: 'Istanbul', nameAr: 'إسطنبول', code: 'IST', country: 'TR' },
+  { name: 'Doha', nameAr: 'الدوحة', code: 'DOH', country: 'QA' },
+  { name: 'Kuwait City', nameAr: 'الكويت', code: 'KWI', country: 'KW' },
+  { name: 'Muscat', nameAr: 'مسقط', code: 'MCT', country: 'OM' },
+  { name: 'Bahrain', nameAr: 'البحرين', code: 'BAH', country: 'BH' },
+  { name: 'London', nameAr: 'لندن', code: 'LHR', country: 'GB' },
+  { name: 'Paris', nameAr: 'باريس', code: 'CDG', country: 'FR' },
+  { name: 'Kuala Lumpur', nameAr: 'كوالالمبور', code: 'KUL', country: 'MY' },
+  { name: 'Casablanca', nameAr: 'الدار البيضاء', code: 'CMN', country: 'MA' },
+  { name: 'Tunis', nameAr: 'تونس', code: 'TUN', country: 'TN' },
+  { name: 'Baghdad', nameAr: 'بغداد', code: 'BGW', country: 'IQ' },
+  { name: 'Khartoum', nameAr: 'الخرطوم', code: 'KRT', country: 'SD' },
+];
+
+function filterCities(query: string, isArabic: boolean): CityEntry[] {
+  if (!query || query.length < 2) return [];
+  const q = query.toLowerCase();
+  return CITIES.filter(
+    (c) =>
+      c.name.toLowerCase().includes(q) ||
+      c.nameAr.includes(query) ||
+      c.code.toLowerCase().includes(q)
+  ).slice(0, 5);
+}
+
 export function RouteStep({ data, updateData, goNext }: StepProps) {
   const { t, i18n } = useTranslation();
   const { colors } = useTheme();
   const isRTL = i18n.language === 'ar';
+
+  const [focusedField, setFocusedField] = useState<'from' | 'to' | null>(null);
+
+  const fromSuggestions = useMemo(
+    () => (focusedField === 'from' ? filterCities(data.departureCity || '', isRTL) : []),
+    [data.departureCity, focusedField, isRTL]
+  );
+  const toSuggestions = useMemo(
+    () => (focusedField === 'to' ? filterCities(data.arrivalCity || '', isRTL) : []),
+    [data.arrivalCity, focusedField, isRTL]
+  );
 
   const canAdvance = !!data.departureCity?.trim() && !!data.arrivalCity?.trim();
 
@@ -64,10 +121,39 @@ export function RouteStep({ data, updateData, goNext }: StepProps) {
           ]}
           value={data.departureCity || ''}
           onChangeText={(v) => updateData({ departureCity: v })}
+          onFocus={() => setFocusedField('from')}
+          onBlur={() => setTimeout(() => setFocusedField((f) => (f === 'from' ? null : f)), 200)}
           placeholder={t('listing.wizard.route.searchCity', { defaultValue: 'Search city...' })}
           placeholderTextColor={colors.textMuted}
           textAlign={isRTL ? 'right' : 'left'}
         />
+        {fromSuggestions.length > 0 && (
+          <Animated.View
+            entering={FadeIn.duration(150)}
+            style={[
+              styles.suggestions,
+              { backgroundColor: colors.surface, borderColor: colors.border },
+            ]}
+          >
+            {fromSuggestions.map((city) => (
+              <TouchableOpacity
+                key={city.code}
+                style={[styles.suggestionItem, { borderBottomColor: colors.border }]}
+                onPress={() => {
+                  updateData({ departureCity: city.name, departureCode: city.code });
+                  setFocusedField(null);
+                }}
+              >
+                <Text style={[styles.suggestionName, { color: colors.text }]}>
+                  {isRTL ? city.nameAr : city.name}
+                </Text>
+                <Text style={[styles.suggestionCode, { color: colors.textMuted }]}>
+                  {city.code}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </Animated.View>
+        )}
         <TextInput
           style={[
             styles.codeInput,
@@ -98,10 +184,39 @@ export function RouteStep({ data, updateData, goNext }: StepProps) {
           ]}
           value={data.arrivalCity || ''}
           onChangeText={(v) => updateData({ arrivalCity: v })}
+          onFocus={() => setFocusedField('to')}
+          onBlur={() => setTimeout(() => setFocusedField((f) => (f === 'to' ? null : f)), 200)}
           placeholder={t('listing.wizard.route.searchCity', { defaultValue: 'Search city...' })}
           placeholderTextColor={colors.textMuted}
           textAlign={isRTL ? 'right' : 'left'}
         />
+        {toSuggestions.length > 0 && (
+          <Animated.View
+            entering={FadeIn.duration(150)}
+            style={[
+              styles.suggestions,
+              { backgroundColor: colors.surface, borderColor: colors.border },
+            ]}
+          >
+            {toSuggestions.map((city) => (
+              <TouchableOpacity
+                key={city.code}
+                style={[styles.suggestionItem, { borderBottomColor: colors.border }]}
+                onPress={() => {
+                  updateData({ arrivalCity: city.name, arrivalCode: city.code });
+                  setFocusedField(null);
+                }}
+              >
+                <Text style={[styles.suggestionName, { color: colors.text }]}>
+                  {isRTL ? city.nameAr : city.name}
+                </Text>
+                <Text style={[styles.suggestionCode, { color: colors.textMuted }]}>
+                  {city.code}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </Animated.View>
+        )}
         <TextInput
           style={[
             styles.codeInput,
@@ -171,6 +286,29 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     borderWidth: 1,
     letterSpacing: 1,
+  },
+  suggestions: {
+    borderRadius: RADIUS.input,
+    borderWidth: 1,
+    marginBottom: 8,
+    overflow: 'hidden',
+  },
+  suggestionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  suggestionName: {
+    fontSize: 15,
+    fontWeight: '500',
+  },
+  suggestionCode: {
+    fontSize: 13,
+    fontWeight: '600',
+    letterSpacing: 0.5,
   },
   popular: {
     marginTop: 8,

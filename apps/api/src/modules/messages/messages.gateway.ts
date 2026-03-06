@@ -218,16 +218,133 @@ export class MessagesGateway implements OnGatewayConnection, OnGatewayDisconnect
     return { event: 'sendMessage', data: { success: true, message } };
   }
 
+  @SubscribeMessage('joinOffer')
+  async handleJoinOffer(
+    @ConnectedSocket() client: AuthenticatedSocket,
+    @MessageBody() data: { offerId: string }
+  ): Promise<{ event: string; data: { success: boolean; error?: string } }> {
+    const userId = client.userId;
+    if (!userId) {
+      return { event: 'joinOffer', data: { success: false, error: 'Not authenticated' } };
+    }
+
+    const offer = await this.prisma.offer.findUnique({
+      where: { id: data.offerId },
+      include: { trip: true, request: true },
+    });
+
+    if (!offer) {
+      return { event: 'joinOffer', data: { success: false, error: 'Offer not found' } };
+    }
+
+    const posterUserId = offer.trip?.posterId ?? offer.request?.posterId;
+    if (offer.userId !== userId && posterUserId !== userId) {
+      return { event: 'joinOffer', data: { success: false, error: 'Access denied' } };
+    }
+
+    const room = `offer:${data.offerId}`;
+    client.join(room);
+    this.logger.debug(`User ${userId} joined room ${room}`);
+
+    return { event: 'joinOffer', data: { success: true } };
+  }
+
+  @SubscribeMessage('leaveOffer')
+  handleLeaveOffer(
+    @ConnectedSocket() client: AuthenticatedSocket,
+    @MessageBody() data: { offerId: string }
+  ): { event: string; data: { success: boolean } } {
+    const room = `offer:${data.offerId}`;
+    client.leave(room);
+    this.logger.debug(`User ${client.userId} left room ${room}`);
+
+    return { event: 'leaveOffer', data: { success: true } };
+  }
+
+  @SubscribeMessage('sendOfferMessage')
+  async handleSendOfferMessage(
+    @ConnectedSocket() client: AuthenticatedSocket,
+    @MessageBody() data: { offerId: string; content: string }
+  ): Promise<{
+    event: string;
+    data: { success: boolean; message?: any; error?: string };
+  }> {
+    const userId = client.userId;
+    if (!userId) {
+      return { event: 'sendOfferMessage', data: { success: false, error: 'Not authenticated' } };
+    }
+
+    const { offerId, content } = data;
+
+    if (!content || typeof content !== 'string' || content.trim().length === 0) {
+      return {
+        event: 'sendOfferMessage',
+        data: { success: false, error: 'Message content is required' },
+      };
+    }
+
+    if (content.length > 1000) {
+      return {
+        event: 'sendOfferMessage',
+        data: { success: false, error: 'Message exceeds 1000 characters' },
+      };
+    }
+
+    const offer = await this.prisma.offer.findUnique({
+      where: { id: offerId },
+      include: { trip: true, request: true },
+    });
+
+    if (!offer) {
+      return { event: 'sendOfferMessage', data: { success: false, error: 'Offer not found' } };
+    }
+
+    const posterUserId = offer.trip?.posterId ?? offer.request?.posterId;
+    if (offer.userId !== userId && posterUserId !== userId) {
+      return { event: 'sendOfferMessage', data: { success: false, error: 'Access denied' } };
+    }
+
+    if (containsProfanity(content)) {
+      return {
+        event: 'sendOfferMessage',
+        data: { success: false, error: 'Message contains inappropriate content' },
+      };
+    }
+
+    const message = await this.prisma.message.create({
+      data: {
+        offerId,
+        senderId: userId,
+        content: content.trim(),
+      },
+      include: {
+        sender: { select: { id: true, name: true, avatarUrl: true } },
+      },
+    });
+
+    const room = `offer:${offerId}`;
+    this.server.to(room).emit('newMessage', message);
+
+    this.logger.debug(`Offer message ${message.id} sent to room ${room} by user ${userId}`);
+
+    return { event: 'sendOfferMessage', data: { success: true, message } };
+  }
+
   @SubscribeMessage('typing')
   handleTyping(
     @ConnectedSocket() client: AuthenticatedSocket,
-    @MessageBody() data: { bookingId: string }
+    @MessageBody() data: { bookingId?: string; offerId?: string }
   ): void {
     const userId = client.userId;
     if (!userId) return;
 
-    const room = `booking:${data.bookingId}`;
-    client.to(room).emit('userTyping', { userId, bookingId: data.bookingId });
+    if (data.bookingId) {
+      const room = `booking:${data.bookingId}`;
+      client.to(room).emit('userTyping', { userId, bookingId: data.bookingId });
+    } else if (data.offerId) {
+      const room = `offer:${data.offerId}`;
+      client.to(room).emit('userTyping', { userId, offerId: data.offerId });
+    }
   }
 
   // ---------------------------------------------------------------------------

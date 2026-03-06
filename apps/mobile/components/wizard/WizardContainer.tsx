@@ -5,17 +5,16 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  TouchableOpacity,
+  Pressable,
   Text,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/providers/ThemeProvider';
-import { WizardProgress } from './WizardProgress';
+import { useGoBack } from '@/hooks/useGoBack';
+import { StepIndicator } from './StepIndicator';
 import { WizardStep } from './WizardStep';
-import { AnimatedButton } from '@/components/animations/AnimatedButton';
 
 export interface StepProps {
   data: Record<string, any>;
@@ -28,6 +27,8 @@ export interface WizardStepConfig {
   component: React.ComponentType<StepProps>;
   canSkip?: boolean;
   validate?: (data: Record<string, any>) => boolean | string;
+  /** Ionicons icon name shown in the step indicator circle */
+  icon?: string;
 }
 
 interface WizardContainerProps {
@@ -47,16 +48,32 @@ export function WizardContainer({
 }: WizardContainerProps) {
   const { t, i18n } = useTranslation();
   const { colors } = useTheme();
-  const router = useRouter();
+  const goBackFallback = useGoBack();
   const isRTL = i18n.language === 'ar';
 
   const [currentStep, setCurrentStep] = useState(0);
   const [direction, setDirection] = useState<'forward' | 'backward'>('forward');
   const [wizardData, setWizardData] = useState<Record<string, any>>(initialData);
+  const [maxVisited, setMaxVisited] = useState(0);
 
   const updateData = useCallback((partial: Record<string, any>) => {
     setWizardData((prev) => ({ ...prev, ...partial }));
   }, []);
+
+  /* ── Compute validation errors for all visited steps ── */
+  const stepErrors = useMemo(() => {
+    return steps.map((step, i) => {
+      if (i > maxVisited || i === currentStep) return null;
+      if (!step.validate) return null;
+      const result = step.validate(wizardData);
+      if (result === true) return null;
+      if (typeof result === 'string') return result;
+      if (result === false) return 'Invalid';
+      return null;
+    });
+  }, [steps, wizardData, maxVisited, currentStep]);
+
+  const stepIcons = useMemo(() => steps.map((s) => s.icon || 'ellipse'), [steps]);
 
   const goNext = useCallback(() => {
     const config = steps[currentStep];
@@ -64,18 +81,16 @@ export function WizardContainer({
     // Validate current step
     if (config.validate) {
       const result = config.validate(wizardData);
-      if (result !== true && typeof result === 'string') {
-        // Validation failed with error message — don't advance
-        return;
-      }
+      if (result !== true && typeof result === 'string') return;
       if (result === false) return;
     }
 
     if (currentStep < steps.length - 1) {
+      const next = currentStep + 1;
       setDirection('forward');
-      setCurrentStep((s) => s + 1);
+      setCurrentStep(next);
+      setMaxVisited((prev) => Math.max(prev, next));
     } else {
-      // Final step — complete
       onComplete(wizardData);
     }
   }, [currentStep, steps, wizardData, onComplete]);
@@ -85,14 +100,20 @@ export function WizardContainer({
       setDirection('backward');
       setCurrentStep((s) => s - 1);
     } else {
-      // First step — cancel the wizard
-      if (onCancel) {
-        onCancel();
-      } else {
-        router.back();
-      }
+      if (onCancel) onCancel();
+      else goBackFallback();
     }
-  }, [currentStep, onCancel, router]);
+  }, [currentStep, onCancel, goBackFallback]);
+
+  const goToStep = useCallback(
+    (index: number) => {
+      if (index === currentStep) return;
+      if (index > maxVisited) return;
+      setDirection(index > currentStep ? 'forward' : 'backward');
+      setCurrentStep(index);
+    },
+    [currentStep, maxVisited]
+  );
 
   const stepProps: StepProps = useMemo(
     () => ({
@@ -110,17 +131,24 @@ export function WizardContainer({
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header */}
       <View style={[styles.header, { borderBottomColor: colors.border }]}>
-        <TouchableOpacity onPress={goBack} style={styles.headerButton}>
+        <Pressable onPress={goBack} style={styles.headerButton} hitSlop={8}>
           <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={colors.text} />
-        </TouchableOpacity>
+        </Pressable>
         <Text style={[styles.headerTitle, { color: colors.text }]}>{title || ''}</Text>
-        <TouchableOpacity onPress={onCancel ?? (() => router.back())} style={styles.headerButton}>
+        <Pressable onPress={onCancel ?? goBackFallback} style={styles.headerButton} hitSlop={8}>
           <Ionicons name="close" size={24} color={colors.textSecondary} />
-        </TouchableOpacity>
+        </Pressable>
       </View>
 
-      {/* Progress */}
-      <WizardProgress currentStep={currentStep} totalSteps={steps.length} />
+      {/* Step Indicator */}
+      <StepIndicator
+        totalSteps={steps.length}
+        currentStep={currentStep}
+        stepIcons={stepIcons}
+        stepErrors={stepErrors}
+        onStepPress={goToStep}
+        maxVisited={maxVisited}
+      />
 
       {/* Step Content */}
       <KeyboardAvoidingView
@@ -161,6 +189,8 @@ const styles = StyleSheet.create({
     height: 40,
     alignItems: 'center',
     justifyContent: 'center',
+    borderRadius: 20,
+    ...({ cursor: 'pointer' } as any),
   },
   headerTitle: {
     fontSize: 18,

@@ -46,14 +46,14 @@ export class AuthController {
   }
 
   @Post('dev-login')
-  @Throttle({ short: { ttl: 60000, limit: 3 } })
+  @Throttle({ short: { ttl: 60000, limit: 100 } })
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Dev login (development only)' })
   @ApiResponse({ status: 200, description: 'Dev user authenticated' })
   @ApiResponse({ status: 403, description: 'Not available in production' })
   async devLogin() {
     const isProduction = this.configService.get<string>('NODE_ENV') === 'production';
-    const devLoginEnabled = this.configService.get<boolean>('DEV_LOGIN_ENABLED') === true;
+    const devLoginEnabled = this.configService.get('DEV_LOGIN_ENABLED');
 
     if (isProduction || !devLoginEnabled) {
       throw new ForbiddenException('Dev login is not available');

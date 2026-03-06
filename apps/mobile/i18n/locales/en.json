@@ -69,7 +69,11 @@
     "clearFilters": "Clear filters",
     "allTab": "All",
     "offersTab": "Offers",
-    "requestsTab": "Requests"
+    "requestsTab": "Requests",
+    "postTrip": "Post a Trip",
+    "postTripSub": "Earn by carrying",
+    "postRequest": "Send a Package",
+    "postRequestSub": "Find a traveler"
   },
   "status": {
     "pending": "Pending",
@@ -418,6 +422,135 @@
     "pushNotifications": "Push Notifications",
     "about": "About",
     "version": "Version"
+  },
+  "tripWizard": {
+    "title": "Post a Trip",
+    "createdSuccess": "Your trip is live!",
+    "failedCreate": "Failed to create trip",
+    "transport": {
+      "title": "How are you traveling?",
+      "flight": "Flight",
+      "car": "Car",
+      "bus": "Bus",
+      "train": "Train"
+    },
+    "date": {
+      "title": "When do you depart?",
+      "selectDate": "Select departure date",
+      "flightNumber": "Flight number (optional)"
+    },
+    "pricing": {
+      "title": "Set a suggested price",
+      "subtitle": "Senders can negotiate — this is just a starting point.",
+      "average": "Average: SAR 12-20/kg",
+      "estimated": "Potential earnings",
+      "ifFullyBooked": "if all {{weight}} kg booked"
+    },
+    "review": {
+      "title": "Review your trip",
+      "available": "available",
+      "suggested": "(suggested)",
+      "earnings": "Potential earnings:",
+      "ifBooked": "(if fully booked)",
+      "postTrip": "Post Trip"
+    }
+  },
+  "requestWizard": {
+    "title": "Post a Request",
+    "createdSuccess": "Your request is live!",
+    "failedCreate": "Failed to create request",
+    "weightDesc": {
+      "title": "What do you need to send?",
+      "weight": "Weight (kg)",
+      "description": "Description (optional)",
+      "descPlaceholder": "Describe what you need to send...",
+      "itemTypes": "Item types (optional)",
+      "itemTypesPlaceholder": "e.g. Electronics, Documents"
+    },
+    "budget": {
+      "title": "What is your budget?",
+      "amount": "Budget (SAR) — optional",
+      "currency": "Currency"
+    },
+    "prohibited": {
+      "title": "Prohibited items declaration",
+      "warningTitle": "Items you CANNOT send",
+      "declaration": "I confirm my items do not include any prohibited items listed above",
+      "mustDeclare": "You must declare that your items are not prohibited"
+    },
+    "review": {
+      "title": "Review your request",
+      "from": "From",
+      "to": "To",
+      "neededBy": "Needed by",
+      "weight": "Weight",
+      "budget": "Budget",
+      "description": "Description",
+      "submit": "Post Request"
+    }
+  },
+  "tripDetail": {
+    "title": "Trip Details",
+    "notFound": "Trip not found",
+    "transport": "Transport",
+    "suggestedPrice": "Suggested Price",
+    "remainingWeight": "Available Weight",
+    "makeOffer": "Make an Offer"
+  },
+  "requests": {
+    "requestDetails": "Request Details",
+    "notFound": "Request not found",
+    "description": "Description",
+    "itemTypes": "Item Types",
+    "offers": "Offers",
+    "offerAccepted": "Offer accepted!",
+    "offerToCarry": "Offer to Carry"
+  },
+  "offers": {
+    "makeOffer": "Make an Offer",
+    "offerToCarry": "Offer to Carry",
+    "sendOffer": "Send Offer",
+    "offerSent": "Your offer has been sent!",
+    "failedSend": "Failed to send offer",
+    "weightRequired": "Please enter weight",
+    "priceRequired": "Please enter your offered price",
+    "weightExceeds": "Weight exceeds available capacity",
+    "weight": "Weight (kg)",
+    "price": "Your Price (SAR)",
+    "message": "Message (optional)",
+    "messagePlaceholder": "Tell the carrier about your items...",
+    "carrierMessagePlaceholder": "Tell the sender about your trip details...",
+    "available": "available",
+    "suggested": "suggested",
+    "budgetLabel": "Budget",
+    "negotiation": "Negotiation",
+    "startNegotiation": "Start negotiating...",
+    "myOffers": "My Offers",
+    "status": {
+      "pending": "Pending",
+      "accepted": "Accepted",
+      "rejected": "Rejected",
+      "withdrawn": "Withdrawn",
+      "expired": "Expired"
+    }
+  },
+  "myTrips": {
+    "bookings": "Bookings",
+    "listings": "My Listings",
+    "trips": "My Trips",
+    "requests": "My Requests",
+    "offers": "My Offers",
+    "noListings": "No listings yet",
+    "noListingsDesc": "Post a listing to start earning from your travels",
+    "createListing": "Create Listing",
+    "noTrips": "No trips posted yet",
+    "noTripsDesc": "Post a trip to start earning from your travels",
+    "noRequests": "No requests posted yet",
+    "noRequestsDesc": "Post a request to find a carrier for your items",
+    "noOffers": "No offers yet",
+    "noOffersDesc": "Browse trips and requests to make offers",
+    "postTrip": "Post Trip",
+    "postRequest": "Post Request"
   },
   "web": {
     "sidebar": {
