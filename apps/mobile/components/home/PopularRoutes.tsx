@@ -2,7 +2,8 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-nati
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 
-import { useTheme } from '@/hooks/useTheme';
+import { SectionHeader } from '@/components/common';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS, TYPOGRAPHY } from '@/providers/ThemeProvider';
 
 interface Route {
   id: string;
@@ -55,19 +56,14 @@ const POPULAR_ROUTES: Route[] = [
 
 export function PopularRoutes() {
   const { t, i18n } = useTranslation();
-  const { colors } = useTheme();
   const isRTL = i18n.language === 'ar';
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={[styles.title, { color: colors.text }]}>
-          {t('home.popularRoutes')}
-        </Text>
+        <SectionHeader title={t('home.popularRoutes')} />
         <TouchableOpacity>
-          <Text style={[styles.seeAll, { color: colors.primary }]}>
-            {t('common.seeAll')}
-          </Text>
+          <Text style={styles.seeAll}>{t('common.seeAll')}</Text>
         </TouchableOpacity>
       </View>
 
@@ -77,40 +73,26 @@ export function PopularRoutes() {
         contentContainerStyle={styles.scrollContent}
       >
         {POPULAR_ROUTES.map((route) => (
-          <TouchableOpacity
-            key={route.id}
-            style={[
-              styles.routeCard,
-              { backgroundColor: colors.card, borderColor: colors.border },
-            ]}
-          >
+          <TouchableOpacity key={route.id} style={styles.routeCard}>
             <View style={styles.routeHeader}>
-              <Text style={[styles.routeFrom, { color: colors.text }]}>
-                {isRTL ? route.fromAr : route.from}
-              </Text>
-              <Ionicons name="airplane" size={16} color={colors.primary} />
-              <Text style={[styles.routeTo, { color: colors.text }]}>
-                {isRTL ? route.toAr : route.to}
-              </Text>
+              <View style={[styles.routeDot, { backgroundColor: V2_COLORS.accent1 }]} />
+              <Text style={styles.routeFrom}>{isRTL ? route.fromAr : route.from}</Text>
+              <Ionicons name="airplane" size={14} color={V2_COLORS.textMuted} />
+              <Text style={styles.routeTo}>{isRTL ? route.toAr : route.to}</Text>
+              <View style={[styles.routeDot, { backgroundColor: V2_COLORS.secondary }]} />
             </View>
 
             <View style={styles.routeInfo}>
               <View style={styles.infoItem}>
-                <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>
-                  {t('home.startingFrom')}
-                </Text>
-                <Text style={[styles.infoValue, { color: colors.primary }]}>
+                <Text style={styles.infoLabel}>{t('home.startingFrom')}</Text>
+                <Text style={styles.infoValue}>
                   {route.price} {t('common.sar')}
                 </Text>
               </View>
 
               <View style={styles.infoItem}>
-                <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>
-                  {t('home.availableCarriers')}
-                </Text>
-                <Text style={[styles.infoValue, { color: colors.text }]}>
-                  {route.carriers}
-                </Text>
+                <Text style={styles.infoLabel}>{t('home.availableCarriers')}</Text>
+                <Text style={styles.carriersValue}>{route.carriers}</Text>
               </View>
             </View>
           </TouchableOpacity>
@@ -131,13 +113,10 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     paddingHorizontal: 16,
   },
-  title: {
-    fontSize: 18,
-    fontWeight: '600',
-  },
   seeAll: {
-    fontSize: 14,
-    fontWeight: '500',
+    fontSize: 13,
+    fontWeight: '600',
+    color: V2_COLORS.primary,
   },
   scrollContent: {
     paddingHorizontal: 16,
@@ -145,23 +124,31 @@ const styles = StyleSheet.create({
   },
   routeCard: {
     width: 200,
+    backgroundColor: '#FFFFFF',
     padding: 16,
-    borderRadius: 12,
-    borderWidth: 1,
+    borderRadius: RADIUS.card,
+    ...BUBBLE_SHADOWS.md,
   },
   routeHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginBottom: 12,
+    gap: 6,
+    marginBottom: 14,
+  },
+  routeDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
   },
   routeFrom: {
-    fontSize: 14,
-    fontWeight: '500',
+    ...TYPOGRAPHY.caption,
+    fontWeight: '700',
+    color: V2_COLORS.text,
   },
   routeTo: {
-    fontSize: 14,
-    fontWeight: '500',
+    ...TYPOGRAPHY.caption,
+    fontWeight: '700',
+    color: V2_COLORS.text,
   },
   routeInfo: {
     gap: 8,
@@ -173,9 +160,16 @@ const styles = StyleSheet.create({
   },
   infoLabel: {
     fontSize: 12,
+    color: V2_COLORS.textMuted,
   },
   infoValue: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '700',
+    color: V2_COLORS.primary,
+  },
+  carriersValue: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: V2_COLORS.text,
   },
 });

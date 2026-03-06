@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeIn } from 'react-native-reanimated';
 
-import { useTheme } from '@/hooks/useTheme';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS } from '@/providers/ThemeProvider';
 import { ListingType } from './types';
 
 type TabValue = ListingType | 'all';
@@ -27,7 +27,6 @@ interface Tab {
 
 export function PostTypeTabs({ value, onChange, counts }: PostTypeTabsProps) {
   const { t } = useTranslation();
-  const { colors } = useTheme();
 
   const tabs: Tab[] = [
     { key: 'all', labelKey: 'home.allTab', icon: 'apps-outline', activeIcon: 'apps' },
@@ -37,21 +36,16 @@ export function PostTypeTabs({ value, onChange, counts }: PostTypeTabsProps) {
 
   return (
     <Animated.View entering={FadeIn.duration(400)} style={styles.wrapper}>
-      <View
-        style={[styles.container, { backgroundColor: colors.card, borderColor: colors.border }]}
-      >
+      <View style={styles.container}>
         {tabs.map((tab) => {
           const isActive = value === tab.key;
           const count = counts?.[tab.key];
-          const textColor = isActive ? '#FFFFFF' : colors.textSecondary;
+          const textColor = isActive ? '#FFFFFF' : V2_COLORS.textSoft;
 
           return (
             <TouchableOpacity
               key={tab.key}
-              style={[
-                styles.tab,
-                isActive && [styles.tabActive, { backgroundColor: colors.primary }],
-              ]}
+              style={[styles.tab, isActive && styles.tabActive]}
               onPress={() => onChange(tab.key)}
               activeOpacity={0.7}
             >
@@ -67,14 +61,14 @@ export function PostTypeTabs({ value, onChange, counts }: PostTypeTabsProps) {
                     style={[
                       styles.countBadge,
                       {
-                        backgroundColor: isActive ? 'rgba(255,255,255,0.25)' : colors.background,
+                        backgroundColor: isActive ? 'rgba(255,255,255,0.25)' : V2_COLORS.bg,
                       },
                     ]}
                   >
                     <Text
                       style={[
                         styles.countText,
-                        { color: isActive ? '#FFFFFF' : colors.textTertiary },
+                        { color: isActive ? '#FFFFFF' : V2_COLORS.textMuted },
                       ]}
                     >
                       {count}
@@ -96,36 +90,38 @@ const styles = StyleSheet.create({
   },
   container: {
     flexDirection: 'row',
-    borderRadius: 16,
-    borderWidth: 1,
+    backgroundColor: '#FFFFFF',
+    borderRadius: RADIUS.pill,
     padding: 4,
+    ...BUBBLE_SHADOWS.sm,
   },
   tab: {
     flex: 1,
-    borderRadius: 12,
+    borderRadius: RADIUS.pill,
   },
   tabActive: {
-    borderRadius: 12,
+    backgroundColor: V2_COLORS.primary,
+    ...BUBBLE_SHADOWS.xs,
   },
   tabContent: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 12,
+    paddingVertical: 10,
     paddingHorizontal: 8,
     gap: 6,
   },
   tabLabel: {
-    fontSize: 14,
-    fontWeight: '500',
+    fontSize: 13,
+    fontWeight: '600',
   },
   tabLabelActive: {
-    fontWeight: '600',
+    fontWeight: '700',
   },
   countBadge: {
     paddingHorizontal: 6,
     paddingVertical: 2,
-    borderRadius: 10,
+    borderRadius: RADIUS.pill,
     minWidth: 22,
     alignItems: 'center',
   },

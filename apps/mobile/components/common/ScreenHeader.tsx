@@ -2,8 +2,8 @@ import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 
+import { useRouter } from 'expo-router';
 import { useTheme } from '@/hooks/useTheme';
-import { useGoBack } from '@/hooks/useGoBack';
 
 interface ScreenHeaderProps {
   title: string;
@@ -16,7 +16,14 @@ interface ScreenHeaderProps {
 export function ScreenHeader({ title, onBack, right }: ScreenHeaderProps) {
   const { colors } = useTheme();
   const { i18n } = useTranslation();
-  const goBack = useGoBack();
+  const router = useRouter();
+  const goBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace('/(tabs)');
+    }
+  };
   const isRTL = i18n.language === 'ar';
 
   return (
