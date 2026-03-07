@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -12,10 +12,10 @@ import {
   FileText,
   MessageSquare,
   ArrowRight,
-  Smartphone,
-  X,
+  Package,
 } from 'lucide-react';
 import { useListing } from '@/hooks/useListings';
+import { useAuth } from '@/hooks/useAuth';
 import { MOCK_LISTINGS } from '@/lib/mockListings';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
@@ -60,6 +60,7 @@ function DetailSkeleton() {
 export default function ListingDetailPage() {
   const params = useParams();
   const id = typeof params.id === 'string' ? params.id : null;
+  const { isAuthenticated } = useAuth();
 
   const { data: apiListing, isLoading, isError } = useListing(id);
 
@@ -70,13 +71,6 @@ export default function ListingDetailPage() {
     }
     return null;
   }, [apiListing, isLoading, isError, id]);
-
-  const [showToast, setShowToast] = useState(false);
-
-  const handleActionClick = () => {
-    setShowToast(true);
-    setTimeout(() => setShowToast(false), 4000);
-  };
 
   const fromCode = listing
     ? listing.departureCode || listing.departureCity.slice(0, 3).toUpperCase()
@@ -183,19 +177,23 @@ export default function ListingDetailPage() {
             {/* Carrier Info */}
             <div className="bg-white rounded-[22px] p-5 shadow-bubble-sm mb-8">
               <h3 className="font-semibold text-v2-text mb-4">الناقل</h3>
-              <div className="flex items-center gap-3">
+              <Link
+                href={listing.carrier.id ? `/profile/${listing.carrier.id}` : '#'}
+                className="flex items-center gap-3 hover:bg-v2-primary/5 -mx-2 px-2 py-2 rounded-2xl transition-colors"
+              >
                 <div className="w-12 h-12 rounded-full bg-v2-primary/10 flex items-center justify-center text-lg font-bold text-v2-primary">
                   {getInitial(listing.carrier.name)}
                 </div>
-                <div>
+                <div className="flex-1">
                   <div className="flex items-center gap-1.5">
                     <p className="font-semibold text-v2-text">{listing.carrier.name}</p>
                     {listing.carrier.isVerified && (
                       <BadgeCheck className="w-4 h-4 text-v2-primary" />
                     )}
                   </div>
+                  <p className="text-sm text-v2-primary">عرض الملف الشخصي</p>
                 </div>
-              </div>
+              </Link>
             </div>
           </>
         )}
@@ -205,41 +203,24 @@ export default function ListingDetailPage() {
       {listing && !isLoading && (
         <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-lg border-t border-v2-primary/10 p-4 z-40">
           <div className="max-w-3xl mx-auto flex gap-3">
-            <button
-              onClick={handleActionClick}
-              className="flex items-center justify-center gap-2 px-5 py-3 rounded-full border-2 border-v2-primary text-v2-primary font-semibold hover:bg-v2-primary/5 transition-all"
-            >
-              <MessageSquare className="w-5 h-5" />
-              مراسلة
-            </button>
-            <button
-              onClick={handleActionClick}
-              className="flex-1 v2-gradient-primary text-white py-3 rounded-full font-semibold text-center hover:opacity-90 transition-opacity"
-            >
-              احجز الآن
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Toast notification */}
-      {showToast && (
-        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-top-2">
-          <div className="bg-white rounded-[22px] shadow-bubble-md px-5 py-4 flex items-center gap-3 max-w-sm">
-            <div className="w-10 h-10 rounded-full v2-gradient-primary flex items-center justify-center flex-shrink-0">
-              <Smartphone className="w-5 h-5 text-white" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-v2-text">حمل تطبيق حصتي</p>
-              <p className="text-xs text-v2-text-soft">للحجز والمراسلة حمل التطبيق</p>
-            </div>
-            <button
-              onClick={() => setShowToast(false)}
-              aria-label="إغلاق"
-              className="text-v2-text-muted hover:text-v2-text transition-colors flex-shrink-0"
-            >
-              <X className="w-4 h-4" />
-            </button>
+            {isAuthenticated ? (
+              <>
+                <Link
+                  href={`/booking/create?listingId=${id}`}
+                  className="flex-1 v2-gradient-primary text-white py-3 rounded-full font-semibold text-center hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+                >
+                  <Package className="w-5 h-5" />
+                  احجز الآن
+                </Link>
+              </>
+            ) : (
+              <Link
+                href="/auth/login"
+                className="flex-1 v2-gradient-primary text-white py-3 rounded-full font-semibold text-center hover:opacity-90 transition-opacity"
+              >
+                سجل دخولك للحجز
+              </Link>
+            )}
           </div>
         </div>
       )}
