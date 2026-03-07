@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { Plane, Calendar, Weight, BadgeCheck } from 'lucide-react';
 import type { ApiListing } from '@/hooks/useListings';
 
@@ -28,7 +29,10 @@ export default function TripCard({ listing }: TripCardProps) {
   const toCode = listing.arrivalCode || listing.arrivalCity.slice(0, 3).toUpperCase();
 
   return (
-    <div className="bg-white rounded-[22px] p-5 shadow-bubble-sm hover:shadow-bubble-md transition-all cursor-pointer group">
+    <Link
+      href={`/listing/${listing.id}`}
+      className="block bg-white rounded-[22px] p-5 shadow-bubble-sm hover:shadow-bubble-md transition-all cursor-pointer group"
+    >
       {/* Header: Type badge + date */}
       <div className="flex items-center justify-between mb-4">
         <span className="bg-v2-primary/15 text-v2-primary px-3 py-1 rounded-full text-xs font-bold">
@@ -100,6 +104,6 @@ export default function TripCard({ listing }: TripCardProps) {
           <p className="text-[10px] text-v2-text-muted">{listing.currency}/kg</p>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }

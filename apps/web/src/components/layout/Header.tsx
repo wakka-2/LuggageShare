@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { Menu, X, Globe } from 'lucide-react';
+import { Menu, X, Globe, PlusCircle, Plane, MessageSquare } from 'lucide-react';
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -20,24 +20,27 @@ export function Header() {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-2">
+          <nav className="hidden md:flex items-center gap-1">
             <Link
-              href="/how-it-works"
-              className="text-v2-text-soft hover:text-v2-text hover:bg-v2-primary/5 px-4 py-2 rounded-full transition-all"
+              href="/listing/create"
+              className="text-v2-text-soft hover:text-v2-text hover:bg-v2-primary/5 px-4 py-2 rounded-full transition-all flex items-center gap-1.5"
             >
-              كيف يعمل
+              <PlusCircle className="w-4 h-4" />
+              أضف رحلة
             </Link>
             <Link
-              href="/become-carrier"
-              className="text-v2-text-soft hover:text-v2-text hover:bg-v2-primary/5 px-4 py-2 rounded-full transition-all"
+              href="/trips"
+              className="text-v2-text-soft hover:text-v2-text hover:bg-v2-primary/5 px-4 py-2 rounded-full transition-all flex items-center gap-1.5"
             >
-              كن ناقلاً
+              <Plane className="w-4 h-4" />
+              رحلاتي
             </Link>
             <Link
-              href="/help"
-              className="text-v2-text-soft hover:text-v2-text hover:bg-v2-primary/5 px-4 py-2 rounded-full transition-all"
+              href="/messages"
+              className="text-v2-text-soft hover:text-v2-text hover:bg-v2-primary/5 px-4 py-2 rounded-full transition-all flex items-center gap-1.5"
             >
-              المساعدة
+              <MessageSquare className="w-4 h-4" />
+              الرسائل
             </Link>
           </nav>
 
@@ -79,32 +82,40 @@ export function Header() {
           <div className="md:hidden py-4 border-t border-v2-primary/10">
             <nav className="flex flex-col gap-2">
               <Link
-                href="/how-it-works"
-                className="text-v2-text-soft hover:text-v2-text px-4 py-2 rounded-full hover:bg-v2-primary/5 transition-all"
+                href="/listing/create"
+                onClick={() => setIsMenuOpen(false)}
+                className="text-v2-text-soft hover:text-v2-text px-4 py-2 rounded-full hover:bg-v2-primary/5 transition-all flex items-center gap-2"
               >
-                كيف يعمل
+                <PlusCircle className="w-4 h-4" />
+                أضف رحلة
               </Link>
               <Link
-                href="/become-carrier"
-                className="text-v2-text-soft hover:text-v2-text px-4 py-2 rounded-full hover:bg-v2-primary/5 transition-all"
+                href="/trips"
+                onClick={() => setIsMenuOpen(false)}
+                className="text-v2-text-soft hover:text-v2-text px-4 py-2 rounded-full hover:bg-v2-primary/5 transition-all flex items-center gap-2"
               >
-                كن ناقلاً
+                <Plane className="w-4 h-4" />
+                رحلاتي
               </Link>
               <Link
-                href="/help"
-                className="text-v2-text-soft hover:text-v2-text px-4 py-2 rounded-full hover:bg-v2-primary/5 transition-all"
+                href="/messages"
+                onClick={() => setIsMenuOpen(false)}
+                className="text-v2-text-soft hover:text-v2-text px-4 py-2 rounded-full hover:bg-v2-primary/5 transition-all flex items-center gap-2"
               >
-                المساعدة
+                <MessageSquare className="w-4 h-4" />
+                الرسائل
               </Link>
               <hr className="border-v2-primary/10 my-2" />
               <Link
                 href="/auth/login"
+                onClick={() => setIsMenuOpen(false)}
                 className="text-v2-text-soft hover:text-v2-text px-4 py-2 rounded-full hover:bg-v2-primary/5 transition-all"
               >
                 تسجيل الدخول
               </Link>
               <Link
                 href="/auth/register"
+                onClick={() => setIsMenuOpen(false)}
                 className="v2-gradient-primary text-white px-5 py-2 rounded-full text-center font-semibold"
               >
                 إنشاء حساب

@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { Plane, SearchX } from 'lucide-react';
+import { Plane, SearchX, SlidersHorizontal, DollarSign } from 'lucide-react';
 import { useListings } from '@/hooks/useListings';
 import { MOCK_LISTINGS } from '@/lib/mockListings';
 import { Header } from '@/components/layout/Header';
@@ -17,6 +17,7 @@ export default function HomePage() {
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
   const [date, setDate] = useState('');
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const {
     data: apiListings,
@@ -54,6 +55,7 @@ export default function HomePage() {
   const handleRouteSelect = (fromCity: string, toCity: string) => {
     setFrom(fromCity);
     setTo(toCity);
+    setIsFilterOpen(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -62,7 +64,7 @@ export default function HomePage() {
       <Header />
 
       <main className="flex-1">
-        {/* Compact Hero */}
+        {/* Hero */}
         <section className="pt-10 pb-4 px-4">
           <div className="max-w-6xl mx-auto">
             <div className="relative">
@@ -71,36 +73,77 @@ export default function HomePage() {
             </div>
 
             <h1 className="text-3xl md:text-4xl font-extrabold text-v2-text mb-2 relative">
-              رحلات متاحة
+              اكسب المال من رحلاتك
             </h1>
-            <p className="text-v2-text-soft mb-6 relative">تصفح الرحلات المتاحة أو ابحث عن وجهتك</p>
+            <p className="text-v2-text-soft mb-6 relative">
+              شارك مساحة أمتعتك الفارغة واكسب دخلاً إضافياً مع كل رحلة
+            </p>
           </div>
         </section>
 
-        {/* Filter Bar */}
+        {/* Earn Money Banner */}
+        <section className="px-4 mb-6">
+          <div className="max-w-6xl mx-auto">
+            <div className="bg-gradient-to-l from-v2-mint/20 to-v2-primary/10 rounded-[22px] p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-bubble-xs">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-full bg-v2-mint/20 flex items-center justify-center flex-shrink-0">
+                  <DollarSign className="w-6 h-6 text-v2-mint" />
+                </div>
+                <div>
+                  <p className="font-bold text-v2-text">هل لديك مساحة فارغة في أمتعتك؟</p>
+                  <p className="text-sm text-v2-text-soft">سجل رحلتك واكسب حتى ١٢٠ ريال لكل كيلو</p>
+                </div>
+              </div>
+              <Link
+                href="/listing/create"
+                className="bg-v2-mint text-white px-5 py-2.5 rounded-full text-sm font-semibold whitespace-nowrap hover:shadow-bubble-sm transition-all"
+              >
+                سجل رحلتك
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* Results Count + Filter Toggle */}
+        <section className="px-4 mb-4">
+          <div className="max-w-6xl mx-auto flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Plane className="w-4 h-4 text-v2-primary -rotate-90 rtl:rotate-90" />
+              <p className="text-sm text-v2-text-soft">
+                {isLoading ? 'جاري البحث...' : `${listings.length} رحلة متاحة`}
+              </p>
+            </div>
+            <button
+              onClick={() => setIsFilterOpen(!isFilterOpen)}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-white shadow-bubble-xs text-sm text-v2-text-soft hover:text-v2-text hover:shadow-bubble-sm transition-all"
+            >
+              <SlidersHorizontal className="w-4 h-4" />
+              فلترة
+              {hasFilters && <span className="w-2 h-2 rounded-full bg-v2-secondary" />}
+            </button>
+          </div>
+        </section>
+
+        {/* Collapsible Filter Bar */}
         <section className="px-4">
           <div className="max-w-6xl mx-auto">
-            <FilterBar
-              from={from}
-              to={to}
-              date={date}
-              onFromChange={setFrom}
-              onToChange={setTo}
-              onDateChange={setDate}
-              onClear={handleClearFilters}
-              onSwap={handleSwap}
-              resultCount={hasFilters ? listings.length : undefined}
-            />
-          </div>
-        </section>
-
-        {/* Results Count */}
-        <section className="px-4 mb-4">
-          <div className="max-w-6xl mx-auto flex items-center gap-2">
-            <Plane className="w-4 h-4 text-v2-primary -rotate-90 rtl:rotate-90" />
-            <p className="text-sm text-v2-text-soft">
-              {isLoading ? 'جاري البحث...' : `${listings.length} رحلة متاحة`}
-            </p>
+            <div
+              className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                isFilterOpen ? 'max-h-[200px] opacity-100 mb-4' : 'max-h-0 opacity-0'
+              }`}
+            >
+              <FilterBar
+                from={from}
+                to={to}
+                date={date}
+                onFromChange={setFrom}
+                onToChange={setTo}
+                onDateChange={setDate}
+                onClear={handleClearFilters}
+                onSwap={handleSwap}
+                resultCount={hasFilters ? listings.length : undefined}
+              />
+            </div>
           </div>
         </section>
 
@@ -120,7 +163,6 @@ export default function HomePage() {
                 ))}
               </div>
             ) : (
-              /* Empty State */
               <div className="text-center py-16">
                 <div className="w-16 h-16 rounded-full bg-v2-primary/10 flex items-center justify-center mx-auto mb-4">
                   <SearchX className="w-8 h-8 text-v2-primary" />
@@ -157,10 +199,10 @@ export default function HomePage() {
               سجل كناقل واكسب المال من مساحة أمتعتك الإضافية
             </p>
             <Link
-              href="/carrier/register"
+              href="/listing/create"
               className="inline-block bg-white text-v2-primary px-8 py-3 rounded-full font-semibold hover:shadow-bubble-md transition-all relative"
             >
-              سجل كناقل
+              سجل رحلتك
             </Link>
           </div>
         </section>

@@ -35,6 +35,17 @@ interface SearchParams {
   limit?: number;
 }
 
+export function useListing(id: string | null) {
+  return useQuery<ApiListing>({
+    queryKey: ['listing', id],
+    queryFn: async () => {
+      const { data } = await apiClient.get(`/listings/${id}`);
+      return data.data ?? data;
+    },
+    enabled: !!id,
+  });
+}
+
 export function useListings(params: SearchParams = {}) {
   return useQuery<ApiListing[]>({
     queryKey: ['listings', params],
