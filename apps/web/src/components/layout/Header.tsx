@@ -47,7 +47,10 @@ export function Header() {
           {/* Right Side */}
           <div className="flex items-center gap-3">
             {/* Language Toggle */}
-            <button className="w-10 h-10 flex items-center justify-center rounded-full text-v2-text-soft hover:text-v2-text hover:bg-v2-primary/5 transition-all">
+            <button
+              aria-label="تغيير اللغة"
+              className="w-10 h-10 flex items-center justify-center rounded-full text-v2-text-soft hover:text-v2-text hover:bg-v2-primary/5 transition-all"
+            >
               <Globe className="w-5 h-5" />
             </button>
 
@@ -69,6 +72,7 @@ export function Header() {
 
             {/* Mobile Menu Button */}
             <button
+              aria-label={isMenuOpen ? 'إغلاق القائمة' : 'فتح القائمة'}
               className="md:hidden w-10 h-10 flex items-center justify-center rounded-full text-v2-text-soft hover:bg-v2-primary/5"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
             >

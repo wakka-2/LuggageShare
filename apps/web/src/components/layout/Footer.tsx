@@ -119,6 +119,7 @@ export function Footer() {
               href="https://twitter.com/luggageshare"
               target="_blank"
               rel="noopener noreferrer"
+              aria-label="تويتر"
               className="w-10 h-10 flex items-center justify-center rounded-full bg-v2-primary/10 text-v2-primary hover:bg-v2-primary/20 transition-all text-sm font-semibold"
             >
               𝕏
@@ -127,6 +128,7 @@ export function Footer() {
               href="https://instagram.com/luggageshare"
               target="_blank"
               rel="noopener noreferrer"
+              aria-label="انستغرام"
               className="w-10 h-10 flex items-center justify-center rounded-full bg-v2-secondary/10 text-v2-secondary hover:bg-v2-secondary/20 transition-all text-sm font-semibold"
             >
               IG

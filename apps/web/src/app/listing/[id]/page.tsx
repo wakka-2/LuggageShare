@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -12,6 +12,8 @@ import {
   FileText,
   MessageSquare,
   ArrowRight,
+  Smartphone,
+  X,
 } from 'lucide-react';
 import { useListing } from '@/hooks/useListings';
 import { MOCK_LISTINGS } from '@/lib/mockListings';
@@ -69,8 +71,11 @@ export default function ListingDetailPage() {
     return null;
   }, [apiListing, isLoading, isError, id]);
 
+  const [showToast, setShowToast] = useState(false);
+
   const handleActionClick = () => {
-    alert('حمل تطبيق حصتي للحجز والمراسلة');
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 4000);
   };
 
   const fromCode = listing
@@ -212,6 +217,28 @@ export default function ListingDetailPage() {
               className="flex-1 v2-gradient-primary text-white py-3 rounded-full font-semibold text-center hover:opacity-90 transition-opacity"
             >
               احجز الآن
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Toast notification */}
+      {showToast && (
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-top-2">
+          <div className="bg-white rounded-[22px] shadow-bubble-md px-5 py-4 flex items-center gap-3 max-w-sm">
+            <div className="w-10 h-10 rounded-full v2-gradient-primary flex items-center justify-center flex-shrink-0">
+              <Smartphone className="w-5 h-5 text-white" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-v2-text">حمل تطبيق حصتي</p>
+              <p className="text-xs text-v2-text-soft">للحجز والمراسلة حمل التطبيق</p>
+            </div>
+            <button
+              onClick={() => setShowToast(false)}
+              aria-label="إغلاق"
+              className="text-v2-text-muted hover:text-v2-text transition-colors flex-shrink-0"
+            >
+              <X className="w-4 h-4" />
             </button>
           </div>
         </div>

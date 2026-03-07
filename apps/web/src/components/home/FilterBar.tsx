@@ -45,6 +45,7 @@ export default function FilterBar({
         {/* Swap button */}
         <button
           onClick={onSwap}
+          aria-label="تبديل المدن"
           className="hidden sm:flex w-8 h-8 items-center justify-center rounded-full bg-v2-bg hover:bg-v2-primary/10 transition-colors flex-shrink-0"
         >
           <ArrowLeftRight className="w-3.5 h-3.5 text-v2-text-soft" />
