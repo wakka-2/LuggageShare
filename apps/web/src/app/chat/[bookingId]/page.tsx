@@ -186,19 +186,22 @@ export default function ChatPage() {
       setInputValue('');
 
       try {
-        // Send via WebSocket for real-time delivery
-        socketSendMessage(content);
-        // Persist via REST mutation
-        await sendMsgMutation.mutateAsync({ bookingId, content });
+        if (isConnected) {
+          // Socket is connected — it persists the message server-side,
+          // so we only need one send path to avoid duplicates.
+          socketSendMessage(content);
+        } else {
+          // Socket disconnected — fall back to REST API
+          await sendMsgMutation.mutateAsync({ bookingId, content });
+        }
       } catch {
-        // If REST fails, the socket send may have still worked.
         // Message will appear on next poll cycle from useMessages refetchInterval.
       } finally {
         setIsSending(false);
         inputRef.current?.focus();
       }
     },
-    [inputValue, bookingId, isSending, socketSendMessage, sendMsgMutation]
+    [inputValue, bookingId, isSending, isConnected, socketSendMessage, sendMsgMutation]
   );
 
   /* ---- Handle Enter key ---- */

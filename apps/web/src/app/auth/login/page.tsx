@@ -3,12 +3,56 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useGoogleLogin } from '@react-oauth/google';
 import { LogIn, Chrome } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { useAuth } from '@/providers/AuthProvider';
 import apiClient from '@/lib/api';
+
+const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '';
+
+function GoogleLoginButton({
+  isLoading,
+  onStart,
+  onSuccess,
+  onError,
+}: {
+  isLoading: boolean;
+  onStart: () => void;
+  onSuccess: (data: { accessToken: string; refreshToken: string; user: any }) => void;
+  onError: (msg: string) => void;
+}) {
+  // Lazy-import useGoogleLogin so it only runs when provider is present
+  const { useGoogleLogin } = require('@react-oauth/google');
+
+  const googleLogin = useGoogleLogin({
+    onSuccess: async (tokenResponse: any) => {
+      onStart();
+      try {
+        const res = await apiClient.post('/auth/google', {
+          idToken: tokenResponse.access_token,
+        });
+        onSuccess(res.data);
+      } catch {
+        onError('فشل تسجيل الدخول. حاول مرة أخرى.');
+      }
+    },
+    onError: () => {
+      onError('فشل الاتصال بـ Google. حاول مرة أخرى.');
+    },
+  });
+
+  return (
+    <button
+      onClick={() => googleLogin()}
+      disabled={isLoading}
+      className="w-full flex items-center justify-center gap-3 bg-white border-2 border-v2-primary/20 hover:border-v2-primary/40 text-v2-text font-semibold py-3.5 rounded-full transition-all hover:shadow-bubble-sm disabled:opacity-50"
+    >
+      <Chrome className="w-5 h-5 text-v2-primary" />
+      {isLoading ? 'جاري التسجيل...' : 'تسجيل الدخول عبر Google'}
+    </button>
+  );
+}
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -16,58 +60,28 @@ export default function LoginPage() {
   const { signIn } = useAuth();
   const router = useRouter();
 
-  const googleLogin = useGoogleLogin({
-    onSuccess: async (tokenResponse) => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const res = await apiClient.post('/auth/google', {
-          idToken: tokenResponse.access_token,
-        });
-        const data = res.data;
-        signIn({
-          accessToken: data.accessToken,
-          refreshToken: data.refreshToken,
-          user: {
-            id: data.user.id,
-            email: data.user.email,
-            displayName: data.user.name || data.user.displayName,
-            avatarUrl: data.user.avatarUrl,
-            isNewUser: data.user.isNewUser ?? false,
-            profileComplete: data.user.profileComplete ?? true,
-          },
-        });
-        router.push('/');
-      } catch {
-        setError('فشل تسجيل الدخول. حاول مرة أخرى.');
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    onError: () => {
-      setError('فشل الاتصال بـ Google. حاول مرة أخرى.');
-    },
-  });
+  function handleAuthSuccess(data: any) {
+    signIn({
+      accessToken: data.accessToken,
+      refreshToken: data.refreshToken,
+      user: {
+        id: data.user.id,
+        email: data.user.email,
+        displayName: data.user.name || data.user.displayName,
+        avatarUrl: data.user.avatarUrl,
+        isNewUser: data.user.isNewUser ?? false,
+        profileComplete: data.user.profileComplete ?? true,
+      },
+    });
+    router.push('/');
+  }
 
   async function handleDevLogin() {
     setIsLoading(true);
     setError(null);
     try {
       const res = await apiClient.post('/auth/dev-login');
-      const data = res.data;
-      signIn({
-        accessToken: data.accessToken,
-        refreshToken: data.refreshToken,
-        user: {
-          id: data.user.id,
-          email: data.user.email,
-          displayName: data.user.name || data.user.displayName,
-          avatarUrl: data.user.avatarUrl,
-          isNewUser: false,
-          profileComplete: true,
-        },
-      });
-      router.push('/');
+      handleAuthSuccess(res.data);
     } catch {
       setError('Dev login غير متاح. تأكد من تفعيل DEV_LOGIN_ENABLED.');
     } finally {
@@ -95,14 +109,27 @@ export default function LoginPage() {
               </div>
             )}
 
-            <button
-              onClick={() => googleLogin()}
-              disabled={isLoading}
-              className="w-full flex items-center justify-center gap-3 bg-white border-2 border-v2-primary/20 hover:border-v2-primary/40 text-v2-text font-semibold py-3.5 rounded-full transition-all hover:shadow-bubble-sm disabled:opacity-50"
-            >
-              <Chrome className="w-5 h-5 text-v2-primary" />
-              {isLoading ? 'جاري التسجيل...' : 'تسجيل الدخول عبر Google'}
-            </button>
+            {GOOGLE_CLIENT_ID ? (
+              <GoogleLoginButton
+                isLoading={isLoading}
+                onStart={() => {
+                  setIsLoading(true);
+                  setError(null);
+                }}
+                onSuccess={(data) => {
+                  handleAuthSuccess(data);
+                  setIsLoading(false);
+                }}
+                onError={(msg) => {
+                  setError(msg);
+                  setIsLoading(false);
+                }}
+              />
+            ) : (
+              <div className="text-center text-sm text-v2-text-muted py-3 bg-v2-bg rounded-full">
+                Google OAuth غير مُهيأ
+              </div>
+            )}
 
             {process.env.NODE_ENV === 'development' && (
               <button

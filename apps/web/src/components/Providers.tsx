@@ -20,11 +20,15 @@ export function Providers({ children }: { children: React.ReactNode }) {
       })
   );
 
-  return (
-    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>{children}</AuthProvider>
-      </QueryClientProvider>
-    </GoogleOAuthProvider>
+  const inner = (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>{children}</AuthProvider>
+    </QueryClientProvider>
   );
+
+  if (!GOOGLE_CLIENT_ID) {
+    return inner;
+  }
+
+  return <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>{inner}</GoogleOAuthProvider>;
 }
