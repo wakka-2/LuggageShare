@@ -54,7 +54,7 @@ export function useListing(id: string | null) {
     queryKey: ['listing', id],
     queryFn: async () => {
       const { data } = await apiClient.get(`/listings/${id}`);
-      return data.data ?? data;
+      return data;
     },
     enabled: !!id,
   });
@@ -73,7 +73,7 @@ export function useListings(params: SearchParams = {}) {
       if (params.limit) searchParams.set('limit', String(params.limit));
 
       const { data } = await apiClient.get(`/listings?${searchParams.toString()}`);
-      return data.data ?? data;
+      return data;
     },
   });
 }

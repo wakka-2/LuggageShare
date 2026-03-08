@@ -36,7 +36,7 @@ export function useProfile() {
     queryKey: ['profile'],
     queryFn: async () => {
       const { data } = await apiClient.get('/users/me');
-      return data.data ?? data;
+      return data;
     },
   });
 }
@@ -46,7 +46,7 @@ export function usePublicProfile(userId: string | null) {
     queryKey: ['profile', userId],
     queryFn: async () => {
       const { data } = await apiClient.get(`/users/${userId}`);
-      return data.data ?? data;
+      return data;
     },
     enabled: !!userId,
   });
@@ -58,7 +58,7 @@ export function useUpdateProfile() {
   return useMutation({
     mutationFn: async (payload: UpdateProfilePayload) => {
       const { data } = await apiClient.put('/users/me', payload);
-      return data.data ?? data;
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['profile'] });

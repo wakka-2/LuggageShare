@@ -260,7 +260,7 @@ export function useBookings() {
     queryKey: ['bookings'],
     queryFn: async () => {
       const { data } = await apiClient.get('/bookings');
-      return data.data ?? data;
+      return data;
     },
   });
 }
@@ -270,7 +270,7 @@ export function useBooking(id: string | null) {
     queryKey: ['booking', id],
     queryFn: async () => {
       const { data } = await apiClient.get(`/bookings/${id}`);
-      return data.data ?? data;
+      return data;
     },
     enabled: !!id,
   });
@@ -410,7 +410,7 @@ export function useSubmitPaymentProof() {
       const { data } = await apiClient.post(`/bookings/${bookingId}/payment-proof`, {
         proofImageUrl,
       });
-      return data.data ?? data;
+      return data;
     },
     onSuccess: (_, { bookingId }) => {
       queryClient.invalidateQueries({ queryKey: ['bookings'] });

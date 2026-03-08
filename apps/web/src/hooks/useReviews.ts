@@ -25,7 +25,7 @@ export function useBookingReview(bookingId: string | null) {
     queryKey: ['review', 'booking', bookingId],
     queryFn: async () => {
       const { data } = await apiClient.get(`/reviews/booking/${bookingId}`);
-      return data.data ?? data;
+      return data;
     },
     enabled: !!bookingId,
   });
@@ -36,7 +36,7 @@ export function useUserReviews(userId: string | null) {
     queryKey: ['reviews', 'user', userId],
     queryFn: async () => {
       const { data } = await apiClient.get(`/reviews/user/${userId}`);
-      return data.data ?? data;
+      return data;
     },
     enabled: !!userId,
   });
@@ -51,7 +51,7 @@ export function useCreateReview() {
         rating: payload.rating,
         comment: payload.comment,
       });
-      return data.data ?? data;
+      return data;
     },
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['review', 'booking', variables.bookingId] });

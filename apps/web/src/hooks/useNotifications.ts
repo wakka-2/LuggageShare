@@ -16,7 +16,7 @@ export function useNotifications() {
     queryKey: ['notifications'],
     queryFn: async () => {
       const { data } = await apiClient.get('/notifications');
-      return data.data ?? data;
+      return data;
     },
     refetchInterval: 30000, // Poll every 30s
   });

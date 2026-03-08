@@ -21,7 +21,7 @@ export function useWalletBalance() {
     queryKey: ['wallet', 'balance'],
     queryFn: async () => {
       const { data } = await apiClient.get('/wallet/balance');
-      return data.data ?? data;
+      return data;
     },
   });
 }
@@ -31,7 +31,7 @@ export function useTransactionHistory() {
     queryKey: ['wallet', 'history'],
     queryFn: async () => {
       const { data } = await apiClient.get('/wallet/history');
-      return data.data ?? data;
+      return data;
     },
   });
 }
@@ -48,7 +48,7 @@ export function useWithdrawal() {
   return useMutation({
     mutationFn: async (request: WithdrawalRequest) => {
       const { data } = await apiClient.post('/wallet/withdraw', request);
-      return data.data ?? data;
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['wallet'] });

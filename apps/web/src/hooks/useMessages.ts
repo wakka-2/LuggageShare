@@ -36,7 +36,7 @@ export function useConversations() {
     queryKey: ['conversations'],
     queryFn: async () => {
       const { data } = await apiClient.get('/messages/conversations');
-      return data.data ?? data;
+      return data;
     },
   });
 }
@@ -47,8 +47,7 @@ export function useMessages(bookingId: string | null) {
     queryFn: async () => {
       const { data } = await apiClient.get(`/messages/conversations/${bookingId}`);
       // API returns { messages: [...], nextCursor: ... }
-      const result = data.data ?? data;
-      return result.messages ?? result;
+      return data.messages ?? data;
     },
     enabled: !!bookingId,
     refetchInterval: 5000,
