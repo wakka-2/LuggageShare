@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { ArrowRight, Save, Loader2 } from 'lucide-react';
 import { useAuth } from '@/providers/AuthProvider';
+import { useLanguage } from '@/providers/LanguageProvider';
 import { useProfile, useUpdateProfile } from '@/hooks/useProfile';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
@@ -23,6 +24,7 @@ function getInitial(name: string | null | undefined): string {
 export default function EditProfilePage() {
   const router = useRouter();
   const { user, updateUser } = useAuth();
+  const { t } = useLanguage();
   const { data: profile, isLoading: profileLoading } = useProfile();
   const updateProfile = useUpdateProfile();
 
@@ -65,10 +67,10 @@ export default function EditProfilePage() {
 
       updateUser({ displayName: data.name, name: data.name });
 
-      alert('تم تحديث الملف الشخصي بنجاح');
+      alert(t('profile.profileUpdatedMessage'));
       router.back();
     } catch {
-      alert('حدث خطأ أثناء تحديث الملف الشخصي');
+      alert(t('profile.failedUpdate'));
     }
   };
 
@@ -87,10 +89,10 @@ export default function EditProfilePage() {
             className="inline-flex items-center gap-1.5 text-v2-text-soft hover:text-v2-text mb-6 transition-colors"
           >
             <ArrowRight className="w-4 h-4" />
-            العودة
+            {t('wp.back')}
           </button>
 
-          <h1 className="text-2xl font-extrabold text-v2-text mb-6">تعديل الملف الشخصي</h1>
+          <h1 className="text-2xl font-extrabold text-v2-text mb-6">{t('profile.editProfile')}</h1>
 
           {profileLoading ? (
             <div className="space-y-4">
@@ -118,8 +120,8 @@ export default function EditProfilePage() {
                     </div>
                   )}
                   <div>
-                    <p className="text-sm font-semibold text-v2-text">الصورة الشخصية</p>
-                    <p className="text-xs text-v2-text-muted">سيتم تفعيل تغيير الصورة قريبا</p>
+                    <p className="text-sm font-semibold text-v2-text">{t('wp.profilePhoto')}</p>
+                    <p className="text-xs text-v2-text-muted">{t('wp.photoComingSoon')}</p>
                   </div>
                 </div>
               </div>
@@ -127,14 +129,14 @@ export default function EditProfilePage() {
               {/* Name */}
               <div className="bg-white rounded-[22px] p-6 shadow-bubble-sm">
                 <label htmlFor="name" className="block text-sm font-semibold text-v2-text mb-2">
-                  الاسم
+                  {t('profile.name')}
                 </label>
                 <input
                   id="name"
                   type="text"
                   className="w-full px-4 py-3 rounded-full bg-v2-bg border-0 text-v2-text placeholder:text-v2-text-muted focus:ring-2 focus:ring-v2-primary focus:outline-none transition-all"
-                  placeholder="أدخل اسمك"
-                  {...register('name', { required: 'الاسم مطلوب' })}
+                  placeholder={t('profile.enterName')}
+                  {...register('name', { required: t('profile.nameRequired') })}
                 />
                 {errors.name && (
                   <p className="text-xs text-v2-secondary mt-1.5 mr-2">{errors.name.message}</p>
@@ -144,13 +146,13 @@ export default function EditProfilePage() {
               {/* Bio */}
               <div className="bg-white rounded-[22px] p-6 shadow-bubble-sm">
                 <label htmlFor="bio" className="block text-sm font-semibold text-v2-text mb-2">
-                  نبذة عنك
+                  {t('profile.bio')}
                 </label>
                 <textarea
                   id="bio"
                   rows={3}
                   className="w-full px-4 py-3 rounded-[16px] bg-v2-bg border-0 text-v2-text placeholder:text-v2-text-muted focus:ring-2 focus:ring-v2-primary focus:outline-none transition-all resize-none"
-                  placeholder="اكتب نبذة مختصرة عنك..."
+                  placeholder={t('profile.placeholderBio')}
                   {...register('bio')}
                 />
               </div>
@@ -158,13 +160,13 @@ export default function EditProfilePage() {
               {/* City */}
               <div className="bg-white rounded-[22px] p-6 shadow-bubble-sm">
                 <label htmlFor="city" className="block text-sm font-semibold text-v2-text mb-2">
-                  المدينة
+                  {t('profile.city')}
                 </label>
                 <input
                   id="city"
                   type="text"
                   className="w-full px-4 py-3 rounded-full bg-v2-bg border-0 text-v2-text placeholder:text-v2-text-muted focus:ring-2 focus:ring-v2-primary focus:outline-none transition-all"
-                  placeholder="مدينتك الحالية"
+                  placeholder={t('wp.currentCity')}
                   {...register('city')}
                 />
               </div>
@@ -178,12 +180,12 @@ export default function EditProfilePage() {
                 {updateProfile.isPending ? (
                   <>
                     <Loader2 className="w-5 h-5 animate-spin" />
-                    جاري الحفظ...
+                    {t('wp.saving')}
                   </>
                 ) : (
                   <>
                     <Save className="w-5 h-5" />
-                    حفظ التغييرات
+                    {t('profile.saveChanges')}
                   </>
                 )}
               </button>

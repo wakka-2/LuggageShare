@@ -64,6 +64,41 @@ export class BookingsService {
     };
   }
 
+  async findByListing(userId: string, listingId: string, params?: { limit?: number }) {
+    const limit = Math.min(Number(params?.limit) || 10, 50);
+
+    // Verify the user owns this listing
+    const listing = await this.prisma.listing.findUnique({
+      where: { id: listingId },
+      select: { carrierId: true },
+    });
+
+    if (!listing) {
+      throw new NotFoundException('Listing not found');
+    }
+
+    if (listing.carrierId !== userId) {
+      throw new ForbiddenException('You can only view bookings for your own listings');
+    }
+
+    return this.prisma.booking.findMany({
+      where: { listingId },
+      include: {
+        sender: {
+          select: {
+            id: true,
+            name: true,
+            avatarUrl: true,
+            isVerified: true,
+          },
+        },
+        items: true,
+      },
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+    });
+  }
+
   async findById(userId: string, id: string) {
     const booking = await this.prisma.booking.findUnique({
       where: { id },

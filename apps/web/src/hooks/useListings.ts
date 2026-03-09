@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api';
+import { useAuth } from '@/providers/AuthProvider';
 
 export interface ApiListing {
   id: string;
@@ -73,8 +74,21 @@ export function useListings(params: SearchParams = {}) {
       if (params.limit) searchParams.set('limit', String(params.limit));
 
       const { data } = await apiClient.get(`/listings?${searchParams.toString()}`);
-      return data;
+      // API returns paginated { data: [...], meta: {...} } — extract the array
+      return Array.isArray(data) ? data : (data?.data ?? []);
     },
+  });
+}
+
+export function useMyListings() {
+  const { isAuthenticated } = useAuth();
+  return useQuery<(ApiListing & { _count?: { bookings: number } })[]>({
+    queryKey: ['myListings'],
+    queryFn: async () => {
+      const { data } = await apiClient.get('/listings/me');
+      return data.data ?? data;
+    },
+    enabled: isAuthenticated,
   });
 }
 
@@ -88,6 +102,7 @@ export function useCreateListing() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['listings'] });
+      queryClient.invalidateQueries({ queryKey: ['myListings'] });
     },
   });
 }
@@ -117,6 +132,7 @@ export function useDeleteListing() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['listings'] });
+      queryClient.invalidateQueries({ queryKey: ['myListings'] });
     },
   });
 }

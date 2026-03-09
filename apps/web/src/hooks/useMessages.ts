@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api';
+import { useAuth } from '@/providers/AuthProvider';
 
 export interface ApiConversation {
   bookingId: string;
@@ -32,13 +33,21 @@ export interface ApiMessage {
 }
 
 export function useConversations() {
+  const { isAuthenticated } = useAuth();
+
   return useQuery<ApiConversation[]>({
     queryKey: ['conversations'],
     queryFn: async () => {
       const { data } = await apiClient.get('/messages/conversations');
       return data;
     },
+    enabled: isAuthenticated,
   });
+}
+
+export function useUnreadMessagesCount() {
+  const { data: conversations } = useConversations();
+  return conversations?.reduce((sum, c) => sum + (c.unreadCount || 0), 0) ?? 0;
 }
 
 export function useMessages(bookingId: string | null) {

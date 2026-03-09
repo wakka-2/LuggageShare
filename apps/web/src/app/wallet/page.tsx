@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react';
 import { Wallet, ArrowUpRight, ArrowDownRight, Send, Loader2, History } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
+import { useLanguage } from '@/providers/LanguageProvider';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import Modal from '@/components/common/Modal';
 import { useWalletBalance, useTransactionHistory, useWithdrawal } from '@/hooks/useWallet';
@@ -13,8 +14,8 @@ function formatCurrency(amount: number): string {
   return amount.toFixed(2);
 }
 
-function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString('ar-SA', {
+function formatDate(dateStr: string, locale: string = 'ar-SA'): string {
+  return new Date(dateStr).toLocaleDateString(locale, {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
@@ -31,25 +32,25 @@ function isIncomeType(type: string): boolean {
   );
 }
 
-function getTransactionLabel(type: string): string {
+function getTransactionLabel(type: string, t: (key: string) => string): string {
   const labels: Record<string, string> = {
-    BOOKING_PAYMENT: 'دفعة حجز',
-    WITHDRAWAL: 'سحب',
-    REFUND: 'استرداد',
-    COMMISSION: 'عمولة',
-    commission: 'عمولة',
-    top_up: 'إيداع',
-    refund: 'استرداد',
+    BOOKING_PAYMENT: t('wp.bookingPayment'),
+    WITHDRAWAL: t('wallet.withdrawal'),
+    REFUND: t('wallet.refund'),
+    COMMISSION: t('wallet.commission'),
+    commission: t('wallet.commission'),
+    top_up: t('wallet.topUpType'),
+    refund: t('wallet.refund'),
   };
   return labels[type] ?? type;
 }
 
-function getStatusBadge(status?: string) {
+function getStatusBadge(status: string | undefined, t: (key: string) => string) {
   if (!status) return null;
   const map: Record<string, { label: string; className: string }> = {
-    COMPLETED: { label: 'مكتمل', className: 'bg-v2-mint/15 text-emerald-700' },
-    PENDING: { label: 'قيد الانتظار', className: 'bg-v2-amber/15 text-amber-700' },
-    FAILED: { label: 'فشل', className: 'bg-v2-secondary/15 text-v2-secondary' },
+    COMPLETED: { label: t('wp.statusCompleted'), className: 'bg-v2-mint/15 text-emerald-700' },
+    PENDING: { label: t('wp.statusPending'), className: 'bg-v2-amber/15 text-amber-700' },
+    FAILED: { label: t('wp.statusFailed'), className: 'bg-v2-secondary/15 text-v2-secondary' },
   };
   const badge = map[status];
   if (!badge) return null;
@@ -93,6 +94,7 @@ function TransactionSkeleton() {
 /* ---------- Withdrawal form ---------- */
 
 function WithdrawalForm({ onSuccess, onClose }: { onSuccess: () => void; onClose: () => void }) {
+  const { t } = useLanguage();
   const [amount, setAmount] = useState('');
   const [bankName, setBankName] = useState('');
   const [iban, setIban] = useState('');
@@ -126,7 +128,7 @@ function WithdrawalForm({ onSuccess, onClose }: { onSuccess: () => void; onClose
       {/* Amount */}
       <div>
         <label htmlFor="wd-amount" className="block text-sm font-semibold text-v2-text mb-1.5">
-          المبلغ (ر.س)
+          {t('wp.amount')}
         </label>
         <input
           id="wd-amount"
@@ -145,7 +147,7 @@ function WithdrawalForm({ onSuccess, onClose }: { onSuccess: () => void; onClose
       {/* Bank name */}
       <div>
         <label htmlFor="wd-bank" className="block text-sm font-semibold text-v2-text mb-1.5">
-          اسم البنك
+          {t('wp.bankNameLabel')}
         </label>
         <input
           id="wd-bank"
@@ -153,7 +155,7 @@ function WithdrawalForm({ onSuccess, onClose }: { onSuccess: () => void; onClose
           required
           value={bankName}
           onChange={(e) => setBankName(e.target.value)}
-          placeholder="مثال: البنك الأهلي"
+          placeholder={t('wp.bankNamePlaceholder')}
           className={inputClasses}
         />
       </div>
@@ -161,7 +163,7 @@ function WithdrawalForm({ onSuccess, onClose }: { onSuccess: () => void; onClose
       {/* IBAN */}
       <div>
         <label htmlFor="wd-iban" className="block text-sm font-semibold text-v2-text mb-1.5">
-          رقم الآيبان (IBAN)
+          {t('wp.ibanLabel')}
         </label>
         <input
           id="wd-iban"
@@ -178,7 +180,7 @@ function WithdrawalForm({ onSuccess, onClose }: { onSuccess: () => void; onClose
       {/* Error */}
       {withdrawal.isError && (
         <p className="text-sm text-v2-secondary" role="alert">
-          حدث خطأ أثناء السحب. يرجى المحاولة مرة أخرى.
+          {t('wp.withdrawalError')}
         </p>
       )}
 
@@ -193,7 +195,7 @@ function WithdrawalForm({ onSuccess, onClose }: { onSuccess: () => void; onClose
         ) : (
           <Send className="w-4 h-4" />
         )}
-        {withdrawal.isPending ? 'جاري السحب...' : 'تأكيد السحب'}
+        {withdrawal.isPending ? t('wp.withdrawing') : t('wp.confirmWithdraw')}
       </button>
     </form>
   );
@@ -202,6 +204,7 @@ function WithdrawalForm({ onSuccess, onClose }: { onSuccess: () => void; onClose
 /* ---------- Main page ---------- */
 
 export default function WalletPage() {
+  const { t, lang } = useLanguage();
   const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
 
   const { data: balanceData, isLoading: balanceLoading } = useWalletBalance();
@@ -223,8 +226,8 @@ export default function WalletPage() {
               <Wallet className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-extrabold text-v2-text">المحفظة</h1>
-              <p className="text-sm text-v2-text-soft">الرصيد والمعاملات المالية</p>
+              <h1 className="text-2xl font-extrabold text-v2-text">{t('wallet.title')}</h1>
+              <p className="text-sm text-v2-text-soft">{t('wp.walletSubtitle')}</p>
             </div>
           </div>
 
@@ -237,12 +240,15 @@ export default function WalletPage() {
                 <div className="w-12 h-12 rounded-full bg-v2-primary/10 flex items-center justify-center">
                   <Wallet className="w-6 h-6 text-v2-primary" />
                 </div>
-                <p className="text-sm font-semibold text-v2-text-soft">الرصيد الحالي</p>
+                <p className="text-sm font-semibold text-v2-text-soft">{t('wallet.balance')}</p>
               </div>
 
               <p className="text-4xl font-extrabold text-v2-text mt-3 mb-5" dir="ltr">
                 <span>{formatCurrency(balanceData?.balance ?? 0)}</span>
-                <span className="text-lg font-bold text-v2-text-muted mr-2"> ر.س</span>
+                <span className="text-lg font-bold text-v2-text-muted mr-2">
+                  {' '}
+                  {t('common.sar')}
+                </span>
               </p>
 
               <button
@@ -250,7 +256,7 @@ export default function WalletPage() {
                 className="inline-flex items-center gap-2 v2-gradient-primary text-white font-semibold px-6 py-2.5 rounded-full shadow-bubble-sm hover:shadow-bubble-md transition-all"
               >
                 <Send className="w-4 h-4" />
-                سحب الرصيد
+                {t('wp.withdrawBalance')}
               </button>
             </div>
           )}
@@ -259,7 +265,7 @@ export default function WalletPage() {
           <div>
             <div className="flex items-center gap-2 mb-4">
               <History className="w-5 h-5 text-v2-primary" />
-              <h2 className="text-lg font-extrabold text-v2-text">سجل المعاملات</h2>
+              <h2 className="text-lg font-extrabold text-v2-text">{t('wallet.transactions')}</h2>
             </div>
 
             {txLoading ? (
@@ -295,13 +301,13 @@ export default function WalletPage() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
                             <p className="text-sm font-semibold text-v2-text truncate">
-                              {tx.description || getTransactionLabel(tx.type)}
+                              {tx.description || getTransactionLabel(tx.type, t)}
                             </p>
                             {(tx as Transaction & { status?: string }).status &&
-                              getStatusBadge((tx as Transaction & { status?: string }).status)}
+                              getStatusBadge((tx as Transaction & { status?: string }).status, t)}
                           </div>
                           <p className="text-xs text-v2-text-muted mt-0.5">
-                            {formatDate(tx.createdAt)}
+                            {formatDate(tx.createdAt, lang === 'ar' ? 'ar-SA' : 'en-US')}
                           </p>
                         </div>
 
@@ -313,7 +319,7 @@ export default function WalletPage() {
                           dir="ltr"
                         >
                           {income ? '+' : '-'}
-                          {formatCurrency(Math.abs(tx.amount))} ر.س
+                          {formatCurrency(Math.abs(tx.amount))} {t('common.sar')}
                         </p>
                       </div>
                     </div>
@@ -325,10 +331,10 @@ export default function WalletPage() {
                 <div className="w-14 h-14 rounded-full bg-v2-primary/10 flex items-center justify-center mx-auto mb-3">
                   <History className="w-7 h-7 text-v2-primary" />
                 </div>
-                <h3 className="text-base font-bold text-v2-text mb-1">لا توجد معاملات</h3>
-                <p className="text-sm text-v2-text-soft">
-                  ستظهر معاملاتك المالية هنا عند إتمام أول حجز
-                </p>
+                <h3 className="text-base font-bold text-v2-text mb-1">
+                  {t('wallet.noTransactions')}
+                </h3>
+                <p className="text-sm text-v2-text-soft">{t('wp.noTransactionsDesc')}</p>
               </div>
             )}
           </div>
@@ -337,7 +343,11 @@ export default function WalletPage() {
         <Footer />
 
         {/* Withdrawal modal */}
-        <Modal isOpen={isWithdrawOpen} onClose={() => setIsWithdrawOpen(false)} title="سحب الرصيد">
+        <Modal
+          isOpen={isWithdrawOpen}
+          onClose={() => setIsWithdrawOpen(false)}
+          title={t('wp.withdrawBalance')}
+        >
           <WithdrawalForm
             onSuccess={handleWithdrawalSuccess}
             onClose={() => setIsWithdrawOpen(false)}

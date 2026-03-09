@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import Link from 'next/link';
 import { Pencil, Wallet, Bell, HelpCircle, LogOut, Star, ChevronLeft } from 'lucide-react';
 import { useAuth } from '@/providers/AuthProvider';
+import { useLanguage } from '@/providers/LanguageProvider';
 import { useProfile } from '@/hooks/useProfile';
 import { useUserReviews } from '@/hooks/useReviews';
 import { Header } from '@/components/layout/Header';
@@ -30,37 +31,41 @@ function getInitial(name: string): string {
   return name.charAt(0).toUpperCase();
 }
 
-const MENU_ITEMS = [
-  {
-    href: '/profile/edit',
-    icon: Pencil,
-    label: 'تعديل الملف الشخصي',
-    description: 'تعديل اسمك وبياناتك',
-  },
-  {
-    href: '/wallet',
-    icon: Wallet,
-    label: 'المحفظة',
-    description: 'الرصيد والمعاملات المالية',
-  },
-  {
-    href: '/notifications',
-    icon: Bell,
-    label: 'الإشعارات',
-    description: 'إدارة الإشعارات',
-  },
-  {
-    href: '/help',
-    icon: HelpCircle,
-    label: 'المساعدة',
-    description: 'مركز الدعم والمساعدة',
-  },
-];
-
 export default function ProfilePage() {
   const { user, signOut } = useAuth();
+  const { t } = useLanguage();
   const { data: profile } = useProfile();
   const { data: reviews, isLoading: reviewsLoading } = useUserReviews(user?.id ?? null);
+
+  const menuItems = useMemo(
+    () => [
+      {
+        href: '/profile/edit',
+        icon: Pencil,
+        label: t('profile.editProfile'),
+        description: t('wp.profileEditDesc'),
+      },
+      {
+        href: '/wallet',
+        icon: Wallet,
+        label: t('profile.wallet'),
+        description: t('wp.walletDesc'),
+      },
+      {
+        href: '/notifications',
+        icon: Bell,
+        label: t('profile.notifications'),
+        description: t('wp.notificationsDesc'),
+      },
+      {
+        href: '/help',
+        icon: HelpCircle,
+        label: t('wp.helpShort'),
+        description: t('wp.helpDesc'),
+      },
+    ],
+    [t]
+  );
 
   const profileUser = useMemo(() => {
     if (profile) {
@@ -95,7 +100,7 @@ export default function ProfilePage() {
 
           {/* Menu Cards */}
           <div className="space-y-3 mb-8">
-            {MENU_ITEMS.map((item) => (
+            {menuItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
@@ -108,14 +113,14 @@ export default function ProfilePage() {
                   <p className="font-semibold text-v2-text">{item.label}</p>
                   <p className="text-xs text-v2-text-soft">{item.description}</p>
                 </div>
-                <ChevronLeft className="w-4 h-4 text-v2-text-muted flex-shrink-0 rtl:rotate-180" />
+                <ChevronLeft className="w-4 h-4 text-v2-text-muted flex-shrink-0" />
               </Link>
             ))}
           </div>
 
           {/* Reviews Section */}
           <div className="mb-8">
-            <h2 className="text-lg font-extrabold text-v2-text mb-4">التقييمات</h2>
+            <h2 className="text-lg font-extrabold text-v2-text mb-4">{t('wp.reviews')}</h2>
 
             {reviewsLoading ? (
               <div className="space-y-3">
@@ -174,7 +179,7 @@ export default function ProfilePage() {
                 <div className="w-12 h-12 rounded-full bg-v2-primary/10 flex items-center justify-center mx-auto mb-3">
                   <Star className="w-6 h-6 text-v2-primary" />
                 </div>
-                <p className="text-sm text-v2-text-soft">لا توجد تقييمات بعد</p>
+                <p className="text-sm text-v2-text-soft">{t('wp.noReviews')}</p>
               </div>
             )}
           </div>
@@ -185,7 +190,7 @@ export default function ProfilePage() {
             className="w-full flex items-center justify-center gap-2 bg-white rounded-[22px] p-4 shadow-bubble-sm text-v2-secondary font-semibold hover:bg-v2-secondary/5 transition-all"
           >
             <LogOut className="w-5 h-5" />
-            تسجيل الخروج
+            {t('profile.signOut')}
           </button>
         </main>
 

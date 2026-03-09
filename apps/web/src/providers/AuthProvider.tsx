@@ -70,9 +70,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!user && !isPublicRoute(pathname)) {
       router.replace('/auth/login');
     } else if (user && (pathname === '/auth/login' || pathname === '/auth/register')) {
-      router.replace('/');
+      // Use requestAnimationFrame to ensure React state is fully painted
+      // before triggering Next.js navigation (avoids race with batched updates)
+      requestAnimationFrame(() => {
+        router.replace('/');
+      });
     }
-  }, [user, pathname, isLoading]);
+  }, [user, pathname, isLoading, router]);
 
   async function checkAuth() {
     try {

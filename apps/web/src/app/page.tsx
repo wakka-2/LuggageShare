@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Plane, SearchX, SlidersHorizontal, DollarSign } from 'lucide-react';
 import { useListings } from '@/hooks/useListings';
 import { MOCK_LISTINGS } from '@/lib/mockListings';
+import { useLanguage } from '@/providers/LanguageProvider';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { HowItWorks } from '@/components/home/HowItWorks';
@@ -14,6 +15,7 @@ import TripCard from '@/components/home/TripCard';
 import TripCardSkeleton from '@/components/home/TripCardSkeleton';
 
 export default function HomePage() {
+  const { t } = useLanguage();
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
   const [date, setDate] = useState('');
@@ -27,7 +29,7 @@ export default function HomePage() {
     from: from || undefined,
     to: to || undefined,
     date: date || undefined,
-    limit: 12,
+    limit: 20,
   });
 
   const listings = useMemo(() => {
@@ -73,11 +75,9 @@ export default function HomePage() {
             </div>
 
             <h1 className="text-3xl md:text-4xl font-extrabold text-v2-text mb-2 relative">
-              اكسب المال من رحلاتك
+              {t('wp.earnMoney')}
             </h1>
-            <p className="text-v2-text-soft mb-6 relative">
-              شارك مساحة أمتعتك الفارغة واكسب دخلاً إضافياً مع كل رحلة
-            </p>
+            <p className="text-v2-text-soft mb-6 relative">{t('wp.earnMoneyDesc')}</p>
           </div>
         </section>
 
@@ -90,15 +90,15 @@ export default function HomePage() {
                   <DollarSign className="w-6 h-6 text-v2-mint" />
                 </div>
                 <div>
-                  <p className="font-bold text-v2-text">هل لديك مساحة فارغة في أمتعتك؟</p>
-                  <p className="text-sm text-v2-text-soft">سجل رحلتك واكسب حتى ١٢٠ ريال لكل كيلو</p>
+                  <p className="font-bold text-v2-text">{t('wp.earnMoney')}</p>
+                  <p className="text-sm text-v2-text-soft">{t('wp.earnMoneyDesc')}</p>
                 </div>
               </div>
               <Link
                 href="/listing/create"
                 className="bg-v2-mint text-white px-5 py-2.5 rounded-full text-sm font-semibold whitespace-nowrap hover:shadow-bubble-sm transition-all"
               >
-                سجل رحلتك
+                {t('wp.addYourTrip')}
               </Link>
             </div>
           </div>
@@ -110,7 +110,7 @@ export default function HomePage() {
             <div className="flex items-center gap-2">
               <Plane className="w-4 h-4 text-v2-primary -rotate-90 rtl:rotate-90" />
               <p className="text-sm text-v2-text-soft">
-                {isLoading ? 'جاري البحث...' : `${listings.length} رحلة متاحة`}
+                {isLoading ? t('common.loading') : `${listings.length} ${t('home.trips')}`}
               </p>
             </div>
             <button
@@ -118,7 +118,7 @@ export default function HomePage() {
               className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-white shadow-bubble-xs text-sm text-v2-text-soft hover:text-v2-text hover:shadow-bubble-sm transition-all"
             >
               <SlidersHorizontal className="w-4 h-4" />
-              فلترة
+              {t('home.searchButton')}
               {hasFilters && <span className="w-2 h-2 rounded-full bg-v2-secondary" />}
             </button>
           </div>
@@ -167,14 +167,14 @@ export default function HomePage() {
                 <div className="w-16 h-16 rounded-full bg-v2-primary/10 flex items-center justify-center mx-auto mb-4">
                   <SearchX className="w-8 h-8 text-v2-primary" />
                 </div>
-                <h3 className="text-lg font-bold text-v2-text mb-2">لا توجد رحلات</h3>
-                <p className="text-v2-text-soft mb-4">لم نجد رحلات تطابق بحثك</p>
+                <h3 className="text-lg font-bold text-v2-text mb-2">{t('home.noListings')}</h3>
+                <p className="text-v2-text-soft mb-4">{t('home.noListingsDescription')}</p>
                 {hasFilters && (
                   <button
                     onClick={handleClearFilters}
                     className="text-v2-primary font-semibold hover:underline"
                   >
-                    مسح الفلاتر
+                    {t('home.clearFilters')}
                   </button>
                 )}
               </div>
@@ -194,15 +194,13 @@ export default function HomePage() {
             <div className="absolute top-4 left-8 w-24 h-24 rounded-full bg-white/10" />
             <div className="absolute bottom-6 right-12 w-16 h-16 rounded-full bg-white/10" />
 
-            <h2 className="text-3xl font-bold text-white mb-4 relative">هل لديك رحلة قادمة؟</h2>
-            <p className="text-white/80 mb-8 relative">
-              سجل كناقل واكسب المال من مساحة أمتعتك الإضافية
-            </p>
+            <h2 className="text-3xl font-bold text-white mb-4 relative">{t('wp.ctaTitle')}</h2>
+            <p className="text-white/80 mb-8 relative">{t('wp.ctaDesc')}</p>
             <Link
               href="/listing/create"
               className="inline-block bg-white text-v2-primary px-8 py-3 rounded-full font-semibold hover:shadow-bubble-md transition-all relative"
             >
-              سجل رحلتك
+              {t('wp.ctaButton')}
             </Link>
           </div>
         </section>

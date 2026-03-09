@@ -8,6 +8,7 @@ import {
   Globe,
   PlusCircle,
   Plane,
+  Inbox,
   MessageSquare,
   User,
   Wallet,
@@ -16,6 +17,9 @@ import {
   ChevronDown,
 } from 'lucide-react';
 import { useAuth } from '@/providers/AuthProvider';
+import { useLanguage } from '@/providers/LanguageProvider';
+import { useUnreadCount } from '@/hooks/useNotifications';
+import { useUnreadMessagesCount } from '@/hooks/useMessages';
 
 function UserAvatar({
   user,
@@ -45,6 +49,9 @@ export function Header() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { user, isAuthenticated, signOut } = useAuth();
+  const { lang, toggleLang, t } = useLanguage();
+  const unreadCount = useUnreadCount();
+  const unreadMessages = useUnreadMessagesCount();
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -66,7 +73,7 @@ export function Header() {
             <div className="w-9 h-9 v2-gradient-primary rounded-2xl flex items-center justify-center shadow-bubble-xs">
               <span className="text-white font-bold text-lg">ح</span>
             </div>
-            <span className="font-extrabold text-xl text-v2-text">حصتي</span>
+            <span className="font-extrabold text-xl text-v2-text">{t('nav.appName')}</span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -76,21 +83,33 @@ export function Header() {
               className="text-v2-text-soft hover:text-v2-text hover:bg-v2-primary/5 px-4 py-2 rounded-full transition-all flex items-center gap-1.5"
             >
               <PlusCircle className="w-4 h-4" />
-              أضف رحلة
+              {t('nav.addTrip')}
             </Link>
             <Link
               href="/trips"
               className="text-v2-text-soft hover:text-v2-text hover:bg-v2-primary/5 px-4 py-2 rounded-full transition-all flex items-center gap-1.5"
             >
               <Plane className="w-4 h-4" />
-              رحلاتي
+              {t('nav.myTrips')}
+            </Link>
+            <Link
+              href="/reservations"
+              className="text-v2-text-soft hover:text-v2-text hover:bg-v2-primary/5 px-4 py-2 rounded-full transition-all flex items-center gap-1.5"
+            >
+              <Inbox className="w-4 h-4" />
+              {t('nav.reservations')}
             </Link>
             <Link
               href="/messages"
-              className="text-v2-text-soft hover:text-v2-text hover:bg-v2-primary/5 px-4 py-2 rounded-full transition-all flex items-center gap-1.5"
+              className="text-v2-text-soft hover:text-v2-text hover:bg-v2-primary/5 px-4 py-2 rounded-full transition-all flex items-center gap-1.5 relative"
             >
               <MessageSquare className="w-4 h-4" />
-              الرسائل
+              {t('nav.messages')}
+              {unreadMessages > 0 && (
+                <span className="min-w-[18px] h-[18px] flex items-center justify-center bg-v2-secondary text-white text-[10px] font-bold rounded-full px-1">
+                  {unreadMessages > 99 ? '99+' : unreadMessages}
+                </span>
+              )}
             </Link>
           </nav>
 
@@ -98,10 +117,12 @@ export function Header() {
           <div className="flex items-center gap-3">
             {/* Language Toggle */}
             <button
-              aria-label="تغيير اللغة"
-              className="w-10 h-10 flex items-center justify-center rounded-full text-v2-text-soft hover:text-v2-text hover:bg-v2-primary/5 transition-all"
+              onClick={toggleLang}
+              aria-label={lang === 'ar' ? 'Switch to English' : 'التبديل للعربية'}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-v2-text-soft hover:text-v2-text hover:bg-v2-primary/5 transition-all"
             >
-              <Globe className="w-5 h-5" />
+              <Globe className="w-4 h-4" />
+              <span className="text-xs font-semibold">{t('nav.switchLang')}</span>
             </button>
 
             {isAuthenticated && user ? (
@@ -109,10 +130,15 @@ export function Header() {
                 {/* Notifications */}
                 <Link
                   href="/notifications"
-                  className="hidden md:flex w-10 h-10 items-center justify-center rounded-full text-v2-text-soft hover:text-v2-text hover:bg-v2-primary/5 transition-all"
-                  aria-label="الإشعارات"
+                  className="hidden md:flex w-10 h-10 items-center justify-center rounded-full text-v2-text-soft hover:text-v2-text hover:bg-v2-primary/5 transition-all relative"
+                  aria-label={t('nav.notifications')}
                 >
                   <Bell className="w-5 h-5" />
+                  {unreadCount > 0 && (
+                    <span className="absolute top-0.5 right-0.5 min-w-[18px] h-[18px] flex items-center justify-center bg-v2-secondary text-white text-[10px] font-bold rounded-full px-1">
+                      {unreadCount > 99 ? '99+' : unreadCount}
+                    </span>
+                  )}
                 </Link>
 
                 {/* User Dropdown */}
@@ -123,7 +149,7 @@ export function Header() {
                   >
                     <UserAvatar user={user} />
                     <span className="text-sm font-medium text-v2-text max-w-[100px] truncate">
-                      {user.displayName || 'مستخدم'}
+                      {user.displayName || t('nav.user')}
                     </span>
                     <ChevronDown className="w-3.5 h-3.5 text-v2-text-muted" />
                   </button>
@@ -136,7 +162,7 @@ export function Header() {
                         className="flex items-center gap-2 px-4 py-2.5 text-sm text-v2-text hover:bg-v2-primary/5 transition-colors"
                       >
                         <User className="w-4 h-4 text-v2-text-soft" />
-                        الملف الشخصي
+                        {t('nav.profile')}
                       </Link>
                       <Link
                         href="/wallet"
@@ -144,7 +170,7 @@ export function Header() {
                         className="flex items-center gap-2 px-4 py-2.5 text-sm text-v2-text hover:bg-v2-primary/5 transition-colors"
                       >
                         <Wallet className="w-4 h-4 text-v2-text-soft" />
-                        المحفظة
+                        {t('nav.wallet')}
                       </Link>
                       <Link
                         href="/notifications"
@@ -152,7 +178,7 @@ export function Header() {
                         className="flex items-center gap-2 px-4 py-2.5 text-sm text-v2-text hover:bg-v2-primary/5 transition-colors"
                       >
                         <Bell className="w-4 h-4 text-v2-text-soft" />
-                        الإشعارات
+                        {t('nav.notifications')}
                       </Link>
                       <hr className="border-v2-primary/10 my-1" />
                       <button
@@ -163,7 +189,7 @@ export function Header() {
                         className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-v2-secondary hover:bg-v2-secondary/5 transition-colors"
                       >
                         <LogOut className="w-4 h-4" />
-                        تسجيل الخروج
+                        {t('nav.signOut')}
                       </button>
                     </div>
                   )}
@@ -175,20 +201,20 @@ export function Header() {
                   href="/auth/login"
                   className="text-v2-text-soft hover:text-v2-text px-4 py-2 rounded-full border border-v2-primary/20 hover:border-v2-primary/40 transition-all"
                 >
-                  تسجيل الدخول
+                  {t('nav.signIn')}
                 </Link>
                 <Link
                   href="/auth/register"
                   className="v2-gradient-primary text-white px-5 py-2 rounded-full font-semibold hover:shadow-bubble-md transition-all"
                 >
-                  إنشاء حساب
+                  {t('nav.createAccount')}
                 </Link>
               </div>
             )}
 
             {/* Mobile Menu Button */}
             <button
-              aria-label={isMenuOpen ? 'إغلاق القائمة' : 'فتح القائمة'}
+              aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
               className="md:hidden w-10 h-10 flex items-center justify-center rounded-full text-v2-text-soft hover:bg-v2-primary/5"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
             >
@@ -207,7 +233,7 @@ export function Header() {
                 className="text-v2-text-soft hover:text-v2-text px-4 py-2 rounded-full hover:bg-v2-primary/5 transition-all flex items-center gap-2"
               >
                 <PlusCircle className="w-4 h-4" />
-                أضف رحلة
+                {t('nav.addTrip')}
               </Link>
               <Link
                 href="/trips"
@@ -215,7 +241,15 @@ export function Header() {
                 className="text-v2-text-soft hover:text-v2-text px-4 py-2 rounded-full hover:bg-v2-primary/5 transition-all flex items-center gap-2"
               >
                 <Plane className="w-4 h-4" />
-                رحلاتي
+                {t('nav.myTrips')}
+              </Link>
+              <Link
+                href="/reservations"
+                onClick={() => setIsMenuOpen(false)}
+                className="text-v2-text-soft hover:text-v2-text px-4 py-2 rounded-full hover:bg-v2-primary/5 transition-all flex items-center gap-2"
+              >
+                <Inbox className="w-4 h-4" />
+                {t('nav.reservations')}
               </Link>
               <Link
                 href="/messages"
@@ -223,7 +257,12 @@ export function Header() {
                 className="text-v2-text-soft hover:text-v2-text px-4 py-2 rounded-full hover:bg-v2-primary/5 transition-all flex items-center gap-2"
               >
                 <MessageSquare className="w-4 h-4" />
-                الرسائل
+                {t('nav.messages')}
+                {unreadMessages > 0 && (
+                  <span className="ml-auto bg-v2-secondary text-white text-[10px] font-bold min-w-[18px] h-[18px] flex items-center justify-center rounded-full px-1">
+                    {unreadMessages > 99 ? '99+' : unreadMessages}
+                  </span>
+                )}
               </Link>
               <hr className="border-v2-primary/10 my-2" />
               {isAuthenticated && user ? (
@@ -234,7 +273,7 @@ export function Header() {
                     className="text-v2-text-soft hover:text-v2-text px-4 py-2 rounded-full hover:bg-v2-primary/5 transition-all flex items-center gap-2"
                   >
                     <User className="w-4 h-4" />
-                    الملف الشخصي
+                    {t('nav.profile')}
                   </Link>
                   <Link
                     href="/wallet"
@@ -242,7 +281,7 @@ export function Header() {
                     className="text-v2-text-soft hover:text-v2-text px-4 py-2 rounded-full hover:bg-v2-primary/5 transition-all flex items-center gap-2"
                   >
                     <Wallet className="w-4 h-4" />
-                    المحفظة
+                    {t('nav.wallet')}
                   </Link>
                   <Link
                     href="/notifications"
@@ -250,7 +289,12 @@ export function Header() {
                     className="text-v2-text-soft hover:text-v2-text px-4 py-2 rounded-full hover:bg-v2-primary/5 transition-all flex items-center gap-2"
                   >
                     <Bell className="w-4 h-4" />
-                    الإشعارات
+                    {t('nav.notifications')}
+                    {unreadCount > 0 && (
+                      <span className="ml-auto bg-v2-secondary text-white text-[10px] font-bold min-w-[18px] h-[18px] flex items-center justify-center rounded-full px-1">
+                        {unreadCount > 99 ? '99+' : unreadCount}
+                      </span>
+                    )}
                   </Link>
                   <button
                     onClick={() => {
@@ -260,7 +304,7 @@ export function Header() {
                     className="text-v2-secondary px-4 py-2 rounded-full hover:bg-v2-secondary/5 transition-all flex items-center gap-2 text-start"
                   >
                     <LogOut className="w-4 h-4" />
-                    تسجيل الخروج
+                    {t('nav.signOut')}
                   </button>
                 </>
               ) : (
@@ -270,14 +314,14 @@ export function Header() {
                     onClick={() => setIsMenuOpen(false)}
                     className="text-v2-text-soft hover:text-v2-text px-4 py-2 rounded-full hover:bg-v2-primary/5 transition-all"
                   >
-                    تسجيل الدخول
+                    {t('nav.signIn')}
                   </Link>
                   <Link
                     href="/auth/register"
                     onClick={() => setIsMenuOpen(false)}
                     className="v2-gradient-primary text-white px-5 py-2 rounded-full text-center font-semibold"
                   >
-                    إنشاء حساب
+                    {t('nav.createAccount')}
                   </Link>
                 </>
               )}

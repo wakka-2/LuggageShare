@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api';
+import { useAuth } from '@/providers/AuthProvider';
 
 export interface AppNotification {
   id: string;
@@ -12,12 +13,15 @@ export interface AppNotification {
 }
 
 export function useNotifications() {
+  const { isAuthenticated } = useAuth();
+
   return useQuery<AppNotification[]>({
     queryKey: ['notifications'],
     queryFn: async () => {
       const { data } = await apiClient.get('/notifications');
       return data;
     },
+    enabled: isAuthenticated,
     refetchInterval: 30000, // Poll every 30s
   });
 }

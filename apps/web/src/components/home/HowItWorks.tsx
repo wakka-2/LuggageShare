@@ -1,47 +1,48 @@
 'use client';
 
 import { Search, MessageSquare, Package, CheckCircle } from 'lucide-react';
-
-const STEPS = [
-  {
-    icon: Search,
-    title: 'ابحث عن ناقل',
-    description: 'ابحث عن مسافرين متجهين إلى وجهتك مع مساحة متاحة',
-    accent: 'bg-v2-sky/15 text-v2-sky',
-    gradient: 'from-v2-sky to-v2-primary',
-  },
-  {
-    icon: MessageSquare,
-    title: 'تواصل واتفق',
-    description: 'تواصل مع الناقل واتفقا على التفاصيل والسعر',
-    accent: 'bg-v2-primary/15 text-v2-primary',
-    gradient: 'from-v2-primary to-v2-primary-light',
-  },
-  {
-    icon: Package,
-    title: 'سلّم أغراضك',
-    description: 'التقِ بالناقل وسلّمه أغراضك قبل السفر',
-    accent: 'bg-v2-amber/15 text-v2-amber',
-    gradient: 'from-v2-amber to-v2-secondary',
-  },
-  {
-    icon: CheckCircle,
-    title: 'استلم وقيّم',
-    description: 'يستلم المستلم الأغراض ويتم التقييم',
-    accent: 'bg-v2-mint/15 text-v2-mint',
-    gradient: 'from-v2-mint to-v2-sky',
-  },
-];
+import { useLanguage } from '@/providers/LanguageProvider';
 
 export function HowItWorks() {
+  const { t } = useLanguage();
+
+  const STEPS = [
+    {
+      icon: Search,
+      title: t('wp.step1Title'),
+      description: t('wp.step1Desc'),
+      accent: 'bg-v2-sky/15 text-v2-sky',
+      gradient: 'from-v2-sky to-v2-primary',
+    },
+    {
+      icon: MessageSquare,
+      title: t('wp.step2Title'),
+      description: t('wp.step2Desc'),
+      accent: 'bg-v2-primary/15 text-v2-primary',
+      gradient: 'from-v2-primary to-v2-primary-light',
+    },
+    {
+      icon: Package,
+      title: t('wp.step3Title'),
+      description: t('wp.step3Desc'),
+      accent: 'bg-v2-amber/15 text-v2-amber',
+      gradient: 'from-v2-amber to-v2-secondary',
+    },
+    {
+      icon: CheckCircle,
+      title: t('wp.step4Title'),
+      description: t('wp.step4Desc'),
+      accent: 'bg-v2-mint/15 text-v2-mint',
+      gradient: 'from-v2-mint to-v2-sky',
+    },
+  ];
+
   return (
     <section className="py-16 px-4">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-12">
-          <h2 className="text-2xl font-bold text-v2-text mb-3">كيف يعمل حصتي؟</h2>
-          <p className="text-v2-text-soft max-w-xl mx-auto">
-            خطوات بسيطة لإرسال أغراضك بأمان وبتكلفة أقل
-          </p>
+          <h2 className="text-2xl font-bold text-v2-text mb-3">{t('wp.howItWorksTitle')}</h2>
+          <p className="text-v2-text-soft max-w-xl mx-auto">{t('wp.howItWorksSubtitle')}</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

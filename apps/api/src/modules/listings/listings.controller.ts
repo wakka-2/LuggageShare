@@ -27,6 +27,19 @@ export class ListingsController {
     return this.listingsService.search({ from, to, date, minWeight, page, limit });
   }
 
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get my listings' })
+  @ApiResponse({ status: 200, description: 'Returns listings created by the current user' })
+  async getMyListings(
+    @CurrentUser() user: any,
+    @Query('page') page?: number,
+    @Query('limit') limit?: number
+  ) {
+    return this.listingsService.findByUser(user.id, { page, limit });
+  }
+
   @Get(':id')
   @Public()
   @ApiOperation({ summary: 'Get listing by ID' })

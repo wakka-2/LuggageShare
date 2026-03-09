@@ -63,10 +63,22 @@ async function refreshAccessToken(): Promise<string | null> {
 }
 
 // 401 response interceptor — auto-refresh token
+// 429 response interceptor — auto-retry with backoff
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+
+    // Auto-retry on 429 (rate limited) — up to 2 retries with exponential backoff
+    if (error.response?.status === 429 && !originalRequest._retryCount) {
+      originalRequest._retryCount = 0;
+    }
+    if (error.response?.status === 429 && originalRequest._retryCount < 2) {
+      originalRequest._retryCount += 1;
+      const waitMs = originalRequest._retryCount * 2000;
+      await new Promise((r) => setTimeout(r, waitMs));
+      return apiClient(originalRequest);
+    }
 
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;

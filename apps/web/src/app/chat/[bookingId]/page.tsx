@@ -3,6 +3,7 @@
 import { useParams } from 'next/navigation';
 import { useState, useRef, useEffect, useCallback, FormEvent } from 'react';
 import { Header } from '@/components/layout/Header';
+import { useLanguage } from '@/providers/LanguageProvider';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import ChatBubble from '@/components/chat/ChatBubble';
 import { useMessages, useSendMessage, useMarkAsRead } from '@/hooks/useMessages';
@@ -10,20 +11,10 @@ import { useSocket } from '@/hooks/useSocket';
 import { useBooking } from '@/hooks/useBookings';
 import { useAuth } from '@/hooks/useAuth';
 import Link from 'next/link';
-import { Send, ArrowRight, Package, Loader2 } from 'lucide-react';
-
-/* ------------------------------------------------------------------ */
-/*  Status label mapping (Arabic)                                     */
-/* ------------------------------------------------------------------ */
-const STATUS_LABELS: Record<string, string> = {
-  pending: 'في الانتظار',
-  accepted: 'مقبول',
-  rejected: 'مرفوض',
-  picked_up: 'تم الاستلام',
-  in_transit: 'قيد التوصيل',
-  delivered: 'تم التسليم',
-  cancelled: 'ملغي',
-};
+import { Send, ArrowRight, Package, Loader2, ImagePlus } from 'lucide-react';
+import { IMAGE_PREFIX } from '@/components/chat/ChatBubble';
+import { compressImage } from '@/lib/compressImage';
+import apiClient from '@/lib/api';
 
 const STATUS_COLORS: Record<string, string> = {
   pending: 'bg-v2-amber/15 text-v2-amber',
@@ -42,8 +33,8 @@ function getInitial(name: string): string {
   return name.charAt(0).toUpperCase();
 }
 
-function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString('ar-SA', {
+function formatDate(dateString: string, locale: string = 'ar-SA'): string {
+  return new Date(dateString).toLocaleDateString(locale, {
     day: 'numeric',
     month: 'short',
   });
@@ -81,8 +72,9 @@ function TypingIndicator() {
 /* ------------------------------------------------------------------ */
 /*  Date Divider                                                      */
 /* ------------------------------------------------------------------ */
-function DateDivider({ date }: { date: string }) {
-  const formatted = new Date(date).toLocaleDateString('ar-SA', {
+function DateDivider({ date, lang }: { date: string; lang: string }) {
+  const locale = lang === 'ar' ? 'ar-SA' : 'en-US';
+  const formatted = new Date(date).toLocaleDateString(locale, {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
@@ -106,7 +98,18 @@ export default function ChatPage() {
   const params = useParams();
   const bookingId = params?.bookingId as string;
 
+  const { t, lang } = useLanguage();
   const { user } = useAuth();
+
+  const STATUS_LABELS: Record<string, string> = {
+    pending: t('booking.pending'),
+    accepted: t('booking.statusAccepted'),
+    rejected: t('booking.statusRejected'),
+    picked_up: t('booking.statusPickedUp'),
+    in_transit: t('booking.statusInTransit'),
+    delivered: t('booking.statusDelivered'),
+    cancelled: t('booking.statusCancelled'),
+  };
   const { data: messages, isLoading: messagesLoading } = useMessages(bookingId ?? null);
   const { data: booking, isLoading: bookingLoading } = useBooking(bookingId ?? null);
   const {
@@ -120,9 +123,11 @@ export default function ChatPage() {
 
   const [inputValue, setInputValue] = useState('');
   const [isSending, setIsSending] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
 
   /* ---- Determine the other user in the conversation ---- */
   const otherUser = booking
@@ -215,6 +220,49 @@ export default function ChatPage() {
     [handleSend]
   );
 
+  /* ---- Handle image upload ---- */
+  const handleImageUpload = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file || !bookingId) return;
+
+      // Reset the input so the same file can be re-selected
+      e.target.value = '';
+
+      setIsUploadingImage(true);
+      try {
+        // Compress: max 800px, quality 0.6 → typically 50-150KB
+        const compressed = await compressImage(file, {
+          maxWidth: 800,
+          maxHeight: 800,
+          quality: 0.6,
+        });
+
+        // Upload to API
+        const formData = new FormData();
+        formData.append('file', compressed);
+        const res = await apiClient.post('/uploads/image?folder=chat', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        const imageUrl: string = res.data?.url || res.data;
+
+        // Send as image message
+        const content = `${IMAGE_PREFIX}${imageUrl}`;
+        if (isConnected) {
+          socketSendMessage(content);
+        } else {
+          await sendMsgMutation.mutateAsync({ bookingId, content });
+        }
+      } catch {
+        // Silently fail — user can retry
+      } finally {
+        setIsUploadingImage(false);
+        inputRef.current?.focus();
+      }
+    },
+    [bookingId, isConnected, socketSendMessage, sendMsgMutation]
+  );
+
   /* ---- Group messages by date for date dividers ---- */
   function getDateKey(dateString: string): string {
     return new Date(dateString).toLocaleDateString('en-CA'); // YYYY-MM-DD
@@ -235,7 +283,7 @@ export default function ChatPage() {
             <Link
               href="/messages"
               className="w-10 h-10 rounded-full flex items-center justify-center text-v2-text-soft hover:bg-v2-primary/5 hover:text-v2-primary transition-all flex-shrink-0"
-              aria-label="العودة للرسائل"
+              aria-label={t('chat.backToMessages')}
             >
               <ArrowRight className="w-5 h-5" />
             </Link>
@@ -267,7 +315,7 @@ export default function ChatPage() {
                 ) : (
                   <>
                     <h2 className="font-bold text-v2-text truncate text-sm">
-                      {otherUser?.name || 'مستخدم'}
+                      {otherUser?.name || t('nav.user')}
                     </h2>
                     {booking?.listing && (
                       <p className="text-xs text-v2-text-muted flex items-center gap-1 truncate">
@@ -276,7 +324,12 @@ export default function ChatPage() {
                           {booking.listing.departureCity} &larr; {booking.listing.arrivalCity}
                         </span>
                         <span className="mx-1">-</span>
-                        <span>{formatDate(booking.listing.departureDate)}</span>
+                        <span>
+                          {formatDate(
+                            booking.listing.departureDate,
+                            lang === 'ar' ? 'ar-SA' : 'en-US'
+                          )}
+                        </span>
                       </p>
                     )}
                   </>
@@ -295,7 +348,10 @@ export default function ChatPage() {
                   {STATUS_LABELS[booking.status] || booking.status}
                 </span>
               )}
-              <div className="flex items-center gap-1.5" title={isConnected ? 'متصل' : 'غير متصل'}>
+              <div
+                className="flex items-center gap-1.5"
+                title={isConnected ? t('chat.connected') : t('chat.disconnected')}
+              >
                 <span
                   className={`w-2 h-2 rounded-full transition-colors ${
                     isConnected ? 'bg-v2-mint' : 'bg-v2-text-muted'
@@ -340,9 +396,11 @@ export default function ChatPage() {
                 <div className="w-20 h-20 rounded-full bg-v2-primary/10 flex items-center justify-center mb-4">
                   <Package className="w-8 h-8 text-v2-primary" />
                 </div>
-                <h3 className="text-lg font-bold text-v2-text mb-1">ابدأ المحادثة</h3>
+                <h3 className="text-lg font-bold text-v2-text mb-1">
+                  {t('chat.startConversation')}
+                </h3>
                 <p className="text-sm text-v2-text-muted text-center max-w-[240px]">
-                  أرسل رسالة للتنسيق حول تفاصيل الشحنة
+                  {t('chat.sendCoordinate')}
                 </p>
               </div>
             ) : (
@@ -358,7 +416,7 @@ export default function ChatPage() {
 
                   return (
                     <div key={msg.id}>
-                      {showDivider && <DateDivider date={msg.createdAt} />}
+                      {showDivider && <DateDivider date={msg.createdAt} lang={lang} />}
                       <ChatBubble
                         message={{
                           id: msg.id,
@@ -386,20 +444,44 @@ export default function ChatPage() {
 
           {/* ---- Input Area ---- */}
           <div className="bg-white border-t border-v2-primary/10 px-4 py-3">
+            {/* Hidden file input for images */}
+            <input
+              ref={imageInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              className="hidden"
+            />
+
             <form
               onSubmit={handleSend}
               className="flex items-center gap-2 max-w-3xl mx-auto"
               dir="rtl"
             >
+              {/* Image upload button */}
+              <button
+                type="button"
+                onClick={() => imageInputRef.current?.click()}
+                disabled={isUploadingImage || isSending}
+                className="w-10 h-10 rounded-full flex items-center justify-center text-v2-text-muted hover:text-v2-primary hover:bg-v2-primary/5 disabled:opacity-40 transition-all flex-shrink-0"
+                aria-label={t('chat.sendImage')}
+              >
+                {isUploadingImage ? (
+                  <Loader2 className="w-5 h-5 animate-spin text-v2-primary" />
+                ) : (
+                  <ImagePlus className="w-5 h-5" />
+                )}
+              </button>
+
               <input
                 ref={inputRef}
                 type="text"
                 value={inputValue}
                 onChange={(e) => handleInputChange(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="اكتب رسالتك..."
+                placeholder={t('chat.typeMessage')}
                 className="flex-1 bg-v2-bg border border-v2-primary/10 rounded-full px-5 py-2.5 text-sm text-v2-text placeholder:text-v2-text-muted focus:outline-none focus:border-v2-primary/30 focus:ring-2 focus:ring-v2-primary/10 transition-all"
-                aria-label="اكتب رسالتك"
+                aria-label={t('chat.typeMessage')}
                 autoComplete="off"
                 disabled={isSending}
               />
@@ -407,12 +489,12 @@ export default function ChatPage() {
                 type="submit"
                 disabled={!inputValue.trim() || isSending}
                 className="w-10 h-10 rounded-full v2-gradient-primary flex items-center justify-center text-white shadow-bubble-xs hover:shadow-bubble-sm disabled:opacity-40 disabled:cursor-not-allowed transition-all flex-shrink-0"
-                aria-label="إرسال"
+                aria-label={t('chat.send')}
               >
                 {isSending ? (
                   <Loader2 className="w-[18px] h-[18px] animate-spin" />
                 ) : (
-                  <Send className="w-[18px] h-[18px] rtl:rotate-180" />
+                  <Send className="w-[18px] h-[18px] -scale-x-100" />
                 )}
               </button>
             </form>

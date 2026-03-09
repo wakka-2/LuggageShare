@@ -22,6 +22,8 @@ export class ListingsService {
 
     const where = {
       status: 'active' as const,
+      // Only show listings with future departure dates
+      ...(!date && { departureDate: { gte: new Date() } }),
       ...(from && { departureCity: { contains: from, mode: 'insensitive' as const } }),
       ...(to && { arrivalCity: { contains: to, mode: 'insensitive' as const } }),
       ...(date && {
@@ -46,7 +48,48 @@ export class ListingsService {
             },
           },
         },
-        orderBy: { departureDate: 'asc' },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      this.prisma.listing.count({ where }),
+    ]);
+
+    return {
+      data,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  }
+
+  async findByUser(userId: string, params?: { page?: number; limit?: number }) {
+    const page = Number(params?.page) || 1;
+    const limit = Math.min(Number(params?.limit) || 20, 100);
+    const skip = (page - 1) * limit;
+
+    const where = { carrierId: userId };
+
+    const [data, total] = await Promise.all([
+      this.prisma.listing.findMany({
+        where,
+        include: {
+          carrier: {
+            select: {
+              id: true,
+              name: true,
+              avatarUrl: true,
+              isVerified: true,
+            },
+          },
+          _count: {
+            select: { bookings: true },
+          },
+        },
+        orderBy: { departureDate: 'desc' },
         skip,
         take: limit,
       }),

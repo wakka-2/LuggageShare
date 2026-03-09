@@ -66,7 +66,7 @@ export class MessagesService {
       return {
         bookingId: booking.id,
         otherUser,
-        route: `${booking.listing.departureCity} → ${booking.listing.arrivalCity}`,
+        route: `${booking.listing?.departureCity ?? ''} → ${booking.listing?.arrivalCity ?? ''}`,
         lastMessage: lastMessage
           ? {
               content: lastMessage.content,

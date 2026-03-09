@@ -1,12 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { LogIn, Chrome } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { useAuth } from '@/providers/AuthProvider';
+import { useLanguage } from '@/providers/LanguageProvider';
 import apiClient from '@/lib/api';
 
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '';
@@ -22,6 +22,7 @@ function GoogleLoginButton({
   onSuccess: (data: { accessToken: string; refreshToken: string; user: any }) => void;
   onError: (msg: string) => void;
 }) {
+  const { t } = useLanguage();
   // Lazy-import useGoogleLogin so it only runs when provider is present
   const { useGoogleLogin } = require('@react-oauth/google');
 
@@ -33,12 +34,16 @@ function GoogleLoginButton({
           idToken: tokenResponse.access_token,
         });
         onSuccess(res.data);
-      } catch {
-        onError('فشل تسجيل الدخول. حاول مرة أخرى.');
+      } catch (err: any) {
+        if (err?.response?.status === 429) {
+          onError(t('auth.rateLimitError'));
+        } else {
+          onError(t('wp.loginError'));
+        }
       }
     },
     onError: () => {
-      onError('فشل الاتصال بـ Google. حاول مرة أخرى.');
+      onError(t('wp.loginError'));
     },
   });
 
@@ -49,7 +54,7 @@ function GoogleLoginButton({
       className="w-full flex items-center justify-center gap-3 bg-white border-2 border-v2-primary/20 hover:border-v2-primary/40 text-v2-text font-semibold py-3.5 rounded-full transition-all hover:shadow-bubble-sm disabled:opacity-50"
     >
       <Chrome className="w-5 h-5 text-v2-primary" />
-      {isLoading ? 'جاري التسجيل...' : 'تسجيل الدخول عبر Google'}
+      {isLoading ? t('common.loading') : t('auth.continueWithGoogle')}
     </button>
   );
 }
@@ -58,7 +63,7 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { signIn } = useAuth();
-  const router = useRouter();
+  const { t } = useLanguage();
 
   function handleAuthSuccess(data: any) {
     signIn({
@@ -73,17 +78,32 @@ export default function LoginPage() {
         profileComplete: data.user.profileComplete ?? true,
       },
     });
-    router.push('/');
+    // Redirect is handled by AuthProvider's useEffect when user state changes
   }
 
-  async function handleDevLogin() {
+  async function handleDevLogin(userIndex = 0, retryCount = 0) {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await apiClient.post('/auth/dev-login');
+      const res = await apiClient.post(`/auth/dev-login?user=${userIndex}`);
       handleAuthSuccess(res.data);
-    } catch {
-      setError('Dev login غير متاح. تأكد من تفعيل DEV_LOGIN_ENABLED.');
+    } catch (err: any) {
+      const status = err?.response?.status;
+      const msg = err?.response?.data?.message || err?.message || '';
+
+      if (status === 429) {
+        if (retryCount < 2) {
+          const waitSec = (retryCount + 1) * 2;
+          setError(t('auth.rateLimitRetrying'));
+          await new Promise((r) => setTimeout(r, waitSec * 1000));
+          return handleDevLogin(userIndex, retryCount + 1);
+        }
+        setError(t('auth.rateLimitError'));
+      } else if (msg.includes('not available') || status === 403) {
+        setError('Dev login غير متاح. تأكد من تفعيل DEV_LOGIN_ENABLED.');
+      } else {
+        setError(`Login failed: ${msg || 'Could not connect to API'}`);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -99,8 +119,8 @@ export default function LoginPage() {
               <div className="w-16 h-16 rounded-full bg-v2-primary/10 flex items-center justify-center mx-auto mb-4">
                 <LogIn className="w-8 h-8 text-v2-primary" />
               </div>
-              <h1 className="text-2xl font-extrabold text-v2-text">تسجيل الدخول</h1>
-              <p className="text-v2-text-soft mt-2">سجل دخولك للوصول لحسابك</p>
+              <h1 className="text-2xl font-extrabold text-v2-text">{t('wp.loginTitle')}</h1>
+              <p className="text-v2-text-soft mt-2">{t('wp.loginSubtitle')}</p>
             </div>
 
             {error && (
@@ -132,23 +152,32 @@ export default function LoginPage() {
             )}
 
             {process.env.NODE_ENV === 'development' && (
-              <button
-                onClick={handleDevLogin}
-                disabled={isLoading}
-                className="w-full mt-3 flex items-center justify-center gap-2 bg-v2-bg text-v2-text-soft font-medium py-3 rounded-full transition-all hover:bg-v2-primary/10 disabled:opacity-50 text-sm"
-              >
-                Dev Login (تطوير فقط)
-              </button>
+              <div className="mt-3 space-y-2">
+                <button
+                  onClick={() => handleDevLogin(0)}
+                  disabled={isLoading}
+                  className="w-full flex items-center justify-center gap-2 bg-v2-bg text-v2-text-soft font-medium py-3 rounded-full transition-all hover:bg-v2-primary/10 disabled:opacity-50 text-sm"
+                >
+                  {t('wp.devLogin')} (Dev User)
+                </button>
+                <button
+                  onClick={() => handleDevLogin(1)}
+                  disabled={isLoading}
+                  className="w-full flex items-center justify-center gap-2 bg-v2-bg text-v2-text-soft font-medium py-3 rounded-full transition-all hover:bg-v2-mint/20 disabled:opacity-50 text-sm"
+                >
+                  {t('wp.devLogin')} (Dev User 2)
+                </button>
+              </div>
             )}
 
             <p className="text-center text-xs text-v2-text-muted mt-6">
-              بتسجيل الدخول، أنت توافق على{' '}
+              {t('wp.agreeTerms')}{' '}
               <Link href="/terms" className="text-v2-primary hover:underline">
-                شروط الخدمة
+                {t('auth.termsOfService')}
               </Link>{' '}
-              و{' '}
+              {t('auth.and')}{' '}
               <Link href="/privacy" className="text-v2-primary hover:underline">
-                سياسة الخصوصية
+                {t('auth.privacyPolicy')}
               </Link>
             </p>
           </div>

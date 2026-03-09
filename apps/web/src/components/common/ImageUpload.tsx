@@ -85,6 +85,7 @@ export default function ImageUpload({
 
           {!isUploading && (
             <button
+              type="button"
               onClick={handleClear}
               className="absolute top-2 left-2 rtl:left-auto rtl:right-2 w-8 h-8 rounded-full bg-white/90 shadow-bubble-sm flex items-center justify-center text-v2-text-muted hover:text-v2-secondary transition-colors"
               aria-label="إزالة الصورة"
@@ -95,6 +96,7 @@ export default function ImageUpload({
         </div>
       ) : (
         <button
+          type="button"
           onClick={() => inputRef.current?.click()}
           className="w-full aspect-video rounded-[22px] border-2 border-dashed border-v2-primary/20 bg-v2-bg hover:border-v2-primary/40 hover:bg-v2-primary/5 transition-all flex flex-col items-center justify-center gap-2 cursor-pointer"
         >

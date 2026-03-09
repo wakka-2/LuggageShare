@@ -82,3 +82,98 @@
 .font-arabic {
   text-rendering: optimizeLegibility;
 }
+
+/* ---- Wizard step animations ---- */
+.wizard-step {
+  animation-duration: 300ms;
+  animation-fill-mode: both;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+.wizard-slide-in-right  { animation-name: slideInRight; }
+.wizard-slide-in-left   { animation-name: slideInLeft; }
+.wizard-slide-out-right { animation-name: slideOutRight; }
+.wizard-slide-out-left  { animation-name: slideOutLeft; }
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(60px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-60px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes slideOutRight {
+  from { opacity: 1; transform: translateX(0); }
+  to   { opacity: 0; transform: translateX(60px); }
+}
+@keyframes slideOutLeft {
+  from { opacity: 1; transform: translateX(0); }
+  to   { opacity: 0; transform: translateX(-60px); }
+}
+
+/* Staggered fade-in for wizard step children */
+.wizard-fade-in {
+  animation: fadeInUp 400ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.wizard-fade-in-1 { animation-delay: 50ms; }
+.wizard-fade-in-2 { animation-delay: 150ms; }
+.wizard-fade-in-3 { animation-delay: 250ms; }
+.wizard-fade-in-4 { animation-delay: 350ms; }
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px) scale(0.95); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.animate-slideUp {
+  animation: slideUp 0.35s ease-out;
+}
+
+/* Prose styling for info pages */
+.prose-v2 h2 {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--v2-text);
+  margin-top: 1.75rem;
+  margin-bottom: 0.75rem;
+}
+.prose-v2 h2:first-child { margin-top: 0; }
+.prose-v2 h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--v2-text);
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+.prose-v2 p {
+  font-size: 0.9rem;
+  line-height: 1.7;
+  color: var(--v2-text-soft);
+  margin-bottom: 0.75rem;
+}
+.prose-v2 ul, .prose-v2 ol {
+  padding-inline-start: 1.25rem;
+  margin-bottom: 0.75rem;
+}
+.prose-v2 li {
+  font-size: 0.9rem;
+  line-height: 1.7;
+  color: var(--v2-text-soft);
+  margin-bottom: 0.25rem;
+}
+.prose-v2 a {
+  color: var(--v2-primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.prose-v2 a:hover { opacity: 0.8; }
+.prose-v2 strong { color: var(--v2-text); font-weight: 600; }
+.prose-v2 hr {
+  border: none;
+  border-top: 1px solid rgba(124, 106, 255, 0.1);
+  margin: 1.5rem 0;
+}

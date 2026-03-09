@@ -19,19 +19,22 @@ import { Footer } from '@/components/layout/Footer';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import ImageUpload from '@/components/common/ImageUpload';
 import { useCreateBooking } from '@/hooks/useBookings';
+import { useSendMessage } from '@/hooks/useMessages';
 import { useListing } from '@/hooks/useListings';
 import Link from 'next/link';
+import { useLanguage } from '@/providers/LanguageProvider';
 
 interface BookingForm {
   weight: number;
   itemName: string;
   itemDescription: string;
   notes: string;
+  message: string;
 }
 
-function formatDate(dateString: string): string {
+function formatDate(dateString: string, locale: string): string {
   const date = new Date(dateString);
-  return date.toLocaleDateString('ar-SA', {
+  return date.toLocaleDateString(locale, {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
@@ -66,9 +69,13 @@ export default function CreateBookingPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const listingId = searchParams.get('listingId');
+  const { t, lang } = useLanguage();
+
+  const dateLocale = lang === 'ar' ? 'ar-SA' : 'en-US';
 
   const { data: listing, isLoading: listingLoading } = useListing(listingId);
   const createBooking = useCreateBooking();
+  const sendMessage = useSendMessage();
 
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -84,6 +91,7 @@ export default function CreateBookingPage() {
       itemName: '',
       itemDescription: '',
       notes: '',
+      message: '',
     },
   });
 
@@ -101,6 +109,8 @@ export default function CreateBookingPage() {
   const toCode = listing
     ? listing.arrivalCode || listing.arrivalCity.slice(0, 3).toUpperCase()
     : '';
+
+  const maxWeight = listing?.availableWeight || 30;
 
   const onSubmit = async (data: BookingForm) => {
     if (!listingId) return;
@@ -122,13 +132,27 @@ export default function CreateBookingPage() {
       });
 
       const bookingId = result?.data?.id || result?.id || result;
+
+      // Send the initial message if provided
+      if (bookingId && data.message.trim()) {
+        try {
+          await sendMessage.mutateAsync({
+            bookingId: String(bookingId),
+            content: data.message.trim(),
+          });
+        } catch {
+          // Message send failed — still redirect, user can resend from chat
+        }
+      }
+
       if (bookingId) {
-        router.push(`/booking/${bookingId}`);
+        // Go to chat so the conversation continues naturally
+        router.push(`/chat/${bookingId}`);
       } else {
         router.push('/trips');
       }
     } catch {
-      setSubmitError('حدث خطأ أثناء إنشاء الحجز. حاول مرة أخرى.');
+      setSubmitError(t('wp.createBookingError'));
     }
   };
 
@@ -143,13 +167,13 @@ export default function CreateBookingPage() {
               <div className="w-16 h-16 rounded-full bg-v2-primary/10 flex items-center justify-center mx-auto mb-4">
                 <Package className="w-8 h-8 text-v2-primary" />
               </div>
-              <h2 className="text-lg font-bold text-v2-text mb-2">لم يتم تحديد رحلة</h2>
-              <p className="text-v2-text-soft mb-6">يرجى اختيار رحلة من القائمة أولا</p>
+              <h2 className="text-lg font-bold text-v2-text mb-2">{t('wp.noListingSelected')}</h2>
+              <p className="text-v2-text-soft mb-6">{t('wp.selectListingFirst')}</p>
               <Link
                 href="/"
                 className="inline-flex items-center gap-2 v2-gradient-primary text-white px-6 py-3 rounded-full font-semibold hover:opacity-90 transition-opacity"
               >
-                تصفح الرحلات
+                {t('wp.browseListings')}
               </Link>
             </div>
           </main>
@@ -171,11 +195,11 @@ export default function CreateBookingPage() {
             className="inline-flex items-center gap-1.5 text-v2-text-soft hover:text-v2-text mb-6 transition-colors"
           >
             <ArrowRight className="w-4 h-4" />
-            العودة
+            {t('wp.back')}
           </button>
 
-          <h1 className="text-2xl font-extrabold text-v2-text mb-2">إنشاء حجز</h1>
-          <p className="text-v2-text-soft mb-6">أرسل أغراضك مع هذه الرحلة</p>
+          <h1 className="text-2xl font-extrabold text-v2-text mb-2">{t('booking.bookListing')}</h1>
+          <p className="text-v2-text-soft mb-6">{t('wp.sendShipmentWith')}</p>
 
           {/* Listing Summary Card */}
           {listingLoading ? (
@@ -209,35 +233,53 @@ export default function CreateBookingPage() {
               <div className="border-t border-v2-primary/10 mt-4 pt-4 flex flex-wrap gap-2">
                 <span className="bg-v2-bg px-3 py-1.5 rounded-full text-sm text-v2-text-soft flex items-center gap-1.5">
                   <Calendar className="w-3.5 h-3.5" />
-                  {formatDate(listing.departureDate)}
+                  {formatDate(listing.departureDate, dateLocale)}
                 </span>
                 <span className="bg-v2-bg px-3 py-1.5 rounded-full text-sm text-v2-text-soft flex items-center gap-1.5">
                   <DollarSign className="w-3.5 h-3.5" />
-                  {listing.price} ر.س/كجم
+                  {listing.price} {t('wp.sarPerKg')}
                 </span>
                 <span className="bg-v2-bg px-3 py-1.5 rounded-full text-sm text-v2-text-soft flex items-center gap-1.5">
                   <Weight className="w-3.5 h-3.5" />
-                  {listing.availableWeight} كجم متاح
+                  {listing.availableWeight} {t('wp.kgAvailable')}
                 </span>
               </div>
             </div>
           ) : (
             <div className="bg-v2-secondary/10 rounded-[22px] p-4 text-center mb-6">
-              <p className="text-sm text-v2-secondary font-medium">
-                لم نتمكن من تحميل تفاصيل الرحلة
-              </p>
+              <p className="text-sm text-v2-secondary font-medium">{t('wp.listingLoadError')}</p>
             </div>
           )}
 
           {/* Booking Form */}
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            {/* Section 0: Message to Carrier */}
+            <div className="bg-white rounded-[22px] p-6 shadow-bubble-md border-2 border-v2-primary/15">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-9 h-9 rounded-full bg-v2-mint/20 flex items-center justify-center">
+                  <Send className="w-4 h-4 text-v2-primary" />
+                </div>
+                <div>
+                  <h2 className="font-bold text-v2-text">{t('wp.messageToCarrier')}</h2>
+                  <p className="text-xs text-v2-text-muted">{t('wp.messageToCarrierHint')}</p>
+                </div>
+              </div>
+
+              <textarea
+                rows={3}
+                className="w-full px-4 py-3 rounded-[16px] bg-v2-bg border-0 text-v2-text placeholder:text-v2-text-muted focus:ring-2 focus:ring-v2-primary focus:outline-none transition-all resize-none"
+                placeholder={t('wp.messageToCarrierPlaceholder')}
+                {...register('message')}
+              />
+            </div>
+
             {/* Section 1: Item Details */}
             <div className="bg-white rounded-[22px] p-6 shadow-bubble-sm">
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-9 h-9 rounded-full bg-v2-primary/10 flex items-center justify-center">
                   <Package className="w-4 h-4 text-v2-primary" />
                 </div>
-                <h2 className="font-bold text-v2-text">تفاصيل الشحنة</h2>
+                <h2 className="font-bold text-v2-text">{t('wp.shipmentDetails')}</h2>
               </div>
 
               <div className="space-y-4">
@@ -247,14 +289,14 @@ export default function CreateBookingPage() {
                     htmlFor="itemName"
                     className="block text-sm font-semibold text-v2-text mb-1.5"
                   >
-                    اسم الشحنة
+                    {t('wp.shipmentName')}
                   </label>
                   <input
                     id="itemName"
                     type="text"
                     className="w-full px-4 py-3 rounded-full bg-v2-bg border-0 text-v2-text placeholder:text-v2-text-muted focus:ring-2 focus:ring-v2-primary focus:outline-none transition-all"
-                    placeholder="مثال: جهاز آيفون، ملابس، وثائق"
-                    {...register('itemName', { required: 'اسم الشحنة مطلوب' })}
+                    placeholder={t('wp.shipmentNamePlaceholder')}
+                    {...register('itemName', { required: t('wp.shipmentNameRequired') })}
                   />
                   {errors.itemName && (
                     <p className="text-xs text-v2-secondary mt-1 mr-2">{errors.itemName.message}</p>
@@ -267,14 +309,16 @@ export default function CreateBookingPage() {
                     htmlFor="itemDescription"
                     className="block text-sm font-semibold text-v2-text mb-1.5"
                   >
-                    وصف الشحنة
+                    {t('wp.shipmentDescription')}
                   </label>
                   <textarea
                     id="itemDescription"
                     rows={3}
                     className="w-full px-4 py-3 rounded-[16px] bg-v2-bg border-0 text-v2-text placeholder:text-v2-text-muted focus:ring-2 focus:ring-v2-primary focus:outline-none transition-all resize-none"
-                    placeholder="صف محتويات الشحنة بالتفصيل..."
-                    {...register('itemDescription', { required: 'وصف الشحنة مطلوب' })}
+                    placeholder={t('wp.shipmentDescriptionPlaceholder')}
+                    {...register('itemDescription', {
+                      required: t('wp.shipmentDescriptionRequired'),
+                    })}
                   />
                   {errors.itemDescription && (
                     <p className="text-xs text-v2-secondary mt-1 mr-2">
@@ -291,27 +335,27 @@ export default function CreateBookingPage() {
                 <div className="w-9 h-9 rounded-full bg-v2-primary/10 flex items-center justify-center">
                   <Weight className="w-4 h-4 text-v2-primary" />
                 </div>
-                <h2 className="font-bold text-v2-text">الوزن</h2>
+                <h2 className="font-bold text-v2-text">{t('booking.weight')}</h2>
               </div>
 
               <div>
                 <label htmlFor="weight" className="block text-sm font-semibold text-v2-text mb-1.5">
-                  وزن الشحنة (كجم)
+                  {t('wp.shipmentWeight')}
                 </label>
                 <input
                   id="weight"
                   type="number"
                   step="0.1"
                   min="0.5"
-                  max={listing?.availableWeight || 30}
+                  max={maxWeight}
                   className="w-full px-4 py-3 rounded-full bg-v2-bg border-0 text-v2-text placeholder:text-v2-text-muted focus:ring-2 focus:ring-v2-primary focus:outline-none transition-all"
                   placeholder="1"
                   {...register('weight', {
-                    required: 'الوزن مطلوب',
-                    min: { value: 0.5, message: 'الحد الأدنى 0.5 كجم' },
+                    required: t('wp.weightRequired'),
+                    min: { value: 0.5, message: t('wp.weightMin') },
                     max: {
-                      value: listing?.availableWeight || 30,
-                      message: `الحد الأقصى ${listing?.availableWeight || 30} كجم`,
+                      value: maxWeight,
+                      message: t('wp.weightMax', { max: String(maxWeight) }),
                     },
                     valueAsNumber: true,
                   })}
@@ -320,7 +364,7 @@ export default function CreateBookingPage() {
                   <p className="text-xs text-v2-secondary mt-1 mr-2">{errors.weight.message}</p>
                 )}
                 <p className="text-xs text-v2-text-muted mt-1.5 mr-2">
-                  الحد الأدنى 0.5 كجم — الحد الأقصى {listing?.availableWeight || 30} كجم
+                  {t('wp.weightHint', { max: String(maxWeight) })}
                 </p>
               </div>
             </div>
@@ -331,19 +375,19 @@ export default function CreateBookingPage() {
                 <div className="w-9 h-9 rounded-full bg-v2-primary/10 flex items-center justify-center">
                   <FileText className="w-4 h-4 text-v2-primary" />
                 </div>
-                <h2 className="font-bold text-v2-text">ملاحظات</h2>
+                <h2 className="font-bold text-v2-text">{t('wp.notes')}</h2>
               </div>
 
               <div>
                 <label htmlFor="notes" className="block text-sm font-semibold text-v2-text mb-1.5">
-                  ملاحظات إضافية
-                  <span className="text-v2-text-muted font-normal mr-1">(اختياري)</span>
+                  {t('wp.additionalNotesOptional')}
+                  <span className="text-v2-text-muted font-normal mr-1">{t('wp.optional')}</span>
                 </label>
                 <textarea
                   id="notes"
                   rows={3}
                   className="w-full px-4 py-3 rounded-[16px] bg-v2-bg border-0 text-v2-text placeholder:text-v2-text-muted focus:ring-2 focus:ring-v2-primary focus:outline-none transition-all resize-none"
-                  placeholder="أي تعليمات خاصة بالتوصيل أو التعامل مع الشحنة..."
+                  placeholder={t('wp.notesPlaceholder')}
                   {...register('notes')}
                 />
               </div>
@@ -355,14 +399,14 @@ export default function CreateBookingPage() {
                 <div className="w-9 h-9 rounded-full bg-v2-primary/10 flex items-center justify-center">
                   <Package className="w-4 h-4 text-v2-primary" />
                 </div>
-                <h2 className="font-bold text-v2-text">صورة الشحنة</h2>
-                <span className="text-sm text-v2-text-muted">(اختياري)</span>
+                <h2 className="font-bold text-v2-text">{t('wp.shipmentPhoto')}</h2>
+                <span className="text-sm text-v2-text-muted">{t('wp.optional')}</span>
               </div>
 
               <ImageUpload
                 onUpload={(url) => setPhotoUrl(url)}
                 folder="bookings"
-                label="أضف صورة للشحنة"
+                label={t('wp.addShipmentPhoto')}
               />
             </div>
 
@@ -373,23 +417,27 @@ export default function CreateBookingPage() {
                   <div className="w-9 h-9 rounded-full bg-v2-amber/15 flex items-center justify-center">
                     <DollarSign className="w-4 h-4 text-v2-amber" />
                   </div>
-                  <h2 className="font-bold text-v2-text">ملخص التكلفة</h2>
+                  <h2 className="font-bold text-v2-text">{t('wp.costSummary')}</h2>
                 </div>
 
                 <div className="space-y-3">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-v2-text-soft">السعر لكل كيلو</span>
-                    <span className="text-v2-text font-medium">{listing.price} ر.س</span>
+                    <span className="text-v2-text-soft">{t('booking.pricePerKg')}</span>
+                    <span className="text-v2-text font-medium">
+                      {listing.price} {t('common.sar')}
+                    </span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-v2-text-soft">الوزن</span>
+                    <span className="text-v2-text-soft">{t('booking.weight')}</span>
                     <span className="text-v2-text font-medium">
-                      {Number(watchedWeight) || 0} كجم
+                      {Number(watchedWeight) || 0} {t('home.kg')}
                     </span>
                   </div>
                   <div className="border-t border-v2-primary/10 pt-3 flex items-center justify-between">
-                    <span className="font-bold text-v2-text">الإجمالي</span>
-                    <span className="text-xl font-extrabold text-v2-primary">{totalPrice} ر.س</span>
+                    <span className="font-bold text-v2-text">{t('booking.total')}</span>
+                    <span className="text-xl font-extrabold text-v2-primary">
+                      {totalPrice} {t('common.sar')}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -411,12 +459,12 @@ export default function CreateBookingPage() {
               {createBooking.isPending ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
-                  جاري إنشاء الحجز...
+                  {t('wp.creatingBooking')}
                 </>
               ) : (
                 <>
                   <Send className="w-5 h-5" />
-                  إرسال طلب الحجز
+                  {t('booking.sendRequest')}
                 </>
               )}
             </button>

@@ -38,14 +38,15 @@ import {
 } from '@/hooks/useBookings';
 import { useBookingReview, useCreateReview } from '@/hooks/useReviews';
 import { useAuth } from '@/hooks/useAuth';
+import { useLanguage } from '@/providers/LanguageProvider';
 
 /* -------------------------------------------------------------------------- */
 /*  Helpers                                                                    */
 /* -------------------------------------------------------------------------- */
 
-function formatDate(dateString: string): string {
+function formatDate(dateString: string, locale: string): string {
   const date = new Date(dateString);
-  return date.toLocaleDateString('ar-SA', {
+  return date.toLocaleDateString(locale, {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
@@ -53,9 +54,9 @@ function formatDate(dateString: string): string {
   });
 }
 
-function formatShortDate(dateString: string): string {
+function formatShortDate(dateString: string, locale: string): string {
   const date = new Date(dateString);
-  return date.toLocaleDateString('ar-SA', {
+  return date.toLocaleDateString(locale, {
     month: 'short',
     day: 'numeric',
   });
@@ -65,14 +66,14 @@ function getInitial(name: string): string {
   return name.charAt(0).toUpperCase();
 }
 
-const statusConfig: Record<string, { label: string; bg: string; text: string }> = {
-  pending: { label: 'معلق', bg: 'bg-v2-amber/15', text: 'text-v2-amber' },
-  accepted: { label: 'مقبول', bg: 'bg-v2-sky/15', text: 'text-v2-sky' },
-  picked_up: { label: 'تم الاستلام', bg: 'bg-v2-primary/15', text: 'text-v2-primary' },
-  in_transit: { label: 'في الطريق', bg: 'bg-v2-primary/15', text: 'text-v2-primary' },
-  delivered: { label: 'تم التوصيل', bg: 'bg-v2-mint/15', text: 'text-v2-mint' },
-  cancelled: { label: 'ملغي', bg: 'bg-v2-secondary/15', text: 'text-v2-secondary' },
-  rejected: { label: 'مرفوض', bg: 'bg-v2-secondary/15', text: 'text-v2-secondary' },
+const statusStyles: Record<string, { bg: string; text: string }> = {
+  pending: { bg: 'bg-v2-amber/15', text: 'text-v2-amber' },
+  accepted: { bg: 'bg-v2-sky/15', text: 'text-v2-sky' },
+  picked_up: { bg: 'bg-v2-primary/15', text: 'text-v2-primary' },
+  in_transit: { bg: 'bg-v2-primary/15', text: 'text-v2-primary' },
+  delivered: { bg: 'bg-v2-mint/15', text: 'text-v2-mint' },
+  cancelled: { bg: 'bg-v2-secondary/15', text: 'text-v2-secondary' },
+  rejected: { bg: 'bg-v2-secondary/15', text: 'text-v2-secondary' },
 };
 
 /* -------------------------------------------------------------------------- */
@@ -121,6 +122,20 @@ function BookingDetailContent() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const { user } = useAuth();
+  const { t, lang } = useLanguage();
+
+  const dateLocale = lang === 'ar' ? 'ar-SA' : 'en-US';
+
+  // Status config (inside component to access t())
+  const statusConfig: Record<string, { label: string; bg: string; text: string }> = {
+    pending: { label: t('booking.pending'), ...statusStyles.pending },
+    accepted: { label: t('booking.statusAccepted'), ...statusStyles.accepted },
+    picked_up: { label: t('booking.statusPickedUp'), ...statusStyles.picked_up },
+    in_transit: { label: t('booking.statusInTransit'), ...statusStyles.in_transit },
+    delivered: { label: t('booking.statusDelivered'), ...statusStyles.delivered },
+    cancelled: { label: t('booking.statusCancelled'), ...statusStyles.cancelled },
+    rejected: { label: t('booking.statusRejected'), ...statusStyles.rejected },
+  };
 
   // Data fetching
   const { data: booking, isLoading, error } = useBooking(id ?? null);
@@ -238,7 +253,7 @@ function BookingDetailContent() {
           className="inline-flex items-center gap-1.5 text-v2-text-soft hover:text-v2-text mb-6 transition-colors"
         >
           <ArrowRight className="w-4 h-4" />
-          العودة للحجوزات
+          {t('wp.backToBookings')}
         </Link>
 
         {isLoading ? (
@@ -249,12 +264,10 @@ function BookingDetailContent() {
             <div className="w-16 h-16 rounded-full bg-v2-secondary/10 flex items-center justify-center mx-auto mb-4">
               <AlertTriangle className="w-8 h-8 text-v2-secondary" />
             </div>
-            <h2 className="text-lg font-bold text-v2-text mb-2">الحجز غير موجود</h2>
-            <p className="text-v2-text-soft mb-4">
-              لم نتمكن من العثور على هذا الحجز أو ليس لديك صلاحية لعرضه
-            </p>
+            <h2 className="text-lg font-bold text-v2-text mb-2">{t('wp.bookingNotFound')}</h2>
+            <p className="text-v2-text-soft mb-4">{t('wp.bookingNotFoundDesc')}</p>
             <Link href="/trips" className="text-v2-primary font-semibold hover:underline">
-              العودة للحجوزات
+              {t('wp.backToBookings')}
             </Link>
           </div>
         ) : (
@@ -297,7 +310,7 @@ function BookingDetailContent() {
               <div className="border-t border-v2-primary/10 mt-4 pt-4 flex flex-wrap gap-2">
                 <span className="bg-v2-bg px-3 py-1.5 rounded-full text-sm text-v2-text-soft flex items-center gap-1.5">
                   <Calendar className="w-3.5 h-3.5" />
-                  {formatDate(booking.listing.departureDate)}
+                  {formatDate(booking.listing.departureDate, dateLocale)}
                 </span>
               </div>
             </div>
@@ -308,22 +321,26 @@ function BookingDetailContent() {
                 <div className="w-11 h-11 rounded-full bg-v2-primary/10 flex items-center justify-center mx-auto mb-3">
                   <Weight className="w-5 h-5 text-v2-primary" />
                 </div>
-                <p className="text-2xl font-extrabold text-v2-text">{booking.totalWeight} كجم</p>
-                <p className="text-sm text-v2-text-soft">الوزن المطلوب</p>
+                <p className="text-2xl font-extrabold text-v2-text">
+                  {booking.totalWeight} {t('home.kg')}
+                </p>
+                <p className="text-sm text-v2-text-soft">{t('booking.weight')}</p>
               </div>
               <div className="bg-white rounded-[22px] p-5 shadow-bubble-sm text-center">
                 <div className="w-11 h-11 rounded-full bg-v2-amber/15 flex items-center justify-center mx-auto mb-3">
                   <DollarSign className="w-5 h-5 text-v2-amber" />
                 </div>
-                <p className="text-2xl font-extrabold text-v2-text">{booking.totalPrice} ر.س</p>
-                <p className="text-sm text-v2-text-soft">السعر الإجمالي</p>
+                <p className="text-2xl font-extrabold text-v2-text">
+                  {booking.totalPrice} {t('common.sar')}
+                </p>
+                <p className="text-sm text-v2-text-soft">{t('booking.total')}</p>
               </div>
             </div>
 
             {/* ---- Status Timeline ---- */}
             {!isTerminal || isDelivered ? (
               <div className="bg-white rounded-[22px] p-5 shadow-bubble-sm mb-6">
-                <h3 className="font-semibold text-v2-text mb-4">تتبع الحالة</h3>
+                <h3 className="font-semibold text-v2-text mb-4">{t('booking.statusTracking')}</h3>
                 <StatusTimeline currentStatus={status} />
               </div>
             ) : null}
@@ -333,7 +350,7 @@ function BookingDetailContent() {
               <div className="bg-white rounded-[22px] p-5 shadow-bubble-sm mb-6">
                 <h3 className="font-semibold text-v2-text mb-4 flex items-center gap-1.5">
                   <Package className="w-4 h-4 text-v2-primary" />
-                  الأغراض ({booking.items.length})
+                  {t('booking.items')} ({booking.items.length})
                 </h3>
                 <div className="space-y-3">
                   {booking.items.map((item) => (
@@ -357,10 +374,12 @@ function BookingDetailContent() {
                           </p>
                         )}
                         <div className="flex items-center gap-3 mt-1.5">
-                          <span className="text-xs text-v2-text-muted">{item.weight} كجم</span>
+                          <span className="text-xs text-v2-text-muted">
+                            {item.weight} {t('home.kg')}
+                          </span>
                           {item.value > 0 && (
                             <span className="text-xs text-v2-text-muted">
-                              القيمة: {item.value} ر.س
+                              {t('booking.itemValue')}: {item.value} {t('common.sar')}
                             </span>
                           )}
                         </div>
@@ -378,7 +397,9 @@ function BookingDetailContent() {
                 href={`/profile/${booking.carrier.id}`}
                 className="bg-white rounded-[22px] p-5 shadow-bubble-sm hover:shadow-bubble-md transition-all"
               >
-                <h3 className="text-xs font-bold text-v2-text-muted uppercase mb-3">الناقل</h3>
+                <h3 className="text-xs font-bold text-v2-text-muted uppercase mb-3">
+                  {t('booking.carrier')}
+                </h3>
                 <div className="flex items-center gap-3">
                   {booking.carrier.avatarUrl ? (
                     <img
@@ -398,7 +419,9 @@ function BookingDetailContent() {
                         <BadgeCheck className="w-4 h-4 text-v2-primary flex-shrink-0" />
                       )}
                     </div>
-                    {isCarrier && <p className="text-xs text-v2-primary font-medium">أنت</p>}
+                    {isCarrier && (
+                      <p className="text-xs text-v2-primary font-medium">{t('booking.you')}</p>
+                    )}
                   </div>
                 </div>
               </Link>
@@ -408,7 +431,9 @@ function BookingDetailContent() {
                 href={`/profile/${booking.sender.id}`}
                 className="bg-white rounded-[22px] p-5 shadow-bubble-sm hover:shadow-bubble-md transition-all"
               >
-                <h3 className="text-xs font-bold text-v2-text-muted uppercase mb-3">المرسل</h3>
+                <h3 className="text-xs font-bold text-v2-text-muted uppercase mb-3">
+                  {t('booking.sender')}
+                </h3>
                 <div className="flex items-center gap-3">
                   {booking.sender.avatarUrl ? (
                     <img
@@ -428,7 +453,9 @@ function BookingDetailContent() {
                         <BadgeCheck className="w-4 h-4 text-v2-primary flex-shrink-0" />
                       )}
                     </div>
-                    {isSender && <p className="text-xs text-v2-primary font-medium">أنت</p>}
+                    {isSender && (
+                      <p className="text-xs text-v2-primary font-medium">{t('booking.you')}</p>
+                    )}
                   </div>
                 </div>
               </Link>
@@ -439,22 +466,22 @@ function BookingDetailContent() {
               <div className="bg-v2-amber/10 rounded-[22px] p-5 mb-6">
                 <h3 className="font-semibold text-v2-text flex items-center gap-1.5 mb-2">
                   <CreditCard className="w-4 h-4 text-v2-amber" />
-                  الدفع
+                  {t('booking.payment')}
                 </h3>
                 <div className="flex items-center justify-between">
                   <p className="text-sm text-v2-text-soft">
                     {booking.paymentStatus === 'confirmed'
-                      ? 'تم تأكيد الدفع'
+                      ? t('booking.paymentConfirmed')
                       : booking.paymentProofUrl
-                        ? 'بانتظار التأكيد'
-                        : 'لم يتم الدفع بعد'}
+                        ? t('booking.paymentAwaitingConfirmation')
+                        : t('booking.paymentNotPaid')}
                   </p>
                   {isSender && !booking.paymentProofUrl && (
                     <Link
                       href={`/booking/${id}/payment`}
                       className="text-sm font-semibold text-v2-primary hover:underline"
                     >
-                      رفع إثبات الدفع
+                      {t('wp.submitPaymentProof')}
                     </Link>
                   )}
                 </div>
@@ -465,21 +492,23 @@ function BookingDetailContent() {
             <div className="bg-white rounded-[22px] p-5 shadow-bubble-sm mb-6">
               <h3 className="font-semibold text-v2-text mb-3 flex items-center gap-1.5">
                 <FileText className="w-4 h-4 text-v2-primary" />
-                تفاصيل الحجز
+                {t('wp.bookingDetails')}
               </h3>
               <div className="space-y-2 text-sm">
                 <div className="flex items-center justify-between py-1">
-                  <span className="text-v2-text-soft">تاريخ الحجز</span>
+                  <span className="text-v2-text-soft">{t('booking.bookingDate')}</span>
                   <span className="text-v2-text font-medium">
-                    {formatShortDate(booking.createdAt)}
+                    {formatShortDate(booking.createdAt, dateLocale)}
                   </span>
                 </div>
                 <div className="flex items-center justify-between py-1">
-                  <span className="text-v2-text-soft">سعر الكيلو</span>
-                  <span className="text-v2-text font-medium">{booking.listing.price} ر.س</span>
+                  <span className="text-v2-text-soft">{t('booking.pricePerKg')}</span>
+                  <span className="text-v2-text font-medium">
+                    {booking.listing.price} {t('common.sar')}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between py-1">
-                  <span className="text-v2-text-soft">العملة</span>
+                  <span className="text-v2-text-soft">{t('booking.currency')}</span>
                   <span className="text-v2-text font-medium">{booking.currency || 'SAR'}</span>
                 </div>
               </div>
@@ -488,7 +517,7 @@ function BookingDetailContent() {
             {/* ---- Review Section (Delivered only) ---- */}
             {isDelivered && (
               <div className="bg-white rounded-[22px] p-5 shadow-bubble-sm mb-6">
-                <h3 className="font-semibold text-v2-text mb-4">التقييم</h3>
+                <h3 className="font-semibold text-v2-text mb-4">{t('booking.review')}</h3>
 
                 {existingReview || reviewSubmitted ? (
                   /* Show existing review */
@@ -506,7 +535,7 @@ function BookingDetailContent() {
                     )}
                     {reviewSubmitted && !existingReview && (
                       <p className="text-sm text-v2-mint font-medium mt-2">
-                        تم إرسال التقييم بنجاح
+                        {t('booking.reviewSubmitSuccess')}
                       </p>
                     )}
                   </div>
@@ -514,7 +543,9 @@ function BookingDetailContent() {
                   /* Review form */
                   <div className="space-y-4">
                     <div>
-                      <p className="text-sm text-v2-text-soft mb-2">كيف كانت تجربتك؟</p>
+                      <p className="text-sm text-v2-text-soft mb-2">
+                        {t('booking.howWasExperience')}
+                      </p>
                       <StarRating
                         rating={reviewRating}
                         size="lg"
@@ -525,7 +556,7 @@ function BookingDetailContent() {
                     <textarea
                       value={reviewComment}
                       onChange={(e) => setReviewComment(e.target.value)}
-                      placeholder="أضف تعليقك (اختياري)..."
+                      placeholder={t('booking.addComment')}
                       rows={3}
                       className="w-full bg-v2-bg border-0 rounded-2xl p-4 text-sm text-v2-text placeholder:text-v2-text-muted resize-none focus:outline-none focus:ring-2 focus:ring-v2-primary/30"
                       dir="rtl"
@@ -538,12 +569,12 @@ function BookingDetailContent() {
                       {createReview.isPending ? (
                         <Loader2 className="w-5 h-5 animate-spin" />
                       ) : (
-                        'إرسال التقييم'
+                        t('booking.submitReview')
                       )}
                     </button>
                     {createReview.isError && (
                       <p className="text-sm text-v2-secondary text-center">
-                        حدث خطأ أثناء إرسال التقييم. يرجى المحاولة مرة أخرى.
+                        {t('booking.reviewSubmitError')}
                       </p>
                     )}
                   </div>
@@ -560,9 +591,7 @@ function BookingDetailContent() {
               cancelBooking.isError) && (
               <div className="bg-v2-secondary/10 rounded-[22px] p-4 mb-6 flex items-center gap-3">
                 <AlertTriangle className="w-5 h-5 text-v2-secondary flex-shrink-0" />
-                <p className="text-sm text-v2-secondary">
-                  حدث خطأ أثناء تحديث الحجز. يرجى المحاولة مرة أخرى.
-                </p>
+                <p className="text-sm text-v2-secondary">{t('booking.bookingUpdateError')}</p>
               </div>
             )}
           </>
@@ -579,7 +608,7 @@ function BookingDetailContent() {
               className="flex items-center justify-center gap-2 px-5 py-3 rounded-full border-2 border-v2-primary text-v2-primary font-semibold hover:bg-v2-primary/5 transition-all"
             >
               <MessageSquare className="w-5 h-5" />
-              محادثة
+              {t('wp.chatWithParty')}
             </Link>
 
             {/* Carrier: Accept (pending) */}
@@ -595,7 +624,7 @@ function BookingDetailContent() {
                   ) : (
                     <>
                       <CheckCircle className="w-5 h-5" />
-                      قبول
+                      {t('booking.accept')}
                     </>
                   )}
                 </button>
@@ -605,7 +634,7 @@ function BookingDetailContent() {
                   className="px-5 py-3 rounded-full border-2 border-v2-secondary text-v2-secondary font-semibold hover:bg-v2-secondary/5 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   <XCircle className="w-5 h-5" />
-                  رفض
+                  {t('booking.reject')}
                 </button>
               </>
             )}
@@ -622,7 +651,7 @@ function BookingDetailContent() {
                 ) : (
                   <>
                     <PackageCheck className="w-5 h-5" />
-                    تم الاستلام
+                    {t('booking.markPickedUp')}
                   </>
                 )}
               </button>
@@ -640,7 +669,7 @@ function BookingDetailContent() {
                 ) : (
                   <>
                     <Truck className="w-5 h-5" />
-                    في الطريق
+                    {t('booking.markInTransit')}
                   </>
                 )}
               </button>
@@ -658,7 +687,7 @@ function BookingDetailContent() {
                 ) : (
                   <>
                     <CheckCircle className="w-5 h-5" />
-                    تم التوصيل
+                    {t('booking.markDelivered')}
                   </>
                 )}
               </button>
@@ -672,7 +701,7 @@ function BookingDetailContent() {
                 className="px-5 py-3 rounded-full border-2 border-v2-secondary text-v2-secondary font-semibold hover:bg-v2-secondary/5 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 <XCircle className="w-5 h-5" />
-                إلغاء
+                {t('common.cancel')}
               </button>
             )}
 
@@ -684,7 +713,7 @@ function BookingDetailContent() {
                 className="flex-1 px-5 py-3 rounded-full border-2 border-v2-secondary text-v2-secondary font-semibold hover:bg-v2-secondary/5 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 <XCircle className="w-5 h-5" />
-                إلغاء الحجز
+                {t('booking.cancelBooking')}
               </button>
             )}
           </div>
@@ -700,27 +729,29 @@ function BookingDetailContent() {
               className="flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-full border-2 border-v2-primary text-v2-primary font-semibold hover:bg-v2-primary/5 transition-all"
             >
               <MessageSquare className="w-5 h-5" />
-              محادثة
+              {t('wp.chatWithParty')}
             </Link>
           </div>
         </div>
       )}
 
       {/* ---- Cancel Confirmation Modal ---- */}
-      <Modal isOpen={showCancelModal} onClose={() => setShowCancelModal(false)} title="إلغاء الحجز">
+      <Modal
+        isOpen={showCancelModal}
+        onClose={() => setShowCancelModal(false)}
+        title={t('booking.cancelBooking')}
+      >
         <div className="text-center">
           <div className="w-14 h-14 rounded-full bg-v2-secondary/10 flex items-center justify-center mx-auto mb-4">
             <XCircle className="w-7 h-7 text-v2-secondary" />
           </div>
-          <p className="text-v2-text-soft mb-6">
-            هل أنت متأكد من إلغاء هذا الحجز؟ لا يمكن التراجع عن هذا الإجراء.
-          </p>
+          <p className="text-v2-text-soft mb-6">{t('booking.cancelConfirmMessage')}</p>
           <div className="flex gap-3">
             <button
               onClick={() => setShowCancelModal(false)}
               className="flex-1 py-3 rounded-full border-2 border-v2-primary/20 text-v2-text font-semibold hover:bg-v2-bg transition-all"
             >
-              تراجع
+              {t('common.cancel')}
             </button>
             <button
               onClick={handleCancel}
@@ -730,7 +761,7 @@ function BookingDetailContent() {
               {cancelBooking.isPending ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
               ) : (
-                'نعم، إلغاء'
+                t('booking.yesCancel')
               )}
             </button>
           </div>
@@ -738,25 +769,33 @@ function BookingDetailContent() {
       </Modal>
 
       {/* ---- Reject Confirmation Modal ---- */}
-      <Modal isOpen={showRejectModal} onClose={() => setShowRejectModal(false)} title="رفض الحجز">
+      <Modal
+        isOpen={showRejectModal}
+        onClose={() => setShowRejectModal(false)}
+        title={t('booking.rejectBooking')}
+      >
         <div className="text-center">
           <div className="w-14 h-14 rounded-full bg-v2-secondary/10 flex items-center justify-center mx-auto mb-4">
             <XCircle className="w-7 h-7 text-v2-secondary" />
           </div>
-          <p className="text-v2-text-soft mb-6">هل أنت متأكد من رفض هذا الحجز؟</p>
+          <p className="text-v2-text-soft mb-6">{t('booking.rejectConfirmMessage')}</p>
           <div className="flex gap-3">
             <button
               onClick={() => setShowRejectModal(false)}
               className="flex-1 py-3 rounded-full border-2 border-v2-primary/20 text-v2-text font-semibold hover:bg-v2-bg transition-all"
             >
-              تراجع
+              {t('common.cancel')}
             </button>
             <button
               onClick={handleReject}
               disabled={rejectBooking.isPending}
               className="flex-1 py-3 rounded-full bg-v2-secondary text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
             >
-              {rejectBooking.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : 'نعم، رفض'}
+              {rejectBooking.isPending ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                t('booking.yesReject')
+              )}
             </button>
           </div>
         </div>

@@ -24,6 +24,17 @@ export class BookingsController {
     return this.bookingsService.findByUser(user.id, { page, limit });
   }
 
+  @Get('by-listing/:listingId')
+  @ApiOperation({ summary: 'Get bookings for a listing (carrier only)' })
+  @ApiResponse({ status: 200, description: 'Returns bookings for the listing' })
+  async getByListing(
+    @CurrentUser() user: any,
+    @Param('listingId') listingId: string,
+    @Query('limit') limit?: number
+  ) {
+    return this.bookingsService.findByListing(user.id, listingId, { limit });
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get booking by ID' })
   @ApiResponse({ status: 200, description: 'Returns booking details' })

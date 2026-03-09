@@ -3,6 +3,7 @@
 import { MessageSquare } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
+import { useLanguage } from '@/providers/LanguageProvider';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import ConversationCard from '@/components/messages/ConversationCard';
 import { useConversations } from '@/hooks/useMessages';
@@ -26,6 +27,7 @@ function ConversationSkeleton() {
 }
 
 export default function MessagesPage() {
+  const { t } = useLanguage();
   const { data: conversations, isLoading } = useConversations();
 
   const hasConversations = conversations && conversations.length > 0;
@@ -42,8 +44,8 @@ export default function MessagesPage() {
               <MessageSquare className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-extrabold text-v2-text">الرسائل</h1>
-              <p className="text-sm text-v2-text-soft">تواصل مع الناقلين والمرسلين</p>
+              <h1 className="text-2xl font-extrabold text-v2-text">{t('messages.title')}</h1>
+              <p className="text-sm text-v2-text-soft">{t('wp.messagesSubtitle')}</p>
             </div>
           </div>
 
@@ -65,8 +67,10 @@ export default function MessagesPage() {
               <div className="w-16 h-16 rounded-full bg-v2-primary/10 flex items-center justify-center mx-auto mb-4">
                 <MessageSquare className="w-8 h-8 text-v2-primary" />
               </div>
-              <h3 className="text-lg font-bold text-v2-text mb-2">لا توجد محادثات</h3>
-              <p className="text-v2-text-soft">ستظهر محادثاتك هنا عند حجز خدمة</p>
+              <h3 className="text-lg font-bold text-v2-text mb-2">
+                {t('messages.noConversations')}
+              </h3>
+              <p className="text-v2-text-soft">{t('messages.startConversation')}</p>
             </div>
           )}
         </main>

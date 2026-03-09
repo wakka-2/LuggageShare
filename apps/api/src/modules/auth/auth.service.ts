@@ -152,14 +152,18 @@ export class AuthService {
     });
   }
 
-  async devLogin() {
-    const email = 'dev@luggageshare.com';
+  async devLogin(userIndex = 0) {
+    const devUsers = [
+      { email: 'dev@luggageshare.com', name: 'Dev User' },
+      { email: 'dev2@luggageshare.com', name: 'Dev User 2' },
+    ];
+    const { email, name } = devUsers[userIndex] || devUsers[0];
     let user = await this.usersService.findByEmail(email);
 
     if (!user) {
       user = await this.usersService.create({
         email,
-        name: 'Dev User',
+        name,
         provider: 'dev',
       });
     }

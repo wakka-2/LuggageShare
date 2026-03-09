@@ -1,6 +1,11 @@
+'use client';
+
 import Link from 'next/link';
+import { useLanguage } from '@/providers/LanguageProvider';
 
 export function Footer() {
+  const { t, lang } = useLanguage();
+
   return (
     <footer className="bg-v2-bg border-t border-v2-primary/10">
       <div className="max-w-6xl mx-auto px-4 py-12">
@@ -9,23 +14,23 @@ export function Footer() {
           <div>
             <Link href="/" className="flex items-center gap-2 mb-4">
               <div className="w-9 h-9 v2-gradient-primary rounded-2xl flex items-center justify-center shadow-bubble-xs">
-                <span className="text-white font-bold text-lg">ح</span>
+                <span className="text-white font-bold text-lg">{lang === 'ar' ? 'ح' : 'L'}</span>
               </div>
-              <span className="font-extrabold text-xl text-v2-text">حصتي</span>
+              <span className="font-extrabold text-xl text-v2-text">{t('wp.footerBrand')}</span>
             </Link>
-            <p className="text-sm text-v2-text-muted">منصة لمشاركة مساحة الأمتعة بين المسافرين</p>
+            <p className="text-sm text-v2-text-muted">{t('wp.footerTagline')}</p>
           </div>
 
           {/* Company */}
           <div>
-            <h3 className="font-semibold text-v2-text mb-4">الشركة</h3>
+            <h3 className="font-semibold text-v2-text mb-4">{t('wp.footerCompany')}</h3>
             <ul className="space-y-2">
               <li>
                 <Link
                   href="/about"
                   className="text-sm text-v2-text-soft hover:text-v2-primary transition-colors"
                 >
-                  من نحن
+                  {t('wp.footerAbout')}
                 </Link>
               </li>
               <li>
@@ -33,7 +38,7 @@ export function Footer() {
                   href="/how-it-works"
                   className="text-sm text-v2-text-soft hover:text-v2-primary transition-colors"
                 >
-                  كيف يعمل
+                  {t('wp.footerHowItWorks')}
                 </Link>
               </li>
               <li>
@@ -41,7 +46,7 @@ export function Footer() {
                   href="/careers"
                   className="text-sm text-v2-text-soft hover:text-v2-primary transition-colors"
                 >
-                  الوظائف
+                  {t('wp.footerCareers')}
                 </Link>
               </li>
             </ul>
@@ -49,14 +54,14 @@ export function Footer() {
 
           {/* Support */}
           <div>
-            <h3 className="font-semibold text-v2-text mb-4">الدعم</h3>
+            <h3 className="font-semibold text-v2-text mb-4">{t('wp.support')}</h3>
             <ul className="space-y-2">
               <li>
                 <Link
                   href="/help"
                   className="text-sm text-v2-text-soft hover:text-v2-primary transition-colors"
                 >
-                  مركز المساعدة
+                  {t('wp.footerHelpCenter')}
                 </Link>
               </li>
               <li>
@@ -64,7 +69,7 @@ export function Footer() {
                   href="/safety"
                   className="text-sm text-v2-text-soft hover:text-v2-primary transition-colors"
                 >
-                  السلامة
+                  {t('wp.footerSafety')}
                 </Link>
               </li>
               <li>
@@ -72,7 +77,7 @@ export function Footer() {
                   href="/contact"
                   className="text-sm text-v2-text-soft hover:text-v2-primary transition-colors"
                 >
-                  تواصل معنا
+                  {t('wp.footerContactUs')}
                 </Link>
               </li>
             </ul>
@@ -80,14 +85,14 @@ export function Footer() {
 
           {/* Legal */}
           <div>
-            <h3 className="font-semibold text-v2-text mb-4">القانونية</h3>
+            <h3 className="font-semibold text-v2-text mb-4">{t('wp.legal')}</h3>
             <ul className="space-y-2">
               <li>
                 <Link
                   href="/terms"
                   className="text-sm text-v2-text-soft hover:text-v2-primary transition-colors"
                 >
-                  شروط الخدمة
+                  {t('wp.footerTerms')}
                 </Link>
               </li>
               <li>
@@ -95,7 +100,7 @@ export function Footer() {
                   href="/privacy"
                   className="text-sm text-v2-text-soft hover:text-v2-primary transition-colors"
                 >
-                  سياسة الخصوصية
+                  {t('wp.footerPrivacy')}
                 </Link>
               </li>
               <li>
@@ -103,7 +108,7 @@ export function Footer() {
                   href="/prohibited-items"
                   className="text-sm text-v2-text-soft hover:text-v2-primary transition-colors"
                 >
-                  العناصر المحظورة
+                  {t('wp.footerProhibitedItems')}
                 </Link>
               </li>
             </ul>
@@ -112,14 +117,17 @@ export function Footer() {
 
         <div className="border-t border-v2-primary/10 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-sm text-v2-text-muted">
-            © 2026 حصتي - LuggageShare. جميع الحقوق محفوظة.
+            {t('wp.footerCopyright', {
+              brand: t('wp.footerBrand'),
+              rights: t('wp.allRightsReserved'),
+            })}
           </p>
           <div className="flex gap-3">
             <a
               href="https://twitter.com/luggageshare"
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="تويتر"
+              aria-label={t('wp.footerTwitter')}
               className="w-10 h-10 flex items-center justify-center rounded-full bg-v2-primary/10 text-v2-primary hover:bg-v2-primary/20 transition-all text-sm font-semibold"
             >
               𝕏
@@ -128,7 +136,7 @@ export function Footer() {
               href="https://instagram.com/luggageshare"
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="انستغرام"
+              aria-label={t('wp.footerInstagram')}
               className="w-10 h-10 flex items-center justify-center rounded-full bg-v2-secondary/10 text-v2-secondary hover:bg-v2-secondary/20 transition-all text-sm font-semibold"
             >
               IG

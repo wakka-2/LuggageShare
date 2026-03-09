@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { ArrowRight, Star } from 'lucide-react';
 import { usePublicProfile } from '@/hooks/useProfile';
 import { useUserReviews } from '@/hooks/useReviews';
+import { useLanguage } from '@/providers/LanguageProvider';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import ProfileHeader from '@/components/profile/ProfileHeader';
@@ -58,6 +59,7 @@ function ProfileSkeleton() {
 export default function PublicProfilePage() {
   const params = useParams();
   const id = typeof params.id === 'string' ? params.id : null;
+  const { t } = useLanguage();
 
   const { data: profile, isLoading } = usePublicProfile(id);
   const { data: reviews, isLoading: reviewsLoading } = useUserReviews(id);
@@ -83,7 +85,7 @@ export default function PublicProfilePage() {
           className="inline-flex items-center gap-1.5 text-v2-text-soft hover:text-v2-text mb-6 transition-colors"
         >
           <ArrowRight className="w-4 h-4" />
-          العودة
+          {t('wp.back')}
         </Link>
 
         {isLoading ? (
@@ -93,10 +95,10 @@ export default function PublicProfilePage() {
             <div className="w-16 h-16 rounded-full bg-v2-primary/10 flex items-center justify-center mx-auto mb-4">
               <Star className="w-8 h-8 text-v2-primary" />
             </div>
-            <h2 className="text-lg font-bold text-v2-text mb-2">المستخدم غير موجود</h2>
-            <p className="text-v2-text-soft mb-4">لم نتمكن من العثور على هذا المستخدم</p>
+            <h2 className="text-lg font-bold text-v2-text mb-2">{t('wp.userNotFound')}</h2>
+            <p className="text-v2-text-soft mb-4">{t('wp.userNotFoundDesc')}</p>
             <Link href="/" className="text-v2-primary font-semibold hover:underline">
-              العودة للرئيسية
+              {t('wp.backToHome')}
             </Link>
           </div>
         ) : (
@@ -106,7 +108,7 @@ export default function PublicProfilePage() {
 
             {/* Reviews */}
             <div>
-              <h2 className="text-lg font-extrabold text-v2-text mb-4">التقييمات</h2>
+              <h2 className="text-lg font-extrabold text-v2-text mb-4">{t('wp.reviews')}</h2>
 
               {reviewsLoading ? (
                 <div className="space-y-3">
@@ -165,7 +167,7 @@ export default function PublicProfilePage() {
                   <div className="w-12 h-12 rounded-full bg-v2-primary/10 flex items-center justify-center mx-auto mb-3">
                     <Star className="w-6 h-6 text-v2-primary" />
                   </div>
-                  <p className="text-sm text-v2-text-soft">لا توجد تقييمات بعد</p>
+                  <p className="text-sm text-v2-text-soft">{t('wp.noReviews')}</p>
                 </div>
               )}
             </div>

@@ -2,6 +2,7 @@ import {
   Controller,
   Post,
   Body,
+  Query,
   HttpCode,
   HttpStatus,
   ForbiddenException,
@@ -26,7 +27,7 @@ export class AuthController {
   ) {}
 
   @Post('google')
-  @Throttle({ short: { ttl: 60000, limit: 5 } })
+  @Throttle({ short: { ttl: 60000, limit: 20 } })
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Authenticate with Google' })
   @ApiResponse({ status: 200, description: 'Successfully authenticated' })
@@ -36,7 +37,7 @@ export class AuthController {
   }
 
   @Post('apple')
-  @Throttle({ short: { ttl: 60000, limit: 5 } })
+  @Throttle({ short: { ttl: 60000, limit: 20 } })
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Authenticate with Apple' })
   @ApiResponse({ status: 200, description: 'Successfully authenticated' })
@@ -46,23 +47,23 @@ export class AuthController {
   }
 
   @Post('dev-login')
-  @Throttle({ short: { ttl: 60000, limit: 3 } })
+  @Throttle({ short: { ttl: 60000, limit: 20 } })
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Dev login (development only)' })
   @ApiResponse({ status: 200, description: 'Dev user authenticated' })
   @ApiResponse({ status: 403, description: 'Not available in production' })
-  async devLogin() {
+  async devLogin(@Query('user') userIndex?: string) {
     const isProduction = this.configService.get<string>('NODE_ENV') === 'production';
     const devLoginEnabled = this.configService.get<boolean>('DEV_LOGIN_ENABLED') === true;
 
     if (isProduction || !devLoginEnabled) {
       throw new ForbiddenException('Dev login is not available');
     }
-    return this.authService.devLogin();
+    return this.authService.devLogin(Number(userIndex) || 0);
   }
 
   @Post('refresh')
-  @Throttle({ short: { ttl: 60000, limit: 10 } })
+  @Throttle({ short: { ttl: 60000, limit: 30 } })
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Refresh access token' })
   @ApiResponse({ status: 200, description: 'New tokens generated' })

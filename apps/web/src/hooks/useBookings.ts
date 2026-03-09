@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api';
+import { useAuth } from '@/providers/AuthProvider';
 
 export interface ApiBooking {
   id: string;
@@ -256,12 +257,26 @@ export function getMockBookings(userId: string): ApiBooking[] {
 }
 
 export function useBookings() {
+  const { isAuthenticated } = useAuth();
   return useQuery<ApiBooking[]>({
     queryKey: ['bookings'],
     queryFn: async () => {
       const { data } = await apiClient.get('/bookings');
-      return data;
+      return data.data ?? data;
     },
+    enabled: isAuthenticated,
+  });
+}
+
+export function useListingBookings(listingId: string | null, limit?: number) {
+  return useQuery<ApiBooking[]>({
+    queryKey: ['listingBookings', listingId, limit],
+    queryFn: async () => {
+      const params = limit ? `?limit=${limit}` : '';
+      const { data } = await apiClient.get(`/bookings/by-listing/${listingId}${params}`);
+      return Array.isArray(data) ? data : (data?.data ?? data);
+    },
+    enabled: !!listingId,
   });
 }
 

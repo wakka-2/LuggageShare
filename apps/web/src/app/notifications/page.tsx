@@ -5,6 +5,7 @@ import { Bell, CheckCheck, Package, MessageSquare, Star, Wallet, AlertCircle } f
 import { useRouter } from 'next/navigation';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
+import { useLanguage } from '@/providers/LanguageProvider';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import {
   useNotifications,
@@ -37,18 +38,22 @@ interface Notification {
 /*  Helpers                                                                   */
 /* -------------------------------------------------------------------------- */
 
-function getRelativeTime(dateStr: string): string {
+function getRelativeTime(
+  dateStr: string,
+  t: (key: string, params?: Record<string, string | number>) => string,
+  lang: string
+): string {
   const now = new Date();
   const date = new Date(dateStr);
   const diffMs = now.getTime() - date.getTime();
   const diffMin = Math.floor(diffMs / 60000);
-  if (diffMin < 1) return 'الآن';
-  if (diffMin < 60) return `منذ ${diffMin} دقيقة`;
+  if (diffMin < 1) return t('wp.justNow');
+  if (diffMin < 60) return t('wp.minutesAgo', { count: diffMin });
   const diffHr = Math.floor(diffMin / 60);
-  if (diffHr < 24) return `منذ ${diffHr} ساعة`;
+  if (diffHr < 24) return t('wp.hoursAgo', { count: diffHr });
   const diffDay = Math.floor(diffHr / 24);
-  if (diffDay < 30) return `منذ ${diffDay} يوم`;
-  return date.toLocaleDateString('ar-SA');
+  if (diffDay < 30) return t('wp.daysAgo', { count: diffDay });
+  return date.toLocaleDateString(lang === 'ar' ? 'ar-SA' : 'en-US');
 }
 
 function getNotificationIcon(type: NotificationType) {
@@ -125,6 +130,7 @@ function NotificationSkeleton() {
 /* -------------------------------------------------------------------------- */
 
 export default function NotificationsPage() {
+  const { t, lang } = useLanguage();
   const router = useRouter();
   const { data: rawNotifications, isLoading } = useNotifications();
   const markRead = useMarkNotificationRead();
@@ -175,8 +181,8 @@ export default function NotificationsPage() {
                 <Bell className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h1 className="text-2xl font-extrabold text-v2-text">الإشعارات</h1>
-                <p className="text-sm text-v2-text-soft">آخر التحديثات والتنبيهات</p>
+                <h1 className="text-2xl font-extrabold text-v2-text">{t('notifications.title')}</h1>
+                <p className="text-sm text-v2-text-soft">{t('wp.notificationsSubtitle')}</p>
               </div>
             </div>
 
@@ -189,7 +195,7 @@ export default function NotificationsPage() {
                   transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <CheckCheck className="w-4 h-4" />
-                <span>تعيين الكل كمقروء</span>
+                <span>{t('wp.markAllRead')}</span>
               </button>
             )}
           </div>
@@ -238,7 +244,7 @@ export default function NotificationsPage() {
                           {notification.title}
                         </h3>
                         <span className="text-xs text-v2-text-muted whitespace-nowrap flex-shrink-0">
-                          {getRelativeTime(notification.createdAt)}
+                          {getRelativeTime(notification.createdAt, t, lang)}
                         </span>
                       </div>
                       <p className="text-sm text-v2-text-soft line-clamp-2">{notification.body}</p>
@@ -258,8 +264,10 @@ export default function NotificationsPage() {
               <div className="w-16 h-16 rounded-full bg-v2-primary/10 flex items-center justify-center mx-auto mb-4">
                 <Bell className="w-8 h-8 text-v2-primary" />
               </div>
-              <h3 className="text-lg font-bold text-v2-text mb-2">لا توجد إشعارات</h3>
-              <p className="text-v2-text-soft">ستظهر إشعاراتك هنا عند وجود تحديثات جديدة</p>
+              <h3 className="text-lg font-bold text-v2-text mb-2">
+                {t('notifications.noNotifications')}
+              </h3>
+              <p className="text-v2-text-soft">{t('wp.notificationsEmptyDesc')}</p>
             </div>
           )}
         </main>
