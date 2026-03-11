@@ -60,6 +60,12 @@ export default function ProfileScreen() {
       color: V2_COLORS.accent1,
     },
     {
+      icon: 'star-outline' as const,
+      label: t('profile.myReviews', { defaultValue: 'My Reviews' }),
+      route: '/profile/reviews',
+      color: V2_COLORS.accent2,
+    },
+    {
       icon: 'wallet-outline' as const,
       label: t('profile.wallet'),
       route: '/profile/wallet',

@@ -24,8 +24,10 @@ import { useLanguage } from '@/providers/LanguageProvider';
 import { useFlight, useCancelFlight } from '@/hooks/useFlights';
 import { useFlightOffers } from '@/hooks/useOffers';
 import type { ApiOffer } from '@/hooks/useOffers';
+import { useUserReviews } from '@/hooks/useReviews';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
+import StarRating from '@/components/common/StarRating';
 
 function formatDate(dateString: string, locale: string): string {
   return new Date(dateString).toLocaleDateString(locale, {
@@ -149,7 +151,13 @@ export default function FlightDetailPage() {
   const { data: flight, isLoading } = useFlight(id);
   const isOwner = isAuthenticated && user?.id && flight?.posterId === user.id;
   const { data: offers } = useFlightOffers(isOwner ? id : null);
+  const { data: posterReviews } = useUserReviews(!isOwner ? (flight?.posterId ?? null) : null);
   const cancelFlight = useCancelFlight();
+
+  const avgRating =
+    posterReviews && posterReviews.length > 0
+      ? posterReviews.reduce((s, r) => s + r.rating, 0) / posterReviews.length
+      : null;
 
   const [cancelConfirm, setCancelConfirm] = useState(false);
   const [offersExpanded, setOffersExpanded] = useState(true);
@@ -356,6 +364,14 @@ export default function FlightDetailPage() {
                   <span className="font-semibold text-v2-text">{flight.poster?.name}</span>
                   {flight.poster?.isVerified && <BadgeCheck className="w-4 h-4 text-v2-primary" />}
                 </div>
+                {avgRating !== null && (
+                  <div className="flex items-center gap-1.5 mt-1">
+                    <StarRating rating={avgRating} size="sm" />
+                    <span className="text-xs text-v2-text-muted">
+                      {avgRating.toFixed(1)} ({posterReviews!.length})
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
           </div>

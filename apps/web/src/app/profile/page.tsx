@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import Link from 'next/link';
-import { Pencil, Wallet, Bell, HelpCircle, LogOut, Star, ChevronLeft } from 'lucide-react';
+import { Pencil, Wallet, Bell, HelpCircle, LogOut, Star, ChevronLeft, Shield } from 'lucide-react';
 import { useAuth } from '@/providers/AuthProvider';
 import { useLanguage } from '@/providers/LanguageProvider';
 import { useProfile } from '@/hooks/useProfile';
@@ -56,6 +56,12 @@ export default function ProfilePage() {
         icon: Bell,
         label: t('profile.notifications'),
         description: t('wp.notificationsDesc'),
+      },
+      {
+        href: '/reviews',
+        icon: Star,
+        label: t('profile.myReviews') || 'My Reviews',
+        description: t('wp.reviewsDesc') || 'See your ratings and feedback',
       },
       {
         href: '/help',

@@ -471,6 +471,35 @@ export default function BookingDetailScreen() {
             </View>
           </View>
         )}
+
+        {/* Dispute Link — delivered bookings */}
+        {booking.status === 'delivered' && (
+          <Animated.View entering={FadeIn.delay(400)}>
+            <TouchableOpacity
+              onPress={() =>
+                router.push({
+                  pathname: '/booking/dispute',
+                  params: {
+                    bookingId: booking.id,
+                    from: booking.listing?.departureCity,
+                    to: booking.listing?.arrivalCity,
+                  },
+                })
+              }
+              style={styles.disputeLink}
+            >
+              <Ionicons name="shield-outline" size={16} color={V2_COLORS.textSoft} />
+              <Text style={styles.disputeLinkText}>
+                {t('booking.fileDispute', { defaultValue: 'File a Dispute' })}
+              </Text>
+              <Ionicons
+                name={isRTL ? 'chevron-back' : 'chevron-forward'}
+                size={14}
+                color={V2_COLORS.textSoft}
+              />
+            </TouchableOpacity>
+          </Animated.View>
+        )}
       </ScrollView>
 
       {/* Payment Button for Sender */}
@@ -642,6 +671,19 @@ const styles = StyleSheet.create({
   emptyText: { ...TYPOGRAPHY.caption, color: V2_COLORS.textSoft } as TextStyle,
   goBackText: { ...TYPOGRAPHY.caption, fontWeight: '600', color: V2_COLORS.primary } as TextStyle,
   scrollContent: { padding: 16, paddingBottom: 100 } as ViewStyle,
+  disputeLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    justifyContent: 'center',
+    paddingVertical: 12,
+    marginTop: 4,
+  } as ViewStyle,
+  disputeLinkText: {
+    fontSize: 13,
+    color: V2_COLORS.textSoft,
+    fontWeight: '500',
+  } as TextStyle,
 
   // Status pill
   statusCard: {
