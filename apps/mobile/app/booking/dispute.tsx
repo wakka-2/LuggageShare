@@ -87,7 +87,7 @@ export default function DisputeScreen() {
 
   // Already filed — show status view
   if (existingDispute && !submitted) {
-    const statusColor = DISPUTE_STATUS_COLORS[existingDispute.status] ?? V2_COLORS.textSecondary;
+    const statusColor = DISPUTE_STATUS_COLORS[existingDispute.status] ?? V2_COLORS.textSoft;
     return (
       <SafeAreaView style={styles.container}>
         <BackgroundBlobs />
@@ -96,7 +96,7 @@ export default function DisputeScreen() {
             <Ionicons
               name={isRTL ? 'arrow-forward' : 'arrow-back'}
               size={22}
-              color={V2_COLORS.textPrimary}
+              color={V2_COLORS.text}
             />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>{t('dispute.title')}</Text>
@@ -172,7 +172,7 @@ export default function DisputeScreen() {
           <Ionicons
             name={isRTL ? 'arrow-forward' : 'arrow-back'}
             size={22}
-            color={V2_COLORS.textPrimary}
+            color={V2_COLORS.text}
           />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t('dispute.title')}</Text>
@@ -212,7 +212,7 @@ export default function DisputeScreen() {
                     <Ionicons
                       name={item.icon as keyof typeof Ionicons.glyphMap}
                       size={24}
-                      color={isSelected ? V2_COLORS.primary : V2_COLORS.textSecondary}
+                      color={isSelected ? V2_COLORS.primary : V2_COLORS.textSoft}
                     />
                     <Text
                       style={[styles.reasonText, isSelected && styles.reasonTextSelected]}
@@ -233,7 +233,7 @@ export default function DisputeScreen() {
           <TextInput
             style={[styles.textArea, isRTL && styles.textAreaRTL]}
             placeholder={t('dispute.descriptionPlaceholder')}
-            placeholderTextColor={V2_COLORS.textSecondary}
+            placeholderTextColor={V2_COLORS.textSoft}
             value={description}
             onChangeText={setDescription}
             multiline
@@ -253,9 +253,7 @@ export default function DisputeScreen() {
           >
             <LinearGradient
               colors={
-                !selectedReason
-                  ? [V2_COLORS.textSecondary, V2_COLORS.textSecondary]
-                  : GRADIENTS.primary
+                !selectedReason ? [V2_COLORS.textSoft, V2_COLORS.textSoft] : GRADIENTS.primary
               }
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
@@ -280,7 +278,7 @@ export default function DisputeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: V2_COLORS.background,
+    backgroundColor: V2_COLORS.bg,
   } as ViewStyle,
   header: {
     flexDirection: 'row',
@@ -293,7 +291,7 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: V2_COLORS.surface,
+    backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
     ...BUBBLE_SHADOWS.sm,
@@ -301,7 +299,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: V2_COLORS.textPrimary,
+    color: V2_COLORS.text,
   } as TextStyle,
   scrollContent: {
     paddingHorizontal: 20,
@@ -311,7 +309,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: V2_COLORS.surface,
+    backgroundColor: '#FFFFFF',
     borderRadius: RADIUS.pill,
     paddingHorizontal: 14,
     paddingVertical: 8,
@@ -322,7 +320,7 @@ const styles = StyleSheet.create({
   routeText: {
     fontSize: 13,
     fontWeight: '600',
-    color: V2_COLORS.textPrimary,
+    color: V2_COLORS.text,
   } as TextStyle,
   infoBanner: {
     flexDirection: 'row',
@@ -342,7 +340,7 @@ const styles = StyleSheet.create({
   sectionLabel: {
     fontSize: 14,
     fontWeight: '700',
-    color: V2_COLORS.textPrimary,
+    color: V2_COLORS.text,
     marginBottom: 12,
   } as TextStyle,
   reasonGrid: {
@@ -353,7 +351,7 @@ const styles = StyleSheet.create({
   } as ViewStyle,
   reasonCard: {
     width: 100,
-    backgroundColor: V2_COLORS.surface,
+    backgroundColor: '#FFFFFF',
     borderRadius: RADIUS.card,
     padding: 12,
     alignItems: 'center',
@@ -368,7 +366,7 @@ const styles = StyleSheet.create({
   } as ViewStyle,
   reasonText: {
     fontSize: 11,
-    color: V2_COLORS.textSecondary,
+    color: V2_COLORS.textSoft,
     textAlign: 'center',
     fontWeight: '500',
   } as TextStyle,
@@ -377,14 +375,14 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   } as TextStyle,
   textArea: {
-    backgroundColor: V2_COLORS.surface,
+    backgroundColor: '#FFFFFF',
     borderRadius: RADIUS.card,
     padding: 14,
     fontSize: 14,
-    color: V2_COLORS.textPrimary,
+    color: V2_COLORS.text,
     minHeight: 120,
     borderWidth: 1.5,
-    borderColor: V2_COLORS.border,
+    borderColor: V2_COLORS.textMuted + '30',
     ...BUBBLE_SHADOWS.sm,
   } as TextStyle,
   textAreaRTL: {
@@ -392,7 +390,7 @@ const styles = StyleSheet.create({
   } as TextStyle,
   charCount: {
     fontSize: 11,
-    color: V2_COLORS.textSecondary,
+    color: V2_COLORS.textSoft,
     textAlign: 'right',
     marginTop: 4,
   } as TextStyle,
@@ -412,7 +410,7 @@ const styles = StyleSheet.create({
   } as TextStyle,
   // Status view
   statusCard: {
-    backgroundColor: V2_COLORS.surface,
+    backgroundColor: '#FFFFFF',
     borderRadius: RADIUS.card,
     padding: 24,
     alignItems: 'center',
@@ -430,12 +428,12 @@ const styles = StyleSheet.create({
   statusTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: V2_COLORS.textPrimary,
+    color: V2_COLORS.text,
     textAlign: 'center',
   } as TextStyle,
   statusSubtitle: {
     fontSize: 13,
-    color: V2_COLORS.textSecondary,
+    color: V2_COLORS.textSoft,
     textAlign: 'center',
     lineHeight: 18,
   } as TextStyle,
@@ -456,16 +454,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: V2_COLORS.border,
+    borderTopColor: V2_COLORS.textMuted + '30',
   } as ViewStyle,
   detailLabel: {
     fontSize: 13,
-    color: V2_COLORS.textSecondary,
+    color: V2_COLORS.textSoft,
     fontWeight: '500',
   } as TextStyle,
   detailValue: {
     fontSize: 13,
-    color: V2_COLORS.textPrimary,
+    color: V2_COLORS.text,
     fontWeight: '600',
     maxWidth: '60%',
     textAlign: 'right',
@@ -493,18 +491,18 @@ const styles = StyleSheet.create({
   successTitle: {
     fontSize: 22,
     fontWeight: '800',
-    color: V2_COLORS.textPrimary,
+    color: V2_COLORS.text,
     textAlign: 'center',
   } as TextStyle,
   successSubtitle: {
     fontSize: 14,
-    color: V2_COLORS.textSecondary,
+    color: V2_COLORS.textSoft,
     textAlign: 'center',
     lineHeight: 20,
   } as TextStyle,
   successBtn: {
     marginTop: 8,
-    backgroundColor: V2_COLORS.surface,
+    backgroundColor: '#FFFFFF',
     borderRadius: RADIUS.pill,
     paddingHorizontal: 32,
     paddingVertical: 14,

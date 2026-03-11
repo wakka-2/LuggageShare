@@ -478,7 +478,7 @@ export default function BookingDetailScreen() {
             <TouchableOpacity
               onPress={() =>
                 router.push({
-                  pathname: '/booking/dispute',
+                  pathname: '/booking/dispute' as any,
                   params: {
                     bookingId: booking.id,
                     from: booking.listing?.departureCity,

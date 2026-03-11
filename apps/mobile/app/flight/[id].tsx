@@ -107,7 +107,7 @@ export default function FlightDetailScreen() {
   const statusColor = FLIGHT_STATUS_COLOR[flight.status] || V2_COLORS.textMuted;
 
   const handleMakeOffer = () => {
-    router.push(`/flight/${id}/offer`);
+    router.push(`/flight/${id}/offer` as any);
   };
 
   const handleCancelFlight = () => {
@@ -284,8 +284,7 @@ export default function FlightDetailScreen() {
         {isOwner && offers && offers.length > 0 && (
           <Animated.View entering={FadeInUp.delay(250).duration(400)} style={styles.offersSection}>
             <SectionHeader
-              title={t('flight.offers', { defaultValue: 'Offers' })}
-              count={offers.length}
+              title={`${t('flight.offers', { defaultValue: 'Offers' })} (${offers.length})`}
             />
             {offers.map((offer, index) => {
               const offerColor = OFFER_STATUS_COLORS[offer.status] || V2_COLORS.textMuted;

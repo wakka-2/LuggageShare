@@ -128,7 +128,7 @@ export default function MyReviewsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: V2_COLORS.background,
+    backgroundColor: V2_COLORS.bg,
   } as ViewStyle,
   centered: {
     flex: 1,
@@ -162,12 +162,12 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: V2_COLORS.textPrimary,
+    color: V2_COLORS.text,
     textAlign: 'center',
   } as TextStyle,
   emptySubtitle: {
     fontSize: 14,
-    color: V2_COLORS.textSecondary,
+    color: V2_COLORS.textSoft,
     textAlign: 'center',
     lineHeight: 20,
     maxWidth: 260,
@@ -192,7 +192,7 @@ const styles = StyleSheet.create({
   avgNumber: {
     fontSize: 40,
     fontWeight: '800',
-    color: V2_COLORS.textPrimary,
+    color: V2_COLORS.text,
     lineHeight: 44,
   } as TextStyle,
   starsRow: {
@@ -201,7 +201,7 @@ const styles = StyleSheet.create({
   } as ViewStyle,
   reviewCount: {
     fontSize: 12,
-    color: V2_COLORS.textSecondary,
+    color: V2_COLORS.textSoft,
     marginTop: 2,
   } as TextStyle,
   distBlock: {
@@ -215,14 +215,14 @@ const styles = StyleSheet.create({
   } as ViewStyle,
   distLabel: {
     fontSize: 11,
-    color: V2_COLORS.textSecondary,
+    color: V2_COLORS.textSoft,
     width: 10,
     textAlign: 'right',
   } as TextStyle,
   distBarBg: {
     flex: 1,
     height: 6,
-    backgroundColor: V2_COLORS.border,
+    backgroundColor: V2_COLORS.textMuted + '30',
     borderRadius: 3,
     overflow: 'hidden',
   } as ViewStyle,
@@ -233,7 +233,7 @@ const styles = StyleSheet.create({
   } as ViewStyle,
   distCount: {
     fontSize: 11,
-    color: V2_COLORS.textSecondary,
+    color: V2_COLORS.textSoft,
     width: 16,
     textAlign: 'right',
   } as TextStyle,

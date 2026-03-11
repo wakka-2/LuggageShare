@@ -17,7 +17,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/providers/AuthProvider';
 import { useLanguage } from '@/providers/LanguageProvider';
 import { useOffer, useAcceptOffer, useRejectOffer, useWithdrawOffer } from '@/hooks/useOffers';
-import { useSocket } from '@/hooks/useSocket';
+import { getSocket, connectSocket } from '@/lib/socket';
 import { Header } from '@/components/layout/Header';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import ChatBubble from '@/components/chat/ChatBubble';
@@ -108,11 +108,32 @@ export default function OfferChatPage() {
   const acceptOffer = useAcceptOffer();
   const rejectOffer = useRejectOffer();
   const withdrawOffer = useWithdrawOffer();
-  const { isConnected, socket } = useSocket();
+  const [isConnected, setIsConnected] = useState(false);
 
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [confirmAction, setConfirmAction] = useState<'accept' | 'reject' | 'withdraw' | null>(null);
+
+  // Connect socket on mount
+  useEffect(() => {
+    let mounted = true;
+    connectSocket()
+      .then(() => {
+        if (!mounted) return;
+        setIsConnected(true);
+        const s = getSocket();
+        s.on('connect', () => {
+          if (mounted) setIsConnected(true);
+        });
+        s.on('disconnect', () => {
+          if (mounted) setIsConnected(false);
+        });
+      })
+      .catch(() => {});
+    return () => {
+      mounted = false;
+    };
+  }, []);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -123,17 +144,19 @@ export default function OfferChatPage() {
 
   // Join offer room via socket
   useEffect(() => {
-    if (!socket || !id) return;
-    socket.emit('joinOffer', { offerId: id });
+    if (!isConnected || !id) return;
+    const s = getSocket();
+    s.emit('joinOffer', { offerId: id });
     return () => {
-      socket.emit('leaveOffer', { offerId: id });
+      s.emit('leaveOffer', { offerId: id });
     };
-  }, [socket, id]);
+  }, [isConnected, id]);
 
   // Listen for socket messages
   const queryClient = useQueryClient();
   useEffect(() => {
-    if (!socket) return;
+    if (!isConnected) return;
+    const s = getSocket();
     const handler = () => {
       queryClient.invalidateQueries({ queryKey: ['offerMessages', id] });
     };
@@ -144,20 +167,20 @@ export default function OfferChatPage() {
         typingTimeoutRef.current = setTimeout(() => setIsTyping(false), 3000);
       }
     };
-    socket.on('newOfferMessage', handler);
-    socket.on('offerUserTyping', typingHandler);
+    s.on('newOfferMessage', handler);
+    s.on('offerUserTyping', typingHandler);
     return () => {
-      socket.off('newOfferMessage', handler);
-      socket.off('offerUserTyping', typingHandler);
+      s.off('newOfferMessage', handler);
+      s.off('offerUserTyping', typingHandler);
     };
-  }, [socket, id, user?.id, queryClient]);
+  }, [isConnected, id, user?.id, queryClient]);
 
   // Emit typing event
   const emitTyping = useCallback(() => {
-    if (socket && isConnected) {
-      socket.emit('offerTyping', { offerId: id });
+    if (isConnected) {
+      getSocket().emit('offerTyping', { offerId: id });
     }
-  }, [socket, isConnected, id]);
+  }, [isConnected, id]);
 
   async function handleSend(e: FormEvent) {
     e.preventDefault();
@@ -165,8 +188,8 @@ export default function OfferChatPage() {
     if (!text) return;
     setInput('');
 
-    if (isConnected && socket) {
-      socket.emit('sendOfferMessage', { offerId: id, content: text });
+    if (isConnected) {
+      getSocket().emit('sendOfferMessage', { offerId: id, content: text });
       setTimeout(() => {
         queryClient.invalidateQueries({ queryKey: ['offerMessages', id] });
       }, 500);
@@ -410,9 +433,6 @@ export default function OfferChatPage() {
                     senderId: msg.senderId,
                     createdAt: msg.createdAt,
                     sender: msg.sender,
-                    conversationId: offer.id,
-                    readAt: null,
-                    attachmentUrl: null,
                   }}
                   isOwn={msg.senderId === user?.id}
                 />

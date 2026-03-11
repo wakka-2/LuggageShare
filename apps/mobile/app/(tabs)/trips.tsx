@@ -353,7 +353,7 @@ export default function TripsScreen() {
       <View style={styles.header}>
         <Text style={styles.title}>{t('trips.title')}</Text>
         <TouchableOpacity
-          onPress={() => router.push('/flight/create')}
+          onPress={() => router.push('/flight/create' as any)}
           style={styles.postFlightBtn}
           accessibilityRole="button"
           accessibilityLabel={t('flight.postFlight', { defaultValue: 'Post Flight' })}
@@ -467,7 +467,7 @@ export default function TripsScreen() {
                 <BookingCard
                   booking={booking}
                   isRTL={isRTL}
-                  onPress={() => router.push('/booking/' + booking.id)}
+                  onPress={() => router.push(('/booking/' + booking.id) as any)}
                 />
               </Animated.View>
             ))
@@ -483,7 +483,7 @@ export default function TripsScreen() {
                 defaultValue: 'Post a flight to start accepting luggage offers',
               })}
               actionLabel={t('flight.postFlight', { defaultValue: 'Post a Flight' })}
-              onAction={() => router.push('/flight/create')}
+              onAction={() => router.push('/flight/create' as any)}
               style={styles.emptyState}
             />
           ) : (
@@ -492,7 +492,7 @@ export default function TripsScreen() {
                 <FlightCard
                   flight={flight}
                   isRTL={isRTL}
-                  onPress={() => router.push('/flight/' + flight.id)}
+                  onPress={() => router.push(('/flight/' + flight.id) as any)}
                 />
               </Animated.View>
             ))
@@ -517,7 +517,7 @@ export default function TripsScreen() {
                 <OfferCard
                   offer={offer}
                   isRTL={isRTL}
-                  onPress={() => router.push('/chat/offer/' + offer.id)}
+                  onPress={() => router.push(('/chat/offer/' + offer.id) as any)}
                 />
               </Animated.View>
             ))

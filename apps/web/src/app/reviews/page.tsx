@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { Star, MessageSquare } from 'lucide-react';
-import ProtectedRoute from '@/components/ProtectedRoute';
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { useUserReviews } from '@/hooks/useReviews';
 import { useAuth } from '@/providers/AuthProvider';
 import { useLanguage } from '@/providers/LanguageProvider';

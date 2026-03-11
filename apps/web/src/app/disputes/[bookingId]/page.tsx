@@ -16,14 +16,15 @@ import {
   XCircle,
   HelpCircle,
   CheckCircle2,
+  type LucideIcon,
 } from 'lucide-react';
-import ProtectedRoute from '@/components/ProtectedRoute';
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { useBookingDispute, useCreateDispute, type DisputeReason } from '@/hooks/useDisputes';
 import { useLanguage } from '@/providers/LanguageProvider';
 
 const DISPUTE_REASONS: {
   key: DisputeReason;
-  Icon: React.FC<{ size?: number; className?: string }>;
+  Icon: LucideIcon;
 }[] = [
   { key: 'damaged_item', Icon: AlertTriangle },
   { key: 'missing_item', Icon: Package },
