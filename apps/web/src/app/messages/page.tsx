@@ -22,7 +22,7 @@ export default function MessagesPage() {
 
         <main className="flex-1 max-w-3xl mx-auto w-full px-4 py-8">
           {/* Page title */}
-          <div className="flex items-center gap-3 mb-6">
+          <div className="sticky top-[var(--header-height,64px)] z-10 md:static -mx-4 px-4 py-3 md:mx-0 md:px-0 md:py-0 bg-v2-bg/95 backdrop-blur-sm md:bg-transparent md:backdrop-blur-none flex items-center gap-3 mb-4 md:mb-6">
             <div className="w-11 h-11 rounded-full v2-gradient-primary flex items-center justify-center shadow-bubble-xs">
               <MessageSquare className="w-5 h-5 text-white" />
             </div>

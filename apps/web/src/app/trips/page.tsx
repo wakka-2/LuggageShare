@@ -493,7 +493,7 @@ export default function TripsPage() {
               {/* ============ My Trips (with nested requests) ============ */}
               {listings.length > 0 && (
                 <div className="mb-8">
-                  <h2 className="text-lg font-bold text-v2-text mb-4 flex items-center gap-2">
+                  <h2 className="sticky top-[var(--header-height,64px)] z-10 md:static -mx-4 px-4 py-2 md:mx-0 md:px-0 md:py-0 bg-v2-bg/95 backdrop-blur-sm md:bg-transparent md:backdrop-blur-none text-lg font-bold text-v2-text mb-2 md:mb-4 flex items-center gap-2">
                     <Plane className="w-5 h-5 text-v2-primary -rotate-90 rtl:rotate-90" />
                     {t('wp.myTripsTab')}
                     <span className="text-sm font-normal text-v2-text-muted">
@@ -517,7 +517,7 @@ export default function TripsPage() {
               {/* ============ My Bookings as Sender ============ */}
               {senderBookings.length > 0 && (
                 <div className="mb-8">
-                  <h2 className="text-lg font-bold text-v2-text mb-4 flex items-center gap-2">
+                  <h2 className="sticky top-[var(--header-height,64px)] z-10 md:static -mx-4 px-4 py-2 md:mx-0 md:px-0 md:py-0 bg-v2-bg/95 backdrop-blur-sm md:bg-transparent md:backdrop-blur-none text-lg font-bold text-v2-text mb-2 md:mb-4 flex items-center gap-2">
                     <Package className="w-5 h-5 text-v2-primary" />
                     {t('wp.requestsTab')}
                     <span className="text-sm font-normal text-v2-text-muted">

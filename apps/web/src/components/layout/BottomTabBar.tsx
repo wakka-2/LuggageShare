@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { Home, Plane, MessageSquare, User } from 'lucide-react';
 import { useLanguage } from '@/providers/LanguageProvider';
 import { useUnreadMessagesCount } from '@/hooks/useMessages';
+import { useUnreadCount } from '@/hooks/useNotifications';
 
 type Tab = {
   href: string;
@@ -18,6 +19,7 @@ export function BottomTabBar() {
   const pathname = usePathname();
   const { t } = useLanguage();
   const unreadMessages = useUnreadMessagesCount();
+  const unreadNotifications = useUnreadCount();
 
   // Hide on auth pages
   if (pathname.startsWith('/auth/')) return null;
@@ -47,6 +49,7 @@ export function BottomTabBar() {
       labelKey: 'nav.profile',
       icon: <User className="w-6 h-6" strokeWidth={1.8} />,
       activeIcon: <User className="w-6 h-6" strokeWidth={2.5} />,
+      badge: unreadNotifications,
     },
   ];
 

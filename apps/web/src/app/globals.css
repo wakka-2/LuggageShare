@@ -43,10 +43,14 @@
 @layer base {
   * {
     @apply border-border;
+    /* T4.1: Remove blue tap flash on mobile */
+    -webkit-tap-highlight-color: transparent;
   }
   body {
     @apply bg-v2-bg text-v2-text;
     font-feature-settings: 'rlig' 1, 'calt' 1;
+    /* T4.2: Contain overscroll bounce to prevent pull-to-refresh fighting */
+    overscroll-behavior-y: contain;
   }
 }
 
@@ -150,12 +154,36 @@
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 
-  /* Disable hover on touch devices */
-  @media (hover: none) {
-    a:hover,
-    button:hover {
-      opacity: 1;
-    }
+  /* T4.5: Tighter mobile typography */
+  h1 { font-size: 1.5rem; }
+  h2 { font-size: 1.25rem; }
+  h3 { font-size: 1.05rem; }
+  p  { line-height: 1.6; }
+}
+
+/* T4.7: Neutralize hover states on true touch-only devices */
+@media (hover: none) and (pointer: coarse) {
+  a:hover,
+  button:hover {
+    opacity: 1 !important;
+    box-shadow: revert !important;
+  }
+  /* Preserve focus-visible for accessibility */
+  a:focus-visible,
+  button:focus-visible {
+    outline: 2px solid var(--v2-primary);
+    outline-offset: 2px;
+  }
+}
+
+/* ---- T4.4: Mobile page entrance transition (template.tsx) ---- */
+@media (max-width: 767px) {
+  @keyframes mobilePageEnter {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .mobile-page-enter {
+    animation: mobilePageEnter 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
   }
 }
 
