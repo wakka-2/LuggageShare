@@ -13,6 +13,7 @@ import { PopularRoutes } from '@/components/home/PopularRoutes';
 import FilterBar from '@/components/home/FilterBar';
 import TripCard from '@/components/home/TripCard';
 import TripCardSkeleton from '@/components/home/TripCardSkeleton';
+import { BottomSheet } from '@/components/common/BottomSheet';
 
 export default function HomePage() {
   const { t } = useLanguage();
@@ -124,8 +125,8 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Collapsible Filter Bar */}
-        <section className="px-4">
+        {/* Desktop: collapsible filter bar */}
+        <section className="hidden md:block px-4">
           <div className="max-w-6xl mx-auto">
             <div
               className={`overflow-hidden transition-all duration-300 ease-in-out ${
@@ -146,6 +147,25 @@ export default function HomePage() {
             </div>
           </div>
         </section>
+
+        {/* Mobile: filter bottom sheet */}
+        <BottomSheet
+          isOpen={isFilterOpen}
+          onClose={() => setIsFilterOpen(false)}
+          title={t('home.searchButton')}
+        >
+          <FilterBar
+            from={from}
+            to={to}
+            date={date}
+            onFromChange={setFrom}
+            onToChange={setTo}
+            onDateChange={setDate}
+            onClear={handleClearFilters}
+            onSwap={handleSwap}
+            resultCount={hasFilters ? listings.length : undefined}
+          />
+        </BottomSheet>
 
         {/* Trips Grid */}
         <section className="px-4 pb-8">
