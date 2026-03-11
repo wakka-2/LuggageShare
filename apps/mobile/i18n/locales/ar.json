@@ -17,7 +17,9 @@
     "errorTitle": "خطأ",
     "requiredFieldsError": "يرجى ملء جميع الحقول المطلوبة",
     "verified": "موثق",
-    "offline": "أنت غير متصل بالإنترنت"
+    "offline": "أنت غير متصل بالإنترنت",
+    "back": "رجوع",
+    "goBack": "العودة"
   },
   "tabs": {
     "home": "الرئيسية",
@@ -148,7 +150,11 @@
     "ibanField": "رقم الآيبان",
     "placeholderBankName": "مثال: بنك الراجحي",
     "placeholderIban": "SA...",
-    "recentReviews": "التقييمات الأخيرة"
+    "recentReviews": "التقييمات الأخيرة",
+    "myReviews": "تقييماتي",
+    "noReviews": "لا توجد تقييمات بعد",
+    "noReviewsDesc": "أتمّ حجوزات لتحصل على تقييمات من المستخدمين الآخرين.",
+    "reviews": "تقييم"
   },
   "listing": {
     "create": "إنشاء عرض",
@@ -261,7 +267,8 @@
     "addPhoto": "إضافة",
     "addAnotherItem": "إضافة غرض آخر",
     "itemPhotoRequired": "يرجى إضافة صورة واحدة على الأقل لكل غرض",
-    "confirmPayment": "تأكيد الدفع"
+    "confirmPayment": "تأكيد الدفع",
+    "fileDispute": "تقديم بلاغ نزاع"
   },
   "wallet": {
     "title": "المحفظة",
@@ -489,7 +496,16 @@
     "placeholderFrom": "مثال: جدة",
     "placeholderTo": "مثال: الرياض",
     "placeholderNotes": "أي قيود أو تفضيلات...",
-    "minLeadTime": "يجب أن يكون موعد المغادرة بعد 24 ساعة على الأقل"
+    "minLeadTime": "يجب أن يكون موعد المغادرة بعد 24 ساعة على الأقل",
+    "details": "تفاصيل الرحلة",
+    "poster": "المسافر",
+    "offers": "العروض",
+    "remaining": "متبقي",
+    "total": "إجمالي",
+    "viewOffers": "عرض العروض",
+    "cancel": "إلغاء",
+    "cancelTitle": "إلغاء الرحلة",
+    "cancelConfirmBtn": "إلغاء الرحلة"
   },
   "offer": {
     "myOffers": "عروضي",
@@ -523,6 +539,47 @@
     "ownFlight": "لا يمكنك تقديم عرض على رحلتك الخاصة",
     "alreadyPending": "لديك بالفعل عرض معلق على هذه الرحلة",
     "tooLate": "لا يمكن تقديم عروض قبل 24 ساعة من المغادرة",
-    "priceHint": "يقترح الناقل {{price}} ريال/كجم (الإجمالي: {{total}} ريال)"
+    "priceHint": "يقترح الناقل {{price}} ريال/كجم (الإجمالي: {{total}} ريال)",
+    "makeOffer": "تقديم عرض",
+    "yourOffer": "عرضك",
+    "weight": "الوزن (كجم)",
+    "price": "السعر الإجمالي",
+    "infoNote": "بعد قبول عرضك، سيتم إنشاء حجز. يمكنك التواصل مع الناقل لتنسيق التسليم والاستلام.",
+    "weightRequired": "يرجى إدخال الوزن الذي تريد شحنه",
+    "weightExceeds": "الوزن المعروض يتجاوز السعة المتاحة ({{max}} كجم)",
+    "priceRequired": "يرجى إدخال السعر المعروض",
+    "submitted": "تم تقديم العرض!",
+    "submittedDescription": "تم إرسال عرضك للناقل. سيتم إشعارك عند قبوله.",
+    "submitOffer": "تقديم العرض"
+  },
+  "dispute": {
+    "title": "بلاغ نزاع",
+    "alreadyFiled": "تم تقديم البلاغ مسبقاً",
+    "alreadyFiledDesc": "فريقنا يراجع هذا البلاغ.",
+    "status": {
+      "open": "مفتوح",
+      "under_review": "قيد المراجعة",
+      "resolved": "محلول",
+      "closed": "مغلق"
+    },
+    "reason": "السبب",
+    "description": "الوصف",
+    "reasons": {
+      "damaged_item": "عنصر تالف",
+      "missing_item": "عنصر مفقود",
+      "wrong_item": "عنصر خاطئ",
+      "late_delivery": "تسليم متأخر",
+      "no_delivery": "لم يُسلَّم",
+      "other": "أخرى"
+    },
+    "infoText": "يُرجى تقديم التفاصيل بدقة لمساعدة فريقنا في حل النزاع بسرعة. لا يمكن تقديم أكثر من بلاغ واحد لكل حجز.",
+    "selectReasonLabel": "اختر السبب",
+    "selectReason": "يرجى اختيار سبب",
+    "descriptionLabel": "تفاصيل إضافية (اختياري)",
+    "descriptionPlaceholder": "اشرح ما حدث بالتفصيل...",
+    "submit": "تقديم البلاغ",
+    "submitError": "حدث خطأ. حاول مرة أخرى.",
+    "successTitle": "تم تقديم البلاغ",
+    "successDesc": "تلقينا بلاغك وسيراجعه فريقنا قريباً."
   }
 }

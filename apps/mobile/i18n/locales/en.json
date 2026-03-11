@@ -17,7 +17,9 @@
     "errorTitle": "Error",
     "requiredFieldsError": "Please fill in all required fields",
     "verified": "Verified",
-    "offline": "You are offline"
+    "offline": "You are offline",
+    "back": "Back",
+    "goBack": "Go Back"
   },
   "tabs": {
     "home": "Home",
@@ -148,7 +150,11 @@
     "ibanField": "IBAN",
     "placeholderBankName": "e.g. Al Rajhi Bank",
     "placeholderIban": "SA...",
-    "recentReviews": "Recent Reviews"
+    "recentReviews": "Recent Reviews",
+    "myReviews": "My Reviews",
+    "noReviews": "No reviews yet",
+    "noReviewsDesc": "Complete bookings to receive reviews from other users.",
+    "reviews": "reviews"
   },
   "listing": {
     "create": "Create Listing",
@@ -261,7 +267,8 @@
     "addPhoto": "Add",
     "addAnotherItem": "Add another item",
     "itemPhotoRequired": "Please add at least one photo for each item",
-    "confirmPayment": "Confirm Payment"
+    "confirmPayment": "Confirm Payment",
+    "fileDispute": "File a Dispute"
   },
   "wallet": {
     "title": "Wallet",
@@ -489,7 +496,16 @@
     "placeholderFrom": "e.g. Jeddah",
     "placeholderTo": "e.g. Riyadh",
     "placeholderNotes": "Any restrictions or preferences...",
-    "minLeadTime": "Departure must be at least 24 hours from now"
+    "minLeadTime": "Departure must be at least 24 hours from now",
+    "details": "Flight Details",
+    "poster": "Traveler",
+    "offers": "Offers",
+    "remaining": "remaining",
+    "total": "total",
+    "viewOffers": "View Offers",
+    "cancel": "Cancel",
+    "cancelTitle": "Cancel Flight",
+    "cancelConfirmBtn": "Cancel Flight"
   },
   "offer": {
     "myOffers": "My Offers",
@@ -523,6 +539,47 @@
     "ownFlight": "You cannot make an offer on your own flight",
     "alreadyPending": "You already have a pending offer on this flight",
     "tooLate": "Cannot submit offers less than 24 hours before departure",
-    "priceHint": "Carrier suggested {{price}} SAR/kg (total: {{total}} SAR)"
+    "priceHint": "Carrier suggested {{price}} SAR/kg (total: {{total}} SAR)",
+    "makeOffer": "Make Offer",
+    "yourOffer": "Your Offer",
+    "weight": "Weight (kg)",
+    "price": "Total Price",
+    "infoNote": "After your offer is accepted, a booking will be created. You can chat with the carrier to coordinate pickup and delivery.",
+    "weightRequired": "Please enter the weight you want to ship",
+    "weightExceeds": "Offered weight exceeds available capacity ({{max}} kg)",
+    "priceRequired": "Please enter your offered price",
+    "submitted": "Offer Submitted!",
+    "submittedDescription": "Your offer has been sent to the carrier. You'll be notified when it's accepted.",
+    "submitOffer": "Submit Offer"
+  },
+  "dispute": {
+    "title": "File a Dispute",
+    "alreadyFiled": "Dispute Already Filed",
+    "alreadyFiledDesc": "Our team is reviewing this dispute.",
+    "status": {
+      "open": "Open",
+      "under_review": "Under Review",
+      "resolved": "Resolved",
+      "closed": "Closed"
+    },
+    "reason": "Reason",
+    "description": "Description",
+    "reasons": {
+      "damaged_item": "Damaged Item",
+      "missing_item": "Missing Item",
+      "wrong_item": "Wrong Item",
+      "late_delivery": "Late Delivery",
+      "no_delivery": "No Delivery",
+      "other": "Other"
+    },
+    "infoText": "Please provide accurate details to help our team resolve the dispute quickly. Only one dispute can be filed per booking.",
+    "selectReasonLabel": "Select a reason",
+    "selectReason": "Please select a reason",
+    "descriptionLabel": "Additional details (optional)",
+    "descriptionPlaceholder": "Describe what happened in detail...",
+    "submit": "File Dispute",
+    "submitError": "Something went wrong. Please try again.",
+    "successTitle": "Dispute Filed",
+    "successDesc": "We received your dispute and our team will review it shortly."
   }
 }
