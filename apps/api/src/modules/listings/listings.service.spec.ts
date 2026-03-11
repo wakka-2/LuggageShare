@@ -110,7 +110,7 @@ describe('ListingsService', () => {
         expect.objectContaining({
           skip: 0,
           take: 20,
-          orderBy: { departureDate: 'asc' },
+          orderBy: { createdAt: 'desc' },
         })
       );
     });
@@ -228,7 +228,12 @@ describe('ListingsService', () => {
       await service.search({});
 
       const findManyCall = prisma.listing.findMany.mock.calls[0][0];
-      expect(findManyCall.where).toEqual({ status: 'active' });
+      // Service adds a future-date filter when no explicit date is provided
+      expect(findManyCall.where.status).toBe('active');
+      expect(findManyCall.where.departureDate).toBeDefined();
+      expect(findManyCall.where.departureDate.gte).toBeInstanceOf(Date);
+      // No extra keys beyond status + departureDate
+      expect(Object.keys(findManyCall.where)).toHaveLength(2);
     });
 
     it('should include carrier select fields in results', async () => {
