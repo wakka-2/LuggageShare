@@ -32,6 +32,8 @@ model User {
   // Relations
   settings        UserSettings?
   carrierListings Listing[]       @relation("CarrierListings")
+  flights         Flight[]        @relation("UserFlights")
+  offers          Offer[]         @relation("UserOffers")
   senderBookings  Booking[]       @relation("SenderBookings")
   carrierBookings Booking[]       @relation("CarrierBookings")
   messages        Message[]
@@ -91,12 +93,67 @@ model Listing {
 }
 
 // ==========================================
+// Flights & Offers (New business model)
+// ==========================================
+
+model Flight {
+  id              String   @id @default(cuid())
+  posterId        String
+  departureCity   String
+  departureCode   String?
+  arrivalCity     String
+  arrivalCode     String?
+  departureDate   DateTime
+  flightNumber    String?
+  availableWeight Decimal  @db.Decimal(5, 2)
+  remainingWeight Decimal  @db.Decimal(5, 2)
+  suggestedPrice  Decimal? @db.Decimal(8, 2)
+  currency        String   @default("SAR")
+  notes           String?
+  status          String   @default("active") // active, full, completed, cancelled
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  poster   User      @relation("UserFlights", fields: [posterId], references: [id])
+  offers   Offer[]
+  bookings Booking[] @relation("FlightBookings")
+
+  @@index([departureCity, arrivalCity, departureDate])
+  @@index([posterId])
+  @@map("flights")
+}
+
+model Offer {
+  id            String   @id @default(cuid())
+  flightId      String
+  senderId      String
+  offeredWeight Decimal  @db.Decimal(5, 2)
+  offeredPrice  Decimal  @db.Decimal(10, 2)
+  currency      String   @default("SAR")
+  status        String   @default("pending") // pending, accepted, rejected, expired, withdrawn
+  note          String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  flight   Flight    @relation(fields: [flightId], references: [id], onDelete: Cascade)
+  sender   User      @relation("UserOffers", fields: [senderId], references: [id])
+  booking  Booking?  @relation("OfferBooking")
+  messages Message[] @relation("OfferMessages")
+
+  @@index([flightId])
+  @@index([senderId])
+  @@map("offers")
+}
+
+// ==========================================
 // Bookings & Items
 // ==========================================
 
 model Booking {
   id          String    @id @default(cuid())
-  listingId   String
+  listingId   String?   // nullable: legacy listings; new bookings use flightId
+  offerId     String?   @unique // set when booking is created from an accepted offer
+  flightId    String?   // denormalized for fast queries
   senderId    String
   carrierId   String
   status          String    @default("pending") // pending, accepted, rejected, picked_up, in_transit, delivered, cancelled
@@ -110,7 +167,9 @@ model Booking {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  listing  Listing   @relation(fields: [listingId], references: [id])
+  listing  Listing?  @relation(fields: [listingId], references: [id])
+  offer    Offer?    @relation("OfferBooking", fields: [offerId], references: [id])
+  flight   Flight?   @relation("FlightBookings", fields: [flightId], references: [id])
   sender   User      @relation("SenderBookings", fields: [senderId], references: [id])
   carrier  User      @relation("CarrierBookings", fields: [carrierId], references: [id])
   items    Item[]
@@ -121,6 +180,7 @@ model Booking {
   @@index([senderId])
   @@index([carrierId])
   @@index([listingId])
+  @@index([flightId])
   @@map("bookings")
 }
 
@@ -146,16 +206,19 @@ model Item {
 
 model Message {
   id        String   @id @default(cuid())
-  bookingId String
+  bookingId String?  // nullable: pre-booking offer messages have no bookingId yet
+  offerId   String?  // set for pre-booking negotiation chat; cleared after offer → booking
   senderId  String
   content   String
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
 
-  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-  sender  User    @relation(fields: [senderId], references: [id])
+  booking Booking? @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  offer   Offer?   @relation("OfferMessages", fields: [offerId], references: [id], onDelete: Cascade)
+  sender  User     @relation(fields: [senderId], references: [id])
 
   @@index([bookingId, createdAt])
+  @@index([offerId, createdAt])
   @@map("messages")
 }
 

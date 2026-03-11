@@ -184,4 +184,79 @@ export class MessagesService {
 
     return { success: true };
   }
+
+  // ─── Offer Chat (pre-booking negotiation) ─────────────────────────────────
+
+  private async getOfferParties(offerId: string) {
+    const offer = await this.prisma.offer.findUnique({
+      where: { id: offerId },
+      include: {
+        flight: { select: { posterId: true, departureCity: true, arrivalCity: true } },
+        sender: { select: { id: true } },
+      },
+    });
+    if (!offer) throw new NotFoundException('Offer not found');
+    return offer;
+  }
+
+  private assertOfferAccess(
+    userId: string,
+    offer: { senderId: string; flight: { posterId: string } }
+  ) {
+    if (offer.senderId !== userId && offer.flight.posterId !== userId) {
+      throw new ForbiddenException('You do not have access to this offer conversation');
+    }
+  }
+
+  async getOfferMessages(userId: string, offerId: string, cursor?: string) {
+    const offer = await this.getOfferParties(offerId);
+    this.assertOfferAccess(userId, offer);
+
+    const messages = await this.prisma.message.findMany({
+      where: { offerId },
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+      ...(cursor && { cursor: { id: cursor }, skip: 1 }),
+      include: {
+        sender: { select: { id: true, name: true, avatarUrl: true } },
+      },
+    });
+
+    return {
+      messages: messages.reverse(),
+      nextCursor: messages.length === 50 ? messages[0].id : null,
+    };
+  }
+
+  async sendOfferMessage(userId: string, offerId: string, content: string) {
+    const offer = await this.getOfferParties(offerId);
+    this.assertOfferAccess(userId, offer);
+
+    if (containsProfanity(content)) {
+      throw new BadRequestException('Message contains inappropriate content');
+    }
+
+    return this.prisma.message.create({
+      data: {
+        offerId,
+        senderId: userId,
+        content,
+      },
+      include: {
+        sender: { select: { id: true, name: true, avatarUrl: true } },
+      },
+    });
+  }
+
+  async markOfferMessagesRead(userId: string, offerId: string) {
+    const offer = await this.getOfferParties(offerId);
+    this.assertOfferAccess(userId, offer);
+
+    await this.prisma.message.updateMany({
+      where: { offerId, senderId: { not: userId }, isRead: false },
+      data: { isRead: true },
+    });
+
+    return { success: true };
+  }
 }

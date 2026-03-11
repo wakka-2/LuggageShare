@@ -1,12 +1,15 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { ScheduleModule } from '@nestjs/schedule';
 import { TerminusModule } from '@nestjs/terminus';
 import { LoggerModule } from 'nestjs-pino';
 import * as Joi from 'joi';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { ListingsModule } from './modules/listings/listings.module';
+import { FlightsModule } from './modules/flights/flights.module';
+import { OffersModule } from './modules/offers/offers.module';
 import { BookingsModule } from './modules/bookings/bookings.module';
 import { MessagesModule } from './modules/messages/messages.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
@@ -84,11 +87,14 @@ import { ThrottlerGuard } from '@nestjs/throttler';
         limit: 200,
       },
     ]),
+    ScheduleModule.forRoot(),
     TerminusModule,
     PrismaModule,
     AuthModule,
     UsersModule,
     ListingsModule,
+    FlightsModule,
+    OffersModule,
     BookingsModule,
     MessagesModule,
     NotificationsModule,

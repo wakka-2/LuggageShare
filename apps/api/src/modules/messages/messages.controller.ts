@@ -49,4 +49,33 @@ export class MessagesController {
   async markAsRead(@CurrentUser() user: any, @Param('bookingId') bookingId: string) {
     return this.messagesService.markAsRead(user.id, bookingId);
   }
+
+  // ─── Offer chat REST endpoints ──────────────────────────────────────────────
+
+  @Get('offers/:offerId')
+  @ApiOperation({ summary: 'Get messages for an offer (pre-booking chat)' })
+  async getOfferMessages(
+    @CurrentUser() user: any,
+    @Param('offerId') offerId: string,
+    @Query('cursor') cursor?: string
+  ) {
+    return this.messagesService.getOfferMessages(user.id, offerId, cursor);
+  }
+
+  @Post('offers/:offerId')
+  @Throttle({ medium: { ttl: 60000, limit: 60 } })
+  @ApiOperation({ summary: 'Send a message on an offer thread' })
+  async sendOfferMessage(
+    @CurrentUser() user: any,
+    @Param('offerId') offerId: string,
+    @Body() dto: SendMessageDto
+  ) {
+    return this.messagesService.sendOfferMessage(user.id, offerId, dto.content);
+  }
+
+  @Post('offers/:offerId/read')
+  @ApiOperation({ summary: 'Mark offer messages as read' })
+  async markOfferMessagesRead(@CurrentUser() user: any, @Param('offerId') offerId: string) {
+    return this.messagesService.markOfferMessagesRead(user.id, offerId);
+  }
 }
