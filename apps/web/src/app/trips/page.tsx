@@ -15,19 +15,25 @@ import {
   XCircle,
   BadgeCheck,
   MessageSquare,
-  Inbox,
+  Tag,
 } from 'lucide-react';
 import { useAuth } from '@/providers/AuthProvider';
 import { useLanguage } from '@/providers/LanguageProvider';
 import { useBookings } from '@/hooks/useBookings';
 import { useMyListings } from '@/hooks/useListings';
+import { useMyFlights } from '@/hooks/useFlights';
+import { useMyOffers } from '@/hooks/useOffers';
 import type { ApiBooking } from '@/hooks/useBookings';
 import type { ApiListing } from '@/hooks/useListings';
+import type { ApiFlight } from '@/hooks/useFlights';
+import type { ApiOffer } from '@/hooks/useOffers';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { TripCardSkeleton } from '@/components/common/Skeleton';
 import { EmptyState } from '@/components/common/EmptyState';
+
+type MainTab = 'bookings' | 'flights' | 'offers';
 
 /* ---------- Helpers ---------- */
 
@@ -426,16 +432,193 @@ function SenderBookingCard({
   );
 }
 
+/* ---------- Flight Card ---------- */
+
+function FlightCard({
+  flight,
+  t,
+  lang,
+}: {
+  flight: ApiFlight;
+  t: (k: string) => string;
+  lang: string;
+}) {
+  const dateLocale = lang === 'ar' ? 'ar-SA' : 'en-US';
+  const fromCode = flight.departureCode || flight.departureCity.slice(0, 3).toUpperCase();
+  const toCode = flight.arrivalCode || flight.arrivalCity.slice(0, 3).toUpperCase();
+  const offerCount = flight._count?.offers ?? 0;
+
+  const statusMap: Record<string, { label: string; bg: string; text: string }> = {
+    active: {
+      label: t('flight.statusActive') || 'Active',
+      bg: 'bg-v2-mint/15',
+      text: 'text-v2-mint',
+    },
+    full: { label: t('flight.statusFull') || 'Full', bg: 'bg-v2-amber/15', text: 'text-v2-amber' },
+    completed: {
+      label: t('flight.statusCompleted') || 'Completed',
+      bg: 'bg-v2-sky/15',
+      text: 'text-v2-sky',
+    },
+    cancelled: {
+      label: t('flight.statusCancelled') || 'Cancelled',
+      bg: 'bg-v2-secondary/15',
+      text: 'text-v2-secondary',
+    },
+  };
+  const status = statusMap[flight.status] || statusMap.active;
+
+  return (
+    <Link
+      href={`/flights/${flight.id}`}
+      className="block bg-white rounded-[22px] p-5 shadow-bubble-sm hover:shadow-bubble-md transition-all"
+    >
+      <div className="flex items-center justify-between mb-3">
+        <span className={`${status.bg} ${status.text} px-3 py-1 rounded-full text-xs font-bold`}>
+          {status.label}
+        </span>
+        <div className="flex items-center gap-2">
+          {offerCount > 0 && (
+            <span className="bg-v2-primary/10 text-v2-primary px-2.5 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
+              <Users className="w-3 h-3" />
+              {offerCount}
+            </span>
+          )}
+          <span className="text-xs text-v2-text-muted flex items-center gap-1">
+            <Calendar className="w-3 h-3" />
+            {new Date(flight.departureDate).toLocaleDateString(dateLocale, {
+              month: 'short',
+              day: 'numeric',
+            })}
+          </span>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between mb-1">
+        <p className="text-xl font-extrabold text-v2-text">{fromCode}</p>
+        <div className="flex-1 flex items-center justify-center px-3">
+          <div className="w-2.5 h-2.5 rounded-full bg-v2-mint flex-shrink-0" />
+          <div className="flex-1 border-t-2 border-dashed border-v2-primary/20 mx-1" />
+          <Plane className="w-4 h-4 text-v2-primary -rotate-90 rtl:rotate-90 flex-shrink-0" />
+          <div className="flex-1 border-t-2 border-dashed border-v2-primary/20 mx-1" />
+          <div className="w-2.5 h-2.5 rounded-full bg-v2-secondary flex-shrink-0" />
+        </div>
+        <p className="text-xl font-extrabold text-v2-text">{toCode}</p>
+      </div>
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-xs text-v2-text-soft">{flight.departureCity}</p>
+        <p className="text-xs text-v2-text-soft">{flight.arrivalCity}</p>
+      </div>
+
+      <div className="flex items-center gap-2 flex-wrap">
+        <span className="bg-v2-bg px-2.5 py-1 rounded-full text-xs text-v2-text-soft flex items-center gap-1">
+          <Weight className="w-3 h-3" />
+          {Number(flight.remainingWeight)} / {Number(flight.totalWeight)} kg
+        </span>
+        <span className="bg-v2-bg px-2.5 py-1 rounded-full text-xs text-v2-text-soft">
+          {Number(flight.pricePerKg)} {flight.currency}/kg
+        </span>
+        {flight.flightNumber && (
+          <span className="bg-v2-bg px-2.5 py-1 rounded-full text-xs text-v2-text-soft">
+            {flight.flightNumber}
+          </span>
+        )}
+      </div>
+    </Link>
+  );
+}
+
+/* ---------- Offer Card ---------- */
+
+const OFFER_STATUS_COLORS: Record<string, { bg: string; text: string; label: string }> = {
+  pending: { bg: 'bg-v2-amber/15', text: 'text-v2-amber', label: 'Pending' },
+  accepted: { bg: 'bg-v2-mint/15', text: 'text-v2-mint', label: 'Accepted' },
+  rejected: { bg: 'bg-v2-secondary/15', text: 'text-v2-secondary', label: 'Rejected' },
+  withdrawn: { bg: 'bg-v2-text-muted/15', text: 'text-v2-text-muted', label: 'Withdrawn' },
+  expired: { bg: 'bg-v2-text-muted/15', text: 'text-v2-text-muted', label: 'Expired' },
+};
+
+function OfferCard({
+  offer,
+  t,
+  lang,
+}: {
+  offer: ApiOffer;
+  t: (k: string) => string;
+  lang: string;
+}) {
+  const dateLocale = lang === 'ar' ? 'ar-SA' : 'en-US';
+  const fromCode =
+    offer.flight?.departureCode || offer.flight?.departureCity?.slice(0, 3).toUpperCase() || '---';
+  const toCode =
+    offer.flight?.arrivalCode || offer.flight?.arrivalCity?.slice(0, 3).toUpperCase() || '---';
+  const cfg = OFFER_STATUS_COLORS[offer.status] || OFFER_STATUS_COLORS.pending;
+
+  return (
+    <Link
+      href={`/offers/${offer.id}`}
+      className="block bg-white rounded-[22px] p-4 shadow-bubble-sm hover:shadow-bubble-md transition-all"
+    >
+      <div className="flex items-center gap-4">
+        {/* Route */}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <span className="text-sm font-extrabold text-v2-text">{fromCode}</span>
+          <Plane className="w-3.5 h-3.5 text-v2-primary/50 -rotate-90 rtl:rotate-90" />
+          <span className="text-sm font-extrabold text-v2-text">{toCode}</span>
+        </div>
+
+        <div className="w-px h-8 bg-v2-primary/10 flex-shrink-0" />
+
+        {/* Details */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-0.5">
+            <span className="text-xs text-v2-text-muted">
+              {new Date(offer.flight?.departureDate || offer.createdAt).toLocaleDateString(
+                dateLocale,
+                { month: 'short', day: 'numeric' }
+              )}
+            </span>
+            <span className="text-xs text-v2-text-muted">·</span>
+            <span className="text-xs text-v2-text-muted">{offer.offeredWeight} kg</span>
+            <span className="text-xs text-v2-text-muted">·</span>
+            <span className="text-xs text-v2-text-muted">
+              {offer.offeredPrice} {offer.currency}
+            </span>
+          </div>
+          {offer.booking && (
+            <span className="text-xs text-v2-primary font-semibold">
+              {t('offer.bookingCreated') || 'Booking created'}
+            </span>
+          )}
+        </div>
+
+        {/* Status */}
+        <span
+          className={`${cfg.bg} ${cfg.text} px-2.5 py-1 rounded-full text-[10px] font-bold flex-shrink-0`}
+        >
+          {t(`offer.status.${offer.status}`) || cfg.label}
+        </span>
+      </div>
+    </Link>
+  );
+}
+
 /* ---------- Main Page ---------- */
 
 export default function TripsPage() {
   const { user } = useAuth();
   const { t, lang } = useLanguage();
+  const [mainTab, setMainTab] = useState<MainTab>('bookings');
+
   const { data: apiBookings, isLoading: bookingsLoading } = useBookings();
   const { data: myListings, isLoading: listingsLoading } = useMyListings();
+  const { data: myFlights, isLoading: flightsLoading } = useMyFlights();
+  const { data: myOffersData, isLoading: offersLoading } = useMyOffers();
 
   const bookings = useMemo(() => apiBookings ?? [], [apiBookings]);
   const listings = useMemo(() => myListings ?? [], [myListings]);
+  const flights = useMemo(() => myFlights ?? [], [myFlights]);
+  const offers = useMemo(() => myOffersData?.data ?? [], [myOffersData]);
 
   // Group bookings by listing for the trip cards
   const bookingsByListing = useMemo(() => {
@@ -454,7 +637,33 @@ export default function TripsPage() {
     return bookings.filter((b) => b.senderId === user?.id);
   }, [bookings, user?.id]);
 
-  const isLoading = listingsLoading || bookingsLoading;
+  const isLoading =
+    mainTab === 'bookings'
+      ? listingsLoading || bookingsLoading
+      : mainTab === 'flights'
+        ? flightsLoading
+        : offersLoading;
+
+  const tabs: { id: MainTab; label: string; icon: React.ReactNode; count: number }[] = [
+    {
+      id: 'bookings',
+      label: t('trips.bookingsTab') || 'Bookings',
+      icon: <Package className="w-4 h-4" />,
+      count: listings.length + senderBookings.length,
+    },
+    {
+      id: 'flights',
+      label: t('trips.flightsTab') || 'My Flights',
+      icon: <Plane className="w-4 h-4" />,
+      count: flights.length,
+    },
+    {
+      id: 'offers',
+      label: t('trips.offersTab') || 'My Offers',
+      icon: <Tag className="w-4 h-4" />,
+      count: offers.length,
+    },
+  ];
 
   return (
     <ProtectedRoute>
@@ -462,8 +671,8 @@ export default function TripsPage() {
         <Header />
 
         <main className="flex-1 max-w-3xl mx-auto w-full px-4 py-8">
-          {/* Page title */}
-          <div className="flex items-center justify-between mb-6">
+          {/* Page title + CTA */}
+          <div className="flex items-center justify-between mb-5">
             <div className="flex items-center gap-3">
               <div className="w-11 h-11 rounded-full v2-gradient-primary flex items-center justify-center shadow-bubble-xs">
                 <Plane className="w-5 h-5 text-white -rotate-90 rtl:rotate-90" />
@@ -474,12 +683,42 @@ export default function TripsPage() {
               </div>
             </div>
             <Link
-              href="/listing/create"
+              href={mainTab === 'flights' ? '/flights/create' : '/listing/create'}
               className="flex items-center gap-1.5 px-4 py-2.5 rounded-full v2-gradient-primary text-white text-sm font-semibold shadow-bubble-xs hover:opacity-90 transition-opacity"
             >
               <Plus className="w-4 h-4" />
-              {t('wp.addTrip')}
+              {mainTab === 'flights' ? t('flight.post') || 'Post Flight' : t('wp.addTrip')}
             </Link>
+          </div>
+
+          {/* Tabs */}
+          <div className="flex gap-1.5 bg-white rounded-2xl p-1.5 shadow-bubble-xs mb-6">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setMainTab(tab.id)}
+                className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+                  mainTab === tab.id
+                    ? 'v2-gradient-primary text-white shadow-bubble-xs'
+                    : 'text-v2-text-soft hover:bg-v2-bg'
+                }`}
+              >
+                {tab.icon}
+                <span className="hidden sm:inline">{tab.label}</span>
+                {tab.count > 0 && (
+                  <span
+                    className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                      mainTab === tab.id
+                        ? 'bg-white/20 text-white'
+                        : 'bg-v2-primary/10 text-v2-primary'
+                    }`}
+                  >
+                    {tab.count}
+                  </span>
+                )}
+              </button>
+            ))}
           </div>
 
           {isLoading ? (
@@ -490,69 +729,125 @@ export default function TripsPage() {
             </div>
           ) : (
             <>
-              {/* ============ My Trips (with nested requests) ============ */}
-              {listings.length > 0 && (
-                <div className="mb-8">
-                  <h2 className="sticky top-[var(--header-height,64px)] z-10 md:static -mx-4 px-4 py-2 md:mx-0 md:px-0 md:py-0 bg-v2-bg/95 backdrop-blur-sm md:bg-transparent md:backdrop-blur-none text-lg font-bold text-v2-text mb-2 md:mb-4 flex items-center gap-2">
-                    <Plane className="w-5 h-5 text-v2-primary -rotate-90 rtl:rotate-90" />
-                    {t('wp.myTripsTab')}
-                    <span className="text-sm font-normal text-v2-text-muted">
-                      ({listings.length})
-                    </span>
-                  </h2>
-                  <div className="space-y-4">
-                    {listings.map((listing) => (
-                      <TripCardWithRequests
-                        key={listing.id}
-                        listing={listing}
-                        bookings={bookingsByListing[listing.id] || []}
-                        t={t}
-                        lang={lang}
-                      />
-                    ))}
-                  </div>
-                </div>
+              {/* ============ Bookings Tab ============ */}
+              {mainTab === 'bookings' && (
+                <>
+                  {listings.length > 0 && (
+                    <div className="mb-8">
+                      <h2 className="text-base font-bold text-v2-text mb-3 flex items-center gap-2">
+                        <Plane className="w-4 h-4 text-v2-primary -rotate-90 rtl:rotate-90" />
+                        {t('wp.myTripsTab')}
+                        <span className="text-sm font-normal text-v2-text-muted">
+                          ({listings.length})
+                        </span>
+                      </h2>
+                      <div className="space-y-4">
+                        {listings.map((listing) => (
+                          <TripCardWithRequests
+                            key={listing.id}
+                            listing={listing}
+                            bookings={bookingsByListing[listing.id] || []}
+                            t={t}
+                            lang={lang}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {senderBookings.length > 0 && (
+                    <div className="mb-8">
+                      <h2 className="text-base font-bold text-v2-text mb-3 flex items-center gap-2">
+                        <Package className="w-4 h-4 text-v2-primary" />
+                        {t('wp.requestsTab')}
+                        <span className="text-sm font-normal text-v2-text-muted">
+                          ({senderBookings.length})
+                        </span>
+                      </h2>
+                      <div className="space-y-3">
+                        {senderBookings.map((booking) => (
+                          <SenderBookingCard key={booking.id} booking={booking} t={t} lang={lang} />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {listings.length === 0 && senderBookings.length === 0 && (
+                    <EmptyState
+                      icon={<Plane className="w-9 h-9 text-v2-primary -rotate-90 rtl:rotate-90" />}
+                      title={t('wp.noTrips')}
+                      description={t('wp.noTripsDesc')}
+                      action={{
+                        label: t('wp.addTrip'),
+                        href: '/listing/create',
+                        icon: <Plus className="w-4 h-4" />,
+                      }}
+                    />
+                  )}
+                </>
               )}
 
-              {/* ============ My Bookings as Sender ============ */}
-              {senderBookings.length > 0 && (
-                <div className="mb-8">
-                  <h2 className="sticky top-[var(--header-height,64px)] z-10 md:static -mx-4 px-4 py-2 md:mx-0 md:px-0 md:py-0 bg-v2-bg/95 backdrop-blur-sm md:bg-transparent md:backdrop-blur-none text-lg font-bold text-v2-text mb-2 md:mb-4 flex items-center gap-2">
-                    <Package className="w-5 h-5 text-v2-primary" />
-                    {t('wp.requestsTab')}
-                    <span className="text-sm font-normal text-v2-text-muted">
-                      ({senderBookings.length})
-                    </span>
-                  </h2>
-                  <div className="space-y-3">
-                    {senderBookings.map((booking) => (
-                      <SenderBookingCard key={booking.id} booking={booking} t={t} lang={lang} />
-                    ))}
-                  </div>
-                </div>
+              {/* ============ Flights Tab ============ */}
+              {mainTab === 'flights' && (
+                <>
+                  {flights.length === 0 ? (
+                    <EmptyState
+                      icon={<Plane className="w-9 h-9 text-v2-primary -rotate-90 rtl:rotate-90" />}
+                      title={t('flight.noFlights') || 'No flights yet'}
+                      description={
+                        t('flight.noFlightsDesc') ||
+                        'Post a flight to start receiving offers from senders.'
+                      }
+                      action={{
+                        label: t('flight.post') || 'Post a Flight',
+                        href: '/flights/create',
+                        icon: <Plus className="w-4 h-4" />,
+                      }}
+                    />
+                  ) : (
+                    <div className="space-y-4">
+                      {flights.map((flight) => (
+                        <FlightCard key={flight.id} flight={flight} t={t} lang={lang} />
+                      ))}
+                    </div>
+                  )}
+                </>
               )}
 
-              {/* ============ Empty State ============ */}
-              {listings.length === 0 && senderBookings.length === 0 && (
-                <EmptyState
-                  icon={<Plane className="w-9 h-9 text-v2-primary -rotate-90 rtl:rotate-90" />}
-                  title={t('wp.noTrips')}
-                  description={t('wp.noTripsDesc')}
-                  action={{
-                    label: t('wp.addTrip'),
-                    href: '/listing/create',
-                    icon: <Plus className="w-4 h-4" />,
-                  }}
-                />
+              {/* ============ Offers Tab ============ */}
+              {mainTab === 'offers' && (
+                <>
+                  {offers.length === 0 ? (
+                    <EmptyState
+                      icon={<Tag className="w-9 h-9 text-v2-primary" />}
+                      title={t('offer.noOffers') || 'No offers yet'}
+                      description={
+                        t('offer.noOffersDesc') ||
+                        'Browse flights and make an offer to start shipping.'
+                      }
+                      action={{
+                        label: t('common.browse') || 'Browse Flights',
+                        href: '/',
+                        icon: <Plane className="w-4 h-4 -rotate-90 rtl:rotate-90" />,
+                      }}
+                    />
+                  ) : (
+                    <div className="space-y-3">
+                      {offers.map((offer) => (
+                        <OfferCard key={offer.id} offer={offer} t={t} lang={lang} />
+                      ))}
+                    </div>
+                  )}
+                </>
               )}
             </>
           )}
         </main>
 
-        {/* FAB — mobile only, floating above bottom tab bar */}
+        {/* FAB — mobile only */}
         <Link
-          href="/listing/create"
-          aria-label={t('wp.addTrip')}
+          href={mainTab === 'flights' ? '/flights/create' : '/listing/create'}
+          aria-label={mainTab === 'flights' ? t('flight.post') || 'Post Flight' : t('wp.addTrip')}
           className="md:hidden fixed bottom-[calc(var(--bottom-tab-height)+env(safe-area-inset-bottom,0px)+16px)] end-4 z-40 w-14 h-14 rounded-full v2-gradient-primary text-white shadow-bubble-md flex items-center justify-center hover:opacity-90 active:scale-[0.93] transition-all duration-150"
         >
           <Plus className="w-6 h-6" />
