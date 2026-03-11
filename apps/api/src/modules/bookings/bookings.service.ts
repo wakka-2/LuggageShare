@@ -172,7 +172,7 @@ export class BookingsService {
       }
 
       // Server-side price calculation — never trust client-supplied price
-      const totalPrice = Number(listing.price);
+      const totalPrice = Number(listing.price) * createBookingDto.totalWeight;
 
       return tx.booking.create({
         data: {

@@ -230,10 +230,10 @@ describe('BookingsService', () => {
   // create
   // =========================================================================
   describe('create', () => {
-    it('should create a booking with the listing flat price', async () => {
-      const listing = makeListing({ price: 150, availableWeight: 20 });
+    it('should create a booking with server-computed price (price × weight)', async () => {
+      const listing = makeListing({ price: 30, availableWeight: 20 });
       const dto = makeCreateDto({ totalWeight: 5 });
-      const expectedPrice = 150; // flat price from listing
+      const expectedPrice = 30 * 5; // 150 = pricePerKg × totalWeight
 
       prisma.listing.findUnique.mockResolvedValue(listing);
       prisma.booking.create.mockResolvedValue(makeBooking({ totalPrice: expectedPrice }));
@@ -257,10 +257,10 @@ describe('BookingsService', () => {
       });
     });
 
-    it('should correctly use flat price from Decimal-like price field', async () => {
+    it('should correctly multiply Decimal-like price field by weight', async () => {
       const listing = makeListing({ price: '12.50', availableWeight: '30' });
       const dto = makeCreateDto({ totalWeight: 4 });
-      const expectedPrice = 12.5; // flat price, not multiplied by weight
+      const expectedPrice = 12.5 * 4; // 50 = pricePerKg × totalWeight
 
       prisma.listing.findUnique.mockResolvedValue(listing);
       prisma.booking.create.mockResolvedValue(makeBooking({ totalPrice: expectedPrice }));
@@ -338,7 +338,7 @@ describe('BookingsService', () => {
       const dto = makeCreateDto({ totalWeight: 5 });
 
       prisma.listing.findUnique.mockResolvedValue(listing);
-      prisma.booking.create.mockResolvedValue(makeBooking({ totalWeight: 5, totalPrice: 10 }));
+      prisma.booking.create.mockResolvedValue(makeBooking({ totalWeight: 5, totalPrice: 50 })); // 10 × 5
 
       const result = await service.create(SENDER_ID, dto);
 
