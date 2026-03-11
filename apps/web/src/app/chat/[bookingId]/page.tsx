@@ -124,10 +124,27 @@ export default function ChatPage() {
   const [inputValue, setInputValue] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
+
+  /* ---- Keyboard avoidance (mobile virtual keyboard via visualViewport) ---- */
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    function onResize() {
+      const hidden = window.innerHeight - (vv?.height ?? window.innerHeight) - (vv?.offsetTop ?? 0);
+      setKeyboardHeight(Math.max(0, hidden));
+    }
+    vv.addEventListener('resize', onResize);
+    vv.addEventListener('scroll', onResize);
+    return () => {
+      vv.removeEventListener('resize', onResize);
+      vv.removeEventListener('scroll', onResize);
+    };
+  }, []);
 
   /* ---- Determine the other user in the conversation ---- */
   const otherUser = booking
@@ -365,6 +382,7 @@ export default function ChatPage() {
           <div
             ref={messagesContainerRef}
             className="flex-1 overflow-y-auto px-4 py-4 space-y-3"
+            style={keyboardHeight > 0 ? { paddingBottom: keyboardHeight } : undefined}
             dir="rtl"
           >
             {messagesLoading ? (
