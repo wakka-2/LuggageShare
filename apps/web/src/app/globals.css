@@ -133,6 +133,50 @@
   animation: slideUp 0.35s ease-out;
 }
 
+/* ---- Mobile shell variables & safe area ---- */
+:root {
+  --header-height: 64px; /* matches h-16 in Header.tsx */
+  --bottom-tab-height: 64px; /* matches h-16 in BottomTabBar.tsx */
+}
+
+@media (max-width: 767px) {
+  /* Push page content above bottom tab bar */
+  body {
+    padding-bottom: calc(var(--bottom-tab-height) + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* Safe area utilities */
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  /* Disable hover on touch devices */
+  @media (hover: none) {
+    a:hover,
+    button:hover {
+      opacity: 1;
+    }
+  }
+}
+
+/* ---- Skeleton shimmer animation ---- */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(124, 106, 255, 0.06) 25%,
+    rgba(124, 106, 255, 0.14) 50%,
+    rgba(124, 106, 255, 0.06) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+  border-radius: var(--radius);
+}
+
 /* Prose styling for info pages */
 .prose-v2 h2 {
   font-size: 1.25rem;

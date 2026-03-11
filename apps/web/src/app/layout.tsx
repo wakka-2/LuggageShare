@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Inter, Tajawal } from 'next/font/google';
 import './globals.css';
 import { Providers } from '@/components/Providers';
+import { BottomTabBar } from '@/components/layout/BottomTabBar';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -29,15 +30,14 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ar" dir="rtl" suppressHydrationWarning>
       <body className={`${inter.variable} ${tajawal.variable} font-arabic antialiased`}>
-        <Providers>{children}</Providers>
+        <Providers>
+          {children}
+          <BottomTabBar />
+        </Providers>
       </body>
     </html>
   );
