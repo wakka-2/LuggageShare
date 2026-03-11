@@ -457,6 +457,8 @@ export default function HomeScreen() {
           onPress={() => router.push('/listing/create')}
           style={styles.fab}
           activeOpacity={0.85}
+          accessibilityRole="button"
+          accessibilityLabel={t('home.createListing', { defaultValue: 'Create new listing' })}
         >
           <LinearGradient colors={GRADIENTS.primaryHorizontal} style={styles.fabGradient}>
             <Ionicons name="add" size={28} color="#FFF" />

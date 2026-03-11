@@ -10,6 +10,7 @@ interface IconButtonProps {
   size?: number;
   badge?: number;
   badgeColor?: string;
+  accessibilityLabel?: string;
 }
 
 export function IconButton({
@@ -18,6 +19,7 @@ export function IconButton({
   size = 44,
   badge,
   badgeColor = V2_COLORS.secondary,
+  accessibilityLabel,
 }: IconButtonProps) {
   const iconSize = Math.round(size * 0.5);
 
@@ -35,6 +37,7 @@ export function IconButton({
         pressed && styles.pressed,
       ]}
       accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
     >
       <Ionicons name={icon} size={iconSize} color={V2_COLORS.text} />
       {badge !== undefined && badge > 0 && (

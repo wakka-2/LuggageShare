@@ -159,7 +159,11 @@ export default function ProfileScreen() {
                   </View>
                 )}
               </View>
-              <IconButton icon="pencil-outline" onPress={() => router.push('/profile/edit')} />
+              <IconButton
+                icon="pencil-outline"
+                onPress={() => router.push('/profile/edit')}
+                accessibilityLabel={t('profile.editProfile')}
+              />
             </Animated.View>
 
             {/* Stats Row */}
@@ -239,6 +243,8 @@ export default function ProfileScreen() {
               key={index}
               style={styles.menuItem}
               onPress={() => router.push(item.route as any)}
+              accessibilityRole="button"
+              accessibilityLabel={item.label}
             >
               <View style={styles.menuItemLeft}>
                 <View style={[styles.menuIconBox, { backgroundColor: item.color + '15' }]}>
@@ -256,7 +262,12 @@ export default function ProfileScreen() {
         </View>
 
         {/* Sign Out */}
-        <TouchableOpacity style={styles.signOutButton} onPress={signOut}>
+        <TouchableOpacity
+          style={styles.signOutButton}
+          onPress={signOut}
+          accessibilityRole="button"
+          accessibilityLabel={t('profile.signOut')}
+        >
           <Ionicons name="log-out-outline" size={20} color={V2_COLORS.secondary} />
           <Text style={styles.signOutText}>{t('profile.signOut')}</Text>
         </TouchableOpacity>

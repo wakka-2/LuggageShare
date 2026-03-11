@@ -112,7 +112,14 @@ export function SearchBar({
         />
 
         {/* Swap Button */}
-        <TouchableOpacity onPress={handleSwap} style={styles.swapButton}>
+        <TouchableOpacity
+          onPress={handleSwap}
+          style={styles.swapButton}
+          accessibilityRole="button"
+          accessibilityLabel={t('searchBar.swapCities', {
+            defaultValue: 'Swap departure and arrival cities',
+          })}
+        >
           <Animated.View style={swapAnimatedStyle}>
             <Ionicons name="swap-vertical" size={20} color={V2_COLORS.primary} />
           </Animated.View>
@@ -193,7 +200,13 @@ export function SearchBar({
                 <Text style={[styles.filterTagText, { color: V2_COLORS.primary }]}>
                   {t('searchBar.fromLabel')} {from}
                 </Text>
-                <TouchableOpacity onPress={() => onFromChange('')}>
+                <TouchableOpacity
+                  onPress={() => onFromChange('')}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('searchBar.removeFromFilter', {
+                    defaultValue: 'Remove departure city filter',
+                  })}
+                >
                   <Ionicons name="close" size={14} color={V2_COLORS.primary} />
                 </TouchableOpacity>
               </View>
@@ -203,7 +216,13 @@ export function SearchBar({
                 <Text style={[styles.filterTagText, { color: V2_COLORS.accent1 }]}>
                   {t('searchBar.toLabel')} {to}
                 </Text>
-                <TouchableOpacity onPress={() => onToChange('')}>
+                <TouchableOpacity
+                  onPress={() => onToChange('')}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('searchBar.removeToFilter', {
+                    defaultValue: 'Remove arrival city filter',
+                  })}
+                >
                   <Ionicons name="close" size={14} color={V2_COLORS.accent1} />
                 </TouchableOpacity>
               </View>
@@ -213,13 +232,25 @@ export function SearchBar({
                 <Text style={[styles.filterTagText, { color: V2_COLORS.accent2 }]}>
                   {formatDateDisplay(date)}
                 </Text>
-                <TouchableOpacity onPress={() => onDateChange('')}>
+                <TouchableOpacity
+                  onPress={() => onDateChange('')}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('searchBar.removeDateFilter', {
+                    defaultValue: 'Remove date filter',
+                  })}
+                >
                   <Ionicons name="close" size={14} color={V2_COLORS.accent2} />
                 </TouchableOpacity>
               </View>
             )}
           </View>
-          <TouchableOpacity onPress={clearAll}>
+          <TouchableOpacity
+            onPress={clearAll}
+            accessibilityRole="button"
+            accessibilityLabel={t('searchBar.clearAllFilters', {
+              defaultValue: 'Clear all filters',
+            })}
+          >
             <Text style={[styles.clearAllText, { color: V2_COLORS.secondary }]}>
               {t('searchBar.clearAll')}
             </Text>

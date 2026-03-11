@@ -40,8 +40,16 @@ const ConversationItem = React.memo(function ConversationItem({
       })
     : '';
 
+  const unreadLabel = conversation.unreadCount > 0 ? `, ${conversation.unreadCount} unread` : '';
+  const lastMsg = conversation.lastMessage?.content ? `, ${conversation.lastMessage.content}` : '';
+
   return (
-    <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={0.7}
+      accessibilityRole="button"
+      accessibilityLabel={`${conversation.otherUser.name}${lastMsg}${unreadLabel}`}
+    >
       <View style={styles.conversationItem}>
         <Avatar
           name={conversation.otherUser.name}

@@ -40,6 +40,9 @@ export function ViewToggle({ value, onChange }: ViewToggleProps) {
         style={styles.button}
         onPress={() => handleToggle('grid')}
         activeOpacity={0.7}
+        accessibilityRole="button"
+        accessibilityLabel="Grid view"
+        accessibilityState={{ selected: isGrid }}
       >
         <Ionicons name="grid-outline" size={18} color={isGrid ? '#FFFFFF' : V2_COLORS.textMuted} />
       </AnimatedTouchable>
@@ -49,6 +52,9 @@ export function ViewToggle({ value, onChange }: ViewToggleProps) {
         style={styles.button}
         onPress={() => handleToggle('list')}
         activeOpacity={0.7}
+        accessibilityRole="button"
+        accessibilityLabel="List view"
+        accessibilityState={{ selected: !isGrid }}
       >
         <Ionicons name="list-outline" size={18} color={!isGrid ? '#FFFFFF' : V2_COLORS.textMuted} />
       </AnimatedTouchable>

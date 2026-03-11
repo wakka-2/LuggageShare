@@ -48,6 +48,9 @@ export function PostTypeTabs({ value, onChange, counts }: PostTypeTabsProps) {
               style={[styles.tab, isActive && styles.tabActive]}
               onPress={() => onChange(tab.key)}
               activeOpacity={0.7}
+              accessibilityRole="tab"
+              accessibilityLabel={t(tab.labelKey)}
+              accessibilityState={{ selected: isActive }}
             >
               <View style={styles.tabContent}>
                 <Ionicons name={isActive ? tab.activeIcon : tab.icon} size={18} color={textColor} />

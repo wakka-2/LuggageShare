@@ -49,6 +49,7 @@ export function BubblePill({
         active ? { backgroundColor: color, borderColor: color } : styles.inactive,
       ]}
       accessibilityRole="button"
+      accessibilityLabel={label}
       accessibilityState={{ selected: active }}
     >
       {icon && (

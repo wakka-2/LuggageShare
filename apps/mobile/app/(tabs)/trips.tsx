@@ -89,6 +89,9 @@ const BookingCard = React.memo(function BookingCard({
   const isInTransit = booking.status === 'in_transit';
   const scale = useSharedValue(1);
   const animatedStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+  const departureCity = (booking.listing as any)?.departureCity ?? '';
+  const arrivalCity = (booking.listing as any)?.arrivalCity ?? '';
+  const statusLabel = statusKey ? t(statusKey) : booking.status;
   return (
     <AnimatedTouchable
       onPress={onPress}
@@ -100,6 +103,8 @@ const BookingCard = React.memo(function BookingCard({
       }}
       activeOpacity={1}
       style={[styles.card, animatedStyle]}
+      accessibilityRole="button"
+      accessibilityLabel={`${t('trips.booking', { defaultValue: 'Booking' })}: ${departureCity} to ${arrivalCity}, ${statusLabel}`}
     >
       <View style={styles.routeRow}>
         <View style={[styles.routeDot, { backgroundColor: V2_COLORS.accent1 }]} />
@@ -178,6 +183,8 @@ const FlightCard = React.memo(function FlightCard({
       }}
       activeOpacity={1}
       style={[styles.card, animatedStyle]}
+      accessibilityRole="button"
+      accessibilityLabel={`${t('trips.flight', { defaultValue: 'Flight' })}: ${flight.departureCity} to ${flight.arrivalCity}, ${flight.status}`}
     >
       <View style={styles.routeRow}>
         <View style={[styles.routeDot, { backgroundColor: V2_COLORS.accent1 }]} />
@@ -248,6 +255,8 @@ const OfferCard = React.memo(function OfferCard({
       }}
       activeOpacity={1}
       style={[styles.card, animatedStyle]}
+      accessibilityRole="button"
+      accessibilityLabel={`${t('trips.offer', { defaultValue: 'Offer' })}: ${offer.flight.departureCity} to ${offer.flight.arrivalCity}, ${offer.status}`}
     >
       <View style={styles.routeRow}>
         <View style={[styles.routeDot, { backgroundColor: V2_COLORS.accent1 }]} />
@@ -346,6 +355,8 @@ export default function TripsScreen() {
         <TouchableOpacity
           onPress={() => router.push('/flight/create')}
           style={styles.postFlightBtn}
+          accessibilityRole="button"
+          accessibilityLabel={t('flight.postFlight', { defaultValue: 'Post Flight' })}
         >
           <LinearGradient colors={[...GRADIENTS.primary]} style={styles.postFlightGradient}>
             <Ionicons name="add" size={18} color="#FFF" />
@@ -364,6 +375,9 @@ export default function TripsScreen() {
               key={tab.key}
               onPress={() => setMainTab(tab.key)}
               style={[styles.mainTabBtn, isActive && styles.mainTabBtnActive]}
+              accessibilityRole="tab"
+              accessibilityLabel={tab.label}
+              accessibilityState={{ selected: isActive }}
             >
               <Ionicons
                 name={tab.icon as any}
@@ -392,6 +406,9 @@ export default function TripsScreen() {
                 key={f.key}
                 onPress={() => setBookingFilter(f.key)}
                 style={[styles.filterChip, isActive && styles.filterChipActive]}
+                accessibilityRole="button"
+                accessibilityLabel={t(f.labelKey)}
+                accessibilityState={{ selected: isActive }}
               >
                 <Text style={[styles.filterChipText, isActive && styles.filterChipTextActive]}>
                   {t(f.labelKey)}
