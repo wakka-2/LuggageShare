@@ -2,9 +2,8 @@
 
 import Link from 'next/link';
 import { useState, useRef, useEffect } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import {
-  Menu,
-  X,
   Globe,
   PlusCircle,
   Plane,
@@ -15,11 +14,34 @@ import {
   Bell,
   LogOut,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { useAuth } from '@/providers/AuthProvider';
 import { useLanguage } from '@/providers/LanguageProvider';
 import { useUnreadCount } from '@/hooks/useNotifications';
 import { useUnreadMessagesCount } from '@/hooks/useMessages';
+
+// Route prefix → translation key for mobile page titles
+const PAGE_TITLES: Record<string, string> = {
+  '/trips': 'nav.myTrips',
+  '/reservations': 'nav.reservations',
+  '/messages': 'nav.messages',
+  '/notifications': 'nav.notifications',
+  '/profile': 'nav.profile',
+  '/wallet': 'nav.wallet',
+  '/listing/create': 'nav.addTrip',
+  '/listing': 'nav.listing',
+  '/booking': 'nav.booking',
+  '/chat': 'nav.messages',
+  '/auth': 'nav.appName',
+};
+
+function getMobileTitleKey(pathname: string): string | null {
+  if (pathname === '/') return null; // show logo on home
+  const match = Object.keys(PAGE_TITLES).find((prefix) => pathname.startsWith(prefix));
+  return match ? PAGE_TITLES[match] : null;
+}
 
 function UserAvatar({
   user,
@@ -45,13 +67,17 @@ function UserAvatar({
 }
 
 export function Header() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const pathname = usePathname();
+  const router = useRouter();
   const { user, isAuthenticated, signOut } = useAuth();
   const { lang, toggleLang, t } = useLanguage();
   const unreadCount = useUnreadCount();
   const unreadMessages = useUnreadMessagesCount();
+
+  const mobileTitleKey = getMobileTitleKey(pathname);
+  const isHomePage = pathname === '/';
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -67,9 +93,74 @@ export function Header() {
   return (
     <header className="bg-white shadow-bubble-sm sticky top-0 z-50">
       <div className="max-w-6xl mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center h-16">
+          {/* =============================================
+              MOBILE HEADER  (hidden on md+)
+              ============================================= */}
+          <div className="md:hidden flex items-center justify-between w-full">
+            {/* Left: Logo on home, Back chevron + page title elsewhere */}
+            {isHomePage ? (
+              <Link href="/" className="flex items-center gap-2">
+                <div className="w-9 h-9 v2-gradient-primary rounded-2xl flex items-center justify-center shadow-bubble-xs">
+                  <span className="text-white font-bold text-lg">ح</span>
+                </div>
+                <span className="font-extrabold text-xl text-v2-text">{t('nav.appName')}</span>
+              </Link>
+            ) : (
+              <div className="flex items-center gap-1.5 min-w-0">
+                <button
+                  type="button"
+                  onClick={() => router.back()}
+                  aria-label={t('nav.back')}
+                  className="w-9 h-9 flex items-center justify-center rounded-full text-v2-text-soft hover:bg-v2-primary/5 transition-all shrink-0"
+                >
+                  {lang === 'ar' ? (
+                    <ChevronRight className="w-5 h-5" />
+                  ) : (
+                    <ChevronLeft className="w-5 h-5" />
+                  )}
+                </button>
+                <span className="font-semibold text-base text-v2-text truncate">
+                  {mobileTitleKey ? t(mobileTitleKey) : t('nav.appName')}
+                </span>
+              </div>
+            )}
+
+            {/* Right: Language toggle + Notification bell (authenticated) */}
+            <div className="flex items-center gap-1 shrink-0">
+              <button
+                type="button"
+                onClick={toggleLang}
+                aria-label={lang === 'ar' ? 'Switch to English' : 'التبديل للعربية'}
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-full text-v2-text-soft hover:text-v2-text hover:bg-v2-primary/5 transition-all"
+              >
+                <Globe className="w-4 h-4" />
+                <span className="text-xs font-semibold">{t('nav.switchLang')}</span>
+              </button>
+
+              {isAuthenticated && (
+                <Link
+                  href="/notifications"
+                  aria-label={t('nav.notifications')}
+                  className="relative w-9 h-9 flex items-center justify-center rounded-full text-v2-text-soft hover:text-v2-text hover:bg-v2-primary/5 transition-all"
+                >
+                  <Bell className="w-5 h-5" />
+                  {unreadCount > 0 && (
+                    <span className="absolute top-0.5 end-0.5 min-w-[16px] h-4 flex items-center justify-center bg-v2-secondary text-white text-[9px] font-bold rounded-full px-0.5">
+                      {unreadCount > 99 ? '99+' : unreadCount}
+                    </span>
+                  )}
+                </Link>
+              )}
+            </div>
+          </div>
+
+          {/* =============================================
+              DESKTOP HEADER  (hidden on mobile)
+              ============================================= */}
+
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2">
+          <Link href="/" className="hidden md:flex items-center gap-2">
             <div className="w-9 h-9 v2-gradient-primary rounded-2xl flex items-center justify-center shadow-bubble-xs">
               <span className="text-white font-bold text-lg">ح</span>
             </div>
@@ -77,7 +168,7 @@ export function Header() {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-1">
+          <nav className="hidden md:flex items-center gap-1 flex-1 justify-center">
             <Link
               href="/listing/create"
               className="text-v2-text-soft hover:text-v2-text hover:bg-v2-primary/5 px-4 py-2 rounded-full transition-all flex items-center gap-1.5"
@@ -113,10 +204,11 @@ export function Header() {
             </Link>
           </nav>
 
-          {/* Right Side */}
-          <div className="flex items-center gap-3">
+          {/* Desktop Right Side */}
+          <div className="hidden md:flex items-center gap-3 ms-auto">
             {/* Language Toggle */}
             <button
+              type="button"
               onClick={toggleLang}
               aria-label={lang === 'ar' ? 'Switch to English' : 'التبديل للعربية'}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-v2-text-soft hover:text-v2-text hover:bg-v2-primary/5 transition-all"
@@ -130,20 +222,21 @@ export function Header() {
                 {/* Notifications */}
                 <Link
                   href="/notifications"
-                  className="hidden md:flex w-10 h-10 items-center justify-center rounded-full text-v2-text-soft hover:text-v2-text hover:bg-v2-primary/5 transition-all relative"
+                  className="w-10 h-10 flex items-center justify-center rounded-full text-v2-text-soft hover:text-v2-text hover:bg-v2-primary/5 transition-all relative"
                   aria-label={t('nav.notifications')}
                 >
                   <Bell className="w-5 h-5" />
                   {unreadCount > 0 && (
-                    <span className="absolute top-0.5 right-0.5 min-w-[18px] h-[18px] flex items-center justify-center bg-v2-secondary text-white text-[10px] font-bold rounded-full px-1">
+                    <span className="absolute top-0.5 end-0.5 min-w-[18px] h-[18px] flex items-center justify-center bg-v2-secondary text-white text-[10px] font-bold rounded-full px-1">
                       {unreadCount > 99 ? '99+' : unreadCount}
                     </span>
                   )}
                 </Link>
 
                 {/* User Dropdown */}
-                <div className="relative hidden md:block" ref={dropdownRef}>
+                <div className="relative" ref={dropdownRef}>
                   <button
+                    type="button"
                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                     className="flex items-center gap-2 px-3 py-1.5 rounded-full hover:bg-v2-primary/5 transition-all"
                   >
@@ -155,7 +248,7 @@ export function Header() {
                   </button>
 
                   {isDropdownOpen && (
-                    <div className="absolute left-0 rtl:left-auto rtl:right-0 top-full mt-2 w-48 bg-white rounded-2xl shadow-bubble-md py-2 z-50">
+                    <div className="absolute start-0 top-full mt-2 w-48 bg-white rounded-2xl shadow-bubble-md py-2 z-50">
                       <Link
                         href="/profile"
                         onClick={() => setIsDropdownOpen(false)}
@@ -182,6 +275,7 @@ export function Header() {
                       </Link>
                       <hr className="border-v2-primary/10 my-1" />
                       <button
+                        type="button"
                         onClick={() => {
                           setIsDropdownOpen(false);
                           signOut();
@@ -196,7 +290,7 @@ export function Header() {
                 </div>
               </>
             ) : (
-              <div className="hidden md:flex items-center gap-3">
+              <div className="flex items-center gap-3">
                 <Link
                   href="/auth/login"
                   className="text-v2-text-soft hover:text-v2-text px-4 py-2 rounded-full border border-v2-primary/20 hover:border-v2-primary/40 transition-all"
@@ -211,123 +305,8 @@ export function Header() {
                 </Link>
               </div>
             )}
-
-            {/* Mobile Menu Button */}
-            <button
-              aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
-              className="md:hidden w-10 h-10 flex items-center justify-center rounded-full text-v2-text-soft hover:bg-v2-primary/5"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-            >
-              {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
           </div>
         </div>
-
-        {/* Mobile Navigation */}
-        {isMenuOpen && (
-          <div className="md:hidden py-4 border-t border-v2-primary/10">
-            <nav className="flex flex-col gap-2">
-              <Link
-                href="/listing/create"
-                onClick={() => setIsMenuOpen(false)}
-                className="text-v2-text-soft hover:text-v2-text px-4 py-2 rounded-full hover:bg-v2-primary/5 transition-all flex items-center gap-2"
-              >
-                <PlusCircle className="w-4 h-4" />
-                {t('nav.addTrip')}
-              </Link>
-              <Link
-                href="/trips"
-                onClick={() => setIsMenuOpen(false)}
-                className="text-v2-text-soft hover:text-v2-text px-4 py-2 rounded-full hover:bg-v2-primary/5 transition-all flex items-center gap-2"
-              >
-                <Plane className="w-4 h-4" />
-                {t('nav.myTrips')}
-              </Link>
-              <Link
-                href="/reservations"
-                onClick={() => setIsMenuOpen(false)}
-                className="text-v2-text-soft hover:text-v2-text px-4 py-2 rounded-full hover:bg-v2-primary/5 transition-all flex items-center gap-2"
-              >
-                <Inbox className="w-4 h-4" />
-                {t('nav.reservations')}
-              </Link>
-              <Link
-                href="/messages"
-                onClick={() => setIsMenuOpen(false)}
-                className="text-v2-text-soft hover:text-v2-text px-4 py-2 rounded-full hover:bg-v2-primary/5 transition-all flex items-center gap-2"
-              >
-                <MessageSquare className="w-4 h-4" />
-                {t('nav.messages')}
-                {unreadMessages > 0 && (
-                  <span className="ml-auto bg-v2-secondary text-white text-[10px] font-bold min-w-[18px] h-[18px] flex items-center justify-center rounded-full px-1">
-                    {unreadMessages > 99 ? '99+' : unreadMessages}
-                  </span>
-                )}
-              </Link>
-              <hr className="border-v2-primary/10 my-2" />
-              {isAuthenticated && user ? (
-                <>
-                  <Link
-                    href="/profile"
-                    onClick={() => setIsMenuOpen(false)}
-                    className="text-v2-text-soft hover:text-v2-text px-4 py-2 rounded-full hover:bg-v2-primary/5 transition-all flex items-center gap-2"
-                  >
-                    <User className="w-4 h-4" />
-                    {t('nav.profile')}
-                  </Link>
-                  <Link
-                    href="/wallet"
-                    onClick={() => setIsMenuOpen(false)}
-                    className="text-v2-text-soft hover:text-v2-text px-4 py-2 rounded-full hover:bg-v2-primary/5 transition-all flex items-center gap-2"
-                  >
-                    <Wallet className="w-4 h-4" />
-                    {t('nav.wallet')}
-                  </Link>
-                  <Link
-                    href="/notifications"
-                    onClick={() => setIsMenuOpen(false)}
-                    className="text-v2-text-soft hover:text-v2-text px-4 py-2 rounded-full hover:bg-v2-primary/5 transition-all flex items-center gap-2"
-                  >
-                    <Bell className="w-4 h-4" />
-                    {t('nav.notifications')}
-                    {unreadCount > 0 && (
-                      <span className="ml-auto bg-v2-secondary text-white text-[10px] font-bold min-w-[18px] h-[18px] flex items-center justify-center rounded-full px-1">
-                        {unreadCount > 99 ? '99+' : unreadCount}
-                      </span>
-                    )}
-                  </Link>
-                  <button
-                    onClick={() => {
-                      setIsMenuOpen(false);
-                      signOut();
-                    }}
-                    className="text-v2-secondary px-4 py-2 rounded-full hover:bg-v2-secondary/5 transition-all flex items-center gap-2 text-start"
-                  >
-                    <LogOut className="w-4 h-4" />
-                    {t('nav.signOut')}
-                  </button>
-                </>
-              ) : (
-                <>
-                  <Link
-                    href="/auth/login"
-                    onClick={() => setIsMenuOpen(false)}
-                    className="text-v2-text-soft hover:text-v2-text px-4 py-2 rounded-full hover:bg-v2-primary/5 transition-all"
-                  >
-                    {t('nav.signIn')}
-                  </Link>
-                  <Link
-                    href="/auth/register"
-                    onClick={() => setIsMenuOpen(false)}
-                    className="v2-gradient-primary text-white px-5 py-2 rounded-full text-center font-semibold"
-                  >
-                    {t('nav.createAccount')}
-                  </Link>
-                </>
-              )}
-            </nav>
-          </div>
-        )}
       </div>
     </header>
   );
