@@ -31,7 +31,7 @@ export default function TripCard({ listing }: TripCardProps) {
   return (
     <Link
       href={`/listing/${listing.id}`}
-      className="block bg-white rounded-[22px] p-5 shadow-bubble-sm hover:shadow-bubble-md transition-all cursor-pointer group"
+      className="block bg-white rounded-[22px] p-5 shadow-bubble-sm hover:shadow-bubble-md active:scale-[0.97] transition-all duration-150 cursor-pointer group"
     >
       {/* Header: Type badge + date */}
       <div className="flex items-center justify-between mb-4">

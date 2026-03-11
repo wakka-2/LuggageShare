@@ -37,7 +37,7 @@ export default function ConversationCard({ conversation }: ConversationCardProps
   return (
     <Link
       href={`/chat/${conversation.bookingId}`}
-      className="flex items-center gap-3 bg-white rounded-[22px] p-4 shadow-bubble-sm hover:shadow-bubble-md transition-all"
+      className="flex items-center gap-3 bg-white rounded-[22px] p-4 shadow-bubble-sm hover:shadow-bubble-md active:scale-[0.97] transition-all duration-150"
     >
       {/* Avatar */}
       <div className="relative flex-shrink-0">

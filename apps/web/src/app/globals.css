@@ -159,6 +159,15 @@
   }
 }
 
+/* ---- Hide scrollbar utility (for carousels) ---- */
+.scrollbar-none {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}
+
 /* ---- Skeleton shimmer animation ---- */
 @keyframes shimmer {
   0% { background-position: -200% 0; }

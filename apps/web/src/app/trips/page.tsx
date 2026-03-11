@@ -27,6 +27,7 @@ import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { TripCardSkeleton } from '@/components/common/Skeleton';
+import { EmptyState } from '@/components/common/EmptyState';
 
 /* ---------- Helpers ---------- */
 
@@ -533,24 +534,29 @@ export default function TripsPage() {
 
               {/* ============ Empty State ============ */}
               {listings.length === 0 && senderBookings.length === 0 && (
-                <div className="text-center py-16">
-                  <div className="w-16 h-16 rounded-full bg-v2-primary/10 flex items-center justify-center mx-auto mb-4">
-                    <Plane className="w-8 h-8 text-v2-primary -rotate-90" />
-                  </div>
-                  <h3 className="text-lg font-bold text-v2-text mb-2">{t('wp.noTrips')}</h3>
-                  <p className="text-v2-text-soft mb-6">{t('wp.noTripsDesc')}</p>
-                  <Link
-                    href="/listing/create"
-                    className="inline-flex items-center gap-2 px-6 py-3 rounded-full v2-gradient-primary text-white font-semibold shadow-bubble-sm hover:opacity-90 transition-opacity"
-                  >
-                    <Plus className="w-5 h-5" />
-                    {t('wp.addTrip')}
-                  </Link>
-                </div>
+                <EmptyState
+                  icon={<Plane className="w-9 h-9 text-v2-primary -rotate-90 rtl:rotate-90" />}
+                  title={t('wp.noTrips')}
+                  description={t('wp.noTripsDesc')}
+                  action={{
+                    label: t('wp.addTrip'),
+                    href: '/listing/create',
+                    icon: <Plus className="w-4 h-4" />,
+                  }}
+                />
               )}
             </>
           )}
         </main>
+
+        {/* FAB — mobile only, floating above bottom tab bar */}
+        <Link
+          href="/listing/create"
+          aria-label={t('wp.addTrip')}
+          className="md:hidden fixed bottom-[calc(var(--bottom-tab-height)+env(safe-area-inset-bottom,0px)+16px)] end-4 z-40 w-14 h-14 rounded-full v2-gradient-primary text-white shadow-bubble-md flex items-center justify-center hover:opacity-90 active:scale-[0.93] transition-all duration-150"
+        >
+          <Plus className="w-6 h-6" />
+        </Link>
 
         <Footer />
       </div>

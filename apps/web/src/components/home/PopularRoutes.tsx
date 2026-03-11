@@ -23,12 +23,12 @@ export function PopularRoutes({ onRouteSelect }: PopularRoutesProps) {
       <div className="max-w-6xl mx-auto">
         <h2 className="text-xl font-bold text-v2-text mb-4">{t('wp.popularRoutesTitle')}</h2>
 
-        <div className="flex flex-wrap gap-3">
+        <div className="flex gap-3 overflow-x-auto md:overflow-x-visible md:flex-wrap pb-2 md:pb-0 -mx-4 md:mx-0 px-4 md:px-0 scrollbar-none">
           {POPULAR_ROUTES.map((route) => (
             <button
               key={route.id}
               onClick={() => onRouteSelect?.(route.fromEn, route.toEn)}
-              className="bg-white rounded-full px-4 py-2.5 shadow-bubble-xs hover:shadow-bubble-sm transition-all flex items-center gap-2 group"
+              className="shrink-0 bg-white rounded-full px-4 py-2.5 shadow-bubble-xs hover:shadow-bubble-sm active:scale-[0.97] transition-all duration-150 flex items-center gap-2 group"
             >
               <div className="w-2 h-2 rounded-full bg-v2-mint" />
               <span className="text-sm font-medium text-v2-text">
