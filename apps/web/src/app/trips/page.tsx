@@ -26,6 +26,7 @@ import type { ApiListing } from '@/hooks/useListings';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import { TripCardSkeleton } from '@/components/common/Skeleton';
 
 /* ---------- Helpers ---------- */
 
@@ -84,28 +85,6 @@ const statusConfig = (t: (k: string) => string) => ({
     dot: 'bg-v2-secondary',
   },
 });
-
-/* ---------- Skeletons ---------- */
-
-function TripCardSkeleton() {
-  return (
-    <div className="bg-white rounded-[22px] p-5 shadow-bubble-sm animate-pulse">
-      <div className="flex items-center justify-between mb-3">
-        <div className="h-6 w-20 bg-v2-primary/10 rounded-full" />
-        <div className="h-5 w-16 bg-v2-primary/5 rounded-full" />
-      </div>
-      <div className="flex items-center justify-between mb-3">
-        <div className="h-8 w-14 bg-v2-primary/10 rounded" />
-        <div className="flex-1 mx-4 h-0.5 bg-v2-primary/10 rounded" />
-        <div className="h-8 w-14 bg-v2-primary/10 rounded" />
-      </div>
-      <div className="flex gap-2">
-        <div className="h-6 w-16 bg-v2-primary/5 rounded-full" />
-        <div className="h-6 w-20 bg-v2-primary/5 rounded-full" />
-      </div>
-    </div>
-  );
-}
 
 /* ---------- Mini Request Row (inside trip card) ---------- */
 

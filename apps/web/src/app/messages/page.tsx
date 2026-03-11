@@ -7,24 +7,7 @@ import { useLanguage } from '@/providers/LanguageProvider';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import ConversationCard from '@/components/messages/ConversationCard';
 import { useConversations } from '@/hooks/useMessages';
-
-function ConversationSkeleton() {
-  return (
-    <div className="flex items-center gap-3 bg-white rounded-[22px] p-4 shadow-bubble-sm animate-pulse">
-      {/* Avatar placeholder */}
-      <div className="w-12 h-12 rounded-full bg-v2-primary/10 flex-shrink-0" />
-
-      {/* Content placeholder */}
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center justify-between mb-2">
-          <div className="h-4 w-28 bg-v2-primary/10 rounded-full" />
-          <div className="h-3 w-14 bg-v2-primary/5 rounded-full" />
-        </div>
-        <div className="h-3 w-full bg-v2-primary/5 rounded-full" />
-      </div>
-    </div>
-  );
-}
+import { ConversationCardSkeleton } from '@/components/common/Skeleton';
 
 export default function MessagesPage() {
   const { t } = useLanguage();
@@ -53,7 +36,7 @@ export default function MessagesPage() {
           {isLoading ? (
             <div className="space-y-3">
               {[1, 2, 3].map((i) => (
-                <ConversationSkeleton key={i} />
+                <ConversationCardSkeleton key={i} />
               ))}
             </div>
           ) : hasConversations ? (
