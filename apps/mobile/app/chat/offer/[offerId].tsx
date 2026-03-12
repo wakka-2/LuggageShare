@@ -138,24 +138,22 @@ export default function OfferChatScreen() {
   const handleAccept = () => {
     if (!offer) return;
     Alert.alert(
-      t('offer.acceptTitle', { defaultValue: 'Accept Offer' }),
+      t('offer.acceptTitle'),
       t('offer.acceptConfirm', {
-        defaultValue: `Accept ${Number(offer.offeredWeight)} kg for ${Number(offer.offeredPrice)} ${offer.currency}? A booking will be created automatically.`,
+        weight: Number(offer.offeredWeight),
+        price: Number(offer.offeredPrice),
+        currency: offer.currency,
       }),
       [
         { text: t('common.cancel'), style: 'cancel' },
         {
-          text: t('offer.acceptBtn', { defaultValue: 'Accept' }),
+          text: t('offer.acceptBtn'),
           onPress: async () => {
             try {
               await acceptOffer.mutateAsync(offer.id);
-              Alert.alert(
-                t('offer.acceptedTitle', { defaultValue: 'Offer Accepted!' }),
-                t('offer.acceptedDescription', {
-                  defaultValue: 'A booking has been created. You can find it in My Trips.',
-                }),
-                [{ text: t('common.ok'), onPress: () => router.push('/(tabs)/trips') }]
-              );
+              Alert.alert(t('offer.acceptedTitle'), t('offer.acceptedDescription'), [
+                { text: t('common.ok'), onPress: () => router.push('/(tabs)/trips') },
+              ]);
             } catch (e: any) {
               Alert.alert(t('common.errorTitle'), e?.response?.data?.message || t('common.error'));
             }
@@ -167,50 +165,40 @@ export default function OfferChatScreen() {
 
   const handleReject = () => {
     if (!offer) return;
-    Alert.alert(
-      t('offer.rejectTitle', { defaultValue: 'Reject Offer' }),
-      t('offer.rejectConfirm', { defaultValue: 'Are you sure you want to reject this offer?' }),
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        {
-          text: t('offer.rejectBtn', { defaultValue: 'Reject' }),
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await rejectOffer.mutateAsync(offer.id);
-              router.back();
-            } catch (e: any) {
-              Alert.alert(t('common.errorTitle'), e?.response?.data?.message || t('common.error'));
-            }
-          },
+    Alert.alert(t('offer.rejectTitle'), t('offer.rejectConfirm'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      {
+        text: t('offer.rejectBtn'),
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await rejectOffer.mutateAsync(offer.id);
+            router.back();
+          } catch (e: any) {
+            Alert.alert(t('common.errorTitle'), e?.response?.data?.message || t('common.error'));
+          }
         },
-      ]
-    );
+      },
+    ]);
   };
 
   const handleWithdraw = () => {
     if (!offer) return;
-    Alert.alert(
-      t('offer.withdrawTitle', { defaultValue: 'Withdraw Offer' }),
-      t('offer.withdrawConfirm', {
-        defaultValue: 'Withdraw your offer? You can submit a new one later.',
-      }),
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        {
-          text: t('offer.withdrawBtn', { defaultValue: 'Withdraw' }),
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await withdrawOffer.mutateAsync(offer.id);
-              router.back();
-            } catch (e: any) {
-              Alert.alert(t('common.errorTitle'), e?.response?.data?.message || t('common.error'));
-            }
-          },
+    Alert.alert(t('offer.withdrawTitle'), t('offer.withdrawConfirm'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      {
+        text: t('offer.withdrawBtn'),
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await withdrawOffer.mutateAsync(offer.id);
+            router.back();
+          } catch (e: any) {
+            Alert.alert(t('common.errorTitle'), e?.response?.data?.message || t('common.error'));
+          }
         },
-      ]
-    );
+      },
+    ]);
   };
 
   const isLoading = offerLoading || messagesLoading;
@@ -270,7 +258,7 @@ export default function OfferChatScreen() {
           <Text style={styles.headerTitle}>
             {offer
               ? `${offer.flight.departureCity} → ${offer.flight.arrivalCity}`
-              : t('offer.chat', { defaultValue: 'Offer Chat' })}
+              : t('offer.chat')}
           </Text>
           {offer && (
             <View style={styles.offerSummaryRow}>
@@ -306,9 +294,7 @@ export default function OfferChatScreen() {
                 disabled={acceptOffer.isPending}
               >
                 <Ionicons name="checkmark" size={16} color="#FFF" />
-                <Text style={styles.acceptBtnText}>
-                  {t('offer.accept', { defaultValue: 'Accept' })}
-                </Text>
+                <Text style={styles.acceptBtnText}>{t('offer.accept')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={handleReject}
@@ -316,9 +302,7 @@ export default function OfferChatScreen() {
                 disabled={rejectOffer.isPending}
               >
                 <Ionicons name="close" size={16} color="#FF6B9D" />
-                <Text style={styles.rejectBtnText}>
-                  {t('offer.reject', { defaultValue: 'Reject' })}
-                </Text>
+                <Text style={styles.rejectBtnText}>{t('offer.reject')}</Text>
               </TouchableOpacity>
             </>
           )}
@@ -329,9 +313,7 @@ export default function OfferChatScreen() {
               disabled={withdrawOffer.isPending}
             >
               <Ionicons name="return-up-back" size={16} color={V2_COLORS.textSoft} />
-              <Text style={styles.withdrawBtnText}>
-                {t('offer.withdraw', { defaultValue: 'Withdraw' })}
-              </Text>
+              <Text style={styles.withdrawBtnText}>{t('offer.withdraw')}</Text>
             </TouchableOpacity>
           )}
           <View style={styles.offerDetailChip}>
@@ -382,14 +364,10 @@ export default function OfferChatScreen() {
             ListEmptyComponent={
               <Animated.View entering={FadeIn.delay(200).duration(400)} style={styles.emptyChat}>
                 <Ionicons name="chatbubbles-outline" size={48} color={V2_COLORS.textMuted} />
-                <Text style={styles.emptyChatText}>
-                  {t('chat.startConversation', { defaultValue: 'Start the conversation' })}
-                </Text>
+                <Text style={styles.emptyChatText}>{t('chat.startConversation')}</Text>
                 {offer?.note && (
                   <View style={styles.notePreview}>
-                    <Text style={styles.notePreviewLabel}>
-                      {t('offer.senderNote', { defaultValue: "Sender's note:" })}
-                    </Text>
+                    <Text style={styles.notePreviewLabel}>{t('offer.senderNote')}</Text>
                     <Text style={styles.notePreviewText}>{offer.note}</Text>
                   </View>
                 )}
@@ -401,9 +379,7 @@ export default function OfferChatScreen() {
         <Animated.View entering={SlideInDown.duration(300).springify()} style={styles.inputBar}>
           {isOtherTyping && (
             <View style={styles.typingIndicator}>
-              <Text style={styles.typingText}>
-                {t('chat.typing', { defaultValue: 'Typing...' })}
-              </Text>
+              <Text style={styles.typingText}>{t('chat.typing')}</Text>
             </View>
           )}
           <View style={styles.inputRow}>
@@ -414,7 +390,7 @@ export default function OfferChatScreen() {
                 setMessageText(text);
                 sendTyping();
               }}
-              placeholder={t('messages.typeMessage', { defaultValue: 'Type a message...' })}
+              placeholder={t('messages.typeMessage')}
               placeholderTextColor={V2_COLORS.textMuted}
               multiline
               maxLength={1000}
@@ -445,11 +421,7 @@ export default function OfferChatScreen() {
               </LinearGradient>
             </TouchableOpacity>
           </View>
-          {offer && !isPending && (
-            <Text style={styles.closedNote}>
-              {t('offer.chatClosed', { defaultValue: `Offer ${offer.status} — chat is read-only` })}
-            </Text>
-          )}
+          {offer && !isPending && <Text style={styles.closedNote}>{t('offer.chatClosed')}</Text>}
         </Animated.View>
       </KeyboardAvoidingView>
     </SafeAreaView>

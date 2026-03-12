@@ -54,25 +54,17 @@ function RouteStep({
   const { t } = useTranslation();
   return (
     <Animated.View entering={FadeInDown.duration(350)} style={styles.stepContent}>
-      <Text style={styles.stepTitle}>
-        {t('flight.create.routeTitle', { defaultValue: 'Where are you flying?' })}
-      </Text>
-      <Text style={styles.stepSubtitle}>
-        {t('flight.create.routeSubtitle', {
-          defaultValue: 'Enter your departure and arrival cities',
-        })}
-      </Text>
+      <Text style={styles.stepTitle}>{t('flight.create.routeTitle')}</Text>
+      <Text style={styles.stepSubtitle}>{t('flight.create.routeSubtitle')}</Text>
 
       <View style={styles.inputGroup}>
-        <Text style={styles.inputLabel}>
-          {t('flight.create.from', { defaultValue: 'Departure City' })} *
-        </Text>
+        <Text style={styles.inputLabel}>{t('flight.create.from')} *</Text>
         <View style={styles.inputRow}>
           <TextInput
             style={[styles.textInput, { flex: 2 }]}
             value={form.departureCity}
             onChangeText={(v) => onChange('departureCity', v)}
-            placeholder={t('flight.create.cityPlaceholder', { defaultValue: 'e.g. Riyadh' })}
+            placeholder={t('flight.create.cityPlaceholder')}
             placeholderTextColor={V2_COLORS.textMuted}
           />
           <TextInput
@@ -94,15 +86,13 @@ function RouteStep({
       </View>
 
       <View style={styles.inputGroup}>
-        <Text style={styles.inputLabel}>
-          {t('flight.create.to', { defaultValue: 'Arrival City' })} *
-        </Text>
+        <Text style={styles.inputLabel}>{t('flight.create.to')} *</Text>
         <View style={styles.inputRow}>
           <TextInput
             style={[styles.textInput, { flex: 2 }]}
             value={form.arrivalCity}
             onChangeText={(v) => onChange('arrivalCity', v)}
-            placeholder={t('flight.create.cityPlaceholder', { defaultValue: 'e.g. London' })}
+            placeholder={t('flight.create.cityPlaceholder')}
             placeholderTextColor={V2_COLORS.textMuted}
           />
           <TextInput
@@ -131,17 +121,11 @@ function DateStep({
   const { t } = useTranslation();
   return (
     <Animated.View entering={FadeInDown.duration(350)} style={styles.stepContent}>
-      <Text style={styles.stepTitle}>
-        {t('flight.create.dateTitle', { defaultValue: 'When are you flying?' })}
-      </Text>
-      <Text style={styles.stepSubtitle}>
-        {t('flight.create.dateSubtitle', { defaultValue: 'Set your departure date' })}
-      </Text>
+      <Text style={styles.stepTitle}>{t('flight.create.dateTitle')}</Text>
+      <Text style={styles.stepSubtitle}>{t('flight.create.dateSubtitle')}</Text>
 
       <View style={styles.inputGroup}>
-        <Text style={styles.inputLabel}>
-          {t('flight.create.date', { defaultValue: 'Departure Date' })} *
-        </Text>
+        <Text style={styles.inputLabel}>{t('flight.create.date')} *</Text>
         <TextInput
           style={styles.textInput}
           value={form.departureDate}
@@ -150,15 +134,11 @@ function DateStep({
           placeholderTextColor={V2_COLORS.textMuted}
           keyboardType={Platform.OS === 'ios' ? 'numbers-and-punctuation' : 'default'}
         />
-        <Text style={styles.inputHint}>
-          {t('flight.create.dateHint', { defaultValue: 'Must be at least 24 hours from now' })}
-        </Text>
+        <Text style={styles.inputHint}>{t('flight.create.dateHint')}</Text>
       </View>
 
       <View style={styles.inputGroup}>
-        <Text style={styles.inputLabel}>
-          {t('flight.create.flightNumber', { defaultValue: 'Flight Number (optional)' })}
-        </Text>
+        <Text style={styles.inputLabel}>{t('flight.create.flightNumber')}</Text>
         <TextInput
           style={styles.textInput}
           value={form.flightNumber}
@@ -185,19 +165,11 @@ function WeightStep({
 
   return (
     <Animated.View entering={FadeInDown.duration(350)} style={styles.stepContent}>
-      <Text style={styles.stepTitle}>
-        {t('flight.create.weightTitle', { defaultValue: 'How much space?' })}
-      </Text>
-      <Text style={styles.stepSubtitle}>
-        {t('flight.create.weightSubtitle', {
-          defaultValue: 'Enter the available luggage weight in kg',
-        })}
-      </Text>
+      <Text style={styles.stepTitle}>{t('flight.create.weightTitle')}</Text>
+      <Text style={styles.stepSubtitle}>{t('flight.create.weightSubtitle')}</Text>
 
       <View style={styles.inputGroup}>
-        <Text style={styles.inputLabel}>
-          {t('flight.create.totalWeight', { defaultValue: 'Available Weight (kg)' })} *
-        </Text>
+        <Text style={styles.inputLabel}>{t('flight.create.totalWeight')} *</Text>
         <View style={styles.weightInputRow}>
           <TextInput
             style={[styles.textInput, styles.weightInput]}
@@ -245,17 +217,11 @@ function PricingStep({
 
   return (
     <Animated.View entering={FadeInDown.duration(350)} style={styles.stepContent}>
-      <Text style={styles.stepTitle}>
-        {t('flight.create.pricingTitle', { defaultValue: 'Set your price' })}
-      </Text>
-      <Text style={styles.stepSubtitle}>
-        {t('flight.create.pricingSubtitle', { defaultValue: 'How much per kg?' })}
-      </Text>
+      <Text style={styles.stepTitle}>{t('flight.create.pricingTitle')}</Text>
+      <Text style={styles.stepSubtitle}>{t('flight.create.pricingSubtitle')}</Text>
 
       <View style={styles.inputGroup}>
-        <Text style={styles.inputLabel}>
-          {t('flight.create.pricePerKg', { defaultValue: 'Price per kg' })} *
-        </Text>
+        <Text style={styles.inputLabel}>{t('flight.create.pricePerKg')} *</Text>
         <View style={styles.weightInputRow}>
           <TextInput
             style={[styles.textInput, styles.weightInput]}
@@ -272,9 +238,7 @@ function PricingStep({
       </View>
 
       <View style={styles.inputGroup}>
-        <Text style={styles.inputLabel}>
-          {t('flight.create.currency', { defaultValue: 'Currency' })}
-        </Text>
+        <Text style={styles.inputLabel}>{t('flight.create.currency')}</Text>
         <View style={styles.presetRow}>
           {currencies.map((c) => (
             <TouchableOpacity
@@ -307,14 +271,8 @@ function ReviewStep({
 
   return (
     <Animated.View entering={FadeInDown.duration(350)} style={styles.stepContent}>
-      <Text style={styles.stepTitle}>
-        {t('flight.create.reviewTitle', { defaultValue: 'Review & Confirm' })}
-      </Text>
-      <Text style={styles.stepSubtitle}>
-        {t('flight.create.reviewSubtitle', {
-          defaultValue: 'Add any notes and confirm your flight posting',
-        })}
-      </Text>
+      <Text style={styles.stepTitle}>{t('flight.create.reviewTitle')}</Text>
+      <Text style={styles.stepSubtitle}>{t('flight.create.reviewSubtitle')}</Text>
 
       <View style={styles.reviewCard}>
         <View style={styles.reviewRow}>
@@ -347,16 +305,12 @@ function ReviewStep({
       </View>
 
       <View style={styles.inputGroup}>
-        <Text style={styles.inputLabel}>
-          {t('flight.create.notes', { defaultValue: 'Notes (optional)' })}
-        </Text>
+        <Text style={styles.inputLabel}>{t('flight.create.notes')}</Text>
         <TextInput
           style={[styles.textInput, styles.notesInput]}
           value={form.notes}
           onChangeText={(v) => onChange('notes', v)}
-          placeholder={t('flight.create.notesPlaceholder', {
-            defaultValue: 'Any restrictions, item types you accept, etc.',
-          })}
+          placeholder={t('flight.create.notesPlaceholder')}
           placeholderTextColor={V2_COLORS.textMuted}
           multiline
           numberOfLines={3}
@@ -392,49 +346,32 @@ export default function CreateFlightScreen() {
   const validateStep = (): boolean => {
     if (step === 1) {
       if (!form.departureCity.trim() || !form.arrivalCity.trim()) {
-        Alert.alert(
-          t('common.errorTitle'),
-          t('flight.create.routeRequired', {
-            defaultValue: 'Departure and arrival cities are required',
-          })
-        );
+        Alert.alert(t('common.errorTitle'), t('flight.create.routeRequired'));
         return false;
       }
     }
     if (step === 2) {
       if (!form.departureDate.trim()) {
-        Alert.alert(
-          t('common.errorTitle'),
-          t('flight.create.dateRequired', { defaultValue: 'Departure date is required' })
-        );
+        Alert.alert(t('common.errorTitle'), t('flight.create.dateRequired'));
         return false;
       }
       const date = new Date(form.departureDate);
       if (isNaN(date.getTime())) {
-        Alert.alert(
-          t('common.errorTitle'),
-          t('flight.create.dateInvalid', { defaultValue: 'Please enter a valid date (YYYY-MM-DD)' })
-        );
+        Alert.alert(t('common.errorTitle'), t('flight.create.dateInvalid'));
         return false;
       }
     }
     if (step === 3) {
       const w = parseFloat(form.totalWeight);
       if (!form.totalWeight || isNaN(w) || w <= 0) {
-        Alert.alert(
-          t('common.errorTitle'),
-          t('flight.create.weightRequired', { defaultValue: 'Please enter a valid weight' })
-        );
+        Alert.alert(t('common.errorTitle'), t('flight.create.weightRequired'));
         return false;
       }
     }
     if (step === 4) {
       const p = parseFloat(form.pricePerKg);
       if (!form.pricePerKg || isNaN(p) || p < 0) {
-        Alert.alert(
-          t('common.errorTitle'),
-          t('flight.create.priceRequired', { defaultValue: 'Please enter a valid price' })
-        );
+        Alert.alert(t('common.errorTitle'), t('flight.create.priceRequired'));
         return false;
       }
     }
@@ -478,28 +415,18 @@ export default function CreateFlightScreen() {
           <View style={styles.successIcon}>
             <Ionicons name="checkmark-circle" size={80} color={V2_COLORS.secondary} />
           </View>
-          <Text style={styles.successTitle}>
-            {t('flight.create.successTitle', { defaultValue: 'Flight Posted!' })}
-          </Text>
-          <Text style={styles.successSubtitle}>
-            {t('flight.create.successSubtitle', {
-              defaultValue: 'Your flight is now live and accepting offers.',
-            })}
-          </Text>
+          <Text style={styles.successTitle}>{t('flight.create.successTitle')}</Text>
+          <Text style={styles.successSubtitle}>{t('flight.create.successSubtitle')}</Text>
           <TouchableOpacity onPress={() => router.push('/(tabs)')} style={styles.successBtn}>
             <LinearGradient colors={[...GRADIENTS.primary]} style={styles.primaryBtn}>
-              <Text style={styles.primaryBtnText}>
-                {t('flight.create.goHome', { defaultValue: 'Go to Home' })}
-              </Text>
+              <Text style={styles.primaryBtnText}>{t('flight.create.goHome')}</Text>
             </LinearGradient>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => router.push('/(tabs)/trips')}
             style={styles.successSecondaryBtn}
           >
-            <Text style={styles.successSecondaryBtnText}>
-              {t('flight.create.viewMyFlights', { defaultValue: 'View My Flights' })}
-            </Text>
+            <Text style={styles.successSecondaryBtnText}>{t('flight.create.viewMyFlights')}</Text>
           </TouchableOpacity>
         </Animated.View>
       </SafeAreaView>
@@ -516,7 +443,7 @@ export default function CreateFlightScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScreenHeader title={t('flight.create.title', { defaultValue: 'Post a Flight' })} />
+      <ScreenHeader title={t('flight.create.title')} />
 
       {/* Progress bar */}
       <View style={styles.progressBar}>
@@ -524,7 +451,7 @@ export default function CreateFlightScreen() {
       </View>
       <View style={styles.stepIndicator}>
         <Text style={styles.stepIndicatorText}>
-          {t('flight.create.step', { defaultValue: 'Step' })} {step} / {TOTAL_STEPS}
+          {t('flight.create.step')} {step} / {TOTAL_STEPS}
         </Text>
       </View>
 
@@ -536,7 +463,7 @@ export default function CreateFlightScreen() {
         {step > 1 && (
           <TouchableOpacity onPress={() => setStep((s) => s - 1)} style={styles.backBtn}>
             <Ionicons name="arrow-back" size={20} color={V2_COLORS.primary} />
-            <Text style={styles.backBtnText}>{t('common.cancel', { defaultValue: 'Back' })}</Text>
+            <Text style={styles.backBtnText}>{t('common.cancel')}</Text>
           </TouchableOpacity>
         )}
         <TouchableOpacity
@@ -554,8 +481,8 @@ export default function CreateFlightScreen() {
               {step === TOTAL_STEPS
                 ? createFlight.isPending
                   ? t('common.loading')
-                  : t('flight.create.post', { defaultValue: 'Post Flight' })
-                : t('flight.create.next', { defaultValue: 'Next' })}
+                  : t('flight.create.post')
+                : t('flight.create.next')}
             </Text>
             {step < TOTAL_STEPS && <Ionicons name="arrow-forward" size={18} color="#FFF" />}
           </LinearGradient>

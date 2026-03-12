@@ -104,7 +104,7 @@ const BookingCard = React.memo(function BookingCard({
       activeOpacity={1}
       style={[styles.card, animatedStyle]}
       accessibilityRole="button"
-      accessibilityLabel={`${t('trips.booking', { defaultValue: 'Booking' })}: ${departureCity} to ${arrivalCity}, ${statusLabel}`}
+      accessibilityLabel={`${t('trips.booking')}: ${departureCity} to ${arrivalCity}, ${statusLabel}`}
     >
       <View style={styles.routeRow}>
         <View style={[styles.routeDot, { backgroundColor: V2_COLORS.accent1 }]} />
@@ -184,7 +184,7 @@ const FlightCard = React.memo(function FlightCard({
       activeOpacity={1}
       style={[styles.card, animatedStyle]}
       accessibilityRole="button"
-      accessibilityLabel={`${t('trips.flight', { defaultValue: 'Flight' })}: ${flight.departureCity} to ${flight.arrivalCity}, ${flight.status}`}
+      accessibilityLabel={`${t('trips.flight')}: ${flight.departureCity} to ${flight.arrivalCity}, ${flight.status}`}
     >
       <View style={styles.routeRow}>
         <View style={[styles.routeDot, { backgroundColor: V2_COLORS.accent1 }]} />
@@ -196,9 +196,7 @@ const FlightCard = React.memo(function FlightCard({
       <View style={[styles.statusBadge, { backgroundColor: statusColor + '15' }]}>
         <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
         <Text style={[styles.statusText, { color: statusColor }]}>
-          {t('flight.status' + flight.status.charAt(0).toUpperCase() + flight.status.slice(1), {
-            defaultValue: flight.status,
-          })}
+          {t('flight.status.' + flight.status, { defaultValue: flight.status })}
         </Text>
       </View>
       <View style={styles.metaRow}>
@@ -223,7 +221,7 @@ const FlightCard = React.memo(function FlightCard({
         {flight._count?.offers ? (
           <MetaChip
             icon="list"
-            label={flight._count.offers + ' ' + t('flight.offers', { defaultValue: 'offers' })}
+            label={flight._count.offers + ' ' + t('flight.offers')}
             color={V2_COLORS.primary}
           />
         ) : null}
@@ -256,7 +254,7 @@ const OfferCard = React.memo(function OfferCard({
       activeOpacity={1}
       style={[styles.card, animatedStyle]}
       accessibilityRole="button"
-      accessibilityLabel={`${t('trips.offer', { defaultValue: 'Offer' })}: ${offer.flight.departureCity} to ${offer.flight.arrivalCity}, ${offer.status}`}
+      accessibilityLabel={`${t('trips.offer')}: ${offer.flight.departureCity} to ${offer.flight.arrivalCity}, ${offer.status}`}
     >
       <View style={styles.routeRow}>
         <View style={[styles.routeDot, { backgroundColor: V2_COLORS.accent1 }]} />
@@ -284,9 +282,7 @@ const OfferCard = React.memo(function OfferCard({
       {offer.booking && (
         <View style={styles.bookingLinkRow}>
           <Ionicons name="checkmark-circle" size={14} color="#56D8B1" />
-          <Text style={styles.bookingLinkText}>
-            {t('offer.bookingCreated', { defaultValue: 'Booking created' })}
-          </Text>
+          <Text style={styles.bookingLinkText}>{t('offer.bookingCreated')}</Text>
         </View>
       )}
     </AnimatedTouchable>
@@ -338,13 +334,13 @@ export default function TripsScreen() {
   ];
 
   const mainTabs: { key: MainTab; icon: string; label: string }[] = [
-    { key: 'bookings', icon: 'cube', label: t('trips.bookingsTab', { defaultValue: 'Bookings' }) },
+    { key: 'bookings', icon: 'cube', label: t('trips.bookingsTab') },
     {
       key: 'flights',
       icon: 'airplane',
-      label: t('trips.flightsTab', { defaultValue: 'My Flights' }),
+      label: t('trips.flightsTab'),
     },
-    { key: 'offers', icon: 'pricetag', label: t('trips.offersTab', { defaultValue: 'My Offers' }) },
+    { key: 'offers', icon: 'pricetag', label: t('trips.offersTab') },
   ];
 
   return (
@@ -356,13 +352,11 @@ export default function TripsScreen() {
           onPress={() => router.push('/flight/create' as any)}
           style={styles.postFlightBtn}
           accessibilityRole="button"
-          accessibilityLabel={t('flight.postFlight', { defaultValue: 'Post Flight' })}
+          accessibilityLabel={t('flight.postFlight')}
         >
           <LinearGradient colors={[...GRADIENTS.primary]} style={styles.postFlightGradient}>
             <Ionicons name="add" size={18} color="#FFF" />
-            <Text style={styles.postFlightText}>
-              {t('flight.postFlight', { defaultValue: 'Post Flight' })}
-            </Text>
+            <Text style={styles.postFlightText}>{t('flight.postFlight')}</Text>
           </LinearGradient>
         </TouchableOpacity>
       </View>
@@ -478,11 +472,9 @@ export default function TripsScreen() {
           (flights.length === 0 ? (
             <EmptyState
               lottieAnimation="search"
-              title={t('flight.emptyTitle', { defaultValue: 'No flights posted' })}
-              description={t('flight.emptyDescription', {
-                defaultValue: 'Post a flight to start accepting luggage offers',
-              })}
-              actionLabel={t('flight.postFlight', { defaultValue: 'Post a Flight' })}
+              title={t('flight.emptyTitle')}
+              description={t('flight.emptyDescription')}
+              actionLabel={t('flight.postFlight')}
               onAction={() => router.push('/flight/create' as any)}
               style={styles.emptyState}
             />
@@ -503,11 +495,9 @@ export default function TripsScreen() {
           (offers.length === 0 ? (
             <EmptyState
               lottieAnimation="search"
-              title={t('offer.emptyTitle', { defaultValue: 'No offers yet' })}
-              description={t('offer.emptyDescription', {
-                defaultValue: 'Browse flights and make an offer',
-              })}
-              actionLabel={t('home.marketplace', { defaultValue: 'Browse Flights' })}
+              title={t('offer.emptyTitle')}
+              description={t('offer.emptyDescription')}
+              actionLabel={t('home.marketplace')}
               onAction={() => router.push('/(tabs)')}
               style={styles.emptyState}
             />

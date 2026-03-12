@@ -234,7 +234,7 @@ export default function ListingDetailScreen() {
         {/* Carrier Reviews */}
         {carrierReviews && carrierReviews.length > 0 && (
           <Animated.View entering={FadeInUp.delay(250).duration(400)} style={styles.reviewsSection}>
-            <SectionHeader title={t('listing.carrierReviews', { defaultValue: 'Reviews' })} />
+            <SectionHeader title={t('listing.carrierReviews')} />
             {carrierReviews.slice(0, 3).map((review, index) => (
               <ReviewCard
                 key={review.id}

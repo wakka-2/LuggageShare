@@ -458,7 +458,7 @@ export default function HomeScreen() {
           style={styles.fab}
           activeOpacity={0.85}
           accessibilityRole="button"
-          accessibilityLabel={t('home.createListing', { defaultValue: 'Create new listing' })}
+          accessibilityLabel={t('carrier.createListing')}
         >
           <LinearGradient colors={GRADIENTS.primaryHorizontal} style={styles.fabGradient}>
             <Ionicons name="add" size={28} color="#FFF" />

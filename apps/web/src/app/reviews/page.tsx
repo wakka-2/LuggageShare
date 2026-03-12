@@ -12,7 +12,7 @@ import { Footer } from '@/components/layout/Footer';
 
 function ReviewsContent() {
   const { user } = useAuth();
-  const { lang } = useLanguage();
+  const { lang, t } = useLanguage();
   const { data: reviews, isLoading } = useUserReviews(user?.id ?? null);
 
   const avgRating =
@@ -31,9 +31,7 @@ function ReviewsContent() {
       <main className="flex-1 max-w-2xl mx-auto w-full px-4 py-8">
         <div className="flex items-center gap-2 mb-6">
           <Star className="w-5 h-5 text-v2-amber fill-v2-amber" />
-          <h1 className="text-xl font-bold text-v2-text">
-            {lang === 'ar' ? 'تقييماتي' : 'My Reviews'}
-          </h1>
+          <h1 className="text-xl font-bold text-v2-text">{t('profile.myReviews')}</h1>
         </div>
 
         {isLoading ? (
@@ -56,13 +54,9 @@ function ReviewsContent() {
             <div className="w-20 h-20 rounded-full bg-v2-amber/10 flex items-center justify-center mb-4">
               <Star className="w-10 h-10 text-v2-amber" />
             </div>
-            <h2 className="text-lg font-bold text-v2-text mb-2">
-              {lang === 'ar' ? 'لا توجد تقييمات بعد' : 'No reviews yet'}
-            </h2>
+            <h2 className="text-lg font-bold text-v2-text mb-2">{t('reviews.noReviews')}</h2>
             <p className="text-sm text-v2-text-secondary max-w-xs leading-relaxed">
-              {lang === 'ar'
-                ? 'أتمّ رحلات لتحصل على تقييمات من المستخدمين الآخرين.'
-                : 'Complete bookings to receive reviews from other users.'}
+              {t('reviews.noReviewsDesc')}
             </p>
           </div>
         ) : (
@@ -79,7 +73,7 @@ function ReviewsContent() {
                     <StarRating rating={avgRating} size="sm" />
                   </div>
                   <span className="text-xs text-v2-text-secondary mt-1.5">
-                    {reviews.length} {lang === 'ar' ? 'تقييم' : 'reviews'}
+                    {reviews.length} {t('reviews.reviewsWord')}
                   </span>
                 </div>
 
@@ -159,7 +153,7 @@ function ReviewsContent() {
                             href={`/bookings/${review.booking.id}`}
                             className="hover:text-v2-primary transition-colors"
                           >
-                            {lang === 'ar' ? 'عرض الحجز' : 'View booking'}
+                            {t('reviews.viewBooking')}
                           </Link>
                         </div>
                       )}

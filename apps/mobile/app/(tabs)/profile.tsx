@@ -61,7 +61,7 @@ export default function ProfileScreen() {
     },
     {
       icon: 'star-outline' as const,
-      label: t('profile.myReviews', { defaultValue: 'My Reviews' }),
+      label: t('profile.myReviews'),
       route: '/profile/reviews',
       color: V2_COLORS.accent2,
     },

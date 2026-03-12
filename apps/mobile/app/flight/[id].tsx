@@ -55,7 +55,7 @@ export default function FlightDetailScreen() {
   if (isLoading) {
     return (
       <SafeAreaView style={styles.container}>
-        <ScreenHeader title={t('flight.details', { defaultValue: 'Flight Details' })} />
+        <ScreenHeader title={t('flight.details')} />
         <View style={styles.scrollContent}>
           <SkeletonLoader
             width="100%"
@@ -78,13 +78,9 @@ export default function FlightDetailScreen() {
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
           <Ionicons name="alert-circle-outline" size={48} color={V2_COLORS.textMuted} />
-          <Text style={styles.errorText}>
-            {t('flight.notFound', { defaultValue: 'Flight not found' })}
-          </Text>
+          <Text style={styles.errorText}>{t('flight.notFound')}</Text>
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <Text style={styles.backButtonText}>
-              {t('listing.goBack', { defaultValue: 'Go Back' })}
-            </Text>
+            <Text style={styles.backButtonText}>{t('listing.goBack')}</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -111,34 +107,27 @@ export default function FlightDetailScreen() {
   };
 
   const handleCancelFlight = () => {
-    Alert.alert(
-      t('flight.cancelTitle', { defaultValue: 'Cancel Flight' }),
-      t('flight.cancelConfirm', {
-        defaultValue:
-          'Are you sure you want to cancel this flight? All pending offers will be rejected.',
-      }),
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        {
-          text: t('flight.cancelConfirmBtn', { defaultValue: 'Cancel Flight' }),
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await cancelFlight.mutateAsync(flight.id);
-              router.back();
-            } catch {
-              Alert.alert(t('common.errorTitle'), t('common.error'));
-            }
-          },
+    Alert.alert(t('flight.cancelTitle'), t('flight.cancelConfirm'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      {
+        text: t('flight.cancelConfirmBtn'),
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await cancelFlight.mutateAsync(flight.id);
+            router.back();
+          } catch {
+            Alert.alert(t('common.errorTitle'), t('common.error'));
+          }
         },
-      ]
-    );
+      },
+    ]);
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <BackgroundBlobs variant="subtle" />
-      <ScreenHeader title={t('flight.details', { defaultValue: 'Flight Details' })} />
+      <ScreenHeader title={t('flight.details')} />
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Route Card */}
@@ -147,9 +136,7 @@ export default function FlightDetailScreen() {
           <View style={[styles.statusBadge, { backgroundColor: statusColor + '15' }]}>
             <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
             <Text style={[styles.statusText, { color: statusColor }]}>
-              {t(`flight.status${flight.status.charAt(0).toUpperCase() + flight.status.slice(1)}`, {
-                defaultValue: flight.status,
-              })}
+              {t(`flight.status.${flight.status}`, { defaultValue: flight.status })}
             </Text>
           </View>
 
@@ -195,9 +182,7 @@ export default function FlightDetailScreen() {
               <Ionicons name="scale-outline" size={22} color={V2_COLORS.primary} />
             </View>
             <Text style={styles.statValue}>{remaining} kg</Text>
-            <Text style={styles.statLabel}>
-              {t('flight.remaining', { defaultValue: 'Remaining' })}
-            </Text>
+            <Text style={styles.statLabel}>{t('flight.remaining')}</Text>
             {/* Capacity bar */}
             <View style={styles.capacityBar}>
               <View
@@ -211,7 +196,7 @@ export default function FlightDetailScreen() {
               />
             </View>
             <Text style={styles.capacityLabel}>
-              {total} kg {t('flight.total', { defaultValue: 'total' })}
+              {total} kg {t('flight.total')}
             </Text>
           </View>
 
@@ -230,9 +215,7 @@ export default function FlightDetailScreen() {
           <Animated.View entering={FadeIn.delay(150).duration(400)} style={styles.notesCard}>
             <View style={styles.notesTitleRow}>
               <Ionicons name="document-text-outline" size={16} color={V2_COLORS.accent2} />
-              <Text style={styles.notesTitleText}>
-                {t('listing.notes', { defaultValue: 'Notes' })}
-              </Text>
+              <Text style={styles.notesTitleText}>{t('listing.notes')}</Text>
             </View>
             <Text style={styles.notesText}>{flight.notes}</Text>
           </Animated.View>
@@ -240,7 +223,7 @@ export default function FlightDetailScreen() {
 
         {/* Poster Info */}
         <Animated.View entering={FadeIn.delay(200).duration(400)} style={styles.section}>
-          <SectionHeader title={t('flight.poster', { defaultValue: 'Traveler' })} />
+          <SectionHeader title={t('flight.poster')} />
           <View style={styles.carrierRow}>
             <Avatar
               name={flight.poster.name}
@@ -283,9 +266,7 @@ export default function FlightDetailScreen() {
         {/* Offers list — visible only to the poster */}
         {isOwner && offers && offers.length > 0 && (
           <Animated.View entering={FadeInUp.delay(250).duration(400)} style={styles.offersSection}>
-            <SectionHeader
-              title={`${t('flight.offers', { defaultValue: 'Offers' })} (${offers.length})`}
-            />
+            <SectionHeader title={`${t('flight.offers')} (${offers.length})`} />
             {offers.map((offer, index) => {
               const offerColor = OFFER_STATUS_COLORS[offer.status] || V2_COLORS.textMuted;
               return (
@@ -326,9 +307,7 @@ export default function FlightDetailScreen() {
                         style={styles.offerChatBtn}
                       >
                         <Ionicons name="chatbubble-outline" size={16} color={V2_COLORS.primary} />
-                        <Text style={styles.offerChatBtnText}>
-                          {t('messages.title', { defaultValue: 'Chat' })}
-                        </Text>
+                        <Text style={styles.offerChatBtnText}>{t('messages.title')}</Text>
                       </TouchableOpacity>
                     </View>
                   )}
@@ -341,7 +320,7 @@ export default function FlightDetailScreen() {
         {/* Reviews */}
         {posterReviews && posterReviews.length > 0 && (
           <Animated.View entering={FadeInUp.delay(300).duration(400)} style={styles.reviewsSection}>
-            <SectionHeader title={t('listing.carrierReviews', { defaultValue: 'Reviews' })} />
+            <SectionHeader title={t('listing.carrierReviews')} />
             {posterReviews.slice(0, 3).map((review, index) => (
               <ReviewCard
                 key={review.id}
@@ -369,15 +348,12 @@ export default function FlightDetailScreen() {
             >
               <Ionicons name="list-outline" size={20} color={V2_COLORS.primary} />
               <Text style={styles.secondaryBtnText}>
-                {t('flight.viewOffers', { defaultValue: 'View Offers' })}{' '}
-                {offers?.length ? `(${offers.length})` : ''}
+                {t('flight.viewOffers')} {offers?.length ? `(${offers.length})` : ''}
               </Text>
             </TouchableOpacity>
             {flight.status === 'active' && (
               <TouchableOpacity onPress={handleCancelFlight} style={styles.cancelBtn}>
-                <Text style={styles.cancelBtnText}>
-                  {t('flight.cancel', { defaultValue: 'Cancel' })}
-                </Text>
+                <Text style={styles.cancelBtnText}>{t('flight.cancel')}</Text>
               </TouchableOpacity>
             )}
           </>
@@ -388,9 +364,7 @@ export default function FlightDetailScreen() {
               style={styles.secondaryBtn}
             >
               <Ionicons name="chatbubble-outline" size={20} color={V2_COLORS.primary} />
-              <Text style={styles.secondaryBtnText}>
-                {t('messages.title', { defaultValue: 'Chat' })}
-              </Text>
+              <Text style={styles.secondaryBtnText}>{t('messages.title')}</Text>
             </TouchableOpacity>
             {flight.status === 'active' && (
               <TouchableOpacity onPress={handleMakeOffer} style={styles.primaryBtnWrap}>
@@ -400,9 +374,7 @@ export default function FlightDetailScreen() {
                   end={{ x: 1, y: 0 }}
                   style={styles.primaryBtn}
                 >
-                  <Text style={styles.primaryBtnText}>
-                    {t('offer.makeOffer', { defaultValue: 'Make Offer' })}
-                  </Text>
+                  <Text style={styles.primaryBtnText}>{t('offer.makeOffer')}</Text>
                 </LinearGradient>
               </TouchableOpacity>
             )}

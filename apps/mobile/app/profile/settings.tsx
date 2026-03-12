@@ -85,17 +85,13 @@ export default function SettingsScreen() {
 
         {/* Notifications */}
         <Animated.View entering={FadeInUp.delay(150).duration(300)} style={styles.section}>
-          <Text style={styles.sectionTitle}>
-            {t('settings.notifications', { defaultValue: 'Notifications' })}
-          </Text>
+          <Text style={styles.sectionTitle}>{t('settings.notifications')}</Text>
           <View style={styles.row}>
             <View style={styles.rowLeft}>
               <View style={[styles.iconCircle, { backgroundColor: V2_COLORS.accent1 + '15' }]}>
                 <Ionicons name="notifications-outline" size={18} color={V2_COLORS.accent1} />
               </View>
-              <Text style={styles.rowLabel}>
-                {t('settings.pushNotifications', { defaultValue: 'Push Notifications' })}
-              </Text>
+              <Text style={styles.rowLabel}>{t('settings.pushNotifications')}</Text>
             </View>
             <Switch
               value={pushEnabled}
@@ -108,15 +104,13 @@ export default function SettingsScreen() {
 
         {/* About */}
         <Animated.View entering={FadeInUp.delay(200).duration(300)} style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('settings.about', { defaultValue: 'About' })}</Text>
+          <Text style={styles.sectionTitle}>{t('settings.about')}</Text>
           <View style={styles.row}>
             <View style={styles.rowLeft}>
               <View style={[styles.iconCircle, { backgroundColor: V2_COLORS.accent3 + '15' }]}>
                 <Ionicons name="information-circle-outline" size={18} color={V2_COLORS.accent3} />
               </View>
-              <Text style={styles.rowLabel}>
-                {t('settings.version', { defaultValue: 'Version' })}
-              </Text>
+              <Text style={styles.rowLabel}>{t('settings.version')}</Text>
             </View>
             <Text style={styles.rowValue}>{appVersion}</Text>
           </View>

@@ -60,26 +60,15 @@ export default function MakeOfferScreen() {
     const p = parseFloat(price);
 
     if (!weight || isNaN(w) || w <= 0) {
-      Alert.alert(
-        t('common.errorTitle'),
-        t('offer.weightRequired', { defaultValue: 'Please enter the weight you want to ship' })
-      );
+      Alert.alert(t('common.errorTitle'), t('offer.weightRequired'));
       return;
     }
     if (w > remaining) {
-      Alert.alert(
-        t('common.errorTitle'),
-        t('offer.weightExceeds', {
-          defaultValue: `Cannot exceed remaining capacity (${remaining} kg)`,
-        })
-      );
+      Alert.alert(t('common.errorTitle'), t('offer.weightExceeds', { max: remaining }));
       return;
     }
     if (!price || isNaN(p) || p < 0) {
-      Alert.alert(
-        t('common.errorTitle'),
-        t('offer.priceRequired', { defaultValue: 'Please enter your offered price' })
-      );
+      Alert.alert(t('common.errorTitle'), t('offer.priceRequired'));
       return;
     }
 
@@ -91,13 +80,9 @@ export default function MakeOfferScreen() {
         note: note.trim() || undefined,
       });
 
-      Alert.alert(
-        t('offer.submitted', { defaultValue: 'Offer Submitted!' }),
-        t('offer.submittedDescription', {
-          defaultValue: 'The traveler will review your offer. You can negotiate via chat.',
-        }),
-        [{ text: t('common.ok'), onPress: () => router.back() }]
-      );
+      Alert.alert(t('offer.submitted'), t('offer.submittedDescription'), [
+        { text: t('common.ok'), onPress: () => router.back() },
+      ]);
     } catch (e: any) {
       const msg = e?.response?.data?.message || t('common.error');
       Alert.alert(t('common.errorTitle'), msg);
@@ -109,7 +94,7 @@ export default function MakeOfferScreen() {
   if (isLoading) {
     return (
       <SafeAreaView style={styles.container}>
-        <ScreenHeader title={t('offer.makeOffer', { defaultValue: 'Make Offer' })} />
+        <ScreenHeader title={t('offer.makeOffer')} />
         <View style={styles.scrollContent}>
           <SkeletonLoader
             width="100%"
@@ -126,11 +111,9 @@ export default function MakeOfferScreen() {
   if (!flight) {
     return (
       <SafeAreaView style={styles.container}>
-        <ScreenHeader title={t('offer.makeOffer', { defaultValue: 'Make Offer' })} />
+        <ScreenHeader title={t('offer.makeOffer')} />
         <View style={styles.center}>
-          <Text style={styles.errorText}>
-            {t('flight.notFound', { defaultValue: 'Flight not found' })}
-          </Text>
+          <Text style={styles.errorText}>{t('flight.notFound')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -140,7 +123,7 @@ export default function MakeOfferScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScreenHeader title={t('offer.makeOffer', { defaultValue: 'Make Offer' })} />
+      <ScreenHeader title={t('offer.makeOffer')} />
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Flight summary card */}
@@ -172,7 +155,7 @@ export default function MakeOfferScreen() {
             />
             <MetaChip
               icon="scale"
-              label={`${remaining} kg ${t('flight.remaining', { defaultValue: 'remaining' })}`}
+              label={`${remaining} kg ${t('flight.remaining')}`}
               color={V2_COLORS.accent1}
             />
             <MetaChip
@@ -185,15 +168,11 @@ export default function MakeOfferScreen() {
 
         {/* Offer form */}
         <Animated.View entering={FadeInDown.delay(80).duration(350)} style={styles.formCard}>
-          <Text style={styles.formTitle}>
-            {t('offer.yourOffer', { defaultValue: 'Your Offer' })}
-          </Text>
+          <Text style={styles.formTitle}>{t('offer.yourOffer')}</Text>
 
           {/* Weight */}
           <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>
-              {t('offer.weight', { defaultValue: 'Weight (kg)' })} *
-            </Text>
+            <Text style={styles.inputLabel}>{t('offer.weight')} *</Text>
             <View style={styles.inputWithUnit}>
               <TextInput
                 style={[styles.textInput, { flex: 1 }]}
@@ -229,9 +208,7 @@ export default function MakeOfferScreen() {
 
           {/* Price */}
           <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>
-              {t('offer.price', { defaultValue: 'Total Price' })} *
-            </Text>
+            <Text style={styles.inputLabel}>{t('offer.price')} *</Text>
             <View style={styles.inputWithUnit}>
               <TextInput
                 style={[styles.textInput, { flex: 1 }]}
@@ -259,16 +236,12 @@ export default function MakeOfferScreen() {
 
           {/* Note */}
           <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>
-              {t('offer.note', { defaultValue: 'Message (optional)' })}
-            </Text>
+            <Text style={styles.inputLabel}>{t('offer.note')}</Text>
             <TextInput
               style={[styles.textInput, styles.noteInput]}
               value={note}
               onChangeText={setNote}
-              placeholder={t('offer.notePlaceholder', {
-                defaultValue: "Describe your items, e.g. 'Perfume set, original packaging'",
-              })}
+              placeholder={t('offer.notePlaceholder')}
               placeholderTextColor={V2_COLORS.textMuted}
               multiline
               numberOfLines={3}
@@ -281,12 +254,7 @@ export default function MakeOfferScreen() {
         {/* Info note */}
         <Animated.View entering={FadeInDown.delay(160).duration(350)} style={styles.infoCard}>
           <Ionicons name="information-circle-outline" size={18} color={V2_COLORS.primary} />
-          <Text style={styles.infoText}>
-            {t('offer.infoNote', {
-              defaultValue:
-                'After submitting, you can negotiate details via chat before the traveler accepts.',
-            })}
-          </Text>
+          <Text style={styles.infoText}>{t('offer.infoNote')}</Text>
         </Animated.View>
       </ScrollView>
 
@@ -306,9 +274,7 @@ export default function MakeOfferScreen() {
             style={[styles.submitBtn, createOffer.isPending && { opacity: 0.6 }]}
           >
             <Text style={styles.submitBtnText}>
-              {createOffer.isPending
-                ? t('common.loading')
-                : t('offer.submitOffer', { defaultValue: 'Submit Offer' })}
+              {createOffer.isPending ? t('common.loading') : t('offer.submitOffer')}
             </Text>
           </LinearGradient>
         </TouchableOpacity>

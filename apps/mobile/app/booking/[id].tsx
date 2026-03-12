@@ -246,9 +246,7 @@ export default function BookingDetailScreen() {
         {/* Status Timeline — show for active bookings */}
         {!['rejected', 'cancelled'].includes(booking.status) && (
           <Animated.View entering={FadeInUp.delay(150).springify()} style={styles.card}>
-            <Text style={styles.cardTitle}>
-              {t('booking.progress', { defaultValue: 'Progress' })}
-            </Text>
+            <Text style={styles.cardTitle}>{t('booking.progress')}</Text>
             <StatusTimeline
               events={[
                 {
@@ -489,9 +487,7 @@ export default function BookingDetailScreen() {
               style={styles.disputeLink}
             >
               <Ionicons name="shield-outline" size={16} color={V2_COLORS.textSoft} />
-              <Text style={styles.disputeLinkText}>
-                {t('booking.fileDispute', { defaultValue: 'File a Dispute' })}
-              </Text>
+              <Text style={styles.disputeLinkText}>{t('booking.fileDispute')}</Text>
               <Ionicons
                 name={isRTL ? 'chevron-back' : 'chevron-forward'}
                 size={14}

@@ -1019,5 +1019,13 @@
     "prohibitedList8": "Any items prohibited by Saudi Arabian law or the destination country's laws",
     "prohibitedResponsibility": "Both the sender and carrier are responsible for ensuring items comply with all applicable laws and regulations. Violations may result in immediate account suspension and legal action.",
     "prohibitedReport": "If you suspect a prohibited item is being transported, report it immediately to support@luggageshare.com or through the in-app report feature."
+  },
+  "reviews": {
+    "title": "My Reviews",
+    "noReviews": "No reviews yet",
+    "noReviewsDesc": "Complete bookings to receive reviews from other users.",
+    "reviewCount": "{{count}} reviews",
+    "reviewsWord": "reviews",
+    "viewBooking": "View booking"
   }
 }

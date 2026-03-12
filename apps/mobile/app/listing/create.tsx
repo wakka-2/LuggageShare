@@ -119,7 +119,7 @@ export default function CreateListingScreen() {
       <WizardContainer
         steps={LISTING_STEPS}
         onComplete={handleComplete}
-        title={t('listing.create', { defaultValue: 'Create Listing' })}
+        title={t('listing.create')}
         initialData={{
           price: '25',
           availableWeight: '5',
@@ -128,7 +128,7 @@ export default function CreateListingScreen() {
 
       <SuccessCelebration
         visible={showSuccess}
-        message={t('listing.createdSuccess', { defaultValue: 'Your listing is live!' })}
+        message={t('listing.createdSuccess')}
         onComplete={handleSuccessDone}
       />
     </>

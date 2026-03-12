@@ -42,7 +42,7 @@ export default function MyReviewsScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <BackgroundBlobs variant="subtle" />
-      <ScreenHeader title={t('profile.myReviews', { defaultValue: 'My Reviews' })} />
+      <ScreenHeader title={t('profile.myReviews')} />
 
       {isLoading ? (
         <View style={styles.centered}>
@@ -54,14 +54,8 @@ export default function MyReviewsScreen() {
             <View style={styles.emptyIconCircle}>
               <Ionicons name="star-outline" size={40} color={V2_COLORS.primary} />
             </View>
-            <Text style={styles.emptyTitle}>
-              {t('profile.noReviews', { defaultValue: 'No reviews yet' })}
-            </Text>
-            <Text style={styles.emptySubtitle}>
-              {t('profile.noReviewsDesc', {
-                defaultValue: 'Complete bookings to receive reviews from other users.',
-              })}
-            </Text>
+            <Text style={styles.emptyTitle}>{t('profile.noReviews')}</Text>
+            <Text style={styles.emptySubtitle}>{t('profile.noReviewsDesc')}</Text>
           </Animated.View>
         </View>
       ) : (
@@ -91,7 +85,7 @@ export default function MyReviewsScreen() {
                   ))}
                 </View>
                 <Text style={styles.reviewCount}>
-                  {reviews.length} {t('profile.reviews', { defaultValue: 'reviews' })}
+                  {reviews.length} {t('profile.reviews')}
                 </Text>
               </View>
 

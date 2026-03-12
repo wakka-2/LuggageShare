@@ -34,43 +34,24 @@ const DISPUTE_REASONS: {
   { key: 'other', Icon: HelpCircle },
 ];
 
-const REASON_LABELS: Record<DisputeReason, { en: string; ar: string }> = {
-  damaged_item: { en: 'Damaged Item', ar: 'عنصر تالف' },
-  missing_item: { en: 'Missing Item', ar: 'عنصر مفقود' },
-  wrong_item: { en: 'Wrong Item', ar: 'عنصر خاطئ' },
-  late_delivery: { en: 'Late Delivery', ar: 'تسليم متأخر' },
-  no_delivery: { en: 'No Delivery', ar: 'لم يُسلَّم' },
-  other: { en: 'Other', ar: 'أخرى' },
-};
-
-const STATUS_CONFIG: Record<
-  string,
-  { label: { en: string; ar: string }; color: string; bg: string }
-> = {
-  open: { label: { en: 'Open', ar: 'مفتوح' }, color: '#FFBE5C', bg: '#FFBE5C22' },
-  under_review: {
-    label: { en: 'Under Review', ar: 'قيد المراجعة' },
-    color: '#5CB8FF',
-    bg: '#5CB8FF22',
-  },
-  resolved: { label: { en: 'Resolved', ar: 'محلول' }, color: '#56D8B1', bg: '#56D8B122' },
-  closed: { label: { en: 'Closed', ar: 'مغلق' }, color: '#A8A5C0', bg: '#A8A5C022' },
+const STATUS_CONFIG: Record<string, { color: string; bg: string }> = {
+  open: { color: '#FFBE5C', bg: '#FFBE5C22' },
+  under_review: { color: '#5CB8FF', bg: '#5CB8FF22' },
+  resolved: { color: '#56D8B1', bg: '#56D8B122' },
+  closed: { color: '#A8A5C0', bg: '#A8A5C022' },
 };
 
 function FileDisputeForm({
   bookingId,
   from,
   to,
-  lang,
-  t,
 }: {
   bookingId: string;
   from?: string;
   to?: string;
-  lang: string;
-  t: (key: string) => string;
 }) {
   const router = useRouter();
+  const { t } = useLanguage();
   const createDispute = useCreateDispute();
   const [selectedReason, setSelectedReason] = useState<DisputeReason | null>(null);
   const [description, setDescription] = useState('');
@@ -79,7 +60,7 @@ function FileDisputeForm({
 
   const handleSubmit = async () => {
     if (!selectedReason) {
-      setError(lang === 'ar' ? 'يرجى اختيار سبب' : 'Please select a reason');
+      setError(t('dispute.selectReason'));
       return;
     }
     setError('');
@@ -91,9 +72,7 @@ function FileDisputeForm({
       });
       setSubmitted(true);
     } catch {
-      setError(
-        lang === 'ar' ? 'حدث خطأ. حاول مرة أخرى.' : 'Something went wrong. Please try again.'
-      );
+      setError(t('dispute.submitError'));
     }
   };
 
@@ -106,19 +85,15 @@ function FileDisputeForm({
         >
           <ShieldCheck size={48} color="#fff" />
         </div>
-        <h2 className="text-2xl font-bold text-v2-text mb-3">
-          {lang === 'ar' ? 'تم تقديم البلاغ' : 'Dispute Filed'}
-        </h2>
+        <h2 className="text-2xl font-bold text-v2-text mb-3">{t('dispute.successTitle')}</h2>
         <p className="text-v2-text-secondary text-sm max-w-xs leading-relaxed mb-8">
-          {lang === 'ar'
-            ? 'تلقينا بلاغك وسيراجعه فريقنا قريباً.'
-            : 'We received your dispute and our team will review it shortly.'}
+          {t('dispute.successDesc')}
         </p>
         <button
           onClick={() => router.back()}
           className="px-8 py-3 rounded-[22px] font-bold text-v2-primary bg-white shadow-bubble-sm"
         >
-          {lang === 'ar' ? 'العودة' : 'Go Back'}
+          {t('common.goBack')}
         </button>
       </div>
     );
@@ -137,18 +112,12 @@ function FileDisputeForm({
       {/* Info banner */}
       <div className="flex gap-3 items-start bg-v2-primary/10 rounded-[18px] p-4">
         <Info size={18} className="text-v2-primary mt-0.5 shrink-0" />
-        <p className="text-sm text-v2-primary leading-relaxed">
-          {lang === 'ar'
-            ? 'يُرجى تقديم التفاصيل بدقة لمساعدة فريقنا في حل النزاع بسرعة. لا يمكن تقديم أكثر من بلاغ واحد لكل حجز.'
-            : 'Please provide accurate details to help our team resolve the dispute quickly. Only one dispute can be filed per booking.'}
-        </p>
+        <p className="text-sm text-v2-primary leading-relaxed">{t('dispute.infoText')}</p>
       </div>
 
       {/* Reason grid */}
       <div>
-        <p className="text-sm font-bold text-v2-text mb-3">
-          {lang === 'ar' ? 'اختر السبب' : 'Select a reason'}
-        </p>
+        <p className="text-sm font-bold text-v2-text mb-3">{t('dispute.selectReasonLabel')}</p>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {DISPUTE_REASONS.map(({ key, Icon }) => {
             const isSelected = selectedReason === key;
@@ -171,7 +140,7 @@ function FileDisputeForm({
                     isSelected ? 'text-v2-primary' : 'text-v2-text-secondary'
                   }`}
                 >
-                  {REASON_LABELS[key][lang as 'en' | 'ar']}
+                  {t(`dispute.reasons.${key}`)}
                 </span>
               </button>
             );
@@ -181,19 +150,14 @@ function FileDisputeForm({
 
       {/* Description */}
       <div>
-        <p className="text-sm font-bold text-v2-text mb-2">
-          {lang === 'ar' ? 'تفاصيل إضافية (اختياري)' : 'Additional details (optional)'}
-        </p>
+        <p className="text-sm font-bold text-v2-text mb-2">{t('dispute.descriptionLabel')}</p>
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           maxLength={1000}
           rows={5}
-          placeholder={
-            lang === 'ar' ? 'اشرح ما حدث بالتفصيل...' : 'Describe what happened in detail...'
-          }
+          placeholder={t('dispute.descriptionPlaceholder')}
           className="w-full rounded-[18px] bg-white border border-gray-200 px-4 py-3 text-sm text-v2-text placeholder-v2-text-secondary shadow-bubble-sm resize-none focus:outline-none focus:ring-2 focus:ring-v2-primary/30"
-          dir={lang === 'ar' ? 'rtl' : 'ltr'}
         />
         <p className="text-xs text-v2-text-secondary text-right mt-1">{description.length}/1000</p>
       </div>
@@ -211,13 +175,7 @@ function FileDisputeForm({
         className="w-full py-4 rounded-[22px] font-bold text-white text-base shadow-bubble-md disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
         style={{ background: 'linear-gradient(135deg, #7C6AFF, #FF6B9D)' }}
       >
-        {createDispute.isPending
-          ? lang === 'ar'
-            ? 'جارٍ الإرسال...'
-            : 'Submitting...'
-          : lang === 'ar'
-            ? 'تقديم البلاغ'
-            : 'File Dispute'}
+        {createDispute.isPending ? t('common.loading') : t('dispute.submit')}
       </button>
     </div>
   );
@@ -227,8 +185,7 @@ function DisputeContent({ bookingId }: { bookingId: string }) {
   const searchParams = useSearchParams();
   const from = searchParams.get('from') ?? undefined;
   const to = searchParams.get('to') ?? undefined;
-  const { lang } = useLanguage();
-  const t = (key: string) => key;
+  const { lang, t } = useLanguage();
   const router = useRouter();
 
   const { data: existingDispute, isLoading } = useBookingDispute(bookingId);
@@ -253,9 +210,7 @@ function DisputeContent({ bookingId }: { bookingId: string }) {
         </button>
         <div className="flex items-center gap-2">
           <Shield size={18} className="text-v2-primary" />
-          <h1 className="font-bold text-v2-text text-base">
-            {lang === 'ar' ? 'بلاغ نزاع' : 'File a Dispute'}
-          </h1>
+          <h1 className="font-bold text-v2-text text-base">{t('dispute.title')}</h1>
         </div>
       </div>
 
@@ -276,11 +231,9 @@ function DisputeContent({ bookingId }: { bookingId: string }) {
                   style={{ color: STATUS_CONFIG[existingDispute.status]?.color ?? '#A8A5C0' }}
                 />
               </div>
-              <h2 className="text-lg font-bold text-v2-text">
-                {lang === 'ar' ? 'تم تقديم البلاغ مسبقاً' : 'Dispute Already Filed'}
-              </h2>
+              <h2 className="text-lg font-bold text-v2-text">{t('dispute.alreadyFiled')}</h2>
               <p className="text-sm text-v2-text-secondary leading-relaxed">
-                {lang === 'ar' ? 'فريقنا يراجع هذا البلاغ.' : 'Our team is reviewing this dispute.'}
+                {t('dispute.alreadyFiledDesc')}
               </p>
               <span
                 className="inline-block px-4 py-1.5 rounded-full text-sm font-bold"
@@ -289,8 +242,7 @@ function DisputeContent({ bookingId }: { bookingId: string }) {
                   color: STATUS_CONFIG[existingDispute.status]?.color ?? '#A8A5C0',
                 }}
               >
-                {STATUS_CONFIG[existingDispute.status]?.label[lang as 'en' | 'ar'] ??
-                  existingDispute.status}
+                {t(`dispute.status.${existingDispute.status}`) || existingDispute.status}
               </span>
             </div>
 
@@ -298,17 +250,16 @@ function DisputeContent({ bookingId }: { bookingId: string }) {
             <div className="space-y-3">
               <div className="flex justify-between items-center">
                 <span className="text-sm text-v2-text-secondary font-medium">
-                  {lang === 'ar' ? 'السبب' : 'Reason'}
+                  {t('dispute.reason')}
                 </span>
                 <span className="text-sm font-semibold text-v2-text">
-                  {REASON_LABELS[existingDispute.reason]?.[lang as 'en' | 'ar'] ??
-                    existingDispute.reason}
+                  {t(`dispute.reasons.${existingDispute.reason}`) || existingDispute.reason}
                 </span>
               </div>
               {existingDispute.description && (
                 <div className="space-y-1">
                   <span className="text-sm text-v2-text-secondary font-medium">
-                    {lang === 'ar' ? 'الوصف' : 'Description'}
+                    {t('dispute.description')}
                   </span>
                   <p className="text-sm text-v2-text bg-gray-50 rounded-[14px] p-3 leading-relaxed">
                     {existingDispute.description}
@@ -329,7 +280,7 @@ function DisputeContent({ bookingId }: { bookingId: string }) {
           </div>
         ) : (
           <div className="bg-white rounded-[24px] shadow-bubble-md p-6">
-            <FileDisputeForm bookingId={bookingId} from={from} to={to} lang={lang} t={t} />
+            <FileDisputeForm bookingId={bookingId} from={from} to={to} />
           </div>
         )}
 
@@ -339,7 +290,7 @@ function DisputeContent({ bookingId }: { bookingId: string }) {
             href="/trips"
             className="text-sm text-v2-text-secondary hover:text-v2-primary transition-colors"
           >
-            {lang === 'ar' ? '← العودة إلى رحلاتي' : '← Back to My Trips'}
+            ← {t('dispute.backToTrips')}
           </Link>
         </div>
       </div>

@@ -160,7 +160,7 @@ export default function CreateBookingScreen() {
       <WizardContainer
         steps={BOOKING_STEPS}
         onComplete={handleComplete}
-        title={t('booking.bookListing', { defaultValue: 'Book Carrier' })}
+        title={t('booking.bookListing')}
         initialData={{
           // Pass listing context into wizard data for the review step
           carrierName: listing.carrier?.name,
@@ -173,7 +173,7 @@ export default function CreateBookingScreen() {
 
       <SuccessCelebration
         visible={showSuccess}
-        message={t('booking.bookingSent', { defaultValue: 'Booking request sent!' })}
+        message={t('booking.bookingSent')}
         onComplete={handleSuccessDone}
       />
     </>
