@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { LogIn, Chrome } from 'lucide-react';
-import { useGoogleLogin } from '@react-oauth/google';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { useAuth } from '@/providers/AuthProvider';
@@ -24,6 +23,9 @@ function GoogleLoginButton({
   onError: (msg: string) => void;
 }) {
   const { t } = useLanguage();
+  // Lazy-import: only runs when GoogleLoginButton renders (i.e. when GOOGLE_CLIENT_ID is set)
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { useGoogleLogin } = require('@react-oauth/google');
   const googleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse: any) => {
       onStart();
