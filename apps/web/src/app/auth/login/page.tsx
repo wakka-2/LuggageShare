@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { LogIn, Chrome } from 'lucide-react';
+import { useGoogleLogin } from '@react-oauth/google';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { useAuth } from '@/providers/AuthProvider';
@@ -23,9 +24,6 @@ function GoogleLoginButton({
   onError: (msg: string) => void;
 }) {
   const { t } = useLanguage();
-  // Lazy-import useGoogleLogin so it only runs when provider is present
-  const { useGoogleLogin } = require('@react-oauth/google');
-
   const googleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse: any) => {
       onStart();

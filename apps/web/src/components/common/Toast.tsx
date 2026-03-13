@@ -71,22 +71,6 @@ export function ToastProvider({ children }: { children: ReactNode }) {
           );
         })}
       </div>
-
-      <style jsx>{`
-        @keyframes slideDown {
-          from {
-            opacity: 0;
-            transform: translateY(-16px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        .animate-slideDown {
-          animation: slideDown 0.3s ease-out;
-        }
-      `}</style>
     </ToastContext.Provider>
   );
 }
