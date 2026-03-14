@@ -62,7 +62,7 @@ function GoogleLoginButton({
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { signIn } = useAuth();
+  const { signIn, isAuthenticated, isLoading: authLoading } = useAuth();
   const { t } = useLanguage();
 
   function handleAuthSuccess(data: any) {
@@ -107,6 +107,41 @@ export default function LoginPage() {
     } finally {
       setIsLoading(false);
     }
+  }
+
+  // While checking stored tokens, show nothing to avoid flash
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex flex-col blob-background">
+        <Header />
+        <main className="flex-1 flex items-center justify-center px-4">
+          <div className="w-16 h-16 rounded-full bg-v2-primary/10 flex items-center justify-center animate-pulse">
+            <LogIn className="w-8 h-8 text-v2-primary" />
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  // Already authenticated — redirect is handled by AuthProvider, but show a clear message
+  if (isAuthenticated) {
+    return (
+      <div className="min-h-screen flex flex-col blob-background">
+        <Header />
+        <main className="flex-1 flex items-center justify-center px-4">
+          <div className="text-center">
+            <p className="text-v2-text-soft mb-4">
+              {t('auth.alreadyLoggedIn') || 'أنت مسجّل الدخول بالفعل…'}
+            </p>
+            <Link href="/" className="text-v2-primary font-semibold hover:underline">
+              {t('home.goHome') || 'الصفحة الرئيسية'}
+            </Link>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
   }
 
   return (
@@ -156,16 +191,16 @@ export default function LoginPage() {
                 <button
                   onClick={() => handleDevLogin(0)}
                   disabled={isLoading}
-                  className="w-full flex items-center justify-center gap-2 bg-v2-bg text-v2-text-soft font-medium py-3 rounded-full transition-all hover:bg-v2-primary/10 disabled:opacity-50 text-sm"
+                  className="w-full flex items-center justify-center gap-2 bg-v2-bg text-v2-text-soft font-medium py-3 rounded-full transition-all hover:bg-v2-primary/10 active:scale-[0.97] disabled:opacity-50 text-sm"
                 >
-                  {t('wp.devLogin')} (Dev User)
+                  {isLoading ? t('common.loading') : `${t('wp.devLogin')} (Dev User)`}
                 </button>
                 <button
                   onClick={() => handleDevLogin(1)}
                   disabled={isLoading}
-                  className="w-full flex items-center justify-center gap-2 bg-v2-bg text-v2-text-soft font-medium py-3 rounded-full transition-all hover:bg-v2-mint/20 disabled:opacity-50 text-sm"
+                  className="w-full flex items-center justify-center gap-2 bg-v2-bg text-v2-text-soft font-medium py-3 rounded-full transition-all hover:bg-v2-mint/20 active:scale-[0.97] disabled:opacity-50 text-sm"
                 >
-                  {t('wp.devLogin')} (Dev User 2)
+                  {isLoading ? t('common.loading') : `${t('wp.devLogin')} (Dev User 2)`}
                 </button>
               </div>
             )}
