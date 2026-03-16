@@ -8,8 +8,6 @@ export interface User {
   bio?: string;
   city?: string;
   isVerified: boolean;
-  balance?: number;
-  isBalanceRestricted?: boolean;
   createdAt: string;
 }
 
@@ -20,33 +18,9 @@ export interface UserSettings {
 }
 
 // Listing types
-export type ListingType = 'offer' | 'request';
-
-export interface PricingTier {
-  small: number;
-  medium: number;
-  large: number;
-  negotiable: boolean;
-}
-
-export interface ItemRestrictions {
-  acceptsFragile: boolean;
-  acceptsElectronics: boolean;
-  acceptsDocuments: boolean;
-  acceptsClothing: boolean;
-  maxItemValue?: number;
-}
-
-export type HandoffOption = 'airport' | 'delivery' | 'meetup';
-
 export interface Listing {
   id: string;
   carrierId: string;
-  type: ListingType;
-  title?: string;
-  titleAr?: string;
-  description?: string;
-  descriptionAr?: string;
   departureCity: string;
   departureCode?: string;
   arrivalCity: string;
@@ -54,31 +28,32 @@ export interface Listing {
   departureDate: string;
   flightNumber?: string;
   availableWeight: number;
-  pricing: PricingTier;
+  price: number;
   currency: string;
-  neededWeight?: number;
-  restrictions?: ItemRestrictions;
-  handoffOptions?: HandoffOption[];
+  preferences?: ListingPreferences;
   notes?: string;
   status: ListingStatus;
-  expiresAt?: string;
   carrier?: User;
   createdAt: string;
+}
+
+export interface ListingPreferences {
+  acceptsFragile: boolean;
+  acceptsElectronics: boolean;
+  acceptsDocuments: boolean;
+  acceptsClothing: boolean;
+  maxItemValue?: number;
 }
 
 export type ListingStatus = 'active' | 'completed' | 'cancelled';
 
 // Booking types
-export type PackageSize = 'small' | 'medium' | 'large';
-
 export interface Booking {
   id: string;
-  bookingRef: string;
   listingId: string;
   senderId: string;
   carrierId: string;
   status: BookingStatus;
-  packageSize?: PackageSize;
   totalWeight: number;
   totalPrice: number;
   currency: string;
@@ -110,33 +85,27 @@ export interface Item {
   imageUrls: string[];
 }
 
-// Conversation & Message types
-export interface Conversation {
+// Message types
+export interface Message {
   id: string;
-  listingId?: string;
-  bookingId?: string;
+  bookingId: string;
+  senderId: string;
+  content: string;
+  isRead: boolean;
+  sender?: User;
+  createdAt: string;
+}
+
+export interface Conversation {
+  bookingId: string;
   otherUser: User;
-  listing?: Listing;
+  route: string;
   lastMessage?: {
     content: string;
     createdAt: string;
     isMe: boolean;
   };
   unreadCount: number;
-  createdAt: string;
-}
-
-export type MessageType = 'text' | 'image' | 'location';
-
-export interface Message {
-  id: string;
-  conversationId: string;
-  senderId: string;
-  content: string;
-  messageType: MessageType;
-  isRead: boolean;
-  sender?: User;
-  createdAt: string;
 }
 
 // Review types

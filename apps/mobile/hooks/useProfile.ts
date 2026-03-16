@@ -27,6 +27,8 @@ export interface UpdateProfilePayload {
   avatarUrl?: string;
   bio?: string;
   city?: string;
+  iban?: string;
+  bankName?: string;
 }
 
 export function useProfile() {

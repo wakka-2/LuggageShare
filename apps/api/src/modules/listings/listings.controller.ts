@@ -1,21 +1,5 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Put,
-  Delete,
-  Body,
-  Param,
-  Query,
-  UseGuards,
-} from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-  ApiQuery,
-} from '@nestjs/swagger';
+import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { ListingsService } from './listings.service';
 import { CreateListingDto } from './dto/create-listing.dto';
 import { UpdateListingDto } from './dto/update-listing.dto';
@@ -32,21 +16,28 @@ export class ListingsController {
   @Public()
   @ApiOperation({ summary: 'Search listings' })
   @ApiResponse({ status: 200, description: 'Returns listings matching criteria' })
-  @ApiQuery({ name: 'from', required: false })
-  @ApiQuery({ name: 'to', required: false })
-  @ApiQuery({ name: 'date', required: false })
-  @ApiQuery({ name: 'minWeight', required: false, type: Number })
-  @ApiQuery({ name: 'maxPrice', required: false, type: Number })
-  @ApiQuery({ name: 'type', required: false, enum: ['offer', 'request'] })
   async search(
     @Query('from') from?: string,
     @Query('to') to?: string,
     @Query('date') date?: string,
     @Query('minWeight') minWeight?: number,
-    @Query('maxPrice') maxPrice?: number,
-    @Query('type') type?: string,
+    @Query('page') page?: number,
+    @Query('limit') limit?: number
   ) {
-    return this.listingsService.search({ from, to, date, minWeight, maxPrice, type });
+    return this.listingsService.search({ from, to, date, minWeight, page, limit });
+  }
+
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get my listings' })
+  @ApiResponse({ status: 200, description: 'Returns listings created by the current user' })
+  async getMyListings(
+    @CurrentUser() user: any,
+    @Query('page') page?: number,
+    @Query('limit') limit?: number
+  ) {
+    return this.listingsService.findByUser(user.id, { page, limit });
   }
 
   @Get(':id')
@@ -74,7 +65,7 @@ export class ListingsController {
   async update(
     @CurrentUser() user: any,
     @Param('id') id: string,
-    @Body() updateListingDto: UpdateListingDto,
+    @Body() updateListingDto: UpdateListingDto
   ) {
     return this.listingsService.update(user.id, id, updateListingDto);
   }

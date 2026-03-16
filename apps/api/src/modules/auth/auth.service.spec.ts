@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { UnauthorizedException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { UsersService } from '../users/users.service';
+import { PrismaService } from '../../prisma/prisma.service';
 import axios from 'axios';
 import * as jsonwebtoken from 'jsonwebtoken';
 
@@ -66,6 +67,18 @@ describe('AuthService', () => {
           },
         },
         {
+          provide: PrismaService,
+          useValue: {
+            refreshToken: {
+              findUnique: jest.fn(),
+              create: jest.fn(),
+              update: jest.fn(),
+              updateMany: jest.fn(),
+              deleteMany: jest.fn().mockResolvedValue({}),
+            },
+          },
+        },
+        {
           provide: UsersService,
           useValue: {
             findByEmail: jest.fn(),
@@ -96,7 +109,7 @@ describe('AuthService', () => {
   });
 
   describe('googleAuth', () => {
-    const googleAuthDto = { idToken: 'valid-google-id-token' };
+    const googleAuthDto = { accessToken: 'valid-google-id-token' };
 
     const googleTokenInfo = {
       email: 'test@example.com',
@@ -125,18 +138,19 @@ describe('AuthService', () => {
       const result = await service.googleAuth(googleAuthDto);
 
       expect(mockedAxios.get).toHaveBeenCalledWith(
-        `https://oauth2.googleapis.com/tokeninfo?id_token=${googleAuthDto.idToken}`,
+        'https://www.googleapis.com/oauth2/v3/userinfo',
+        { headers: { Authorization: `Bearer ${googleAuthDto.accessToken}` } }
       );
       expect(usersService.findByEmail).toHaveBeenCalledWith('test@example.com');
       expect(usersService.create).not.toHaveBeenCalled();
       expect(jwtService.sign).toHaveBeenCalledTimes(2);
       expect(jwtService.sign).toHaveBeenCalledWith(
-        { sub: mockUser.id, email: mockUser.email },
-        { expiresIn: '1h' },
+        { sub: mockUser.id, email: mockUser.email, type: 'access' },
+        { expiresIn: '1h' }
       );
       expect(jwtService.sign).toHaveBeenCalledWith(
-        { sub: mockUser.id, email: mockUser.email },
-        { expiresIn: '7d' },
+        expect.objectContaining({ sub: mockUser.id, email: mockUser.email, type: 'refresh' }),
+        expect.objectContaining({ expiresIn: '7d' })
       );
       expect(result).toEqual(mockTokenResponse);
     });
@@ -175,7 +189,7 @@ describe('AuthService', () => {
       });
 
       await expect(service.googleAuth(googleAuthDto)).rejects.toThrow(
-        new UnauthorizedException('Google token audience mismatch'),
+        new UnauthorizedException('Google token audience mismatch')
       );
     });
 
@@ -202,7 +216,7 @@ describe('AuthService', () => {
       mockedAxios.get.mockRejectedValueOnce(new Error('Network error'));
 
       await expect(service.googleAuth(googleAuthDto)).rejects.toThrow(
-        new UnauthorizedException('Invalid Google token'),
+        new UnauthorizedException('Invalid Google token')
       );
     });
 
@@ -217,23 +231,23 @@ describe('AuthService', () => {
       await service.googleAuth(googleAuthDto);
 
       expect(jwtService.sign).toHaveBeenCalledWith(
-        { sub: mockUser.id, email: mockUser.email },
-        { expiresIn: '1h' },
+        { sub: mockUser.id, email: mockUser.email, type: 'access' },
+        { expiresIn: '1h' }
       );
       expect(jwtService.sign).toHaveBeenCalledWith(
-        { sub: mockUser.id, email: mockUser.email },
-        { expiresIn: '7d' },
+        expect.objectContaining({ sub: mockUser.id, email: mockUser.email, type: 'refresh' }),
+        expect.objectContaining({ expiresIn: '7d' })
       );
     });
   });
 
   describe('appleAuth', () => {
     // Create a fake JWT header with a kid, base64url-encoded
-    const fakeHeader = Buffer.from(
-      JSON.stringify({ alg: 'RS256', kid: 'apple-key-1' }),
-    ).toString('base64url');
+    const fakeHeader = Buffer.from(JSON.stringify({ alg: 'RS256', kid: 'apple-key-1' })).toString(
+      'base64url'
+    );
     const fakePayload = Buffer.from(
-      JSON.stringify({ email: 'apple@example.com', sub: 'apple-sub-123' }),
+      JSON.stringify({ email: 'apple@example.com', sub: 'apple-sub-123' })
     ).toString('base64url');
     const fakeSignature = 'fake-signature';
     const fakeIdentityToken = `${fakeHeader}.${fakePayload}.${fakeSignature}`;
@@ -302,22 +316,22 @@ describe('AuthService', () => {
       // We need to mock the entire flow: the service calls jwkToPem which calls crypto.createPublicKey
       // Then it passes the PEM to jwt.verify. We mock jwt.verify to accept any key and return decoded token.
       const cryptoSpy = jest.spyOn(require('crypto'), 'createPublicKey').mockReturnValue({
-        export: jest.fn().mockReturnValue('-----BEGIN PUBLIC KEY-----\nfake\n-----END PUBLIC KEY-----'),
+        export: jest
+          .fn()
+          .mockReturnValue('-----BEGIN PUBLIC KEY-----\nfake\n-----END PUBLIC KEY-----'),
       } as any);
 
       mockedJwt.verify.mockImplementation(
         (_token: string, _key: any, _options: any, callback: any) => {
           callback(null, decodedAppleToken);
-        },
+        }
       );
 
       usersService.findByEmail.mockResolvedValueOnce(mockAppleUser as any);
 
       const result = await service.appleAuth(appleAuthDto);
 
-      expect(mockedAxios.get).toHaveBeenCalledWith(
-        'https://appleid.apple.com/auth/keys',
-      );
+      expect(mockedAxios.get).toHaveBeenCalledWith('https://appleid.apple.com/auth/keys');
       expect(usersService.findByEmail).toHaveBeenCalledWith('apple@example.com');
       expect(usersService.create).not.toHaveBeenCalled();
       expect(result).toEqual({
@@ -343,13 +357,15 @@ describe('AuthService', () => {
       });
 
       const cryptoSpy = jest.spyOn(require('crypto'), 'createPublicKey').mockReturnValue({
-        export: jest.fn().mockReturnValue('-----BEGIN PUBLIC KEY-----\nfake\n-----END PUBLIC KEY-----'),
+        export: jest
+          .fn()
+          .mockReturnValue('-----BEGIN PUBLIC KEY-----\nfake\n-----END PUBLIC KEY-----'),
       } as any);
 
       mockedJwt.verify.mockImplementation(
         (_token: string, _key: any, _options: any, callback: any) => {
           callback(null, decodedAppleToken);
-        },
+        }
       );
 
       usersService.findByEmail.mockResolvedValueOnce(null);
@@ -381,13 +397,15 @@ describe('AuthService', () => {
       });
 
       const cryptoSpy = jest.spyOn(require('crypto'), 'createPublicKey').mockReturnValue({
-        export: jest.fn().mockReturnValue('-----BEGIN PUBLIC KEY-----\nfake\n-----END PUBLIC KEY-----'),
+        export: jest
+          .fn()
+          .mockReturnValue('-----BEGIN PUBLIC KEY-----\nfake\n-----END PUBLIC KEY-----'),
       } as any);
 
       mockedJwt.verify.mockImplementation(
         (_token: string, _key: any, _options: any, callback: any) => {
           callback(null, decodedAppleToken);
-        },
+        }
       );
 
       const userWithDefaultName = { ...mockAppleUser, name: 'User' };
@@ -396,9 +414,7 @@ describe('AuthService', () => {
 
       await service.appleAuth(dtoWithoutName);
 
-      expect(usersService.create).toHaveBeenCalledWith(
-        expect.objectContaining({ name: 'User' }),
-      );
+      expect(usersService.create).toHaveBeenCalledWith(expect.objectContaining({ name: 'User' }));
 
       cryptoSpy.mockRestore();
     });
@@ -417,13 +433,15 @@ describe('AuthService', () => {
       });
 
       const cryptoSpy = jest.spyOn(require('crypto'), 'createPublicKey').mockReturnValue({
-        export: jest.fn().mockReturnValue('-----BEGIN PUBLIC KEY-----\nfake\n-----END PUBLIC KEY-----'),
+        export: jest
+          .fn()
+          .mockReturnValue('-----BEGIN PUBLIC KEY-----\nfake\n-----END PUBLIC KEY-----'),
       } as any);
 
       mockedJwt.verify.mockImplementation(
         (_token: string, _key: any, _options: any, callback: any) => {
           callback(null, decodedAppleToken);
-        },
+        }
       );
 
       const userWithDefaultName = { ...mockAppleUser, name: 'User' };
@@ -432,9 +450,7 @@ describe('AuthService', () => {
 
       await service.appleAuth(dtoWithEmptyName);
 
-      expect(usersService.create).toHaveBeenCalledWith(
-        expect.objectContaining({ name: 'User' }),
-      );
+      expect(usersService.create).toHaveBeenCalledWith(expect.objectContaining({ name: 'User' }));
 
       cryptoSpy.mockRestore();
     });
@@ -453,13 +469,15 @@ describe('AuthService', () => {
       });
 
       const cryptoSpy = jest.spyOn(require('crypto'), 'createPublicKey').mockReturnValue({
-        export: jest.fn().mockReturnValue('-----BEGIN PUBLIC KEY-----\nfake\n-----END PUBLIC KEY-----'),
+        export: jest
+          .fn()
+          .mockReturnValue('-----BEGIN PUBLIC KEY-----\nfake\n-----END PUBLIC KEY-----'),
       } as any);
 
       mockedJwt.verify.mockImplementation(
         (_token: string, _key: any, _options: any, callback: any) => {
           callback(null, decodedAppleToken);
-        },
+        }
       );
 
       const userWithFirstNameOnly = { ...mockAppleUser, name: 'Jane' };
@@ -468,9 +486,7 @@ describe('AuthService', () => {
 
       await service.appleAuth(dtoWithGivenNameOnly);
 
-      expect(usersService.create).toHaveBeenCalledWith(
-        expect.objectContaining({ name: 'Jane' }),
-      );
+      expect(usersService.create).toHaveBeenCalledWith(expect.objectContaining({ name: 'Jane' }));
 
       cryptoSpy.mockRestore();
     });
@@ -483,18 +499,18 @@ describe('AuthService', () => {
       });
 
       const cryptoSpy = jest.spyOn(require('crypto'), 'createPublicKey').mockReturnValue({
-        export: jest.fn().mockReturnValue('-----BEGIN PUBLIC KEY-----\nfake\n-----END PUBLIC KEY-----'),
+        export: jest
+          .fn()
+          .mockReturnValue('-----BEGIN PUBLIC KEY-----\nfake\n-----END PUBLIC KEY-----'),
       } as any);
 
       mockedJwt.verify.mockImplementation(
         (_token: string, _key: any, _options: any, callback: any) => {
           callback(new Error('Token expired'), null);
-        },
+        }
       );
 
-      await expect(
-        service.appleAuth(appleAuthDto),
-      ).rejects.toThrow(UnauthorizedException);
+      await expect(service.appleAuth(appleAuthDto)).rejects.toThrow(UnauthorizedException);
 
       cryptoSpy.mockRestore();
     });
@@ -507,26 +523,24 @@ describe('AuthService', () => {
       });
 
       const cryptoSpy = jest.spyOn(require('crypto'), 'createPublicKey').mockReturnValue({
-        export: jest.fn().mockReturnValue('-----BEGIN PUBLIC KEY-----\nfake\n-----END PUBLIC KEY-----'),
+        export: jest
+          .fn()
+          .mockReturnValue('-----BEGIN PUBLIC KEY-----\nfake\n-----END PUBLIC KEY-----'),
       } as any);
 
       mockedJwt.verify.mockImplementation(
         (_token: string, _key: any, _options: any, callback: any) => {
           callback(null, { sub: 'apple-sub-123' }); // no email field
-        },
+        }
       );
 
-      await expect(
-        service.appleAuth(appleAuthDto),
-      ).rejects.toThrow(UnauthorizedException);
+      await expect(service.appleAuth(appleAuthDto)).rejects.toThrow(UnauthorizedException);
 
       cryptoSpy.mockRestore();
     });
 
     it('should throw UnauthorizedException when Apple token header has no kid', async () => {
-      const headerWithoutKid = Buffer.from(
-        JSON.stringify({ alg: 'RS256' }),
-      ).toString('base64url');
+      const headerWithoutKid = Buffer.from(JSON.stringify({ alg: 'RS256' })).toString('base64url');
       const tokenWithoutKid = `${headerWithoutKid}.${fakePayload}.${fakeSignature}`;
 
       const dtoWithBadToken = {
@@ -534,14 +548,12 @@ describe('AuthService', () => {
         authorizationCode: 'apple-auth-code',
       };
 
-      await expect(service.appleAuth(dtoWithBadToken)).rejects.toThrow(
-        UnauthorizedException,
-      );
+      await expect(service.appleAuth(dtoWithBadToken)).rejects.toThrow(UnauthorizedException);
     });
 
     it('should throw UnauthorizedException when Apple key matching kid is not found', async () => {
       const headerWithUnknownKid = Buffer.from(
-        JSON.stringify({ alg: 'RS256', kid: 'unknown-kid' }),
+        JSON.stringify({ alg: 'RS256', kid: 'unknown-kid' })
       ).toString('base64url');
       const tokenWithUnknownKid = `${headerWithUnknownKid}.${fakePayload}.${fakeSignature}`;
 
@@ -552,17 +564,13 @@ describe('AuthService', () => {
 
       mockedAxios.get.mockResolvedValueOnce(applePublicKeys);
 
-      await expect(service.appleAuth(dtoWithUnknownKid)).rejects.toThrow(
-        UnauthorizedException,
-      );
+      await expect(service.appleAuth(dtoWithUnknownKid)).rejects.toThrow(UnauthorizedException);
     });
 
     it('should throw UnauthorizedException when fetching Apple public keys fails', async () => {
       mockedAxios.get.mockRejectedValueOnce(new Error('Network error'));
 
-      await expect(service.appleAuth(appleAuthDto)).rejects.toThrow(
-        UnauthorizedException,
-      );
+      await expect(service.appleAuth(appleAuthDto)).rejects.toThrow(UnauthorizedException);
     });
   });
 
@@ -575,20 +583,41 @@ describe('AuthService', () => {
         .mockReturnValueOnce('mock-refresh-token');
     });
 
+    let prismaService: any;
+
+    beforeEach(() => {
+      prismaService = (service as any).prisma;
+    });
+
     it('should return new tokens for a valid refresh token', async () => {
-      jwtService.verify.mockReturnValueOnce({ sub: 'user-123', email: 'test@example.com' });
+      const storedToken = {
+        id: 'rt-1',
+        tokenHash: 'hashed',
+        family: 'family-1',
+        isRevoked: false,
+        expiresAt: new Date(Date.now() + 86400000),
+      };
+
+      jwtService.verify.mockReturnValueOnce({
+        sub: 'user-123',
+        email: 'test@example.com',
+        type: 'refresh',
+      });
       configService.get.mockImplementation((key: string, defaultValue?: string) => {
-        if (key === 'JWT_SECRET') return 'test-jwt-secret';
+        if (key === 'JWT_REFRESH_SECRET') return 'test-refresh-secret';
         if (key === 'JWT_EXPIRES_IN') return defaultValue ?? '1h';
         if (key === 'JWT_REFRESH_EXPIRES_IN') return defaultValue ?? '7d';
         return undefined;
       });
+      prismaService.refreshToken.findUnique.mockResolvedValueOnce(storedToken);
+      prismaService.refreshToken.update.mockResolvedValueOnce({});
+      prismaService.refreshToken.create.mockResolvedValueOnce({});
       usersService.findById.mockResolvedValueOnce(mockUser as any);
 
       const result = await service.refreshToken(refreshTokenDto);
 
       expect(jwtService.verify).toHaveBeenCalledWith('valid-refresh-token', {
-        secret: 'test-jwt-secret',
+        secret: 'test-refresh-secret',
       });
       expect(usersService.findById).toHaveBeenCalledWith('user-123');
       expect(result).toEqual(mockTokenResponse);
@@ -599,46 +628,81 @@ describe('AuthService', () => {
         throw new Error('jwt expired');
       });
       configService.get.mockImplementation((key: string) => {
-        if (key === 'JWT_SECRET') return 'test-jwt-secret';
+        if (key === 'JWT_REFRESH_SECRET') return 'test-refresh-secret';
         return undefined;
       });
 
       await expect(service.refreshToken(refreshTokenDto)).rejects.toThrow(
-        new UnauthorizedException('Invalid refresh token'),
+        new UnauthorizedException('Invalid refresh token')
       );
     });
 
-    it('should throw UnauthorizedException when user is not found for valid token', async () => {
-      jwtService.verify.mockReturnValue({ sub: 'nonexistent-user', email: 'gone@example.com' });
+    it('should throw UnauthorizedException when token type is not refresh', async () => {
+      jwtService.verify.mockReturnValueOnce({
+        sub: 'user-123',
+        email: 'test@example.com',
+        type: 'access',
+      });
       configService.get.mockImplementation((key: string) => {
-        if (key === 'JWT_SECRET') return 'test-jwt-secret';
+        if (key === 'JWT_REFRESH_SECRET') return 'test-refresh-secret';
         return undefined;
       });
-      usersService.findById.mockResolvedValueOnce(null as any);
 
       await expect(service.refreshToken(refreshTokenDto)).rejects.toThrow(
-        new UnauthorizedException('Invalid refresh token'),
+        new UnauthorizedException('Invalid token type')
       );
-      expect(usersService.findById).toHaveBeenCalledWith('nonexistent-user');
     });
 
-    it('should throw UnauthorizedException when findById throws NotFoundException', async () => {
-      jwtService.verify.mockReturnValue({ sub: 'user-123', email: 'test@example.com' });
+    it('should throw UnauthorizedException when token not found in DB', async () => {
+      jwtService.verify.mockReturnValueOnce({
+        sub: 'user-123',
+        email: 'test@example.com',
+        type: 'refresh',
+      });
       configService.get.mockImplementation((key: string) => {
-        if (key === 'JWT_SECRET') return 'test-jwt-secret';
+        if (key === 'JWT_REFRESH_SECRET') return 'test-refresh-secret';
         return undefined;
       });
-      usersService.findById.mockRejectedValueOnce(new Error('User not found'));
+      prismaService.refreshToken.findUnique.mockResolvedValueOnce(null);
 
       await expect(service.refreshToken(refreshTokenDto)).rejects.toThrow(
-        UnauthorizedException,
+        new UnauthorizedException('Token not found')
       );
+    });
+
+    it('should revoke entire family on token reuse detection', async () => {
+      const revokedToken = {
+        id: 'rt-1',
+        tokenHash: 'hashed',
+        family: 'family-1',
+        isRevoked: true,
+        expiresAt: new Date(Date.now() + 86400000),
+      };
+
+      jwtService.verify.mockReturnValueOnce({
+        sub: 'user-123',
+        email: 'test@example.com',
+        type: 'refresh',
+      });
+      configService.get.mockImplementation((key: string) => {
+        if (key === 'JWT_REFRESH_SECRET') return 'test-refresh-secret';
+        return undefined;
+      });
+      prismaService.refreshToken.findUnique.mockResolvedValueOnce(revokedToken);
+
+      await expect(service.refreshToken(refreshTokenDto)).rejects.toThrow(
+        new UnauthorizedException('Token reuse detected')
+      );
+      expect(prismaService.refreshToken.updateMany).toHaveBeenCalledWith({
+        where: { family: 'family-1' },
+        data: { isRevoked: true },
+      });
     });
   });
 
   describe('generateTokens (via public methods)', () => {
     it('should generate access and refresh tokens with correct payload structure', async () => {
-      const googleAuthDto = { idToken: 'valid-google-id-token' };
+      const googleAuthDto = { accessToken: 'valid-google-id-token' };
       const googleTokenInfo = {
         email: 'test@example.com',
         name: 'Test User',
@@ -664,20 +728,20 @@ describe('AuthService', () => {
 
       expect(jwtService.sign).toHaveBeenNthCalledWith(
         1,
-        { sub: 'user-123', email: 'test@example.com' },
-        { expiresIn: '2h' },
+        { sub: 'user-123', email: 'test@example.com', type: 'access' },
+        { expiresIn: '2h' }
       );
       expect(jwtService.sign).toHaveBeenNthCalledWith(
         2,
-        { sub: 'user-123', email: 'test@example.com' },
-        { expiresIn: '14d' },
+        expect.objectContaining({ sub: 'user-123', email: 'test@example.com', type: 'refresh' }),
+        expect.objectContaining({ expiresIn: '14d' })
       );
       expect(result.accessToken).toBe('custom-access-token');
       expect(result.refreshToken).toBe('custom-refresh-token');
     });
 
     it('should return the user object with correct fields in the response', async () => {
-      const googleAuthDto = { idToken: 'valid-google-id-token' };
+      const googleAuthDto = { accessToken: 'valid-google-id-token' };
       const googleTokenInfo = {
         email: 'verified@example.com',
         name: 'Verified User',
@@ -701,9 +765,7 @@ describe('AuthService', () => {
       });
       usersService.findByEmail.mockResolvedValueOnce(verifiedUser as any);
 
-      jwtService.sign
-        .mockReturnValueOnce('access-token')
-        .mockReturnValueOnce('refresh-token');
+      jwtService.sign.mockReturnValueOnce('access-token').mockReturnValueOnce('refresh-token');
 
       const result = await service.googleAuth(googleAuthDto);
 

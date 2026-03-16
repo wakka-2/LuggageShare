@@ -1,11 +1,12 @@
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Platform } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
-import { useTheme } from '@/hooks/useTheme';
 import { useAuth } from '@/hooks/useAuth';
-import { Avatar } from '@/components/common';
+import { IconButton } from '@/components/common';
+import { changeLanguage } from '@/i18n';
+import { showAlert } from '@/lib/alert';
+import { V2_COLORS, TYPOGRAPHY } from '@/providers/ThemeProvider';
 
 interface HomeHeaderProps {
   notificationCount?: number;
@@ -13,53 +14,33 @@ interface HomeHeaderProps {
 
 export function HomeHeader({ notificationCount = 0 }: HomeHeaderProps) {
   const { t, i18n } = useTranslation();
-  const { colors } = useTheme();
   const { user } = useAuth();
   const router = useRouter();
 
-  const toggleLanguage = () => {
+  const toggleLanguage = async () => {
     const newLang = i18n.language === 'ar' ? 'en' : 'ar';
-    i18n.changeLanguage(newLang);
+    await changeLanguage(newLang as 'ar' | 'en');
+    if (Platform.OS !== 'web') {
+      showAlert(t('settings.restartRequired'), t('settings.restartDescription'));
+    }
   };
+
+  const firstName = user?.displayName?.split(' ')[0] || t('profile.guest');
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity
-        style={styles.avatarContainer}
-        onPress={() => router.push('/(tabs)/profile')}
-      >
-        <Avatar
-          source={user?.avatarUrl}
-          name={user?.displayName || t('profile.guest')}
-          size="medium"
-        />
-      </TouchableOpacity>
+      <View style={styles.greetingBlock}>
+        <Text style={styles.greeting}>{t('home.greeting')}</Text>
+        <Text style={styles.name}>{firstName}</Text>
+      </View>
 
-      <View style={styles.rightActions}>
-        {/* Language Toggle */}
-        <TouchableOpacity
-          style={[styles.iconButton, { backgroundColor: colors.card }]}
-          onPress={toggleLanguage}
-        >
-          <Text style={[styles.langText, { color: colors.text }]}>
-            {i18n.language === 'ar' ? 'EN' : 'ع'}
-          </Text>
-        </TouchableOpacity>
-
-        {/* Notifications */}
-        <TouchableOpacity
-          style={[styles.iconButton, { backgroundColor: colors.card }]}
+      <View style={styles.actions}>
+        <IconButton icon="language-outline" onPress={toggleLanguage} />
+        <IconButton
+          icon="notifications-outline"
           onPress={() => router.push('/notifications')}
-        >
-          <Ionicons name="notifications-outline" size={22} color={colors.text} />
-          {notificationCount > 0 && (
-            <View style={[styles.badge, { backgroundColor: colors.error }]}>
-              <Text style={styles.badgeText}>
-                {notificationCount > 9 ? '9+' : notificationCount}
-              </Text>
-            </View>
-          )}
-        </TouchableOpacity>
+          badge={notificationCount > 0 ? notificationCount : undefined}
+        />
       </View>
     </View>
   );
@@ -73,41 +54,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
   },
-  avatarContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
+  greetingBlock: {
+    flex: 1,
   },
-  rightActions: {
+  greeting: {
+    ...TYPOGRAPHY.caption,
+    color: V2_COLORS.textSoft,
+    marginBottom: 2,
+  },
+  name: {
+    ...TYPOGRAPHY.h1,
+    color: V2_COLORS.text,
+  },
+  actions: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-  },
-  iconButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  langText: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  badge: {
-    position: 'absolute',
-    top: -2,
-    right: -2,
-    minWidth: 18,
-    height: 18,
-    borderRadius: 9,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 4,
-  },
-  badgeText: {
-    color: '#FFFFFF',
-    fontSize: 10,
-    fontWeight: '700',
   },
 });

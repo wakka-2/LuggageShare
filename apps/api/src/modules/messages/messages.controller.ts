@@ -1,18 +1,6 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Param,
-  Query,
-  UseGuards,
-} from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-} from '@nestjs/swagger';
+import { Controller, Get, Post, Body, Param, Query, UseGuards } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { MessagesService } from './messages.service';
 import { SendMessageDto } from './dto/send-message.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -32,45 +20,62 @@ export class MessagesController {
     return this.messagesService.getConversations(user.id);
   }
 
-  @Post('conversations')
-  @ApiOperation({ summary: 'Create or find a conversation (supports pre-booking messaging)' })
-  @ApiResponse({ status: 201, description: 'Conversation created or found' })
-  async createConversation(
-    @CurrentUser() user: any,
-    @Body() dto: CreateConversationDto,
-  ) {
-    return this.messagesService.createConversation(user.id, dto);
-  }
-
-  @Get('conversations/:conversationId')
-  @ApiOperation({ summary: 'Get messages for a conversation' })
+  @Get('conversations/:bookingId')
+  @ApiOperation({ summary: 'Get messages for a booking' })
   @ApiResponse({ status: 200, description: 'Returns messages' })
   async getMessages(
     @CurrentUser() user: any,
-    @Param('conversationId') conversationId: string,
-    @Query('cursor') cursor?: string,
+    @Param('bookingId') bookingId: string,
+    @Query('cursor') cursor?: string
   ) {
-    return this.messagesService.getMessages(user.id, conversationId, cursor);
+    return this.messagesService.getMessages(user.id, bookingId, cursor);
   }
 
-  @Post('conversations/:conversationId')
+  @Post('conversations/:bookingId')
+  @Throttle({ medium: { ttl: 60000, limit: 60 } })
   @ApiOperation({ summary: 'Send a message' })
   @ApiResponse({ status: 201, description: 'Message sent' })
   async sendMessage(
     @CurrentUser() user: any,
     @Param('bookingId') bookingId: string,
-    @Body() sendMessageDto: SendMessageDto,
+    @Body() sendMessageDto: SendMessageDto
   ) {
     return this.messagesService.sendMessage(user.id, bookingId, sendMessageDto.content);
   }
 
-  @Post('conversations/:conversationId/read')
+  @Post('conversations/:bookingId/read')
   @ApiOperation({ summary: 'Mark messages as read' })
   @ApiResponse({ status: 200, description: 'Messages marked as read' })
-  async markAsRead(
+  async markAsRead(@CurrentUser() user: any, @Param('bookingId') bookingId: string) {
+    return this.messagesService.markAsRead(user.id, bookingId);
+  }
+
+  // ─── Offer chat REST endpoints ──────────────────────────────────────────────
+
+  @Get('offers/:offerId')
+  @ApiOperation({ summary: 'Get messages for an offer (pre-booking chat)' })
+  async getOfferMessages(
     @CurrentUser() user: any,
-    @Param('conversationId') conversationId: string,
+    @Param('offerId') offerId: string,
+    @Query('cursor') cursor?: string
   ) {
-    return this.messagesService.markAsRead(user.id, conversationId);
+    return this.messagesService.getOfferMessages(user.id, offerId, cursor);
+  }
+
+  @Post('offers/:offerId')
+  @Throttle({ medium: { ttl: 60000, limit: 60 } })
+  @ApiOperation({ summary: 'Send a message on an offer thread' })
+  async sendOfferMessage(
+    @CurrentUser() user: any,
+    @Param('offerId') offerId: string,
+    @Body() dto: SendMessageDto
+  ) {
+    return this.messagesService.sendOfferMessage(user.id, offerId, dto.content);
+  }
+
+  @Post('offers/:offerId/read')
+  @ApiOperation({ summary: 'Mark offer messages as read' })
+  async markOfferMessagesRead(@CurrentUser() user: any, @Param('offerId') offerId: string) {
+    return this.messagesService.markOfferMessagesRead(user.id, offerId);
   }
 }

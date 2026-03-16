@@ -1,114 +1,164 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking, ViewStyle, TextStyle } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Linking,
+  ViewStyle,
+  TextStyle,
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 
-import { useTheme } from '@/hooks/useTheme';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS } from '@/providers/ThemeProvider';
+import { BackgroundBlobs } from '@/components/common';
 
-const FAQ_ITEMS = [
-  {
-    questionEn: 'How does LuggageShare work?',
-    questionAr: 'كيف يعمل LuggageShare؟',
-    answerEn: 'Carriers list their available luggage space on upcoming trips. Senders browse listings and request to book space for their items.',
-    answerAr: 'يقوم الناقلون بعرض المساحة المتاحة في أمتعتهم في الرحلات القادمة. يتصفح المرسلون العروض ويطلبون حجز مساحة لأغراضهم.',
-  },
-  {
-    questionEn: 'Is my item insured?',
-    questionAr: 'هل أغراضي مؤمنة؟',
-    answerEn: 'Items are covered by the declared value during transport. We recommend accurately declaring item values when creating a booking.',
-    answerAr: 'الأغراض مغطاة بالقيمة المعلنة أثناء النقل. ننصح بالإعلان الدقيق عن قيمة الأغراض عند إنشاء الحجز.',
-  },
-  {
-    questionEn: 'How do I get paid as a carrier?',
-    questionAr: 'كيف أحصل على أموالي كناقل؟',
-    answerEn: 'Payment is released to your wallet after the sender confirms delivery. You can then transfer the balance to your bank account.',
-    answerAr: 'يتم تحويل المبلغ إلى محفظتك بعد تأكيد المرسل للتسليم. يمكنك بعدها تحويل الرصيد إلى حسابك البنكي.',
-  },
-];
+const FAQ_KEYS = [
+  { question: 'help.howItWorks', answer: 'help.howItWorksAnswer' },
+  { question: 'help.isInsured', answer: 'help.isInsuredAnswer' },
+  { question: 'help.howGetPaid', answer: 'help.howGetPaidAnswer' },
+] as const;
 
 export default function HelpScreen() {
   const { t, i18n } = useTranslation();
-  const { colors } = useTheme();
   const router = useRouter();
   const isRTL = i18n.language === 'ar';
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.headerBtn}>
-          <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={colors.text} />
+    <SafeAreaView style={styles.container}>
+      <BackgroundBlobs />
+
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+          <Ionicons
+            name={isRTL ? 'arrow-forward' : 'arrow-back'}
+            size={20}
+            color={V2_COLORS.text}
+          />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>
-          {t('profile.help')}
-        </Text>
-        <View style={styles.headerBtn} />
+        <Text style={styles.headerTitle}>{t('profile.help')}</Text>
+        <View style={styles.backBtn} />
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* FAQ */}
-        <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
-          {isRTL ? 'الأسئلة الشائعة' : 'Frequently Asked Questions'}
-        </Text>
+        <Animated.Text entering={FadeIn.delay(100).duration(300)} style={styles.sectionTitle}>
+          {t('help.faq')}
+        </Animated.Text>
 
-        {FAQ_ITEMS.map((item, index) => (
-          <View key={index} style={[styles.faqCard, { backgroundColor: colors.card }]}>
-            <Text style={[styles.faqQuestion, { color: colors.text }]}>
-              {isRTL ? item.questionAr : item.questionEn}
-            </Text>
-            <Text style={[styles.faqAnswer, { color: colors.textSecondary }]}>
-              {isRTL ? item.answerAr : item.answerEn}
-            </Text>
-          </View>
+        {FAQ_KEYS.map((item, index) => (
+          <Animated.View
+            key={index}
+            entering={FadeInUp.delay(150 + index * 80)
+              .duration(300)
+              .springify()}
+            style={styles.faqCard}
+          >
+            <Text style={styles.faqQuestion}>{t(item.question)}</Text>
+            <Text style={styles.faqAnswer}>{t(item.answer)}</Text>
+          </Animated.View>
         ))}
 
         {/* Contact */}
-        <Text style={[styles.sectionTitle, { color: colors.textSecondary, marginTop: 24 }]}>
-          {isRTL ? 'تواصل معنا' : 'Contact Us'}
-        </Text>
-
-        <TouchableOpacity
-          style={[styles.contactCard, { backgroundColor: colors.card }]}
-          onPress={() => Linking.openURL('mailto:support@luggageshare.app')}
+        <Animated.Text
+          entering={FadeIn.delay(450).duration(300)}
+          style={[styles.sectionTitle, { marginTop: 24 }]}
         >
-          <View style={[styles.contactIcon, { backgroundColor: colors.primary + '15' }]}>
-            <Ionicons name="mail-outline" size={22} color={colors.primary} />
-          </View>
-          <View style={styles.contactInfo}>
-            <Text style={[styles.contactLabel, { color: colors.text }]}>
-              {isRTL ? 'البريد الإلكتروني' : 'Email Support'}
-            </Text>
-            <Text style={[styles.contactValue, { color: colors.textSecondary }]}>
-              support@luggageshare.app
-            </Text>
-          </View>
-          <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} />
-        </TouchableOpacity>
+          {t('help.contactUs')}
+        </Animated.Text>
+
+        <Animated.View entering={FadeInUp.delay(530).duration(300).springify()}>
+          <TouchableOpacity
+            style={styles.contactCard}
+            onPress={() => Linking.openURL('mailto:support@luggageshare.app')}
+          >
+            <View style={styles.contactIcon}>
+              <Ionicons name="mail-outline" size={22} color={V2_COLORS.primary} />
+            </View>
+            <View style={styles.contactInfo}>
+              <Text style={styles.contactLabel}>{t('help.emailSupport')}</Text>
+              <Text style={styles.contactValue}>support@luggageshare.app</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={V2_COLORS.textMuted} />
+          </TouchableOpacity>
+        </Animated.View>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 } as ViewStyle,
+  container: { flex: 1, backgroundColor: V2_COLORS.bg } as ViewStyle,
   header: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
   } as ViewStyle,
-  headerBtn: { width: 40, alignItems: 'center' } as ViewStyle,
-  headerTitle: { fontSize: 18, fontWeight: '600' } as TextStyle,
+  backBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: RADIUS.pill,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...BUBBLE_SHADOWS.xs,
+  } as ViewStyle,
+  headerTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: V2_COLORS.text,
+  } as TextStyle,
   scrollContent: { padding: 16 } as ViewStyle,
-  sectionTitle: { fontSize: 13, fontWeight: '600', textTransform: 'uppercase', marginBottom: 12 } as TextStyle,
-  faqCard: { borderRadius: 14, padding: 16, marginBottom: 12 } as ViewStyle,
-  faqQuestion: { fontSize: 15, fontWeight: '600', marginBottom: 8 } as TextStyle,
-  faqAnswer: { fontSize: 14, lineHeight: 21 } as TextStyle,
+  sectionTitle: {
+    fontSize: 13,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    marginBottom: 12,
+    color: V2_COLORS.textMuted,
+  } as TextStyle,
+  faqCard: {
+    borderRadius: RADIUS.card,
+    padding: 16,
+    marginBottom: 12,
+    backgroundColor: '#FFFFFF',
+    ...BUBBLE_SHADOWS.sm,
+  } as ViewStyle,
+  faqQuestion: {
+    fontSize: 15,
+    fontWeight: '600',
+    marginBottom: 8,
+    color: V2_COLORS.text,
+  } as TextStyle,
+  faqAnswer: {
+    fontSize: 14,
+    lineHeight: 21,
+    color: V2_COLORS.textSoft,
+  } as TextStyle,
   contactCard: {
-    flexDirection: 'row', alignItems: 'center', borderRadius: 14, padding: 16, gap: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: RADIUS.card,
+    padding: 16,
+    gap: 12,
+    backgroundColor: '#FFFFFF',
+    ...BUBBLE_SHADOWS.sm,
   } as ViewStyle,
   contactIcon: {
-    width: 44, height: 44, borderRadius: 12, alignItems: 'center', justifyContent: 'center',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: V2_COLORS.primary + '15',
+    alignItems: 'center',
+    justifyContent: 'center',
   } as ViewStyle,
   contactInfo: { flex: 1 } as ViewStyle,
-  contactLabel: { fontSize: 15, fontWeight: '600' } as TextStyle,
-  contactValue: { fontSize: 13, marginTop: 2 } as TextStyle,
+  contactLabel: { fontSize: 15, fontWeight: '600', color: V2_COLORS.text } as TextStyle,
+  contactValue: { fontSize: 13, marginTop: 2, color: V2_COLORS.textMuted } as TextStyle,
 });

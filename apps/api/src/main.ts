@@ -3,20 +3,32 @@ import { ValidationPipe, Logger } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { Logger as PinoLogger } from 'nestjs-pino';
 import helmet from 'helmet';
+import * as Sentry from '@sentry/node';
 import { AppModule } from './app.module';
 import { TransformInterceptor } from './common/interceptors';
 import { AllExceptionsFilter } from './common/filters';
 
 async function bootstrap() {
+  // Initialize Sentry before application bootstrap
+  if (process.env.SENTRY_DSN) {
+    Sentry.init({
+      dsn: process.env.SENTRY_DSN,
+      environment: process.env.NODE_ENV || 'development',
+      tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.2 : 1.0,
+      enabled: process.env.NODE_ENV !== 'test',
+    });
+  }
+
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
   app.useLogger(app.get(PinoLogger));
 
   // Security
   app.use(helmet());
 
-  // CORS
+  // CORS — production requires CORS_ORIGINS env var
+  const corsOrigins = process.env.CORS_ORIGINS?.split(',');
   app.enableCors({
-    origin: process.env.CORS_ORIGINS?.split(',') || ['http://localhost:3000', 'http://localhost:8081'],
+    origin: process.env.NODE_ENV === 'production' ? corsOrigins || [] : true,
     credentials: true,
   });
 
@@ -29,7 +41,7 @@ async function bootstrap() {
       transformOptions: {
         enableImplicitConversion: true,
       },
-    }),
+    })
   );
 
   // Global interceptors & filters
@@ -39,29 +51,36 @@ async function bootstrap() {
   // API prefix
   app.setGlobalPrefix('api/v1');
 
-  // Swagger documentation
-  const config = new DocumentBuilder()
-    .setTitle('LuggageShare API')
-    .setDescription('API documentation for LuggageShare platform')
-    .setVersion('1.0')
-    .addBearerAuth()
-    .addTag('auth', 'Authentication endpoints')
-    .addTag('users', 'User management')
-    .addTag('listings', 'Carrier listings')
-    .addTag('bookings', 'Booking management')
-    .addTag('messages', 'Chat and messaging')
-    .addTag('notifications', 'Push notifications')
-    .build();
+  // Swagger documentation — disabled in production
+  if (process.env.NODE_ENV !== 'production') {
+    const config = new DocumentBuilder()
+      .setTitle('LuggageShare API')
+      .setDescription('API documentation for LuggageShare platform')
+      .setVersion('1.0')
+      .addBearerAuth()
+      .addTag('auth', 'Authentication endpoints')
+      .addTag('users', 'User management')
+      .addTag('listings', 'Carrier listings')
+      .addTag('bookings', 'Booking management')
+      .addTag('messages', 'Chat and messaging')
+      .addTag('notifications', 'Push notifications')
+      .build();
 
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('docs', app, document);
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('docs', app, document);
+  }
+
+  // Graceful shutdown
+  app.enableShutdownHooks();
 
   const port = process.env.API_PORT || 3001;
   await app.listen(port);
 
   const logger = new Logger('Bootstrap');
   logger.log(`API running on http://localhost:${port}`);
-  logger.log(`Swagger docs: http://localhost:${port}/docs`);
+  if (process.env.NODE_ENV !== 'production') {
+    logger.log(`Swagger docs: http://localhost:${port}/docs`);
+  }
 }
 
 bootstrap();

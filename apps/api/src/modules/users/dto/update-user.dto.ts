@@ -37,4 +37,20 @@ export class UpdateUserDto {
   @IsString()
   @IsOptional()
   city?: string;
+
+  @ApiPropertyOptional({
+    description: 'Bank IBAN for receiving payments',
+    example: 'SA0380000000608010167519',
+  })
+  @IsString()
+  @IsOptional()
+  iban?: string;
+
+  @ApiPropertyOptional({
+    description: 'Bank name',
+    example: 'Al Rajhi Bank',
+  })
+  @IsString()
+  @IsOptional()
+  bankName?: string;
 }

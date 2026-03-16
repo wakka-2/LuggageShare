@@ -11,7 +11,7 @@ export interface ApiListing {
   departureDate: string;
   flightNumber: string | null;
   availableWeight: number;
-  pricePerKg: number;
+  price: number;
   currency: string;
   preferences: Record<string, unknown> | null;
   notes: string | null;
@@ -43,7 +43,7 @@ interface CreateListingParams {
   departureDate: string;
   flightNumber?: string;
   availableWeight: number;
-  pricePerKg: number;
+  price: number;
   currency?: string;
   preferences?: Record<string, unknown>;
   notes?: string;
@@ -60,7 +60,7 @@ export function useListings(params: SearchParams = {}) {
       if (params.minWeight) searchParams.set('minWeight', String(params.minWeight));
 
       const { data } = await apiClient.get(`/listings?${searchParams.toString()}`);
-      return data;
+      return data.data ?? data;
     },
   });
 }
@@ -70,7 +70,7 @@ export function useListing(id: string | null) {
     queryKey: ['listing', id],
     queryFn: async () => {
       const { data } = await apiClient.get(`/listings/${id}`);
-      return data;
+      return data.data ?? data;
     },
     enabled: !!id,
   });

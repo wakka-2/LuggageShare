@@ -12,36 +12,38 @@ datasource db {
 // ==========================================
 
 model User {
-  id                  String    @id @default(cuid())
-  email               String    @unique
-  name                String
-  avatarUrl           String?
-  phone               String?
-  bio                 String?
-  city                String?
-  isVerified          Boolean   @default(false)
-  googleId            String?   @unique
-  appleId             String?   @unique
-  provider            String    // 'google' | 'apple'
-  balance             Decimal   @default(0) @db.Decimal(10, 2)
-  balanceThreshold    Decimal   @default(-10) @db.Decimal(10, 2)
-  isBalanceRestricted Boolean   @default(false)
-  createdAt           DateTime  @default(now())
-  updatedAt           DateTime  @updatedAt
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String
+  avatarUrl     String?
+  phone         String?
+  bio           String?
+  city          String?
+  isVerified    Boolean   @default(false)
+  tosAcceptedAt DateTime?
+  iban          String?
+  bankName      String?
+  googleId      String?   @unique
+  appleId       String?   @unique
+  provider      String    // 'google' | 'apple'
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   // Relations
   settings        UserSettings?
   carrierListings Listing[]       @relation("CarrierListings")
+  flights         Flight[]        @relation("UserFlights")
+  offers          Offer[]         @relation("UserOffers")
   senderBookings  Booking[]       @relation("SenderBookings")
   carrierBookings Booking[]       @relation("CarrierBookings")
   messages        Message[]
   reviews         Review[]        @relation("ReviewAuthor")
   receivedReviews Review[]        @relation("ReviewReceiver")
+  disputes        Dispute[]       @relation("DisputeReporter")
   notifications   Notification[]
   pushTokens      PushToken[]
   balanceHistory  BalanceHistory[]
-  conversations1  Conversation[]  @relation("ConversationParticipant1")
-  conversations2  Conversation[]  @relation("ConversationParticipant2")
+  refreshTokens   RefreshToken[]
 
   @@map("users")
 }
@@ -65,42 +67,82 @@ model UserSettings {
 // ==========================================
 
 model Listing {
-  id              String    @id @default(cuid())
+  id              String   @id @default(cuid())
   carrierId       String
-  type            String    @default("offer") // 'offer' | 'request'
-  title           String?
-  titleAr         String?
-  description     String?
-  descriptionAr   String?
   departureCity   String
   departureCode   String?
   arrivalCity     String
   arrivalCode     String?
   departureDate   DateTime
   flightNumber    String?
-  availableWeight Decimal   @db.Decimal(5, 2)
-  priceSmall      Decimal   @db.Decimal(8, 2)
-  priceMedium     Decimal   @db.Decimal(8, 2)
-  priceLarge      Decimal   @db.Decimal(8, 2)
-  negotiable      Boolean   @default(false)
-  currency        String    @default("SAR")
-  neededWeight    Decimal?  @db.Decimal(5, 2)
-  restrictions    Json?
-  handoffOptions  Json?
+  availableWeight Decimal  @db.Decimal(5, 2)
+  price           Decimal  @db.Decimal(8, 2) @map("pricePerKg")
+  currency        String   @default("SAR")
+  preferences     Json?
   notes           String?
-  status          String    @default("active") // active, completed, cancelled
-  expiresAt       DateTime?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  status          String   @default("active") // active, completed, cancelled
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
-  carrier       User           @relation("CarrierListings", fields: [carrierId], references: [id])
-  bookings      Booking[]
-  conversations Conversation[]
+  carrier  User      @relation("CarrierListings", fields: [carrierId], references: [id])
+  bookings Booking[]
 
   @@index([departureCity, arrivalCity, departureDate])
   @@index([carrierId])
-  @@index([type, status])
   @@map("listings")
+}
+
+// ==========================================
+// Flights & Offers (New business model)
+// ==========================================
+
+model Flight {
+  id              String   @id @default(cuid())
+  posterId        String
+  departureCity   String
+  departureCode   String?
+  arrivalCity     String
+  arrivalCode     String?
+  departureDate   DateTime
+  flightNumber    String?
+  availableWeight Decimal  @db.Decimal(5, 2)
+  remainingWeight Decimal  @db.Decimal(5, 2)
+  suggestedPrice  Decimal? @db.Decimal(8, 2)
+  currency        String   @default("SAR")
+  notes           String?
+  status          String   @default("active") // active, full, completed, cancelled
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  poster   User      @relation("UserFlights", fields: [posterId], references: [id])
+  offers   Offer[]
+  bookings Booking[] @relation("FlightBookings")
+
+  @@index([departureCity, arrivalCity, departureDate])
+  @@index([posterId])
+  @@map("flights")
+}
+
+model Offer {
+  id            String   @id @default(cuid())
+  flightId      String
+  senderId      String
+  offeredWeight Decimal  @db.Decimal(5, 2)
+  offeredPrice  Decimal  @db.Decimal(10, 2)
+  currency      String   @default("SAR")
+  status        String   @default("pending") // pending, accepted, rejected, expired, withdrawn
+  note          String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  flight   Flight    @relation(fields: [flightId], references: [id], onDelete: Cascade)
+  sender   User      @relation("UserOffers", fields: [senderId], references: [id])
+  booking  Booking?  @relation("OfferBooking")
+  messages Message[] @relation("OfferMessages")
+
+  @@index([flightId])
+  @@index([senderId])
+  @@map("offers")
 }
 
 // ==========================================
@@ -109,30 +151,36 @@ model Listing {
 
 model Booking {
   id          String    @id @default(cuid())
-  bookingRef  String    @unique
-  listingId   String
+  listingId   String?   // nullable: legacy listings; new bookings use flightId
+  offerId     String?   @unique // set when booking is created from an accepted offer
+  flightId    String?   // denormalized for fast queries
   senderId    String
   carrierId   String
-  status      String    @default("pending") // pending, accepted, rejected, picked_up, in_transit, delivered, cancelled
-  packageSize String?   // 'small' | 'medium' | 'large'
-  totalWeight Decimal   @db.Decimal(5, 2)
-  totalPrice  Decimal   @db.Decimal(10, 2)
-  currency    String    @default("SAR")
-  cancelledBy String?
-  cancelledAt DateTime?
+  status          String    @default("pending") // pending, accepted, rejected, picked_up, in_transit, delivered, cancelled
+  totalWeight     Decimal   @db.Decimal(5, 2)
+  totalPrice      Decimal   @db.Decimal(10, 2)
+  currency        String    @default("SAR")
+  paymentProofUrl String?
+  paymentStatus   String    @default("unpaid") // unpaid, proof_submitted, confirmed, failed
+  cancelledBy     String?
+  cancelledAt     DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  listing      Listing       @relation(fields: [listingId], references: [id])
-  sender       User          @relation("SenderBookings", fields: [senderId], references: [id])
-  carrier      User          @relation("CarrierBookings", fields: [carrierId], references: [id])
-  items        Item[]
-  conversation Conversation?
-  review       Review?
+  listing  Listing?  @relation(fields: [listingId], references: [id])
+  offer    Offer?    @relation("OfferBooking", fields: [offerId], references: [id])
+  flight   Flight?   @relation("FlightBookings", fields: [flightId], references: [id])
+  sender   User      @relation("SenderBookings", fields: [senderId], references: [id])
+  carrier  User      @relation("CarrierBookings", fields: [carrierId], references: [id])
+  items    Item[]
+  messages Message[]
+  review   Review?
+  dispute  Dispute?
 
   @@index([senderId])
   @@index([carrierId])
   @@index([listingId])
+  @@index([flightId])
   @@map("bookings")
 }
 
@@ -153,44 +201,24 @@ model Item {
 }
 
 // ==========================================
-// Conversations & Messaging
+// Messaging
 // ==========================================
 
-model Conversation {
-  id             String    @id @default(cuid())
-  listingId      String?
-  bookingId      String?   @unique
-  participant1Id String
-  participant2Id String
-  lastMessageAt  DateTime?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-
-  listing      Listing?  @relation(fields: [listingId], references: [id])
-  booking      Booking?  @relation(fields: [bookingId], references: [id])
-  participant1 User      @relation("ConversationParticipant1", fields: [participant1Id], references: [id])
-  participant2 User      @relation("ConversationParticipant2", fields: [participant2Id], references: [id])
-  messages     Message[]
-
-  @@unique([participant1Id, participant2Id, listingId])
-  @@index([participant1Id])
-  @@index([participant2Id])
-  @@map("conversations")
-}
-
 model Message {
-  id             String   @id @default(cuid())
-  conversationId String
-  senderId       String
-  content        String
-  messageType    String   @default("text") // 'text' | 'image' | 'location'
-  isRead         Boolean  @default(false)
-  createdAt      DateTime @default(now())
+  id        String   @id @default(cuid())
+  bookingId String?  // nullable: pre-booking offer messages have no bookingId yet
+  offerId   String?  // set for pre-booking negotiation chat; cleared after offer → booking
+  senderId  String
+  content   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
 
-  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  sender       User         @relation(fields: [senderId], references: [id])
+  booking Booking? @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  offer   Offer?   @relation("OfferMessages", fields: [offerId], references: [id], onDelete: Cascade)
+  sender  User     @relation(fields: [senderId], references: [id])
 
-  @@index([conversationId, createdAt])
+  @@index([bookingId, createdAt])
+  @@index([offerId, createdAt])
   @@map("messages")
 }
 
@@ -213,6 +241,28 @@ model Review {
 
   @@index([revieweeId])
   @@map("reviews")
+}
+
+// ==========================================
+// Disputes
+// ==========================================
+
+model Dispute {
+  id          String   @id @default(cuid())
+  bookingId   String   @unique
+  reporterId  String
+  reason      String
+  description String?
+  status      String   @default("open") // open, investigating, resolved, dismissed
+  resolution  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  booking  Booking @relation(fields: [bookingId], references: [id])
+  reporter User    @relation("DisputeReporter", fields: [reporterId], references: [id])
+
+  @@index([reporterId])
+  @@map("disputes")
 }
 
 // ==========================================
@@ -249,23 +299,37 @@ model PushToken {
 }
 
 // ==========================================
-// Balance (Phase 4)
+// Refresh Tokens (Rotation + Revocation)
+// ==========================================
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  userId    String
+  tokenHash String   @unique
+  family    String
+  isRevoked Boolean  @default(false)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([family])
+  @@map("refresh_tokens")
+}
+
+// ==========================================
+// Balance (Phase 2)
 // ==========================================
 
 model BalanceHistory {
-  id              String    @id @default(cuid())
-  userId          String
-  amount          Decimal   @db.Decimal(10, 2)
-  type            String    // commission, top_up, refund
-  status          String    @default("completed") // pending, completed, rejected
-  description     String?
-  bookingId       String?
-  balanceBefore   Decimal?  @db.Decimal(10, 2)
-  balanceAfter    Decimal?  @db.Decimal(10, 2)
-  paymentMethod   String?
-  paymentProofUrl String?
-  verifiedAt      DateTime?
-  createdAt       DateTime  @default(now())
+  id          String   @id @default(cuid())
+  userId      String
+  amount      Decimal  @db.Decimal(10, 2)
+  type        String   // commission, top_up, refund
+  description String?
+  bookingId   String?
+  createdAt   DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id])
 

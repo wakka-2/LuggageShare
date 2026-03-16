@@ -1,130 +1,86 @@
-'use client';
-
 import Link from 'next/link';
-import { Conversation } from '@/lib/types/message';
 
 interface ConversationCardProps {
-  conversation: Conversation;
+  conversation: {
+    bookingId: string;
+    otherUser: { name: string; avatarUrl: string | null };
+    lastMessage?: { content: string; createdAt: string } | null;
+    unreadCount: number;
+    listing?: { departureCity: string; arrivalCity: string };
+    route?: string;
+  };
 }
 
-export function ConversationCard({ conversation }: ConversationCardProps) {
-  const getStatusColor = (status: Conversation['bookingStatus']) => {
-    switch (status) {
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'confirmed':
-        return 'bg-blue-100 text-blue-800';
-      case 'in_transit':
-        return 'bg-purple-100 text-purple-800';
-      case 'delivered':
-        return 'bg-green-100 text-green-800';
-      case 'cancelled':
-        return 'bg-red-100 text-red-800';
-      case 'disputed':
-        return 'bg-orange-100 text-orange-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
+function formatRelativeTime(dateString: string): string {
+  const now = new Date();
+  const date = new Date(dateString);
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / (1000 * 60));
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-  const getStatusLabel = (status: Conversation['bookingStatus']) => {
-    switch (status) {
-      case 'pending':
-        return 'قيد المراجعة';
-      case 'confirmed':
-        return 'مؤكد';
-      case 'in_transit':
-        return 'قيد التوصيل';
-      case 'delivered':
-        return 'تم التوصيل';
-      case 'cancelled':
-        return 'ملغي';
-      case 'disputed':
-        return 'متنازع عليه';
-      default:
-        return status;
-    }
-  };
+  if (diffMins < 1) return 'الآن';
+  if (diffMins < 60) return `منذ ${diffMins} دقائق`;
+  if (diffHours < 24) return `منذ ${diffHours} ساعات`;
+  if (diffDays < 7) return `منذ ${diffDays} أيام`;
 
-  const formatTime = (timestamp: string) => {
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
+  return date.toLocaleDateString('ar-SA', { month: 'short', day: 'numeric' });
+}
 
-    if (diffInHours < 24) {
-      return date.toLocaleTimeString('ar-SA', {
-        hour: '2-digit',
-        minute: '2-digit',
-      });
-    } else if (diffInHours < 24 * 7) {
-      return date.toLocaleDateString('ar-SA', {
-        weekday: 'short',
-      });
-    } else {
-      return date.toLocaleDateString('ar-SA', {
-        month: 'short',
-        day: 'numeric',
-      });
-    }
-  };
+function getInitial(name: string): string {
+  return name.charAt(0).toUpperCase();
+}
+
+export default function ConversationCard({ conversation }: ConversationCardProps) {
+  const { otherUser, lastMessage, unreadCount, listing } = conversation;
 
   return (
     <Link
-      href={`/messages/${conversation.id}`}
-      className="block bg-white hover:bg-gray-50 transition-colors border-b border-gray-200 last:border-b-0"
+      href={`/chat/${conversation.bookingId}`}
+      className="flex items-center gap-3 bg-white rounded-[22px] p-4 shadow-bubble-sm hover:shadow-bubble-md active:scale-[0.97] transition-all duration-150"
     >
-      <div className="p-4">
-        <div className="flex items-start gap-4">
-          {/* Avatar */}
-          <div className="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 font-bold text-lg flex-shrink-0">
-            {conversation.otherUser.nameAr.charAt(0)}
+      {/* Avatar */}
+      <div className="relative flex-shrink-0">
+        {otherUser.avatarUrl ? (
+          <img src={otherUser.avatarUrl} alt="" className="w-12 h-12 rounded-full object-cover" />
+        ) : (
+          <div className="w-12 h-12 rounded-full bg-v2-primary/10 flex items-center justify-center text-lg font-bold text-v2-primary">
+            {getInitial(otherUser.name)}
           </div>
+        )}
 
-          {/* Content */}
-          <div className="flex-1 min-w-0">
-            {/* Header */}
-            <div className="flex items-start justify-between gap-2 mb-1">
-              <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-gray-900 truncate">{conversation.otherUser.nameAr}</h3>
-                <div className="flex items-center gap-2 text-xs text-gray-500 mt-0.5">
-                  <span>
-                    {conversation.from.code} → {conversation.to.code}
-                  </span>
-                  <span>•</span>
-                  <span className={`px-2 py-0.5 rounded-full text-xs ${getStatusColor(conversation.bookingStatus)}`}>
-                    {getStatusLabel(conversation.bookingStatus)}
-                  </span>
-                </div>
-              </div>
-              {conversation.lastMessage && (
-                <span className="text-xs text-gray-500 flex-shrink-0">
-                  {formatTime(conversation.lastMessage.timestamp)}
-                </span>
-              )}
-            </div>
-
-            {/* Last Message */}
-            {conversation.lastMessage && (
-              <div className="flex items-center gap-2">
-                <p
-                  className={`text-sm truncate flex-1 ${
-                    conversation.unreadCount > 0 ? 'font-semibold text-gray-900' : 'text-gray-600'
-                  }`}
-                >
-                  {conversation.lastMessage.isFromMe && (
-                    <span className="text-gray-400 me-1">أنت: </span>
-                  )}
-                  {conversation.lastMessage.contentAr || conversation.lastMessage.content}
-                </p>
-                {conversation.unreadCount > 0 && (
-                  <span className="flex-shrink-0 bg-primary-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                    {conversation.unreadCount}
-                  </span>
-                )}
-              </div>
-            )}
+        {/* Unread badge */}
+        {unreadCount > 0 && (
+          <div className="absolute -top-1 -left-1 rtl:-left-auto rtl:-right-1 w-5 h-5 rounded-full bg-v2-secondary flex items-center justify-center">
+            <span className="text-[10px] font-bold text-white">
+              {unreadCount > 9 ? '+9' : unreadCount}
+            </span>
           </div>
+        )}
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center justify-between mb-0.5">
+          <h3 className="text-sm font-bold text-v2-text truncate">{otherUser.name}</h3>
+          {lastMessage && (
+            <span className="text-[10px] text-v2-text-muted flex-shrink-0 mr-2 rtl:mr-0 rtl:ml-2">
+              {formatRelativeTime(lastMessage.createdAt)}
+            </span>
+          )}
         </div>
+
+        {/* Route info */}
+        {listing && (
+          <p className="text-[11px] text-v2-primary mb-0.5">
+            {listing.departureCity} → {listing.arrivalCity}
+          </p>
+        )}
+
+        {/* Last message preview */}
+        {lastMessage && (
+          <p className="text-xs text-v2-text-muted truncate">{lastMessage.content}</p>
+        )}
       </div>
     </Link>
   );

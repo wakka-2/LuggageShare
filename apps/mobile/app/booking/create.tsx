@@ -1,13 +1,44 @@
-import { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, ActivityIndicator, ViewStyle, TextStyle } from 'react-native';
+import { useState, useCallback } from 'react';
+import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
 
 import { useTheme } from '@/hooks/useTheme';
 import { useListing } from '@/hooks/useListings';
-import { useCreateBooking } from '@/hooks/useBookings';
+import { useCreateBooking, BookingItemParam } from '@/hooks/useBookings';
+import { WizardContainer, WizardStepConfig } from '@/components/wizard/WizardContainer';
+import { SuccessCelebration } from '@/components/animations';
+import { ItemDetailsStep } from '@/components/wizard/booking/ItemDetailsStep';
+import { WeightValueStep } from '@/components/wizard/booking/WeightValueStep';
+import { PhotosStep } from '@/components/wizard/booking/PhotosStep';
+import { PickupStep } from '@/components/wizard/booking/PickupStep';
+import { ReviewBookStep } from '@/components/wizard/booking/ReviewBookStep';
+import { MOCK_LISTINGS, adaptMockListing } from '@/components/listings';
+import { validateWeight } from '@luggageshare/shared';
+import { showAlert } from '@/lib/alert';
+
+const BOOKING_STEPS: WizardStepConfig[] = [
+  {
+    component: ItemDetailsStep,
+    validate: (data) => !!data.itemName?.trim(),
+  },
+  {
+    component: WeightValueStep,
+    validate: (data) => !!data.weight && parseFloat(data.weight) > 0,
+  },
+  {
+    component: PhotosStep,
+    canSkip: true,
+  },
+  {
+    component: PickupStep,
+    validate: (data) => !!data.pickupLocation?.trim(),
+  },
+  {
+    component: ReviewBookStep,
+  },
+];
 
 export default function CreateBookingScreen() {
   const { listingId } = useLocalSearchParams<{ listingId: string }>();
@@ -16,46 +47,94 @@ export default function CreateBookingScreen() {
   const router = useRouter();
   const isRTL = i18n.language === 'ar';
 
-  const { data: listing, isLoading: listingLoading } = useListing(listingId ?? null);
+  const { data: apiListing, isLoading: listingLoading } = useListing(listingId ?? null);
   const createBooking = useCreateBooking();
 
-  const [weight, setWeight] = useState('');
+  // Fall back to mock data when API doesn't return a result
+  const mockMatch =
+    !apiListing && listingId ? MOCK_LISTINGS.find((m) => m.id === listingId) : undefined;
+  const listing = apiListing ?? (mockMatch ? adaptMockListing(mockMatch) : undefined);
 
-  const pricePerKg = listing ? Number(listing.pricePerKg) : 0;
-  const totalPrice = weight ? parseFloat(weight) * pricePerKg : 0;
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = async () => {
-    if (!weight || !listingId) {
-      Alert.alert(t('common.errorTitle'), t('booking.pleaseEnterWeight'));
-      return;
-    }
+  const listingPrice = listing ? Number(listing.price) || 0 : 0;
 
-    try {
-      await createBooking.mutateAsync({
-        listingId,
-        totalWeight: parseFloat(weight),
-        totalPrice,
-        currency: listing?.currency || 'SAR',
-      });
+  const handleComplete = useCallback(
+    async (data: Record<string, any>) => {
+      if (!listingId) {
+        showAlert(t('common.errorTitle'), 'Missing listing ID');
+        return;
+      }
 
-      Alert.alert(
-        t('booking.bookingSent'),
-        t('booking.bookingSentMessage'),
-        [{ text: t('common.ok'), onPress: () => router.back() }]
-      );
-    } catch (error) {
-      Alert.alert(t('common.errorTitle'), t('booking.failedToSend'));
-    }
-  };
+      const weight = parseFloat(data.weight) || 0;
 
+      if (weight <= 0) {
+        showAlert(t('common.errorTitle'), t('booking.pleaseEnterWeight'));
+        return;
+      }
+
+      const weightCheck = validateWeight(weight);
+      if (!weightCheck.valid) {
+        showAlert(t('common.errorTitle'), weightCheck.error!);
+        return;
+      }
+
+      const availableWeight = listing ? Number(listing.availableWeight) || 0 : 0;
+      if (listing && availableWeight > 0 && weight > availableWeight) {
+        showAlert(
+          t('common.errorTitle'),
+          `Weight (${weight}kg) exceeds available (${availableWeight}kg)`
+        );
+        return;
+      }
+
+      setIsSubmitting(true);
+      try {
+        const bookingItems: BookingItemParam[] = [
+          {
+            name: (data.itemName || '').trim(),
+            description: (data.description || '').trim() || undefined,
+            weight,
+            value: parseFloat(data.declaredValue) || 0,
+            imageUrls: data.imageUrls?.length > 0 ? data.imageUrls : undefined,
+          },
+        ];
+
+        await createBooking.mutateAsync({
+          listingId,
+          totalWeight: weight,
+          items: bookingItems,
+        });
+
+        setShowSuccess(true);
+      } catch (error: any) {
+        const apiMsg = error?.response?.data?.message;
+        showAlert(t('common.errorTitle'), apiMsg || t('booking.failedToSend'));
+      } finally {
+        setIsSubmitting(false);
+      }
+    },
+    [listingId, listing, createBooking, t]
+  );
+
+  const handleSuccessDone = useCallback(() => {
+    setShowSuccess(false);
+    router.replace('/(tabs)/trips');
+  }, [router]);
+
+  // Loading state
   if (listingLoading) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-        <View style={styles.loading}><ActivityIndicator size="large" color={colors.primary} /></View>
+        <View style={styles.loading}>
+          <ActivityIndicator size="large" color={colors.primary} />
+        </View>
       </SafeAreaView>
     );
   }
 
+  // Not found state
   if (!listing) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -66,108 +145,48 @@ export default function CreateBookingScreen() {
     );
   }
 
+  if (isSubmitting) {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+        <View style={styles.loading}>
+          <ActivityIndicator size="large" color={colors.primary} />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.headerBtn}>
-          <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={colors.text} />
-        </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>{t('booking.bookListing')}</Text>
-        <View style={styles.headerBtn} />
-      </View>
+    <>
+      <WizardContainer
+        steps={BOOKING_STEPS}
+        onComplete={handleComplete}
+        title={t('booking.bookListing')}
+        initialData={{
+          // Pass listing context into wizard data for the review step
+          carrierName: listing.carrier?.name,
+          carrierVerified: listing.carrier?.isVerified,
+          departureCity: listing.departureCity,
+          arrivalCity: listing.arrivalCity,
+          listingPrice,
+        }}
+      />
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Listing Summary */}
-        <View style={[styles.summaryCard, { backgroundColor: colors.card }]}>
-          <View style={styles.routeRow}>
-            <Text style={[styles.city, { color: colors.text }]}>{listing.departureCity}</Text>
-            <Ionicons name="airplane" size={18} color={colors.primary} style={{ marginHorizontal: 10 }} />
-            <Text style={[styles.city, { color: colors.text }]}>{listing.arrivalCity}</Text>
-          </View>
-          <Text style={[styles.dateText, { color: colors.textSecondary }]}>
-            {new Date(listing.departureDate).toLocaleDateString(isRTL ? 'ar-SA' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' })}
-          </Text>
-          <Text style={[styles.priceText, { color: colors.primary }]}>
-            {pricePerKg} {listing.currency} / kg
-          </Text>
-        </View>
-
-        {/* Weight Input */}
-        <View style={styles.inputGroup}>
-          <Text style={[styles.label, { color: colors.text }]}>
-            {t('booking.weightNeeded')} <Text style={{ color: '#EF4444' }}>*</Text>
-          </Text>
-          <TextInput
-            style={[styles.input, { backgroundColor: colors.card, color: colors.text, borderColor: colors.border }]}
-            value={weight}
-            onChangeText={setWeight}
-            placeholder={`${t('booking.maxWeight')}: ${Number(listing.availableWeight)} kg`}
-            placeholderTextColor={colors.textSecondary}
-            keyboardType="numeric"
-            textAlign={isRTL ? 'right' : 'left'}
-          />
-        </View>
-
-        {/* Price Summary */}
-        {weight && parseFloat(weight) > 0 && (
-          <View style={[styles.priceCard, { backgroundColor: colors.card }]}>
-            <View style={styles.priceRow}>
-              <Text style={[styles.priceLabel, { color: colors.textSecondary }]}>{t('booking.weight')}</Text>
-              <Text style={[styles.priceValue, { color: colors.text }]}>{weight} kg</Text>
-            </View>
-            <View style={styles.priceRow}>
-              <Text style={[styles.priceLabel, { color: colors.textSecondary }]}>{t('booking.rate')}</Text>
-              <Text style={[styles.priceValue, { color: colors.text }]}>{pricePerKg} {listing.currency}/kg</Text>
-            </View>
-            <View style={[styles.priceDivider, { backgroundColor: colors.border }]} />
-            <View style={styles.priceRow}>
-              <Text style={[styles.totalLabel, { color: colors.text }]}>{t('booking.total')}</Text>
-              <Text style={[styles.totalValue, { color: colors.primary }]}>{totalPrice.toFixed(2)} {listing.currency}</Text>
-            </View>
-          </View>
-        )}
-      </ScrollView>
-
-      <View style={[styles.bottomBar, { backgroundColor: colors.card, borderTopColor: colors.border }]}>
-        <TouchableOpacity
-          onPress={handleSubmit}
-          disabled={createBooking.isPending}
-          style={[styles.submitBtn, { backgroundColor: colors.primary, opacity: createBooking.isPending ? 0.7 : 1 }]}
-        >
-          {createBooking.isPending ? (
-            <ActivityIndicator color="#FFF" />
-          ) : (
-            <Text style={styles.submitText}>{t('booking.sendRequest')}</Text>
-          )}
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
+      <SuccessCelebration
+        visible={showSuccess}
+        message={t('booking.bookingSent')}
+        onComplete={handleSuccessDone}
+      />
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 } as ViewStyle,
-  loading: { flex: 1, alignItems: 'center', justifyContent: 'center' } as ViewStyle,
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1 } as ViewStyle,
-  headerBtn: { width: 40, alignItems: 'center' } as ViewStyle,
-  headerTitle: { fontSize: 18, fontWeight: '600' } as TextStyle,
-  scrollContent: { padding: 16, paddingBottom: 100 } as ViewStyle,
-  summaryCard: { borderRadius: 16, padding: 20, marginBottom: 24 } as ViewStyle,
-  routeRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 } as ViewStyle,
-  city: { fontSize: 18, fontWeight: '700' } as TextStyle,
-  dateText: { fontSize: 14, marginBottom: 4 } as TextStyle,
-  priceText: { fontSize: 16, fontWeight: '700', marginTop: 4 } as TextStyle,
-  inputGroup: { marginBottom: 24 } as ViewStyle,
-  label: { fontSize: 14, fontWeight: '600', marginBottom: 8 } as TextStyle,
-  input: { height: 52, borderRadius: 12, paddingHorizontal: 16, fontSize: 18, borderWidth: 1, fontWeight: '600' } as ViewStyle,
-  priceCard: { borderRadius: 16, padding: 20 } as ViewStyle,
-  priceRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 } as ViewStyle,
-  priceLabel: { fontSize: 14 } as TextStyle,
-  priceValue: { fontSize: 14, fontWeight: '500' } as TextStyle,
-  priceDivider: { height: 1, marginVertical: 8 } as ViewStyle,
-  totalLabel: { fontSize: 16, fontWeight: '700' } as TextStyle,
-  totalValue: { fontSize: 20, fontWeight: '700' } as TextStyle,
-  bottomBar: { padding: 16, borderTopWidth: 1 } as ViewStyle,
-  submitBtn: { height: 52, borderRadius: 12, alignItems: 'center', justifyContent: 'center' } as ViewStyle,
-  submitText: { color: '#FFF', fontSize: 16, fontWeight: '700' } as TextStyle,
+  container: {
+    flex: 1,
+  },
+  loading: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 });

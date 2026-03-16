@@ -1,12 +1,5 @@
 import { useState } from 'react';
-import {
-  View,
-  TextInput,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ViewStyle,
-} from 'react-native';
+import { View, TextInput, Text, StyleSheet, TouchableOpacity, ViewStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { useTheme } from '@/hooks/useTheme';
@@ -50,17 +43,11 @@ export function Input({
   const [isFocused, setIsFocused] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const borderColor = error
-    ? colors.error
-    : isFocused
-    ? colors.primary
-    : colors.border;
+  const borderColor = error ? colors.error : isFocused ? colors.primary : colors.border;
 
   return (
     <View style={[styles.container, style]}>
-      {label && (
-        <Text style={[styles.label, { color: colors.text }]}>{label}</Text>
-      )}
+      {label && <Text style={[styles.label, { color: colors.text }]}>{label}</Text>}
       <View
         style={[
           styles.inputContainer,
@@ -91,11 +78,16 @@ export function Input({
           editable={editable}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
+          accessibilityLabel={label || placeholder}
+          accessibilityHint={error ? error : undefined}
+          accessibilityState={{ disabled: !editable }}
         />
         {secureTextEntry && (
           <TouchableOpacity
             style={styles.iconRight}
             onPress={() => setShowPassword(!showPassword)}
+            accessibilityRole="button"
+            accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
           >
             <Ionicons
               name={showPassword ? 'eye-off-outline' : 'eye-outline'}
@@ -133,10 +125,10 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   iconLeft: {
-    marginRight: 8,
+    marginEnd: 8,
   },
   iconRight: {
-    marginLeft: 8,
+    marginStart: 8,
   },
   error: {
     fontSize: 12,

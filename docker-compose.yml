@@ -1,0 +1,60 @@
+# LuggageShare — Local Development Stack
+# Usage: docker compose up -d
+#        docker compose logs -f api
+
+services:
+  # PostgreSQL database (mirrors Supabase in production)
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: luggageshare
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Redis (used for rate limiting and caching)
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # NestJS API (optional — run locally with npm run dev:api for hot reload)
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/luggageshare?schema=public
+      JWT_SECRET: local-dev-jwt-secret-at-least-32-chars!!
+      JWT_REFRESH_SECRET: local-dev-refresh-secret-at-least-32!!
+      REDIS_URL: redis://redis:6379
+      API_PORT: "3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    profiles:
+      - full  # Only starts with: docker compose --profile full up
+
+volumes:
+  pgdata:

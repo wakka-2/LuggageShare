@@ -102,7 +102,7 @@ export class CreateListingDto {
   availableWeight: number;
 
   @ApiProperty({
-    description: 'Price per kilogram',
+    description: 'Price for the listing',
     example: 50,
     minimum: 0.1,
     maximum: 1000,
@@ -110,7 +110,7 @@ export class CreateListingDto {
   @IsNumber()
   @Min(0.1)
   @Max(1000)
-  pricePerKg: number;
+  price: number;
 
   @ApiPropertyOptional({
     description: 'Currency code',

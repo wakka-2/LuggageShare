@@ -1,71 +1,93 @@
-'use client';
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  getConversations,
-  getMessages,
-  sendMessage,
-  createConversation,
-  markAsRead,
-} from '@/lib/api/messages';
-import { useAuth } from '@/lib/contexts/AuthContext';
+import apiClient from '@/lib/api';
+import { useAuth } from '@/providers/AuthProvider';
+
+export interface ApiConversation {
+  bookingId: string;
+  otherUser: {
+    id: string;
+    name: string;
+    avatarUrl: string | null;
+  };
+  lastMessage: {
+    content: string;
+    createdAt: string;
+    isMe: boolean;
+  } | null;
+  unreadCount: number;
+  route: string;
+}
+
+export interface ApiMessage {
+  id: string;
+  bookingId: string;
+  senderId: string;
+  content: string;
+  isRead: boolean;
+  createdAt: string;
+  sender: {
+    id: string;
+    name: string;
+    avatarUrl: string | null;
+  };
+}
 
 export function useConversations() {
-  const { user } = useAuth();
-  return useQuery({
+  const { isAuthenticated } = useAuth();
+
+  return useQuery<ApiConversation[]>({
     queryKey: ['conversations'],
-    queryFn: () => getConversations(user?.id || ''),
-    enabled: !!user?.id,
-    refetchInterval: 10000, // Poll every 10 seconds for new messages
-    retry: 1,
+    queryFn: async () => {
+      const { data } = await apiClient.get('/messages/conversations');
+      return data;
+    },
+    enabled: isAuthenticated,
   });
 }
 
-export function useMessages(conversationId: string) {
-  const { user } = useAuth();
-  return useQuery({
-    queryKey: ['messages', conversationId],
-    queryFn: () => getMessages(conversationId, user?.id || ''),
-    enabled: !!conversationId && !!user?.id,
-    refetchInterval: 5000, // Poll every 5 seconds in active chat
-    retry: 1,
+export function useUnreadMessagesCount() {
+  const { data: conversations } = useConversations();
+  return conversations?.reduce((sum, c) => sum + (c.unreadCount || 0), 0) ?? 0;
+}
+
+export function useMessages(bookingId: string | null) {
+  return useQuery<ApiMessage[]>({
+    queryKey: ['messages', bookingId],
+    queryFn: async () => {
+      const { data } = await apiClient.get(`/messages/conversations/${bookingId}`);
+      // API returns { messages: [...], nextCursor: ... }
+      return data.messages ?? data;
+    },
+    enabled: !!bookingId,
+    refetchInterval: 5000,
   });
 }
 
-export function useSendMessage(conversationId: string) {
+export function useSendMessage() {
   const queryClient = useQueryClient();
+
   return useMutation({
-    mutationFn: (content: string) => sendMessage(conversationId, content),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['messages', conversationId] });
+    mutationFn: async ({ bookingId, content }: { bookingId: string; content: string }) => {
+      const { data } = await apiClient.post(`/messages/conversations/${bookingId}`, { content });
+      return data;
+    },
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['messages', variables.bookingId] });
       queryClient.invalidateQueries({ queryKey: ['conversations'] });
     },
   });
 }
 
-export function useCreateConversation() {
+export function useMarkAsRead() {
   const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: ({
-      userId,
-      listingId,
-      initialMessage,
-    }: {
-      userId: string;
-      listingId?: string;
-      initialMessage?: string;
-    }) => createConversation(userId, listingId, initialMessage),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['conversations'] });
-    },
-  });
-}
 
-export function useMarkAsRead(conversationId: string) {
-  const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: () => markAsRead(conversationId),
-    onSuccess: () => {
+    mutationFn: async (bookingId: string) => {
+      const { data } = await apiClient.post(`/messages/conversations/${bookingId}/read`);
+      return data;
+    },
+    onSuccess: (_data, bookingId) => {
+      queryClient.invalidateQueries({ queryKey: ['messages', bookingId] });
       queryClient.invalidateQueries({ queryKey: ['conversations'] });
     },
   });

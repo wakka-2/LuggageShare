@@ -6,12 +6,10 @@ import {
   IsNumber,
   IsArray,
   IsOptional,
-  IsUUID,
   Min,
   Max,
   MaxLength,
   ValidateNested,
-  ArrayMinSize,
 } from 'class-validator';
 
 export class BookingItemDto {
@@ -64,15 +62,23 @@ export class BookingItemDto {
   @IsOptional()
   @IsString()
   currency?: string;
+
+  @ApiPropertyOptional({
+    description: 'URLs of uploaded item images',
+    example: ['https://storage.example.com/items/photo1.jpg'],
+  })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  imageUrls?: string[];
 }
 
 export class CreateBookingDto {
   @ApiProperty({
     description: 'ID of the listing to book',
-    example: '550e8400-e29b-41d4-a716-446655440000',
-    format: 'uuid',
+    example: 'clx1234567890abcdef',
   })
-  @IsUUID()
+  @IsString()
   @IsNotEmpty()
   listingId: string;
 
@@ -87,13 +93,13 @@ export class CreateBookingDto {
   @Max(30)
   totalWeight: number;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'List of items to be transported',
     type: [BookingItemDto],
   })
+  @IsOptional()
   @IsArray()
-  @ArrayMinSize(1)
   @ValidateNested({ each: true })
   @Type(() => BookingItemDto)
-  items: BookingItemDto[];
+  items?: BookingItemDto[];
 }

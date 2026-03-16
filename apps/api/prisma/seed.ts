@@ -3,293 +3,544 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('Seeding database...');
+  console.log('🌱 Seeding database...');
 
-  // Create users
-  const user1 = await prisma.user.upsert({
-    where: { email: 'ahmed@example.com' },
+  // ── Users ──────────────────────────────────────────────────
+  // The dev user (logged-in via dev-login endpoint)
+  const devUser = await prisma.user.upsert({
+    where: { email: 'dev@luggageshare.com' },
     update: {},
     create: {
-      email: 'ahmed@example.com',
-      name: 'أحمد الراشد',
+      email: 'dev@luggageshare.com',
+      name: 'Dev User',
       phone: '+966501234567',
-      bio: 'مسافر دائم بين الرياض والقاهرة. أحب مساعدة الآخرين في نقل أغراضهم.',
-      city: 'الرياض',
+      city: 'Riyadh',
+      bio: 'Testing the full LuggageShare cycle',
       isVerified: true,
-      provider: 'google',
-      googleId: 'google-ahmed-123',
-      settings: {
-        create: {
-          language: 'ar',
-          currency: 'SAR',
-          notifications: true,
-        },
-      },
+      provider: 'dev',
+      iban: 'SA0380000000608010167519',
+      bankName: 'Al Rajhi Bank',
     },
   });
 
-  const user2 = await prisma.user.upsert({
+  const sara = await prisma.user.upsert({
     where: { email: 'sara@example.com' },
     update: {},
     create: {
       email: 'sara@example.com',
-      name: 'سارة المحمد',
+      name: 'Sara Al-Otaibi',
       phone: '+966509876543',
-      bio: 'أعمل في مجال التقنية، أسافر كثيراً لحضور المؤتمرات.',
-      city: 'جدة',
+      city: 'Jeddah',
+      bio: 'Frequent traveler between Jeddah and Dubai',
       isVerified: true,
       provider: 'google',
-      googleId: 'google-sara-456',
-      settings: {
-        create: {
-          language: 'ar',
-          currency: 'SAR',
-          notifications: true,
-        },
-      },
+      googleId: 'google-sara-001',
+      iban: 'SA4420000001234567891234',
+      bankName: 'SNB',
     },
   });
 
-  const user3 = await prisma.user.upsert({
-    where: { email: 'khalid@example.com' },
+  const mohammed = await prisma.user.upsert({
+    where: { email: 'mohammed@example.com' },
     update: {},
     create: {
-      email: 'khalid@example.com',
-      name: 'خالد العتيبي',
-      phone: '+966505551234',
-      bio: 'طالب ماجستير في لندن، أسافر بشكل دوري للسعودية.',
-      city: 'لندن',
+      email: 'mohammed@example.com',
+      name: 'Mohammed Al-Dosari',
+      phone: '+966551112222',
+      city: 'Dammam',
+      bio: 'Business traveler, happy to help carry items',
       isVerified: false,
-      provider: 'apple',
-      appleId: 'apple-khalid-789',
-      settings: {
-        create: {
-          language: 'ar',
-          currency: 'SAR',
-          notifications: true,
-        },
-      },
+      provider: 'google',
+      googleId: 'google-mohammed-001',
     },
   });
 
-  console.log(`Created users: ${user1.name}, ${user2.name}, ${user3.name}`);
+  const fatima = await prisma.user.upsert({
+    where: { email: 'fatima@example.com' },
+    update: {},
+    create: {
+      email: 'fatima@example.com',
+      name: 'Fatima Ahmed',
+      phone: '+966507778888',
+      city: 'Riyadh',
+      bio: 'Monthly trips to Cairo',
+      isVerified: true,
+      provider: 'apple',
+      appleId: 'apple-fatima-001',
+      iban: 'SA6610000020012345678901',
+      bankName: 'Alinma Bank',
+    },
+  });
 
-  // Create listings
+  const omar = await prisma.user.upsert({
+    where: { email: 'omar@example.com' },
+    update: {},
+    create: {
+      email: 'omar@example.com',
+      name: 'Omar Hassan',
+      phone: '+966503334444',
+      city: 'Medina',
+      bio: 'Traveler and courier',
+      isVerified: true,
+      provider: 'google',
+      googleId: 'google-omar-001',
+      iban: 'SA3540000000001234567890',
+      bankName: 'Riyad Bank',
+    },
+  });
+
+  console.log('✅ Users created');
+
+  // ── Listings (other users' listings the dev user can book) ──
+
+  const now = new Date();
+  const inDays = (d: number) => new Date(now.getTime() + d * 24 * 60 * 60 * 1000);
+
+  // Sara's listing — dev user can book this
   const listing1 = await prisma.listing.create({
     data: {
-      carrierId: user1.id,
-      type: 'offer',
-      title: 'مساحة أمتعة متوفرة - الرياض إلى القاهرة',
-      titleAr: 'مساحة أمتعة متوفرة - الرياض إلى القاهرة',
-      description: 'لدي 15 كجم مساحة إضافية. أقبل ملابس وإلكترونيات وهدايا.',
-      descriptionAr: 'لدي 15 كجم مساحة إضافية. أقبل ملابس وإلكترونيات وهدايا.',
-      departureCity: 'الرياض',
-      departureCode: 'RUH',
-      arrivalCity: 'القاهرة',
-      arrivalCode: 'CAI',
-      departureDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
-      flightNumber: 'SV317',
-      availableWeight: 15,
-      priceSmall: 80,
-      priceMedium: 150,
-      priceLarge: 250,
-      negotiable: true,
-      restrictions: {
-        allowed: ['electronics', 'clothes', 'gifts', 'documents'],
-        notAllowed: ['liquids', 'food'],
-      },
-      handoffOptions: [
-        { type: 'airport_dropoff', location: 'مطار الملك خالد - صالة 1', locationAr: 'مطار الملك خالد - صالة 1' },
-        { type: 'mall_meetup', location: 'الرياض بارك', locationAr: 'الرياض بارك' },
-      ],
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      carrierId: sara.id,
+      departureCity: 'Jeddah',
+      departureCode: 'JED',
+      arrivalCity: 'Dubai',
+      arrivalCode: 'DXB',
+      departureDate: inDays(3),
+      flightNumber: 'SV 553',
+      availableWeight: 10,
+      price: 80,
+      currency: 'SAR',
+      notes: 'Flying direct, can carry electronics and documents',
+      status: 'active',
     },
   });
 
+  // Mohammed's listing — dev user can book this
   const listing2 = await prisma.listing.create({
     data: {
-      carrierId: user2.id,
-      type: 'offer',
-      title: 'رحلة جدة - دبي مع مساحة أمتعة',
-      titleAr: 'رحلة جدة - دبي مع مساحة أمتعة',
-      description: 'متوجهة لدبي لحضور مؤتمر تقني، لدي 10 كجم متاحة.',
-      descriptionAr: 'متوجهة لدبي لحضور مؤتمر تقني، لدي 10 كجم متاحة.',
-      departureCity: 'جدة',
-      departureCode: 'JED',
-      arrivalCity: 'دبي',
-      arrivalCode: 'DXB',
-      departureDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
-      availableWeight: 10,
-      priceSmall: 60,
-      priceMedium: 120,
-      priceLarge: 200,
-      negotiable: false,
-      restrictions: {
-        allowed: ['electronics', 'documents', 'accessories'],
-        notAllowed: ['liquids', 'food', 'fragile'],
-      },
-      handoffOptions: [
-        { type: 'airport_dropoff', location: 'مطار الملك عبدالعزيز', locationAr: 'مطار الملك عبدالعزيز' },
-      ],
-      expiresAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+      carrierId: mohammed.id,
+      departureCity: 'Riyadh',
+      departureCode: 'RUH',
+      arrivalCity: 'Amman',
+      arrivalCode: 'AMM',
+      departureDate: inDays(5),
+      availableWeight: 15,
+      price: 50,
+      currency: 'SAR',
+      notes: 'Business trip, extra luggage space available',
+      status: 'active',
     },
   });
 
+  // Fatima's listing — dev user can book this
   const listing3 = await prisma.listing.create({
     data: {
-      carrierId: user3.id,
-      type: 'request',
-      title: 'أحتاج توصيل أغراض من الرياض إلى لندن',
-      titleAr: 'أحتاج توصيل أغراض من الرياض إلى لندن',
-      description: 'أحتاج شخص يوصل ملابس وكتب من الرياض إلى لندن.',
-      descriptionAr: 'أحتاج شخص يوصل ملابس وكتب من الرياض إلى لندن.',
-      departureCity: 'الرياض',
+      carrierId: fatima.id,
+      departureCity: 'Riyadh',
       departureCode: 'RUH',
-      arrivalCity: 'لندن',
+      arrivalCity: 'Cairo',
+      arrivalCode: 'CAI',
+      departureDate: inDays(7),
+      flightNumber: 'MS 614',
+      availableWeight: 8,
+      price: 60,
+      currency: 'SAR',
+      notes: 'Monthly trip, no liquids please',
+      status: 'active',
+    },
+  });
+
+  // Omar's listing — dev user can book this
+  const listing4 = await prisma.listing.create({
+    data: {
+      carrierId: omar.id,
+      departureCity: 'Dammam',
+      departureCode: 'DMM',
+      arrivalCity: 'Manama',
+      arrivalCode: 'BAH',
+      departureDate: inDays(2),
+      availableWeight: 20,
+      price: 30,
+      currency: 'SAR',
+      notes: 'Driving across King Fahad Causeway, any items ok',
+      status: 'active',
+    },
+  });
+
+  // Dev user's OWN listings (so others book from them — carrier flow)
+  const devListing1 = await prisma.listing.create({
+    data: {
+      carrierId: devUser.id,
+      departureCity: 'Riyadh',
+      departureCode: 'RUH',
+      arrivalCity: 'Istanbul',
+      arrivalCode: 'IST',
+      departureDate: inDays(4),
+      flightNumber: 'TK 143',
+      availableWeight: 12,
+      price: 70,
+      currency: 'SAR',
+      notes: 'Direct flight, can carry up to 12kg extra',
+      status: 'active',
+    },
+  });
+
+  const devListing2 = await prisma.listing.create({
+    data: {
+      carrierId: devUser.id,
+      departureCity: 'Jeddah',
+      departureCode: 'JED',
+      arrivalCity: 'London',
       arrivalCode: 'LHR',
-      departureDate: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000),
-      availableWeight: 0,
-      neededWeight: 8,
-      priceSmall: 100,
-      priceMedium: 180,
-      priceLarge: 300,
-      negotiable: true,
-      restrictions: {
-        allowed: ['clothes', 'documents'],
-        notAllowed: [],
-      },
-      handoffOptions: [
-        { type: 'home_pickup', location: 'حي العليا، الرياض', locationAr: 'حي العليا، الرياض' },
-      ],
-      expiresAt: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000),
+      departureDate: inDays(10),
+      flightNumber: 'SV 115',
+      availableWeight: 7,
+      price: 100,
+      currency: 'SAR',
+      notes: 'Long-haul flight, documents and small parcels only',
+      status: 'active',
     },
   });
 
-  console.log(`Created listings: ${listing1.title}, ${listing2.title}, ${listing3.title}`);
+  console.log('✅ Listings created');
 
-  // Create a booking
-  const booking1 = await prisma.booking.create({
+  // ── Bookings at every status (full lifecycle demo) ──────────
+
+  // 1. PENDING: Sara booked dev user's Istanbul listing (carrier flow — dev can accept/reject)
+  const bookingPending = await prisma.booking.create({
     data: {
-      bookingRef: 'LS-A1B2C3',
-      listingId: listing1.id,
-      senderId: user2.id,
-      carrierId: user1.id,
+      listingId: devListing1.id,
+      senderId: sara.id,
+      carrierId: devUser.id,
+      status: 'pending',
+      totalWeight: 3,
+      totalPrice: 210, // 3 * 70
+      currency: 'SAR',
+    },
+  });
+
+  // 2. ACCEPTED: Mohammed booked dev user's London listing (carrier flow — dev can mark picked up)
+  const bookingAccepted = await prisma.booking.create({
+    data: {
+      listingId: devListing2.id,
+      senderId: mohammed.id,
+      carrierId: devUser.id,
       status: 'accepted',
-      packageSize: 'medium',
-      totalWeight: 7,
-      totalPrice: 150,
-      items: {
-        create: [
-          {
-            name: 'ملابس شتوية',
-            description: 'جاكيت وبنطلونات',
-            weight: 4,
-            value: 500,
-          },
-          {
-            name: 'هدايا',
-            description: 'هدايا للعائلة',
-            weight: 3,
-            value: 300,
-          },
-        ],
-      },
+      totalWeight: 2,
+      totalPrice: 200, // 2 * 100
+      currency: 'SAR',
     },
   });
 
-  console.log(`Created booking: ${booking1.bookingRef}`);
+  // 3. PICKED_UP: Fatima booked dev user's Istanbul listing (carrier flow — dev can mark in transit)
+  const bookingPickedUp = await prisma.booking.create({
+    data: {
+      listingId: devListing1.id,
+      senderId: fatima.id,
+      carrierId: devUser.id,
+      status: 'picked_up',
+      totalWeight: 4,
+      totalPrice: 280, // 4 * 70
+      currency: 'SAR',
+    },
+  });
 
-  // Create a conversation for the booking
-  const conversation1 = await prisma.conversation.create({
+  // 4. IN_TRANSIT: Dev user booked Sara's listing (sender flow — waiting for delivery)
+  const bookingInTransit = await prisma.booking.create({
     data: {
       listingId: listing1.id,
-      bookingId: booking1.id,
-      participant1Id: user1.id,
-      participant2Id: user2.id,
-      lastMessageAt: new Date(),
-      messages: {
-        create: [
-          {
-            senderId: user2.id,
-            content: 'مرحباً أحمد، أرغب بإرسال أغراض معك للقاهرة. هل المساحة لا تزال متوفرة؟',
-          },
-          {
-            senderId: user1.id,
-            content: 'أهلاً سارة! نعم المساحة متوفرة. كم وزن الأغراض تقريباً؟',
-          },
-          {
-            senderId: user2.id,
-            content: 'حوالي 7 كجم، ملابس وهدايا للعائلة.',
-          },
-          {
-            senderId: user1.id,
-            content: 'ممتاز، لا مشكلة أبداً. تم قبول الحجز!',
-          },
-        ],
-      },
+      senderId: devUser.id,
+      carrierId: sara.id,
+      status: 'in_transit',
+      totalWeight: 5,
+      totalPrice: 400, // 5 * 80
+      currency: 'SAR',
+      paymentStatus: 'confirmed',
     },
   });
 
-  console.log(`Created conversation with ${4} messages`);
-
-  // Create a pre-booking conversation (no booking yet)
-  await prisma.conversation.create({
+  // 5. DELIVERED: Dev user booked Omar's listing (sender flow — can leave review)
+  const bookingDelivered = await prisma.booking.create({
     data: {
-      listingId: listing3.id,
-      participant1Id: user3.id,
-      participant2Id: user1.id,
-      lastMessageAt: new Date(),
-      messages: {
-        create: [
-          {
-            senderId: user1.id,
-            content: 'مرحباً خالد، رأيت إعلانك. أنا مسافر لندن الأسبوع القادم ويمكنني مساعدتك.',
-          },
-          {
-            senderId: user3.id,
-            content: 'ممتاز! متى بالضبط رحلتك؟',
-          },
-        ],
-      },
+      listingId: listing4.id,
+      senderId: devUser.id,
+      carrierId: omar.id,
+      status: 'delivered',
+      totalWeight: 2,
+      totalPrice: 60, // 2 * 30
+      currency: 'SAR',
+      paymentStatus: 'confirmed',
     },
   });
 
-  console.log('Created pre-booking conversation');
+  // 6. CANCELLED: Dev user booked Mohammed's listing then cancelled (history)
+  const bookingCancelled = await prisma.booking.create({
+    data: {
+      listingId: listing2.id,
+      senderId: devUser.id,
+      carrierId: mohammed.id,
+      status: 'cancelled',
+      totalWeight: 3,
+      totalPrice: 150, // 3 * 50
+      currency: 'SAR',
+      cancelledBy: devUser.id,
+      cancelledAt: new Date(),
+    },
+  });
 
-  // Create notifications
-  await prisma.notification.createMany({
+  // 7. REJECTED: Omar booked dev user's London listing, dev rejected
+  const bookingRejected = await prisma.booking.create({
+    data: {
+      listingId: devListing2.id,
+      senderId: omar.id,
+      carrierId: devUser.id,
+      status: 'rejected',
+      totalWeight: 5,
+      totalPrice: 500,
+      currency: 'SAR',
+    },
+  });
+
+  console.log('✅ Bookings created (all statuses)');
+
+  // ── Items on some bookings ──────────────────────────────────
+
+  await prisma.item.createMany({
     data: [
       {
-        userId: user1.id,
-        title: 'طلب حجز جديد',
-        body: 'سارة تريد حجز 7 كجم على رحلتك من الرياض للقاهرة',
-        data: { type: 'booking_request', bookingId: booking1.id },
-        isRead: true,
+        bookingId: bookingPending.id,
+        name: 'iPhone 15 Pro',
+        description: 'Brand new, sealed box',
+        weight: 0.5,
+        value: 4500,
+        currency: 'SAR',
+        imageUrls: ['https://picsum.photos/seed/iphone15/400/400'],
       },
       {
-        userId: user2.id,
-        title: 'تم قبول حجزك',
-        body: 'أحمد قبل طلب الحجز الخاص بك. تواصلا لتنسيق التسليم.',
-        data: { type: 'booking_accepted', bookingId: booking1.id },
-        isRead: false,
+        bookingId: bookingPending.id,
+        name: 'Documents folder',
+        description: 'University admission papers',
+        weight: 0.3,
+        value: 0,
+        currency: 'SAR',
+        imageUrls: ['https://picsum.photos/seed/docs/400/400'],
       },
       {
-        userId: user3.id,
-        title: 'رسالة جديدة',
-        body: 'لديك رسالة جديدة من أحمد بخصوص إعلانك',
-        data: { type: 'new_message', conversationId: conversation1.id },
-        isRead: false,
+        bookingId: bookingInTransit.id,
+        name: 'Perfume set',
+        description: 'Gift for family — 3 bottles of 50ml',
+        weight: 2,
+        value: 800,
+        currency: 'SAR',
+        imageUrls: [
+          'https://picsum.photos/seed/perfume/400/400',
+          'https://picsum.photos/seed/perfbox/400/400',
+        ],
+      },
+      {
+        bookingId: bookingDelivered.id,
+        name: 'Chocolate box',
+        description: 'Swiss chocolates — premium gift',
+        weight: 1.5,
+        value: 200,
+        currency: 'SAR',
+        imageUrls: ['https://picsum.photos/seed/chocolate/400/400'],
       },
     ],
   });
 
-  console.log('Created 3 notifications');
-  console.log('Seed completed successfully!');
+  console.log('✅ Items created');
+
+  // ── Messages (chat conversations) ──────────────────────────
+
+  // Conversation on the pending booking (Sara → Dev)
+  await prisma.message.createMany({
+    data: [
+      {
+        bookingId: bookingPending.id,
+        senderId: sara.id,
+        content: 'Hi! I need to send an iPhone and some documents to Istanbul. Is that okay?',
+        isRead: true,
+        createdAt: new Date(now.getTime() - 2 * 60 * 60 * 1000),
+      },
+      {
+        bookingId: bookingPending.id,
+        senderId: devUser.id,
+        content: 'Sure, electronics are fine. Can you pack the phone in its original box?',
+        isRead: true,
+        createdAt: new Date(now.getTime() - 1.5 * 60 * 60 * 1000),
+      },
+      {
+        bookingId: bookingPending.id,
+        senderId: sara.id,
+        content: "Yes, it's sealed in the original packaging. Thank you!",
+        isRead: false,
+        createdAt: new Date(now.getTime() - 1 * 60 * 60 * 1000),
+      },
+    ],
+  });
+
+  // Conversation on the in-transit booking (Dev → Sara)
+  await prisma.message.createMany({
+    data: [
+      {
+        bookingId: bookingInTransit.id,
+        senderId: devUser.id,
+        content: 'I have a perfume set I need delivered to Dubai. Is it allowed on your flight?',
+        isRead: true,
+        createdAt: new Date(now.getTime() - 48 * 60 * 60 * 1000),
+      },
+      {
+        bookingId: bookingInTransit.id,
+        senderId: sara.id,
+        content:
+          "Perfume is fine as long as it's under 100ml per bottle for carry-on. I'll check it in.",
+        isRead: true,
+        createdAt: new Date(now.getTime() - 47 * 60 * 60 * 1000),
+      },
+      {
+        bookingId: bookingInTransit.id,
+        senderId: devUser.id,
+        content: 'Perfect, the set has 3 bottles of 50ml each. When can we meet for handoff?',
+        isRead: true,
+        createdAt: new Date(now.getTime() - 46 * 60 * 60 * 1000),
+      },
+      {
+        bookingId: bookingInTransit.id,
+        senderId: sara.id,
+        content: "Items picked up! I'm at the airport now, will update when I land in Dubai.",
+        isRead: true,
+        createdAt: new Date(now.getTime() - 24 * 60 * 60 * 1000),
+      },
+    ],
+  });
+
+  // Conversation on the accepted booking (Mohammed → Dev)
+  await prisma.message.createMany({
+    data: [
+      {
+        bookingId: bookingAccepted.id,
+        senderId: mohammed.id,
+        content: 'Salam! I need to send a small package to London. 2kg of books.',
+        isRead: true,
+        createdAt: new Date(now.getTime() - 5 * 60 * 60 * 1000),
+      },
+      {
+        bookingId: bookingAccepted.id,
+        senderId: devUser.id,
+        content:
+          "Wa alaikum assalam! Books are perfect, no issues at all. I've accepted the booking.",
+        isRead: true,
+        createdAt: new Date(now.getTime() - 4 * 60 * 60 * 1000),
+      },
+      {
+        bookingId: bookingAccepted.id,
+        senderId: mohammed.id,
+        content: 'Great! When should I bring them to you?',
+        isRead: false,
+        createdAt: new Date(now.getTime() - 30 * 60 * 1000),
+      },
+    ],
+  });
+
+  console.log('✅ Messages created');
+
+  // ── Notifications ──────────────────────────────────────────
+
+  await prisma.notification.createMany({
+    data: [
+      {
+        userId: devUser.id,
+        title: 'New Booking Request',
+        body: 'Sara Al-Otaibi wants to send 3kg to Istanbul',
+        data: { type: 'booking_created', bookingId: bookingPending.id },
+        isRead: false,
+        createdAt: new Date(now.getTime() - 2 * 60 * 60 * 1000),
+      },
+      {
+        userId: devUser.id,
+        title: 'Booking Accepted',
+        body: "Mohammed Al-Dosari's booking for London has been accepted",
+        data: { type: 'booking_accepted', bookingId: bookingAccepted.id },
+        isRead: true,
+        createdAt: new Date(now.getTime() - 5 * 60 * 60 * 1000),
+      },
+      {
+        userId: devUser.id,
+        title: 'Items In Transit',
+        body: 'Your items to Dubai are now in transit with Sara',
+        data: { type: 'booking_in_transit', bookingId: bookingInTransit.id },
+        isRead: true,
+        createdAt: new Date(now.getTime() - 24 * 60 * 60 * 1000),
+      },
+      {
+        userId: devUser.id,
+        title: 'Items Delivered!',
+        body: 'Your items to Manama have been delivered by Omar. Please rate your experience.',
+        data: { type: 'booking_delivered', bookingId: bookingDelivered.id },
+        isRead: false,
+        createdAt: new Date(now.getTime() - 3 * 60 * 60 * 1000),
+      },
+      {
+        userId: devUser.id,
+        title: 'New Message',
+        body: 'Sara Al-Otaibi sent you a message',
+        data: { type: 'new_message', bookingId: bookingPending.id },
+        isRead: false,
+        createdAt: new Date(now.getTime() - 1 * 60 * 60 * 1000),
+      },
+    ],
+  });
+
+  console.log('✅ Notifications created');
+
+  // ── Balance History (wallet transactions) ──────────────────
+
+  await prisma.balanceHistory.createMany({
+    data: [
+      {
+        userId: devUser.id,
+        amount: 60,
+        type: 'commission',
+        description: 'Delivery commission: Dammam → Manama',
+        bookingId: bookingDelivered.id,
+        createdAt: new Date(now.getTime() - 3 * 60 * 60 * 1000),
+      },
+      {
+        userId: devUser.id,
+        amount: 100,
+        type: 'top_up',
+        description: 'Wallet top-up via bank transfer',
+        createdAt: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000),
+      },
+    ],
+  });
+
+  console.log('✅ Balance history created');
+
+  // ── Summary ────────────────────────────────────────────────
+
+  console.log("\n🎉 Seed complete! Here's what was created:\n");
+  console.log(`  👤 Users: 5 (dev + sara + mohammed + fatima + omar)`);
+  console.log(`  📋 Listings: 6 (4 from others + 2 from dev user)`);
+  console.log(
+    `  📦 Bookings: 7 (pending, accepted, picked_up, in_transit, delivered, cancelled, rejected)`
+  );
+  console.log(`  📦 Items: 4 (on various bookings)`);
+  console.log(`  💬 Messages: 10 (across 3 conversations)`);
+  console.log(`  🔔 Notifications: 5`);
+  console.log(`  💰 Balance entries: 2`);
+  console.log(`\n  Login via dev-login endpoint to test as: dev@luggageshare.com`);
+  console.log(
+    `  Carrier bookings: pending (accept/reject), accepted (mark picked up), picked_up (mark in transit)`
+  );
+  console.log(
+    `  Sender bookings: in_transit (waiting), delivered (leave review), cancelled (history)`
+  );
 }
 
 main()
   .catch((e) => {
-    console.error('Seed failed:', e);
+    console.error('❌ Seed failed:', e);
     process.exit(1);
   })
   .finally(async () => {

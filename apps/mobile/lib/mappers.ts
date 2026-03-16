@@ -7,7 +7,7 @@ import { ApiListing } from '@/hooks/useListings';
  */
 export function mapApiListingToListing(api: ApiListing): Listing {
   const weight = Number(api.availableWeight);
-  const pricePerKg = Number(api.pricePerKg);
+  const price = Number(api.price);
 
   return {
     id: api.id,
@@ -43,9 +43,9 @@ export function mapApiListingToListing(api: ApiListing): Listing {
     travelDate: api.departureDate,
     availableWeight: weight,
     pricing: {
-      small: pricePerKg * 2,
-      medium: pricePerKg * 5,
-      large: pricePerKg * 10,
+      small: price,
+      medium: price,
+      large: price,
       negotiable: true,
     },
     restrictions: {

@@ -2,7 +2,7 @@
   "expo": {
     "name": "LuggageShare",
     "slug": "luggageshare",
-    "version": "0.1.0",
+    "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "luggageshare",
@@ -70,7 +70,9 @@
           "color": "#2E5A8F"
         }
       ],
-      "expo-font"
+      "expo-font",
+      "@react-native-community/datetimepicker",
+      "@sentry/react-native"
     ],
     "experiments": {
       "typedRoutes": true

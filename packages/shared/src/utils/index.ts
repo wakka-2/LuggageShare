@@ -1,5 +1,5 @@
-import { BOOKING_STATUS_LABELS, LISTING_STATUS_LABELS, RATING_LABELS, PACKAGE_SIZES } from '../constants';
-import type { BookingStatus, ListingStatus, PackageSize } from '../types';
+import { BOOKING_STATUS_LABELS, LISTING_STATUS_LABELS, RATING_LABELS } from '../constants';
+import type { BookingStatus, ListingStatus } from '../types';
 
 // Format currency
 export function formatCurrency(
@@ -26,16 +26,11 @@ export function formatDate(
     month: 'short',
     day: 'numeric',
   };
-  return new Intl.DateTimeFormat(locale, options || defaultOptions).format(
-    new Date(date)
-  );
+  return new Intl.DateTimeFormat(locale, options || defaultOptions).format(new Date(date));
 }
 
 // Format relative time
-export function formatRelativeTime(
-  date: string | Date,
-  locale: string = 'ar-SA'
-): string {
+export function formatRelativeTime(date: string | Date, locale: string = 'ar-SA'): string {
   const rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
   const now = new Date();
   const then = new Date(date);
@@ -57,26 +52,17 @@ export function formatRelativeTime(
 }
 
 // Get booking status label
-export function getBookingStatusLabel(
-  status: BookingStatus,
-  lang: 'ar' | 'en' = 'ar'
-): string {
+export function getBookingStatusLabel(status: BookingStatus, lang: 'ar' | 'en' = 'ar'): string {
   return BOOKING_STATUS_LABELS[lang][status];
 }
 
 // Get listing status label
-export function getListingStatusLabel(
-  status: ListingStatus,
-  lang: 'ar' | 'en' = 'ar'
-): string {
+export function getListingStatusLabel(status: ListingStatus, lang: 'ar' | 'en' = 'ar'): string {
   return LISTING_STATUS_LABELS[lang][status];
 }
 
 // Get rating label
-export function getRatingLabel(
-  rating: number,
-  lang: 'ar' | 'en' = 'ar'
-): string {
+export function getRatingLabel(rating: number, lang: 'ar' | 'en' = 'ar'): string {
   const key = Math.min(5, Math.max(1, Math.round(rating))) as 1 | 2 | 3 | 4 | 5;
   return RATING_LABELS[lang][key];
 }
@@ -113,31 +99,9 @@ export function calculateTotalWeight(items: { weight: number }[]): number {
   return items.reduce((sum, item) => sum + item.weight, 0);
 }
 
-// Get price for a specific package size tier
-export function getPriceForTier(
-  pricing: { small: number; medium: number; large: number },
-  size: PackageSize
-): number {
-  return pricing[size];
-}
-
-// Get package size label
-export function getPackageSizeLabel(
-  size: PackageSize,
-  lang: 'ar' | 'en' = 'ar'
-): string {
-  const sizeConfig = PACKAGE_SIZES.find((s) => s.id === size);
-  return sizeConfig ? (lang === 'ar' ? sizeConfig.nameAr : sizeConfig.nameEn) : size;
-}
-
-// Generate a human-readable booking reference (LS-XXXXXX)
-export function generateBookingRef(): string {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // excludes I, O, 0, 1
-  let ref = '';
-  for (let i = 0; i < 6; i++) {
-    ref += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return `LS-${ref}`;
+// Calculate total price
+export function calculateTotalPrice(price: number): number {
+  return Math.round(price * 100) / 100;
 }
 
 // Validate weight is within limits
@@ -146,10 +110,7 @@ export function isValidWeight(weight: number, maxWeight: number = 30): boolean {
 }
 
 // Validate item value is within limits
-export function isValidItemValue(
-  value: number,
-  maxValue: number = 500
-): boolean {
+export function isValidItemValue(value: number, maxValue: number = 500): boolean {
   return value > 0 && value <= maxValue;
 }
 
@@ -160,10 +121,6 @@ export function truncateText(text: string, maxLength: number): string {
 }
 
 // Generate route string
-export function formatRoute(
-  from: string,
-  to: string,
-  separator: string = '→'
-): string {
+export function formatRoute(from: string, to: string, separator: string = '→'): string {
   return `${from} ${separator} ${to}`;
 }

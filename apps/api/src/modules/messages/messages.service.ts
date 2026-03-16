@@ -1,28 +1,30 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { CreateConversationDto } from './dto/create-conversation.dto';
+import { containsProfanity } from '../../common/utils/content-filter';
 
 @Injectable()
 export class MessagesService {
   constructor(private readonly prisma: PrismaService) {}
 
   async getConversations(userId: string) {
-    const conversations = await this.prisma.conversation.findMany({
+    const bookings = await this.prisma.booking.findMany({
       where: {
-        OR: [
-          { participant1Id: userId },
-          { participant2Id: userId },
-        ],
+        OR: [{ senderId: userId }, { carrierId: userId }],
       },
       include: {
-        participant1: {
+        sender: {
           select: {
             id: true,
             name: true,
             avatarUrl: true,
           },
         },
-        participant2: {
+        carrier: {
           select: {
             id: true,
             name: true,
@@ -31,59 +33,40 @@ export class MessagesService {
         },
         listing: {
           select: {
-            id: true,
             departureCity: true,
             arrivalCity: true,
-          },
-        },
-        booking: {
-          select: {
-            id: true,
-            bookingRef: true,
-            status: true,
           },
         },
         messages: {
           orderBy: { createdAt: 'desc' },
           take: 1,
-          include: {
-            sender: {
-              select: { id: true },
-            },
-          },
         },
       },
-      orderBy: { lastMessageAt: { sort: 'desc', nulls: 'last' } },
+      orderBy: { updatedAt: 'desc' },
     });
 
-    // Count unread messages per conversation
-    const unreadCounts = await Promise.all(
-      conversations.map((conv) =>
-        this.prisma.message.count({
-          where: {
-            conversationId: conv.id,
-            senderId: { not: userId },
-            isRead: false,
-          },
-        }),
-      ),
-    );
+    const bookingIds = bookings.map((b) => b.id);
 
-    return conversations.map((conv, index) => {
-      const otherUser =
-        conv.participant1Id === userId ? conv.participant2 : conv.participant1;
-      const lastMessage = conv.messages[0];
-      const route = conv.listing
-        ? `${conv.listing.departureCity} → ${conv.listing.arrivalCity}`
-        : undefined;
+    const unreadCounts = await this.prisma.message.groupBy({
+      by: ['bookingId'],
+      where: {
+        bookingId: { in: bookingIds },
+        senderId: { not: userId },
+        isRead: false,
+      },
+      _count: { id: true },
+    });
+
+    const unreadMap = new Map(unreadCounts.map((uc) => [uc.bookingId, uc._count.id]));
+
+    return bookings.map((booking) => {
+      const otherUser = booking.senderId === userId ? booking.carrier : booking.sender;
+      const lastMessage = booking.messages[0];
 
       return {
-        id: conv.id,
-        listingId: conv.listingId,
-        bookingId: conv.bookingId,
+        bookingId: booking.id,
         otherUser,
-        route,
-        booking: conv.booking,
+        route: `${booking.listing?.departureCity ?? ''} → ${booking.listing?.arrivalCity ?? ''}`,
         lastMessage: lastMessage
           ? {
               content: lastMessage.content,
@@ -91,90 +74,26 @@ export class MessagesService {
               isMe: lastMessage.senderId === userId,
             }
           : null,
-        unreadCount: unreadCounts[index],
-        createdAt: conv.createdAt,
+        unreadCount: unreadMap.get(booking.id) ?? 0,
       };
     });
   }
 
-  async createConversation(userId: string, dto: CreateConversationDto) {
-    // Check if conversation already exists between these users for this listing
-    const existingConversation = await this.prisma.conversation.findFirst({
-      where: {
-        OR: [
-          { participant1Id: userId, participant2Id: dto.userId },
-          { participant1Id: dto.userId, participant2Id: userId },
-        ],
-        ...(dto.listingId && { listingId: dto.listingId }),
-        ...(dto.bookingId && { bookingId: dto.bookingId }),
-      },
+  async getMessages(userId: string, bookingId: string, cursor?: string) {
+    const booking = await this.prisma.booking.findUnique({
+      where: { id: bookingId },
     });
 
-    if (existingConversation) {
-      // Send initial message to existing conversation if provided
-      if (dto.initialMessage) {
-        await this.prisma.message.create({
-          data: {
-            conversationId: existingConversation.id,
-            senderId: userId,
-            content: dto.initialMessage,
-            messageType: 'text',
-          },
-        });
-        await this.prisma.conversation.update({
-          where: { id: existingConversation.id },
-          data: { lastMessageAt: new Date() },
-        });
-      }
-      return existingConversation;
+    if (!booking) {
+      throw new NotFoundException('Booking not found');
     }
 
-    // Create new conversation
-    const conversation = await this.prisma.conversation.create({
-      data: {
-        participant1Id: userId,
-        participant2Id: dto.userId,
-        listingId: dto.listingId,
-        bookingId: dto.bookingId,
-        ...(dto.initialMessage && {
-          lastMessageAt: new Date(),
-          messages: {
-            create: {
-              senderId: userId,
-              content: dto.initialMessage,
-              messageType: 'text',
-            },
-          },
-        }),
-      },
-      include: {
-        participant1: {
-          select: { id: true, name: true, avatarUrl: true },
-        },
-        participant2: {
-          select: { id: true, name: true, avatarUrl: true },
-        },
-      },
-    });
-
-    return conversation;
-  }
-
-  async getMessages(userId: string, conversationId: string, cursor?: string) {
-    const conversation = await this.prisma.conversation.findUnique({
-      where: { id: conversationId },
-    });
-
-    if (!conversation) {
-      throw new NotFoundException('Conversation not found');
-    }
-
-    if (conversation.participant1Id !== userId && conversation.participant2Id !== userId) {
+    if (booking.senderId !== userId && booking.carrierId !== userId) {
       throw new ForbiddenException('You do not have access to this conversation');
     }
 
     const messages = await this.prisma.message.findMany({
-      where: { conversationId },
+      where: { bookingId },
       orderBy: { createdAt: 'desc' },
       take: 50,
       ...(cursor && {
@@ -198,30 +117,28 @@ export class MessagesService {
     };
   }
 
-  async sendMessage(
-    userId: string,
-    conversationId: string,
-    content: string,
-    messageType: string = 'text',
-  ) {
-    const conversation = await this.prisma.conversation.findUnique({
-      where: { id: conversationId },
+  async sendMessage(userId: string, bookingId: string, content: string) {
+    const booking = await this.prisma.booking.findUnique({
+      where: { id: bookingId },
     });
 
-    if (!conversation) {
-      throw new NotFoundException('Conversation not found');
+    if (!booking) {
+      throw new NotFoundException('Booking not found');
     }
 
-    if (conversation.participant1Id !== userId && conversation.participant2Id !== userId) {
+    if (booking.senderId !== userId && booking.carrierId !== userId) {
       throw new ForbiddenException('You do not have access to this conversation');
+    }
+
+    if (containsProfanity(content)) {
+      throw new BadRequestException('Message contains inappropriate content');
     }
 
     const message = await this.prisma.message.create({
       data: {
-        conversationId,
+        bookingId,
         senderId: userId,
         content,
-        messageType,
       },
       include: {
         sender: {
@@ -234,34 +151,109 @@ export class MessagesService {
       },
     });
 
-    // Update conversation's lastMessageAt for sorting
-    await this.prisma.conversation.update({
-      where: { id: conversationId },
-      data: { lastMessageAt: new Date() },
+    // Update booking's updatedAt for conversation sorting
+    await this.prisma.booking.update({
+      where: { id: bookingId },
+      data: { updatedAt: new Date() },
     });
 
     return message;
   }
 
-  async markAsRead(userId: string, conversationId: string) {
-    const conversation = await this.prisma.conversation.findUnique({
-      where: { id: conversationId },
+  async markAsRead(userId: string, bookingId: string) {
+    const booking = await this.prisma.booking.findUnique({
+      where: { id: bookingId },
     });
 
-    if (!conversation) {
-      throw new NotFoundException('Conversation not found');
+    if (!booking) {
+      throw new NotFoundException('Booking not found');
     }
 
-    if (conversation.participant1Id !== userId && conversation.participant2Id !== userId) {
+    if (booking.senderId !== userId && booking.carrierId !== userId) {
       throw new ForbiddenException('You do not have access to this conversation');
     }
 
     await this.prisma.message.updateMany({
       where: {
-        conversationId,
+        bookingId,
         senderId: { not: userId },
         isRead: false,
       },
+      data: { isRead: true },
+    });
+
+    return { success: true };
+  }
+
+  // ─── Offer Chat (pre-booking negotiation) ─────────────────────────────────
+
+  private async getOfferParties(offerId: string) {
+    const offer = await this.prisma.offer.findUnique({
+      where: { id: offerId },
+      include: {
+        flight: { select: { posterId: true, departureCity: true, arrivalCity: true } },
+        sender: { select: { id: true } },
+      },
+    });
+    if (!offer) throw new NotFoundException('Offer not found');
+    return offer;
+  }
+
+  private assertOfferAccess(
+    userId: string,
+    offer: { senderId: string; flight: { posterId: string } }
+  ) {
+    if (offer.senderId !== userId && offer.flight.posterId !== userId) {
+      throw new ForbiddenException('You do not have access to this offer conversation');
+    }
+  }
+
+  async getOfferMessages(userId: string, offerId: string, cursor?: string) {
+    const offer = await this.getOfferParties(offerId);
+    this.assertOfferAccess(userId, offer);
+
+    const messages = await this.prisma.message.findMany({
+      where: { offerId },
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+      ...(cursor && { cursor: { id: cursor }, skip: 1 }),
+      include: {
+        sender: { select: { id: true, name: true, avatarUrl: true } },
+      },
+    });
+
+    return {
+      messages: messages.reverse(),
+      nextCursor: messages.length === 50 ? messages[0].id : null,
+    };
+  }
+
+  async sendOfferMessage(userId: string, offerId: string, content: string) {
+    const offer = await this.getOfferParties(offerId);
+    this.assertOfferAccess(userId, offer);
+
+    if (containsProfanity(content)) {
+      throw new BadRequestException('Message contains inappropriate content');
+    }
+
+    return this.prisma.message.create({
+      data: {
+        offerId,
+        senderId: userId,
+        content,
+      },
+      include: {
+        sender: { select: { id: true, name: true, avatarUrl: true } },
+      },
+    });
+  }
+
+  async markOfferMessagesRead(userId: string, offerId: string) {
+    const offer = await this.getOfferParties(offerId);
+    this.assertOfferAccess(userId, offer);
+
+    await this.prisma.message.updateMany({
+      where: { offerId, senderId: { not: userId }, isRead: false },
       data: { isRead: true },
     });
 

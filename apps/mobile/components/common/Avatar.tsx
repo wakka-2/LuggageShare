@@ -27,7 +27,14 @@ const FONT_RATIOS: Record<string, number> = {
   xlarge: 28,
 };
 
-export function Avatar({ source, avatarUrl, name, size = 'medium', verified, isVerified }: AvatarProps) {
+export function Avatar({
+  source,
+  avatarUrl,
+  name,
+  size = 'medium',
+  verified,
+  isVerified,
+}: AvatarProps) {
   const { colors } = useTheme();
   const dimension = typeof size === 'number' ? size : SIZES[size];
   const fontSize = typeof size === 'number' ? Math.round(size * 0.35) : FONT_RATIOS[size];
@@ -44,7 +51,13 @@ export function Avatar({ source, avatarUrl, name, size = 'medium', verified, isV
   };
 
   return (
-    <View style={styles.container}>
+    <View
+      style={styles.container}
+      accessibilityLabel={
+        name ? `${name}'s avatar${isVerifiedUser ? ', verified' : ''}` : 'User avatar'
+      }
+      accessibilityRole="image"
+    >
       {imageSource ? (
         <Image
           source={{ uri: imageSource }}
@@ -56,6 +69,7 @@ export function Avatar({ source, avatarUrl, name, size = 'medium', verified, isV
               borderRadius: dimension / 2,
             },
           ]}
+          accessibilityLabel={name ? `${name}'s photo` : 'User photo'}
         />
       ) : (
         <View
@@ -69,9 +83,7 @@ export function Avatar({ source, avatarUrl, name, size = 'medium', verified, isV
             },
           ]}
         >
-          <Text style={[styles.initials, { fontSize, color: '#FFFFFF' }]}>
-            {getInitials(name)}
-          </Text>
+          <Text style={[styles.initials, { fontSize, color: '#FFFFFF' }]}>{getInitials(name)}</Text>
         </View>
       )}
       {isVerifiedUser && (
@@ -80,7 +92,7 @@ export function Avatar({ source, avatarUrl, name, size = 'medium', verified, isV
             styles.verifiedBadge,
             {
               backgroundColor: colors.success,
-              right: dimension <= 32 ? -2 : 0,
+              end: dimension <= 32 ? -2 : 0,
               bottom: dimension <= 32 ? -2 : 0,
             },
           ]}

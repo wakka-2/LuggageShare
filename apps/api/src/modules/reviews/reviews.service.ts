@@ -1,6 +1,12 @@
-import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateReviewDto } from './dto/create-review.dto';
+import { containsProfanity } from '../../common/utils/content-filter';
 
 @Injectable()
 export class ReviewsService {
@@ -83,6 +89,10 @@ export class ReviewsService {
 
     if (dto.rating < 1 || dto.rating > 5) {
       throw new BadRequestException('Rating must be between 1 and 5');
+    }
+
+    if (dto.comment && containsProfanity(dto.comment)) {
+      throw new BadRequestException('Review contains inappropriate content');
     }
 
     return this.prisma.review.create({

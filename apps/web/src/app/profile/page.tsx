@@ -1,232 +1,229 @@
 'use client';
 
+import { useMemo } from 'react';
+import Link from 'next/link';
+import {
+  Pencil,
+  Wallet,
+  Bell,
+  HelpCircle,
+  LogOut,
+  Star,
+  ChevronLeft,
+  Shield,
+  Settings,
+} from 'lucide-react';
+import { useAuth } from '@/providers/AuthProvider';
+import { useLanguage } from '@/providers/LanguageProvider';
+import { useProfile } from '@/hooks/useProfile';
+import { useUserReviews } from '@/hooks/useReviews';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
-import { MOCK_USER } from '@/lib/data/mockUser';
-import { useCurrentUser } from '@/hooks/useUser';
-import { useAuth } from '@/lib/contexts/AuthContext';
-import Link from 'next/link';
-import { Edit2, MapPin, Calendar, Star, Shield, MessageSquare, Award, Globe } from 'lucide-react';
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import ProfileHeader from '@/components/profile/ProfileHeader';
+
+function StarRating({ rating }: { rating: number }) {
+  return (
+    <div className="flex items-center gap-0.5">
+      {[1, 2, 3, 4, 5].map((i) => (
+        <Star
+          key={i}
+          className={`w-3.5 h-3.5 ${
+            i <= rating ? 'text-v2-amber fill-v2-amber' : 'text-v2-primary/20'
+          }`}
+        />
+      ))}
+    </div>
+  );
+}
+
+function getInitial(name: string): string {
+  return name.charAt(0).toUpperCase();
+}
 
 export default function ProfilePage() {
-  const { isAuthenticated } = useAuth();
-  const { data: apiUser } = useCurrentUser();
+  const { user, signOut } = useAuth();
+  const { t } = useLanguage();
+  const { data: profile } = useProfile();
+  const { data: reviews, isLoading: reviewsLoading } = useUserReviews(user?.id ?? null);
 
-  // Use API data when authenticated, fall back to mock
-  const user = isAuthenticated && apiUser ? {
-    ...MOCK_USER,
-    nameAr: apiUser.nameAr,
-    nameEn: apiUser.nameEn,
-    email: apiUser.email,
-    phone: apiUser.phone,
-    bio: apiUser.bio || MOCK_USER.bio,
-    city: apiUser.city || MOCK_USER.city,
-    isVerified: apiUser.isVerified,
-    memberSince: apiUser.memberSince,
-  } : MOCK_USER;
+  const menuItems = useMemo(
+    () => [
+      {
+        href: '/profile/edit',
+        icon: Pencil,
+        label: t('profile.editProfile'),
+        description: t('wp.profileEditDesc'),
+      },
+      {
+        href: '/wallet',
+        icon: Wallet,
+        label: t('profile.wallet'),
+        description: t('wp.walletDesc'),
+      },
+      {
+        href: '/notifications',
+        icon: Bell,
+        label: t('profile.notifications'),
+        description: t('wp.notificationsDesc'),
+      },
+      {
+        href: '/reviews',
+        icon: Star,
+        label: t('profile.myReviews') || 'My Reviews',
+        description: t('wp.reviewsDesc') || 'See your ratings and feedback',
+      },
+      {
+        href: '/verification',
+        icon: Shield,
+        label: t('profile.verification'),
+        description: t('wp.verificationDesc') || 'Verify your identity',
+      },
+      {
+        href: '/settings',
+        icon: Settings,
+        label: t('profile.settings'),
+        description: t('wp.settingsDesc') || 'Language, appearance, notifications',
+      },
+      {
+        href: '/help',
+        icon: HelpCircle,
+        label: t('wp.helpShort'),
+        description: t('wp.helpDesc'),
+      },
+    ],
+    [t]
+  );
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('ar-SA', {
-      year: 'numeric',
-      month: 'long',
-    });
-  };
+  const profileUser = useMemo(() => {
+    if (profile) {
+      return {
+        name: profile.name,
+        avatarUrl: profile.avatarUrl,
+        isVerified: profile.isVerified,
+      };
+    }
+    if (user) {
+      return {
+        name: user.displayName || user.name,
+        avatarUrl: user.avatarUrl,
+        isVerified: user.isVerified,
+      };
+    }
+    return { name: undefined, avatarUrl: null, isVerified: false };
+  }, [profile, user]);
+
+  const stats = profile?.stats ?? undefined;
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
-      <Header />
+    <ProtectedRoute>
+      <div className="min-h-screen flex flex-col blob-background">
+        <Header />
 
-      <main className="flex-1 py-8 px-4">
-        <div className="max-w-4xl mx-auto">
-          {/* Profile Header Card */}
-          <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
-            <div className="flex items-start justify-between mb-6">
-              <div className="flex items-start gap-4">
-                {/* Avatar */}
-                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white text-3xl font-bold">
-                  {user.nameAr.charAt(0)}
+        <main className="flex-1 max-w-2xl mx-auto w-full px-4 py-8">
+          {/* Profile Header */}
+          <div className="mb-6">
+            <ProfileHeader user={profileUser} stats={stats} showEdit={true} />
+          </div>
+
+          {/* Menu Cards */}
+          <div className="space-y-3 mb-8">
+            {menuItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="flex items-center gap-4 bg-white rounded-[22px] p-4 shadow-bubble-sm hover:shadow-bubble-md transition-all group"
+              >
+                <div className="w-11 h-11 rounded-full bg-v2-primary/10 flex items-center justify-center flex-shrink-0 group-hover:bg-v2-primary/15 transition-colors">
+                  <item.icon className="w-5 h-5 text-v2-primary" />
                 </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-v2-text">{item.label}</p>
+                  <p className="text-xs text-v2-text-soft">{item.description}</p>
+                </div>
+                <ChevronLeft className="w-4 h-4 text-v2-text-muted flex-shrink-0" />
+              </Link>
+            ))}
+          </div>
 
-                {/* User Info */}
-                <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <h1 className="text-2xl font-bold text-gray-900">{user.nameAr}</h1>
-                    {user.isVerified && (
-                      <div className="bg-green-100 text-green-700 px-2 py-1 rounded-full flex items-center gap-1 text-sm">
-                        <Shield className="w-4 h-4" />
-                        <span>موثق</span>
+          {/* Reviews Section */}
+          <div className="mb-8">
+            <h2 className="text-lg font-extrabold text-v2-text mb-4">{t('wp.reviews')}</h2>
+
+            {reviewsLoading ? (
+              <div className="space-y-3">
+                {[1, 2, 3].map((i) => (
+                  <div
+                    key={i}
+                    className="bg-white rounded-[22px] p-4 shadow-bubble-sm animate-pulse"
+                  >
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-9 h-9 rounded-full bg-v2-primary/10" />
+                      <div className="h-4 w-24 bg-v2-primary/10 rounded-full" />
+                    </div>
+                    <div className="h-3 w-full bg-v2-primary/5 rounded-full" />
+                  </div>
+                ))}
+              </div>
+            ) : reviews && reviews.length > 0 ? (
+              <div className="space-y-3">
+                {reviews.map((review) => (
+                  <div key={review.id} className="bg-white rounded-[22px] p-4 shadow-bubble-sm">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        {review.reviewer.avatarUrl ? (
+                          <img
+                            src={review.reviewer.avatarUrl}
+                            alt={review.reviewer.name}
+                            className="w-9 h-9 rounded-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-9 h-9 rounded-full bg-v2-primary/10 flex items-center justify-center text-sm font-bold text-v2-primary">
+                            {getInitial(review.reviewer.name)}
+                          </div>
+                        )}
+                        <div>
+                          <p className="text-sm font-semibold text-v2-text">
+                            {review.reviewer.name}
+                          </p>
+                          {review.booking && (
+                            <p className="text-[10px] text-v2-text-muted">
+                              {review.booking.listing.departureCity} &rarr;{' '}
+                              {review.booking.listing.arrivalCity}
+                            </p>
+                          )}
+                        </div>
                       </div>
+                      <StarRating rating={review.rating} />
+                    </div>
+                    {review.comment && (
+                      <p className="text-sm text-v2-text-soft">{review.comment}</p>
                     )}
                   </div>
-
-                  <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
-                    <div className="flex items-center gap-1">
-                      <MapPin className="w-4 h-4" />
-                      <span>{user.city}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Calendar className="w-4 h-4" />
-                      <span>عضو منذ {formatDate(user.memberSince)}</span>
-                    </div>
-                  </div>
-
-                  {/* Languages */}
-                  <div className="flex items-center gap-2">
-                    <Globe className="w-4 h-4 text-gray-500" />
-                    <div className="flex gap-2">
-                      {user.languages.map((lang) => (
-                        <span
-                          key={lang}
-                          className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm"
-                        >
-                          {lang}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
+                ))}
               </div>
-
-              {/* Edit Button */}
-              <Link
-                href="/profile/edit"
-                className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                <Edit2 className="w-4 h-4" />
-                <span>تعديل الملف</span>
-              </Link>
-            </div>
-
-            {/* Bio */}
-            {user.bio && (
-              <div className="mb-6 pb-6 border-b border-gray-200">
-                <h2 className="text-sm font-semibold text-gray-700 mb-2">نبذة عني</h2>
-                <p className="text-gray-700 leading-relaxed">{user.bio}</p>
+            ) : (
+              <div className="bg-white rounded-[22px] p-6 shadow-bubble-sm text-center">
+                <div className="w-12 h-12 rounded-full bg-v2-primary/10 flex items-center justify-center mx-auto mb-3">
+                  <Star className="w-6 h-6 text-v2-primary" />
+                </div>
+                <p className="text-sm text-v2-text-soft">{t('wp.noReviews')}</p>
               </div>
             )}
-
-            {/* Stats Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="text-center p-4 bg-primary-50 rounded-lg">
-                <div className="flex items-center justify-center gap-1 mb-1">
-                  <Star className="w-5 h-5 text-primary-600 fill-primary-600" />
-                  <span className="text-2xl font-bold text-primary-600">{user.rating}</span>
-                </div>
-                <div className="text-sm text-gray-600">{user.totalReviews} تقييم</div>
-              </div>
-
-              <div className="text-center p-4 bg-green-50 rounded-lg">
-                <div className="flex items-center justify-center gap-1 mb-1">
-                  <Award className="w-5 h-5 text-green-600" />
-                  <span className="text-2xl font-bold text-green-600">{user.completedTrips}</span>
-                </div>
-                <div className="text-sm text-gray-600">رحلة مكتملة</div>
-              </div>
-
-              <div className="text-center p-4 bg-blue-50 rounded-lg">
-                <div className="flex items-center justify-center gap-1 mb-1">
-                  <MessageSquare className="w-5 h-5 text-blue-600" />
-                  <span className="text-2xl font-bold text-blue-600">{user.activeListings}</span>
-                </div>
-                <div className="text-sm text-gray-600">إعلان نشط</div>
-              </div>
-
-              <div className="text-center p-4 bg-purple-50 rounded-lg">
-                <div className="flex items-center justify-center gap-1 mb-1">
-                  <Shield className="w-5 h-5 text-purple-600" />
-                  <span className="text-2xl font-bold text-purple-600">100%</span>
-                </div>
-                <div className="text-sm text-gray-600">معدل الاستجابة</div>
-              </div>
-            </div>
           </div>
 
-          {/* Quick Links */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <Link
-              href="/profile/listings"
-              className="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow"
-            >
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="font-semibold text-gray-900">إعلاناتي</h3>
-                <span className="text-2xl">📋</span>
-              </div>
-              <p className="text-sm text-gray-600">إدارة إعلاناتك النشطة والسابقة</p>
-            </Link>
+          {/* Sign Out */}
+          <button
+            onClick={signOut}
+            className="w-full flex items-center justify-center gap-2 bg-white rounded-[22px] p-4 shadow-bubble-sm text-v2-secondary font-semibold hover:bg-v2-secondary/5 transition-all"
+          >
+            <LogOut className="w-5 h-5" />
+            {t('profile.signOut')}
+          </button>
+        </main>
 
-            <Link
-              href="/bookings"
-              className="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow"
-            >
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="font-semibold text-gray-900">حجوزاتي</h3>
-                <span className="text-2xl">📦</span>
-              </div>
-              <p className="text-sm text-gray-600">عرض جميع حجوزاتك ومعاملاتك</p>
-            </Link>
-
-            <Link
-              href="/profile/settings"
-              className="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow"
-            >
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="font-semibold text-gray-900">الإعدادات</h3>
-                <span className="text-2xl">⚙️</span>
-              </div>
-              <p className="text-sm text-gray-600">تخصيص تفضيلات حسابك</p>
-            </Link>
-          </div>
-
-          {/* Reviews Section (Placeholder) */}
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-gray-900">التقييمات</h2>
-              <div className="flex items-center gap-2">
-                <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
-                <span className="font-semibold">{user.rating}</span>
-                <span className="text-gray-500">({user.totalReviews} تقييم)</span>
-              </div>
-            </div>
-
-            {/* Sample Reviews */}
-            <div className="space-y-4">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="pb-4 border-b border-gray-200 last:border-0">
-                  <div className="flex items-start gap-3 mb-2">
-                    <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center font-semibold">
-                      م
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="font-medium text-gray-900">محمد علي</span>
-                        <span className="text-sm text-gray-500">منذ أسبوعين</span>
-                      </div>
-                      <div className="flex items-center gap-1 mb-2">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <Star
-                            key={star}
-                            className="w-4 h-4 text-yellow-400 fill-yellow-400"
-                          />
-                        ))}
-                      </div>
-                      <p className="text-sm text-gray-700">
-                        تجربة ممتازة! شخص موثوق وملتزم بالمواعيد. استلمت أغراضي بحالة ممتازة.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <button className="w-full mt-4 py-2 text-primary-600 hover:text-primary-700 font-medium">
-              عرض جميع التقييمات ({user.totalReviews})
-            </button>
-          </div>
-        </div>
-      </main>
-
-      <Footer />
-    </div>
+        <Footer />
+      </div>
+    </ProtectedRoute>
   );
 }

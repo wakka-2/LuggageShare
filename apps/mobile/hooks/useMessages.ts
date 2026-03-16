@@ -8,13 +8,13 @@ export interface ApiConversation {
     name: string;
     avatarUrl: string | null;
   };
-  lastMessage: string;
-  lastMessageAt: string;
+  lastMessage: {
+    content: string;
+    createdAt: string;
+    isMe: boolean;
+  } | null;
   unreadCount: number;
-  listing: {
-    departureCity: string;
-    arrivalCity: string;
-  };
+  route: string;
 }
 
 export interface ApiMessage {
@@ -36,7 +36,7 @@ export function useConversations() {
     queryKey: ['conversations'],
     queryFn: async () => {
       const { data } = await apiClient.get('/messages/conversations');
-      return data;
+      return data.data ?? data;
     },
   });
 }
@@ -46,7 +46,9 @@ export function useMessages(bookingId: string | null) {
     queryKey: ['messages', bookingId],
     queryFn: async () => {
       const { data } = await apiClient.get(`/messages/conversations/${bookingId}`);
-      return data;
+      // API returns { messages: [...], nextCursor: ... }
+      const result = data.data ?? data;
+      return result.messages ?? result;
     },
     enabled: !!bookingId,
     refetchInterval: 5000,

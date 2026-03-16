@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { View, StyleSheet, Platform, ViewStyle } from 'react-native';
-import LottieView from 'lottie-react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 // Local animation assets - more reliable than remote URLs
 const LOCAL_ANIMATIONS = {
@@ -20,12 +20,22 @@ const REMOTE_ANIMATIONS = {
 
 export const LOTTIE_ANIMATIONS = {
   ...LOCAL_ANIMATIONS,
-  ...Object.fromEntries(
-    Object.entries(REMOTE_ANIMATIONS).map(([key, url]) => [key, url])
-  ),
+  ...Object.fromEntries(Object.entries(REMOTE_ANIMATIONS).map(([key, url]) => [key, url])),
 } as const;
 
 export type AnimationType = keyof typeof LOCAL_ANIMATIONS | keyof typeof REMOTE_ANIMATIONS;
+
+// Icon mapping for web fallback (avoids dotlottie-react canvas crash)
+const WEB_ICON_MAP: Record<string, keyof typeof Ionicons.glyphMap> = {
+  search: 'search-outline',
+  empty: 'file-tray-outline',
+  loading: 'hourglass-outline',
+  success: 'checkmark-circle-outline',
+  airplane: 'airplane-outline',
+  location: 'location-outline',
+  package: 'cube-outline',
+  chat: 'chatbubbles-outline',
+};
 
 interface LottieAnimationProps {
   animation: AnimationType | string;
@@ -46,54 +56,41 @@ export function LottieAnimation({
   style,
   onAnimationFinish,
 }: LottieAnimationProps) {
-  const animationRef = useRef<LottieView>(null);
-
-  // Get the animation source - prioritize local assets
-  const getSource = () => {
-    if (typeof animation === 'string') {
-      // Check for local animation first
-      if (animation in LOCAL_ANIMATIONS) {
-        return LOCAL_ANIMATIONS[animation as keyof typeof LOCAL_ANIMATIONS];
-      }
-      // Check for remote animation
-      if (animation in REMOTE_ANIMATIONS) {
-        return { uri: REMOTE_ANIMATIONS[animation as keyof typeof REMOTE_ANIMATIONS] };
-      }
-      // Custom URL
-      return { uri: animation };
-    }
-    return LOCAL_ANIMATIONS.search; // Default fallback
-  };
-
-  const source = getSource();
-
-  useEffect(() => {
-    if (autoPlay && animationRef.current) {
-      animationRef.current.play();
-    }
-  }, [autoPlay]);
-
-  // Web fallback - Lottie doesn't work well on web in some cases
+  // On web, LottieView uses @lottiefiles/dotlottie-react which crashes with
+  // "Failed to construct 'ImageData': The source width is zero or not a number"
+  // when the canvas element hasn't rendered yet. Use a simple icon instead.
   if (Platform.OS === 'web') {
+    const iconName = WEB_ICON_MAP[animation] || 'ellipse-outline';
+    const iconSize = Math.round(size * 0.45);
     return (
       <View style={[styles.webFallback, { width: size, height: size }, style]}>
-        <LottieView
-          ref={animationRef}
-          source={source}
-          style={{ width: size, height: size }}
-          autoPlay={autoPlay}
-          loop={loop}
-          speed={speed}
-          onAnimationFinish={onAnimationFinish}
-        />
+        <Ionicons name={iconName} size={iconSize} color="#94A3B8" />
       </View>
     );
   }
 
+  // Native: use lottie-react-native
+  // Lazy-require to avoid loading the library on web
+  const LottieView = require('lottie-react-native').default;
+
+  const getSource = () => {
+    if (typeof animation === 'string') {
+      if (animation in LOCAL_ANIMATIONS) {
+        return LOCAL_ANIMATIONS[animation as keyof typeof LOCAL_ANIMATIONS];
+      }
+      if (animation in REMOTE_ANIMATIONS) {
+        return { uri: REMOTE_ANIMATIONS[animation as keyof typeof REMOTE_ANIMATIONS] };
+      }
+      return { uri: animation };
+    }
+    return LOCAL_ANIMATIONS.search;
+  };
+
+  const source = getSource();
+
   return (
     <View style={[{ width: size, height: size }, style]}>
       <LottieView
-        ref={animationRef}
         source={source}
         style={{ width: size, height: size }}
         autoPlay={autoPlay}

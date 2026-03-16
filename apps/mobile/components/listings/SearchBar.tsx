@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, {
@@ -10,7 +9,8 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 
-import { useTheme } from '@/hooks/useTheme';
+import { BubbleInput, BubbleButton, BubblePill } from '@/components/common';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS } from '@/providers/ThemeProvider';
 
 interface SearchBarProps {
   from: string;
@@ -31,20 +31,30 @@ const POPULAR_ROUTES = [
 ];
 
 const QUICK_DATES = [
-  { key: 'today', labelKey: 'searchBar.today', getValue: () => new Date().toISOString().split('T')[0] },
-  { key: 'tomorrow', labelKey: 'searchBar.tomorrow', getValue: () => {
-    const d = new Date();
-    d.setDate(d.getDate() + 1);
-    return d.toISOString().split('T')[0];
-  }},
-  { key: 'week', labelKey: 'searchBar.thisWeek', getValue: () => {
-    const d = new Date();
-    d.setDate(d.getDate() + 7);
-    return d.toISOString().split('T')[0];
-  }},
+  {
+    key: 'today',
+    labelKey: 'searchBar.today',
+    getValue: () => new Date().toISOString().split('T')[0],
+  },
+  {
+    key: 'tomorrow',
+    labelKey: 'searchBar.tomorrow',
+    getValue: () => {
+      const d = new Date();
+      d.setDate(d.getDate() + 1);
+      return d.toISOString().split('T')[0];
+    },
+  },
+  {
+    key: 'week',
+    labelKey: 'searchBar.thisWeek',
+    getValue: () => {
+      const d = new Date();
+      d.setDate(d.getDate() + 7);
+      return d.toISOString().split('T')[0];
+    },
+  },
 ];
-
-const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
 export function SearchBar({
   from,
@@ -57,7 +67,6 @@ export function SearchBar({
   onSwap,
 }: SearchBarProps) {
   const { t, i18n } = useTranslation();
-  const { colors } = useTheme();
   const isRTL = i18n.language === 'ar';
   const isWeb = Platform.OS === 'web';
 
@@ -94,144 +103,88 @@ export function SearchBar({
     <Animated.View entering={FadeIn} style={styles.container}>
       {/* Search Inputs */}
       <View style={[styles.searchRow, isWeb && styles.searchRowWeb]}>
-        {/* From Input */}
-        <View style={[styles.inputWrapper, { backgroundColor: colors.background, borderColor: colors.border }]}>
-          <Ionicons name="location" size={20} color={colors.primary} />
-          <TextInput
-            style={[styles.input, { color: colors.text }]}
-            placeholder={t('searchBar.from')}
-            placeholderTextColor={colors.textTertiary}
-            value={from}
-            onChangeText={onFromChange}
-          />
-          {from.length > 0 && (
-            <TouchableOpacity onPress={() => onFromChange('')}>
-              <Ionicons name="close-circle" size={18} color={colors.textTertiary} />
-            </TouchableOpacity>
-          )}
-        </View>
+        <BubbleInput
+          value={from}
+          onChangeText={onFromChange}
+          placeholder={t('searchBar.from')}
+          dotColor={V2_COLORS.accent1}
+          icon="location"
+        />
 
         {/* Swap Button */}
-        <AnimatedTouchable
+        <TouchableOpacity
           onPress={handleSwap}
-          style={[styles.swapButton, { backgroundColor: colors.card, borderColor: colors.border }]}
+          style={styles.swapButton}
+          accessibilityRole="button"
+          accessibilityLabel={t('searchBar.swapCities', {
+            defaultValue: 'Swap departure and arrival cities',
+          })}
         >
           <Animated.View style={swapAnimatedStyle}>
-            <Ionicons name="swap-horizontal" size={20} color={colors.primary} />
+            <Ionicons name="swap-vertical" size={20} color={V2_COLORS.primary} />
           </Animated.View>
-        </AnimatedTouchable>
-
-        {/* To Input */}
-        <View style={[styles.inputWrapper, { backgroundColor: colors.background, borderColor: colors.border }]}>
-          <Ionicons name="navigate" size={20} color={colors.success} />
-          <TextInput
-            style={[styles.input, { color: colors.text }]}
-            placeholder={t('searchBar.to')}
-            placeholderTextColor={colors.textTertiary}
-            value={to}
-            onChangeText={onToChange}
-          />
-          {to.length > 0 && (
-            <TouchableOpacity onPress={() => onToChange('')}>
-              <Ionicons name="close-circle" size={18} color={colors.textTertiary} />
-            </TouchableOpacity>
-          )}
-        </View>
-
-        {/* Date Input */}
-        <View style={[styles.inputWrapper, styles.dateInput, { backgroundColor: colors.background, borderColor: colors.border }]}>
-          <Ionicons name="calendar" size={20} color={colors.warning} />
-          {isWeb ? (
-            <input
-              type="date"
-              value={date}
-              onChange={(e) => onDateChange(e.target.value)}
-              style={{
-                flex: 1,
-                border: 'none',
-                outline: 'none',
-                background: 'transparent',
-                color: colors.text,
-                fontSize: 15,
-                fontWeight: '500',
-                fontFamily: 'inherit',
-              }}
-              placeholder={t('searchBar.date')}
-            />
-          ) : (
-            <TextInput
-              style={[styles.input, { color: colors.text }]}
-              placeholder={t('searchBar.date')}
-              placeholderTextColor={colors.textTertiary}
-              value={date ? formatDateDisplay(date) : ''}
-              onChangeText={onDateChange}
-            />
-          )}
-          {date.length > 0 && (
-            <TouchableOpacity onPress={() => onDateChange('')}>
-              <Ionicons name="close-circle" size={18} color={colors.textTertiary} />
-            </TouchableOpacity>
-          )}
-        </View>
-
-        {/* Search Button */}
-        <TouchableOpacity
-          style={[styles.searchButton, { backgroundColor: colors.primary }]}
-          onPress={onSearch}
-        >
-          <Ionicons name="search" size={20} color="#FFFFFF" />
-          {isWeb && (
-            <Text style={styles.searchButtonText}>
-              {t('searchBar.search')}
-            </Text>
-          )}
         </TouchableOpacity>
+
+        <BubbleInput
+          value={to}
+          onChangeText={onToChange}
+          placeholder={t('searchBar.to')}
+          dotColor={V2_COLORS.secondary}
+          icon="navigate"
+        />
+
+        <BubbleInput
+          value={date ? formatDateDisplay(date) : ''}
+          onChangeText={onDateChange}
+          placeholder={t('searchBar.date')}
+          dotColor={V2_COLORS.accent2}
+          icon="calendar"
+        />
+
+        <BubbleButton
+          label={isWeb ? t('searchBar.search') : ''}
+          icon="search"
+          variant="gradient"
+          onPress={onSearch || (() => {})}
+          fullWidth
+          size="lg"
+        />
       </View>
 
       {/* Quick Options */}
       {showQuickOptions && (
         <Animated.View entering={FadeInDown.delay(200)} style={styles.quickOptions}>
-          {/* Quick Dates */}
           <View style={styles.quickSection}>
-            <Text style={[styles.quickLabel, { color: colors.textTertiary }]}>
-              {t('searchBar.when')}
-            </Text>
+            <Text style={styles.quickLabel}>{t('searchBar.when')}</Text>
             <View style={styles.quickChips}>
-              {QUICK_DATES.map((item, index) => (
-                <TouchableOpacity
+              {QUICK_DATES.map((item) => (
+                <BubblePill
                   key={item.key}
-                  style={[styles.quickChip, { backgroundColor: colors.warning + '15', borderColor: colors.warning + '30' }]}
+                  label={t(item.labelKey)}
+                  icon="calendar-outline"
+                  active={false}
+                  color={V2_COLORS.accent2}
                   onPress={() => onDateChange(item.getValue())}
-                >
-                  <Ionicons name="calendar-outline" size={14} color={colors.warning} />
-                  <Text style={[styles.quickChipText, { color: colors.warning }]}>
-                    {t(item.labelKey)}
-                  </Text>
-                </TouchableOpacity>
+                />
               ))}
             </View>
           </View>
 
-          {/* Popular Routes */}
           <View style={styles.quickSection}>
-            <Text style={[styles.quickLabel, { color: colors.textTertiary }]}>
-              {t('searchBar.popular')}
-            </Text>
+            <Text style={styles.quickLabel}>{t('searchBar.popular')}</Text>
             <View style={styles.quickChips}>
               {POPULAR_ROUTES.map((route, index) => (
-                <TouchableOpacity
+                <BubblePill
                   key={index}
-                  style={[styles.quickChip, { backgroundColor: colors.primary + '10', borderColor: colors.primary + '20' }]}
+                  label={t(route.labelKey)}
+                  icon="airplane-outline"
+                  active={false}
+                  color={V2_COLORS.primary}
                   onPress={() => {
                     onFromChange(route.from);
                     onToChange(route.to);
                   }}
-                >
-                  <Ionicons name="airplane-outline" size={14} color={colors.primary} />
-                  <Text style={[styles.quickChipText, { color: colors.primary }]}>
-                    {t(route.labelKey)}
-                  </Text>
-                </TouchableOpacity>
+                />
               ))}
             </View>
           </View>
@@ -243,38 +196,62 @@ export function SearchBar({
         <Animated.View entering={FadeIn} style={styles.activeFilters}>
           <View style={styles.filterTags}>
             {from && (
-              <View style={[styles.filterTag, { backgroundColor: colors.primary + '15' }]}>
-                <Text style={[styles.filterTagText, { color: colors.primary }]}>
+              <View style={[styles.filterTag, { backgroundColor: V2_COLORS.primary + '15' }]}>
+                <Text style={[styles.filterTagText, { color: V2_COLORS.primary }]}>
                   {t('searchBar.fromLabel')} {from}
                 </Text>
-                <TouchableOpacity onPress={() => onFromChange('')}>
-                  <Ionicons name="close" size={14} color={colors.primary} />
+                <TouchableOpacity
+                  onPress={() => onFromChange('')}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('searchBar.removeFromFilter', {
+                    defaultValue: 'Remove departure city filter',
+                  })}
+                >
+                  <Ionicons name="close" size={14} color={V2_COLORS.primary} />
                 </TouchableOpacity>
               </View>
             )}
             {to && (
-              <View style={[styles.filterTag, { backgroundColor: colors.success + '15' }]}>
-                <Text style={[styles.filterTagText, { color: colors.success }]}>
+              <View style={[styles.filterTag, { backgroundColor: V2_COLORS.accent1 + '15' }]}>
+                <Text style={[styles.filterTagText, { color: V2_COLORS.accent1 }]}>
                   {t('searchBar.toLabel')} {to}
                 </Text>
-                <TouchableOpacity onPress={() => onToChange('')}>
-                  <Ionicons name="close" size={14} color={colors.success} />
+                <TouchableOpacity
+                  onPress={() => onToChange('')}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('searchBar.removeToFilter', {
+                    defaultValue: 'Remove arrival city filter',
+                  })}
+                >
+                  <Ionicons name="close" size={14} color={V2_COLORS.accent1} />
                 </TouchableOpacity>
               </View>
             )}
             {date && (
-              <View style={[styles.filterTag, { backgroundColor: colors.warning + '15' }]}>
-                <Text style={[styles.filterTagText, { color: colors.warning }]}>
+              <View style={[styles.filterTag, { backgroundColor: V2_COLORS.accent2 + '15' }]}>
+                <Text style={[styles.filterTagText, { color: V2_COLORS.accent2 }]}>
                   {formatDateDisplay(date)}
                 </Text>
-                <TouchableOpacity onPress={() => onDateChange('')}>
-                  <Ionicons name="close" size={14} color={colors.warning} />
+                <TouchableOpacity
+                  onPress={() => onDateChange('')}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('searchBar.removeDateFilter', {
+                    defaultValue: 'Remove date filter',
+                  })}
+                >
+                  <Ionicons name="close" size={14} color={V2_COLORS.accent2} />
                 </TouchableOpacity>
               </View>
             )}
           </View>
-          <TouchableOpacity onPress={clearAll}>
-            <Text style={[styles.clearAllText, { color: colors.error }]}>
+          <TouchableOpacity
+            onPress={clearAll}
+            accessibilityRole="button"
+            accessibilityLabel={t('searchBar.clearAllFilters', {
+              defaultValue: 'Clear all filters',
+            })}
+          >
+            <Text style={[styles.clearAllText, { color: V2_COLORS.secondary }]}>
               {t('searchBar.clearAll')}
             </Text>
           </TouchableOpacity>
@@ -297,48 +274,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexWrap: 'wrap',
   },
-  inputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: 12,
-    borderWidth: 1,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    gap: 10,
-    flex: 1,
-    minWidth: 120,
-  },
-  dateInput: {
-    minWidth: 140,
-    maxWidth: 180,
-  },
-  input: {
-    flex: 1,
-    fontSize: 15,
-    fontWeight: '500',
-  },
   swapButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    borderWidth: 1,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: V2_COLORS.blob1,
     justifyContent: 'center',
     alignItems: 'center',
     alignSelf: 'center',
-  },
-  searchButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-    borderRadius: 12,
-    gap: 8,
-  },
-  searchButtonText: {
-    color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: '600',
+    ...BUBBLE_SHADOWS.xs,
   },
   quickOptions: {
     marginTop: 16,
@@ -352,24 +296,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
+    color: V2_COLORS.textMuted,
   },
   quickChips: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
-  },
-  quickChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
-    gap: 6,
-  },
-  quickChipText: {
-    fontSize: 13,
-    fontWeight: '600',
   },
   activeFilters: {
     flexDirection: 'row',
@@ -377,8 +309,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginTop: 12,
     paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(0,0,0,0.05)',
   },
   filterTags: {
     flexDirection: 'row',
@@ -391,7 +321,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 10,
     paddingVertical: 6,
-    borderRadius: 16,
+    borderRadius: RADIUS.pill,
     gap: 6,
   },
   filterTagText: {

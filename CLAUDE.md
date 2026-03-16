@@ -80,18 +80,21 @@ npm run lint             # ESLint
 | Sprint 1-2 | Foundation (setup, schema, auth, profiles) | ~98% |
 | Sprint 3-4 | Core Features (listings, bookings, messaging, notifications) | ~90% |
 | Sprint 5-6 | Trust & Safety (reviews, verification, photos, disputes) | ~55% |
-| Sprint 7-8 | Polish & Launch (i18n, payments, app store, beta) | ~5% |
+| Sprint 7-8 | Polish & Launch (i18n, payments, app store, beta) | ~85% |
 
-## API Modules (8 total)
+## API Modules (11 total)
 
-1. **Auth** - Google/Apple OAuth + JWT refresh
-2. **Users** - Profile CRUD + stats
+1. **Auth** - Google/Apple OAuth + JWT refresh token rotation (family-based theft detection)
+2. **Users** - Profile CRUD + public profile (PII-masked) + verification
 3. **Listings** - Search/CRUD with city/date/weight filters
 4. **Bookings** - State machine: pending → accepted → picked_up → in_transit → delivered
-5. **Messages** - Conversations + per-booking chat
-6. **Notifications** - CRUD + Expo push tokens
+5. **Messages** - REST + WebSocket gateway (`/chat` namespace) with real-time chat
+6. **Notifications** - CRUD + Expo push tokens + push delivery
 7. **Reviews** - Per-booking ratings (1-5) + comments
-8. **Wallet** - Balance (computed from history) + transactions
+8. **Wallet** - Balance (computed from aggregate) + transactions + transactional withdrawals
+9. **Disputes** - Per-booking dispute reporting and tracking
+10. **Uploads** - Cloudflare R2 file upload with magic byte validation
+11. **Health** - Terminus-based `/health` + `/health/ready` endpoints
 
 ## Mobile Screens & Routes
 
@@ -123,5 +126,8 @@ npm run lint             # ESLint
 
 - `.env` must exist in BOTH project root AND `apps/api/` for Prisma to find DATABASE_URL
 - Prisma generate: Use `node ../../node_modules/prisma/build/index.js generate` from apps/api (not global npx)
-- Chat uses 5s polling (no WebSocket gateway yet)
+- Chat uses WebSocket gateway (`/chat` namespace via Socket.IO) for real-time messaging
 - Mock data fallback on home screen when API is unavailable
+- Sentry is integrated but requires `SENTRY_DSN` (API) and `EXPO_PUBLIC_SENTRY_DSN` (mobile) to activate
+- `JWT_REFRESH_SECRET` is required (min 32 chars) — set in `.env` and CI env vars
+- Local dev: use `docker compose up -d postgres redis` for database and cache

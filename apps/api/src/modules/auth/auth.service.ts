@@ -1,6 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import { PrismaService } from '../../prisma/prisma.service';
 import { UsersService } from '../users/users.service';
 import { GoogleAuthDto } from './dto/google-auth.dto';
 import { AppleAuthDto } from './dto/apple-auth.dto';
@@ -18,23 +19,24 @@ export class AuthService {
   constructor(
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
-    private readonly usersService: UsersService,
+    private readonly prisma: PrismaService,
+    private readonly usersService: UsersService
   ) {}
 
   async googleAuth(dto: GoogleAuthDto) {
     try {
-      // Verify Google token
-      const response = await axios.get(
-        `https://oauth2.googleapis.com/tokeninfo?id_token=${dto.idToken}`,
-      );
-
-      // Validate audience — reject tokens issued for other Google apps
-      const expectedClientId = this.configService.get<string>('GOOGLE_CLIENT_ID');
-      if (expectedClientId && response.data.aud !== expectedClientId) {
-        throw new UnauthorizedException('Google token audience mismatch');
-      }
+      // Verify the access token and fetch the user's profile in one call.
+      // useGoogleLogin (implicit flow) returns an opaque access_token — we verify
+      // it via Google's userinfo endpoint (tokeninfo?id_token= only works for JWT ID tokens).
+      const response = await axios.get('https://www.googleapis.com/oauth2/v3/userinfo', {
+        headers: { Authorization: `Bearer ${dto.accessToken}` },
+      });
 
       const { email, name, picture, sub: googleId } = response.data;
+
+      if (!email) {
+        throw new UnauthorizedException('Google account has no email');
+      }
 
       // Find or create user
       let user = await this.usersService.findByEmail(email);
@@ -92,32 +94,129 @@ export class AuthService {
 
   async refreshToken(dto: RefreshTokenDto) {
     try {
+      const refreshSecret = this.configService.get<string>('JWT_REFRESH_SECRET');
       const payload = this.jwtService.verify(dto.refreshToken, {
-        secret: this.configService.get<string>('JWT_SECRET'),
+        secret: refreshSecret,
+      });
+
+      if (payload.type !== 'refresh') {
+        throw new UnauthorizedException('Invalid token type');
+      }
+
+      // Look up the stored token by hash
+      const tokenHash = this.hashToken(dto.refreshToken);
+      const storedToken = await this.prisma.refreshToken.findUnique({
+        where: { tokenHash },
+      });
+
+      if (!storedToken) {
+        throw new UnauthorizedException('Token not found');
+      }
+
+      // Reuse detection: if already revoked, the family was compromised
+      if (storedToken.isRevoked) {
+        await this.prisma.refreshToken.updateMany({
+          where: { family: storedToken.family },
+          data: { isRevoked: true },
+        });
+        throw new UnauthorizedException('Token reuse detected');
+      }
+
+      if (storedToken.expiresAt < new Date()) {
+        throw new UnauthorizedException('Token expired');
+      }
+
+      // Revoke the current token (single-use)
+      await this.prisma.refreshToken.update({
+        where: { id: storedToken.id },
+        data: { isRevoked: true },
       });
 
       const user = await this.usersService.findById(payload.sub);
-
       if (!user) {
         throw new UnauthorizedException('User not found');
       }
 
-      return this.generateTokens(user);
+      // Issue new tokens in the same family
+      return this.generateTokens(user, storedToken.family);
     } catch (error) {
+      if (error instanceof UnauthorizedException) throw error;
       throw new UnauthorizedException('Invalid refresh token');
     }
   }
 
-  private generateTokens(user: { id: string; email: string; name: string; avatarUrl: string | null; isVerified: boolean }) {
-    const payload = { sub: user.id, email: user.email };
+  async logout(userId: string) {
+    await this.prisma.refreshToken.updateMany({
+      where: { userId },
+      data: { isRevoked: true },
+    });
+  }
 
-    const accessToken = this.jwtService.sign(payload, {
+  async devLogin(userIndex = 0) {
+    const devUsers = [
+      { email: 'dev@luggageshare.com', name: 'Dev User' },
+      { email: 'dev2@luggageshare.com', name: 'Dev User 2' },
+    ];
+    const { email, name } = devUsers[userIndex] || devUsers[0];
+    let user = await this.usersService.findByEmail(email);
+
+    if (!user) {
+      user = await this.usersService.create({
+        email,
+        name,
+        provider: 'dev',
+      });
+    }
+
+    return this.generateTokens(user);
+  }
+
+  private async generateTokens(
+    user: {
+      id: string;
+      email: string;
+      name: string;
+      avatarUrl: string | null;
+      isVerified: boolean;
+    },
+    family?: string
+  ) {
+    const tokenFamily = family || crypto.randomUUID();
+    const accessPayload = { sub: user.id, email: user.email, type: 'access' };
+
+    const accessToken = this.jwtService.sign(accessPayload, {
       expiresIn: this.configService.get<string>('JWT_EXPIRES_IN', '1h'),
     });
 
-    const refreshToken = this.jwtService.sign(payload, {
-      expiresIn: this.configService.get<string>('JWT_REFRESH_EXPIRES_IN', '7d'),
+    const refreshPayload = {
+      sub: user.id,
+      email: user.email,
+      type: 'refresh',
+      family: tokenFamily,
+    };
+    const refreshSecret = this.configService.get<string>('JWT_REFRESH_SECRET');
+    const refreshExpiresIn = this.configService.get<string>('JWT_REFRESH_EXPIRES_IN', '7d');
+    const refreshToken = this.jwtService.sign(refreshPayload, {
+      secret: refreshSecret,
+      expiresIn: refreshExpiresIn,
     });
+
+    // Store hashed refresh token
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7);
+    await this.prisma.refreshToken.create({
+      data: {
+        userId: user.id,
+        tokenHash: this.hashToken(refreshToken),
+        family: tokenFamily,
+        expiresAt,
+      },
+    });
+
+    // Cleanup expired tokens for this user (fire-and-forget)
+    this.prisma.refreshToken
+      .deleteMany({ where: { userId: user.id, expiresAt: { lt: new Date() } } })
+      .catch(() => {});
 
     return {
       accessToken,
@@ -132,15 +231,17 @@ export class AuthService {
     };
   }
 
+  private hashToken(token: string): string {
+    return crypto.createHash('sha256').update(token).digest('hex');
+  }
+
   /**
    * Verify Apple identity token using Apple's public JWKS keys.
    * Validates: signature, issuer (https://appleid.apple.com), and audience.
    */
   private async verifyAppleToken(identityToken: string): Promise<any> {
     // Decode header to get the key ID (kid)
-    const header = JSON.parse(
-      Buffer.from(identityToken.split('.')[0], 'base64url').toString(),
-    );
+    const header = JSON.parse(Buffer.from(identityToken.split('.')[0], 'base64url').toString());
 
     if (!header.kid) {
       throw new UnauthorizedException('Apple token missing kid');
@@ -172,7 +273,7 @@ export class AuthService {
         (err, decoded) => {
           if (err) reject(new UnauthorizedException('Apple token verification failed'));
           else resolve(decoded);
-        },
+        }
       );
     });
   }
