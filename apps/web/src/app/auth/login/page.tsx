@@ -31,7 +31,7 @@ function GoogleLoginButton({
       onStart();
       try {
         const res = await apiClient.post('/auth/google', {
-          idToken: tokenResponse.access_token,
+          accessToken: tokenResponse.access_token,
         });
         onSuccess(res.data);
       } catch (err: any) {

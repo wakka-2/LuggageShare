@@ -109,7 +109,7 @@ describe('AuthService', () => {
   });
 
   describe('googleAuth', () => {
-    const googleAuthDto = { idToken: 'valid-google-id-token' };
+    const googleAuthDto = { accessToken: 'valid-google-id-token' };
 
     const googleTokenInfo = {
       email: 'test@example.com',
@@ -138,7 +138,8 @@ describe('AuthService', () => {
       const result = await service.googleAuth(googleAuthDto);
 
       expect(mockedAxios.get).toHaveBeenCalledWith(
-        `https://oauth2.googleapis.com/tokeninfo?id_token=${googleAuthDto.idToken}`
+        'https://www.googleapis.com/oauth2/v3/userinfo',
+        { headers: { Authorization: `Bearer ${googleAuthDto.accessToken}` } }
       );
       expect(usersService.findByEmail).toHaveBeenCalledWith('test@example.com');
       expect(usersService.create).not.toHaveBeenCalled();
@@ -701,7 +702,7 @@ describe('AuthService', () => {
 
   describe('generateTokens (via public methods)', () => {
     it('should generate access and refresh tokens with correct payload structure', async () => {
-      const googleAuthDto = { idToken: 'valid-google-id-token' };
+      const googleAuthDto = { accessToken: 'valid-google-id-token' };
       const googleTokenInfo = {
         email: 'test@example.com',
         name: 'Test User',
@@ -740,7 +741,7 @@ describe('AuthService', () => {
     });
 
     it('should return the user object with correct fields in the response', async () => {
-      const googleAuthDto = { idToken: 'valid-google-id-token' };
+      const googleAuthDto = { accessToken: 'valid-google-id-token' };
       const googleTokenInfo = {
         email: 'verified@example.com',
         name: 'Verified User',

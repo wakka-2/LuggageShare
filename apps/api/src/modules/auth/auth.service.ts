@@ -25,18 +25,18 @@ export class AuthService {
 
   async googleAuth(dto: GoogleAuthDto) {
     try {
-      // Verify Google token
-      const response = await axios.get(
-        `https://oauth2.googleapis.com/tokeninfo?id_token=${dto.idToken}`
-      );
-
-      // Validate audience — reject tokens issued for other Google apps
-      const expectedClientId = this.configService.get<string>('GOOGLE_CLIENT_ID');
-      if (expectedClientId && response.data.aud !== expectedClientId) {
-        throw new UnauthorizedException('Google token audience mismatch');
-      }
+      // Verify the access token and fetch the user's profile in one call.
+      // useGoogleLogin (implicit flow) returns an opaque access_token — we verify
+      // it via Google's userinfo endpoint (tokeninfo?id_token= only works for JWT ID tokens).
+      const response = await axios.get('https://www.googleapis.com/oauth2/v3/userinfo', {
+        headers: { Authorization: `Bearer ${dto.accessToken}` },
+      });
 
       const { email, name, picture, sub: googleId } = response.data;
+
+      if (!email) {
+        throw new UnauthorizedException('Google account has no email');
+      }
 
       // Find or create user
       let user = await this.usersService.findByEmail(email);
