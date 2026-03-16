@@ -72,8 +72,7 @@
         }
       ],
       "expo-font",
-      "@react-native-community/datetimepicker",
-      "@sentry/react-native"
+      "@react-native-community/datetimepicker"
     ],
     "experiments": {
       "typedRoutes": true
