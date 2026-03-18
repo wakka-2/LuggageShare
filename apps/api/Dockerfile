@@ -40,6 +40,8 @@ COPY --from=builder /app/apps/api/prisma ./apps/api/prisma
 
 USER nestjs
 
-EXPOSE 3000
+EXPOSE 8080
+
+ENV PORT=8080
 
 CMD ["node", "apps/api/dist/main"]
