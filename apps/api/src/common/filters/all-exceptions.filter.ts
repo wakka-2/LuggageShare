@@ -42,7 +42,7 @@ function mapPrismaError(
 ): { statusCode: number; code: string; message: string } | null {
   switch (exception.code) {
     case 'P2002': {
-      const target = (exception.meta?.target as string[]) ?? [];
+      const target = ((exception.meta as any)?.target as string[]) ?? [];
       const fields = target.length > 0 ? target.join(', ') : 'field';
       return {
         statusCode: HttpStatus.CONFLICT,
@@ -151,7 +151,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
       }
 
       this.logger.error(`[PrismaError] ${request.method} ${request.url} -> ${exception.code}`, {
-        meta: (exception as PrismaLike).meta,
+        meta: exception.meta,
       });
 
       // ── Unknown / unhandled errors ────────────────────────────────
