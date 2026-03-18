@@ -14,8 +14,8 @@ RUN npm ci --ignore-scripts
 # Copy API source
 COPY apps/api/ apps/api/
 
-# Generate Prisma client
-RUN cd apps/api && npx prisma generate
+# Generate Prisma client (use local prisma 5.x, not global)
+RUN cd apps/api && node ../../node_modules/prisma/build/index.js generate
 
 # Build the API
 RUN npx turbo run build --filter=@luggageshare/api
