@@ -4,6 +4,7 @@ import {
   ForbiddenException,
   BadRequestException,
 } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
@@ -147,7 +148,7 @@ export class BookingsService {
 
   async create(userId: string, createBookingDto: CreateBookingDto) {
     // Wrap in transaction to prevent race conditions on weight availability
-    const booking = await this.prisma.$transaction(async (tx) => {
+    const booking = await this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const listing = await tx.listing.findUnique({
         where: { id: createBookingDto.listingId },
       });

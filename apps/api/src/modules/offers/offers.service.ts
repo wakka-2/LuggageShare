@@ -4,6 +4,7 @@ import {
   ForbiddenException,
   BadRequestException,
 } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { CreateOfferDto } from './dto/create-offer.dto';
@@ -169,7 +170,7 @@ export class OffersService {
       throw new BadRequestException(`Offer is ${offer.status} and cannot be accepted`);
     }
 
-    const result = await this.prisma.$transaction(async (tx) => {
+    const result = await this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       // Lock and re-read the flight with a FOR UPDATE equivalent
       const freshFlight = await tx.flight.findUnique({ where: { id: flight.id } });
       if (!freshFlight) throw new NotFoundException('Flight not found');
@@ -227,7 +228,7 @@ export class OffersService {
         if (oversizedOffers.length > 0) {
           await tx.offer.updateMany({
             where: {
-              id: { in: oversizedOffers.map((o) => o.id) },
+              id: { in: oversizedOffers.map((o: any) => o.id) },
             },
             data: { status: 'rejected' },
           });
@@ -250,7 +251,7 @@ export class OffersService {
 
     // Notify auto-rejected senders
     await Promise.all(
-      result.autoRejectedOffers.map((o) =>
+      result.autoRejectedOffers.map((o: any) =>
         this.notifications.sendPushNotification(
           o.senderId,
           'Offer Rejected',

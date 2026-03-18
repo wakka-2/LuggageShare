@@ -4,6 +4,7 @@ import {
   ForbiddenException,
   BadRequestException,
 } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { CreateFlightDto } from './dto/create-flight.dto';
@@ -195,7 +196,7 @@ export class FlightsService {
       throw new ForbiddenException('Only the poster can cancel this flight');
     if (flight.status === 'cancelled') throw new BadRequestException('Flight is already cancelled');
 
-    await this.prisma.$transaction(async (tx) => {
+    await this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       // Cancel the flight
       await tx.flight.update({ where: { id }, data: { status: 'cancelled' } });
 
@@ -221,8 +222,8 @@ export class FlightsService {
 
     // Send notifications outside transaction
     const notifyIds = new Set<string>();
-    flight.offers.forEach((o) => notifyIds.add(o.sender.id));
-    flight.bookings.forEach((b) => {
+    flight.offers.forEach((o: any) => notifyIds.add(o.sender.id));
+    flight.bookings.forEach((b: any) => {
       notifyIds.add(b.sender.id);
     });
     notifyIds.delete(userId);

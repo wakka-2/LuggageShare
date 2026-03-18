@@ -24,7 +24,7 @@ export class HealthController {
   @ApiResponse({ status: 200, description: 'API is healthy' })
   check() {
     return this.health.check([
-      () => this.prismaHealth.pingCheck('database', this.prisma),
+      () => this.prismaHealth.pingCheck('database', this.prisma as any),
       () => this.memory.checkHeap('memory_heap', 256 * 1024 * 1024),
     ]);
   }
@@ -34,6 +34,6 @@ export class HealthController {
   @ApiOperation({ summary: 'Readiness check for load balancers' })
   @ApiResponse({ status: 200, description: 'API is ready to serve traffic' })
   readiness() {
-    return this.health.check([() => this.prismaHealth.pingCheck('database', this.prisma)]);
+    return this.health.check([() => this.prismaHealth.pingCheck('database', this.prisma as any)]);
   }
 }

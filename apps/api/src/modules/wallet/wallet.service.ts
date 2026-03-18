@@ -43,7 +43,7 @@ export class WalletService {
 
   async requestWithdrawal(userId: string, dto: WithdrawalRequestDto) {
     return this.prisma.$transaction(
-      async (tx) => {
+      async (tx: Prisma.TransactionClient) => {
         // Atomic balance check inside transaction
         const result = await tx.balanceHistory.aggregate({
           where: { userId },
@@ -78,7 +78,7 @@ export class WalletService {
         };
       },
       {
-        isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+        isolationLevel: 'Serializable' as Prisma.TransactionIsolationLevel,
       }
     );
   }

@@ -45,7 +45,7 @@ export class MessagesService {
       orderBy: { updatedAt: 'desc' },
     });
 
-    const bookingIds = bookings.map((b) => b.id);
+    const bookingIds = bookings.map((b: any) => b.id);
 
     const unreadCounts = await this.prisma.message.groupBy({
       by: ['bookingId'],
@@ -57,9 +57,9 @@ export class MessagesService {
       _count: { id: true },
     });
 
-    const unreadMap = new Map(unreadCounts.map((uc) => [uc.bookingId, uc._count.id]));
+    const unreadMap = new Map(unreadCounts.map((uc: any) => [uc.bookingId, uc._count.id]));
 
-    return bookings.map((booking) => {
+    return bookings.map((booking: any) => {
       const otherUser = booking.senderId === userId ? booking.carrier : booking.sender;
       const lastMessage = booking.messages[0];
 

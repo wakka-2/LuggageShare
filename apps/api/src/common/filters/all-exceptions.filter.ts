@@ -7,7 +7,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { Response, Request } from 'express';
-import { Prisma } from '@prisma/client';
+import { Prisma, PrismaClientKnownRequestError } from '@prisma/client';
 import * as Sentry from '@sentry/node';
 
 interface ErrorResponseBody {
@@ -26,7 +26,7 @@ interface ErrorResponseBody {
  * details are never leaked to clients.
  */
 function mapPrismaError(
-  exception: Prisma.PrismaClientKnownRequestError
+  exception: PrismaClientKnownRequestError
 ): { statusCode: number; code: string; message: string } | null {
   switch (exception.code) {
     case 'P2002': {
@@ -116,7 +116,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
       });
 
       // ── Prisma Known Request Error ────────────────────────────────
-    } else if (exception instanceof Prisma.PrismaClientKnownRequestError) {
+    } else if (exception instanceof PrismaClientKnownRequestError) {
       const mapped = mapPrismaError(exception);
 
       if (mapped) {
