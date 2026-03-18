@@ -78,7 +78,7 @@ export class WalletService {
         };
       },
       {
-        isolationLevel: 'Serializable' as Prisma.TransactionIsolationLevel,
+        isolationLevel: 'Serializable' as any,
       }
     );
   }

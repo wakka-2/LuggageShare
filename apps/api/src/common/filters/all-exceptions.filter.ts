@@ -7,7 +7,6 @@ import {
   Logger,
 } from '@nestjs/common';
 import { Response, Request } from 'express';
-import { Prisma, PrismaClientKnownRequestError } from '@prisma/client';
 import * as Sentry from '@sentry/node';
 
 interface ErrorResponseBody {
@@ -25,8 +24,21 @@ interface ErrorResponseBody {
  * fall through to the generic 500 handler so that internal
  * details are never leaked to clients.
  */
+type PrismaLike = { code: string; meta: unknown };
+
+function isPrismaKnownError(e: unknown): e is PrismaLike {
+  return (
+    e !== null &&
+    typeof e === 'object' &&
+    'code' in e &&
+    typeof (e as any).code === 'string' &&
+    ((e as any).code as string).startsWith('P') &&
+    'clientVersion' in e
+  );
+}
+
 function mapPrismaError(
-  exception: PrismaClientKnownRequestError
+  exception: PrismaLike
 ): { statusCode: number; code: string; message: string } | null {
   switch (exception.code) {
     case 'P2002': {
@@ -116,7 +128,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
       });
 
       // ── Prisma Known Request Error ────────────────────────────────
-    } else if (exception instanceof PrismaClientKnownRequestError) {
+    } else if (isPrismaKnownError(exception)) {
       const mapped = mapPrismaError(exception);
 
       if (mapped) {
@@ -139,7 +151,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
       }
 
       this.logger.error(`[PrismaError] ${request.method} ${request.url} -> ${exception.code}`, {
-        meta: exception.meta,
+        meta: (exception as PrismaLike).meta,
       });
 
       // ── Unknown / unhandled errors ────────────────────────────────
