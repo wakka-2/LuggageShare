@@ -99,6 +99,7 @@ export class NotificationsService {
     const expoToken = this.configService.get<string>('EXPO_ACCESS_TOKEN');
 
     const messages = pushTokens.map((pt: any) => ({
+      // explicit any — no generated Prisma types in CI
       to: pt.token,
       title,
       body,

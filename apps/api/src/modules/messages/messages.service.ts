@@ -60,6 +60,7 @@ export class MessagesService {
     const unreadMap = new Map(unreadCounts.map((uc: any) => [uc.bookingId, uc._count.id]));
 
     return bookings.map((booking: any) => {
+      // explicit any — no generated Prisma types in CI
       const otherUser = booking.senderId === userId ? booking.carrier : booking.sender;
       const lastMessage = booking.messages[0];
 
