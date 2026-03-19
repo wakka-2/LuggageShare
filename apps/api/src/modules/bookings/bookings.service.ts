@@ -30,7 +30,18 @@ export class BookingsService {
       this.prisma.booking.findMany({
         where,
         include: {
-          listing: true,
+          listing: {
+            select: {
+              id: true,
+              departureCity: true,
+              departureCode: true,
+              arrivalCity: true,
+              arrivalCode: true,
+              departureDate: true,
+              price: true,
+              currency: true,
+            },
+          },
           sender: {
             select: {
               id: true,
@@ -45,7 +56,14 @@ export class BookingsService {
               avatarUrl: true,
             },
           },
-          items: true,
+          items: {
+            select: {
+              id: true,
+              name: true,
+              weight: true,
+              imageUrls: true,
+            },
+          },
         },
         orderBy: { createdAt: 'desc' },
         skip,
@@ -104,7 +122,21 @@ export class BookingsService {
     const booking = await this.prisma.booking.findUnique({
       where: { id },
       include: {
-        listing: true,
+        listing: {
+          select: {
+            id: true,
+            departureCity: true,
+            departureCode: true,
+            arrivalCity: true,
+            arrivalCode: true,
+            departureDate: true,
+            flightNumber: true,
+            price: true,
+            availableWeight: true,
+            currency: true,
+            status: true,
+          },
+        },
         sender: {
           select: {
             id: true,

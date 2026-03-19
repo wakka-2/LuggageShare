@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import {
@@ -65,7 +65,7 @@ function ListingSummarySkeleton() {
   );
 }
 
-export default function CreateBookingPage() {
+function CreateBookingContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const listingId = searchParams.get('listingId');
@@ -474,5 +474,13 @@ export default function CreateBookingPage() {
         <Footer />
       </div>
     </ProtectedRoute>
+  );
+}
+
+export default function CreateBookingPage() {
+  return (
+    <Suspense>
+      <CreateBookingContent />
+    </Suspense>
   );
 }
