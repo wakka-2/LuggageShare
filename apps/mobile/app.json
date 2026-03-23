@@ -85,10 +85,6 @@
         "projectId": "144efabf-b267-46fe-9609-8147fcd00585"
       }
     },
-    "locales": {
-      "ar": "./i18n/locales/ar.json",
-      "en": "./i18n/locales/en.json"
-    },
     "owner": "aimanqaid"
   }
 }

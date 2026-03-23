@@ -77,5 +77,5 @@ jobs:
       - name: Test
         run: turbo run test
 
-      - name: Build
-        run: turbo run build
+      - name: Build (API + Web only, mobile uses EAS Build)
+        run: turbo run build --filter=@luggageshare/api --filter=@luggageshare/web
