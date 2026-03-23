@@ -10,6 +10,7 @@ export interface ApiOffer {
   offeredPrice: number;
   currency: string;
   note: string | null;
+  imageUrls: string[];
   status: 'pending' | 'accepted' | 'rejected' | 'withdrawn' | 'expired';
   createdAt: string;
   updatedAt: string;
@@ -46,6 +47,7 @@ interface CreateOfferParams {
   offeredPrice: number;
   currency?: string;
   note?: string;
+  imageUrls?: string[];
 }
 
 interface MyOffersResponse {

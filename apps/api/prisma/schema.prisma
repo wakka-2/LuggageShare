@@ -120,6 +120,7 @@ model Flight {
 
   @@index([departureCity, arrivalCity, departureDate])
   @@index([posterId])
+  @@index([status, departureDate])
   @@map("flights")
 }
 
@@ -132,6 +133,7 @@ model Offer {
   currency      String   @default("SAR")
   status        String   @default("pending") // pending, accepted, rejected, expired, withdrawn
   note          String?
+  imageUrls     String[]
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -142,6 +144,7 @@ model Offer {
 
   @@index([flightId])
   @@index([senderId])
+  @@index([flightId, status])
   @@map("offers")
 }
 
@@ -181,6 +184,7 @@ model Booking {
   @@index([carrierId])
   @@index([listingId])
   @@index([flightId])
+  @@index([flightId, status])
   @@map("bookings")
 }
 
@@ -240,6 +244,7 @@ model Review {
   reviewee User    @relation("ReviewReceiver", fields: [revieweeId], references: [id])
 
   @@index([revieweeId])
+  @@index([reviewerId])
   @@map("reviews")
 }
 
@@ -281,6 +286,7 @@ model Notification {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
+  @@index([userId, isRead, createdAt])
   @@map("notifications")
 }
 

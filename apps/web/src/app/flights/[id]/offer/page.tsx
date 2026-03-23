@@ -1,8 +1,20 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Plane, Calendar, Weight, Tag, MessageSquare, ArrowLeft, Info } from 'lucide-react';
+import {
+  Plane,
+  Calendar,
+  Weight,
+  Tag,
+  MessageSquare,
+  ArrowLeft,
+  Info,
+  Camera,
+  X,
+  Loader2,
+} from 'lucide-react';
+import apiClient from '@/lib/api';
 import { useAuth } from '@/providers/AuthProvider';
 import { useLanguage } from '@/providers/LanguageProvider';
 import { useFlight } from '@/hooks/useFlights';
@@ -27,6 +39,9 @@ export default function MakeOfferPage() {
   const [weight, setWeight] = useState('');
   const [price, setPrice] = useState('');
   const [note, setNote] = useState('');
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
 
@@ -42,6 +57,27 @@ export default function MakeOfferPage() {
       setPrice(String(Math.round(w * pricePerKg)));
     }
     setErrors((prev) => ({ ...prev, weight: '' }));
+  }
+
+  async function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || imageUrls.length >= 3) return;
+
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const { data } = await apiClient.post('/uploads/image?folder=items', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      const url = data?.url || data?.data?.url;
+      if (url) setImageUrls((prev) => [...prev, url]);
+    } catch {
+      setErrors((prev) => ({ ...prev, photo: t('offer.photoUploadError') || 'Upload failed' }));
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -71,6 +107,7 @@ export default function MakeOfferPage() {
         offeredPrice: p,
         currency: flight?.currency ?? 'SAR',
         note: note.trim() || undefined,
+        imageUrls: imageUrls.length > 0 ? imageUrls : undefined,
       });
       setSubmitted(true);
     } catch (err: unknown) {
@@ -313,7 +350,7 @@ export default function MakeOfferPage() {
               </div>
 
               {/* Note */}
-              <div>
+              <div className="mb-5">
                 <label className="block text-sm font-bold text-v2-text mb-2">
                   {t('offer.note') || 'Message (optional)'}
                 </label>
@@ -327,6 +364,61 @@ export default function MakeOfferPage() {
                   rows={3}
                   className="w-full px-4 py-3 rounded-2xl border-2 border-v2-primary/15 bg-v2-bg text-v2-text text-sm focus:outline-none focus:border-v2-primary transition-colors resize-none"
                 />
+              </div>
+
+              {/* Item Photos */}
+              <div>
+                <label className="block text-sm font-bold text-v2-text mb-2">
+                  {t('offer.itemPhotos') || 'Item Photos (optional)'}
+                </label>
+                <div className="flex flex-wrap gap-3">
+                  {imageUrls.map((url, index) => (
+                    <div key={url} className="relative">
+                      <img
+                        src={url}
+                        alt={`Item ${index + 1}`}
+                        className="w-[90px] h-[90px] rounded-2xl object-cover"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setImageUrls((prev) => prev.filter((_, i) => i !== index))}
+                        className="absolute -top-2 -right-2 w-6 h-6 bg-white rounded-full shadow-bubble-xs flex items-center justify-center hover:bg-v2-secondary/10 transition-colors"
+                      >
+                        <X className="w-3.5 h-3.5 text-v2-secondary" />
+                      </button>
+                    </div>
+                  ))}
+                  {imageUrls.length < 3 && (
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={isUploading}
+                      className="w-[90px] h-[90px] rounded-2xl border-2 border-dashed border-v2-primary/30 bg-v2-primary/5 flex flex-col items-center justify-center gap-1 hover:border-v2-primary/50 transition-colors disabled:opacity-50"
+                    >
+                      {isUploading ? (
+                        <Loader2 className="w-6 h-6 text-v2-primary animate-spin" />
+                      ) : (
+                        <>
+                          <Camera className="w-6 h-6 text-v2-primary" />
+                          <span className="text-[11px] font-semibold text-v2-primary">
+                            {t('offer.addPhoto') || 'Add'}
+                          </span>
+                        </>
+                      )}
+                    </button>
+                  )}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    className="hidden"
+                    onChange={handleFileSelect}
+                  />
+                </div>
+                <p className="text-xs text-v2-text-muted mt-2">
+                  {t('offer.photoHint') || 'Add up to 3 photos of your items to help the carrier'}
+                </p>
+                {errors.photo && <p className="text-xs text-v2-secondary mt-1">{errors.photo}</p>}
               </div>
             </div>
 

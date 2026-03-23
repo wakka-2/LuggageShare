@@ -62,6 +62,7 @@ export class OffersService {
         offeredPrice: dto.offeredPrice,
         currency: dto.currency ?? flight.currency,
         note: dto.note,
+        imageUrls: dto.imageUrls ?? [],
       },
       include: {
         sender: { select: { id: true, name: true, avatarUrl: true, isVerified: true } },

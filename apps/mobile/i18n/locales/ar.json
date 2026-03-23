@@ -613,7 +613,11 @@
     "withdrawConfirm": "سحب عرضك؟ يمكنك تقديم عرض جديد لاحقاً.",
     "withdrawnTitle": "تم سحب العرض",
     "senderNote": "ملاحظة المُرسِل:",
-    "chatClosed": "محادثة العرض مغلقة"
+    "chatClosed": "محادثة العرض مغلقة",
+    "itemPhotos": "صور الأغراض (اختياري)",
+    "addPhoto": "إضافة",
+    "photoHint": "أضف حتى 3 صور لأغراضك لمساعدة الناقل",
+    "photoUploadError": "فشل رفع الصورة، حاول مرة أخرى"
   },
   "dispute": {
     "title": "بلاغ نزاع",

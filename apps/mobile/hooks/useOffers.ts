@@ -9,6 +9,7 @@ export interface ApiOffer {
   offeredPrice: number;
   currency: string;
   note: string | null;
+  imageUrls: string[];
   status: 'pending' | 'accepted' | 'rejected' | 'withdrawn' | 'expired';
   createdAt: string;
   updatedAt: string;
@@ -40,6 +41,7 @@ export interface CreateOfferParams {
   offeredPrice: number;
   currency?: string;
   note?: string;
+  imageUrls?: string[];
 }
 
 export function useFlightOffers(flightId: string | null) {
