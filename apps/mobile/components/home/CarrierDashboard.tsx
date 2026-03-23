@@ -61,13 +61,9 @@ export function CarrierDashboard() {
       {/* Earnings Overview */}
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            {t('carrier.earnings')}
-          </Text>
-          <TouchableOpacity onPress={() => router.push('/wallet')}>
-            <Text style={[styles.seeAll, { color: colors.primary }]}>
-              {t('common.seeAll')}
-            </Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('carrier.earnings')}</Text>
+          <TouchableOpacity onPress={() => router.push('/profile/wallet')}>
+            <Text style={[styles.seeAll, { color: colors.primary }]}>{t('common.seeAll')}</Text>
           </TouchableOpacity>
         </View>
 
@@ -118,7 +114,10 @@ export function CarrierDashboard() {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.actionButton, { backgroundColor: colors.card, borderColor: colors.border, borderWidth: 1 }]}
+            style={[
+              styles.actionButton,
+              { backgroundColor: colors.card, borderColor: colors.border, borderWidth: 1 },
+            ]}
             onPress={() => router.push('/(tabs)/trips')}
           >
             <Ionicons name="list-outline" size={24} color={colors.primary} />
@@ -154,7 +153,10 @@ export function CarrierDashboard() {
             {PENDING_REQUESTS.map((request) => (
               <TouchableOpacity
                 key={request.id}
-                style={[styles.requestCard, { backgroundColor: colors.card, borderColor: colors.border }]}
+                style={[
+                  styles.requestCard,
+                  { backgroundColor: colors.card, borderColor: colors.border },
+                ]}
                 onPress={() => router.push(`/booking/${request.id}`)}
               >
                 <View style={styles.requestHeader}>

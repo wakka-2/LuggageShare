@@ -1,18 +1,45 @@
 import { useState, useMemo, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, Platform, useWindowDimensions, ViewStyle, TextStyle } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Platform,
+  useWindowDimensions,
+  ViewStyle,
+  TextStyle,
+  RefreshControl,
+  TouchableOpacity,
+} from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import Animated, {
   FadeIn,
   FadeInDown,
   FadeInUp,
   Layout,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withTiming,
+  ZoomIn,
+  Easing,
 } from 'react-native-reanimated';
 
 import { useTheme } from '@/hooks/useTheme';
+import { useListings } from '@/hooks/useListings';
+import { mapApiListingToListing } from '@/lib/mappers';
 import { HomeHeader } from '@/components/home';
-import { EmptyState } from '@/components/common';
+import {
+  EmptyState,
+  BackgroundBlobs,
+  StatBubble,
+  SectionHeader,
+  BubbleButton,
+} from '@/components/common';
 import {
   ListingCard,
   ViewToggle,
@@ -22,6 +49,15 @@ import {
   ViewMode,
   ListingType,
 } from '@/components/listings';
+import { useUnreadCount } from '@/hooks/useNotifications';
+import { SkeletonCard, StaggeredItem } from '@/components/animations';
+import {
+  V2_COLORS,
+  GRADIENTS,
+  RADIUS,
+  BUBBLE_SHADOWS,
+  TYPOGRAPHY,
+} from '@/providers/ThemeProvider';
 
 type TabValue = ListingType | 'all';
 
@@ -29,6 +65,7 @@ export default function HomeScreen() {
   const { t, i18n } = useTranslation();
   const { colors, isDark } = useTheme();
   const { width } = useWindowDimensions();
+  const router = useRouter();
   const isWeb = Platform.OS === 'web';
   const isWideScreen = width > 768;
   const isRTL = i18n.language === 'ar';
@@ -39,41 +76,68 @@ export default function HomeScreen() {
   const [searchFrom, setSearchFrom] = useState('');
   const [searchTo, setSearchTo] = useState('');
   const [searchDate, setSearchDate] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
 
-  // Filter listings based on current filters
+  // Fetch real listings from API (server-side filtering for from/to/date)
+  const {
+    data: apiListings,
+    isLoading,
+    isError,
+    refetch,
+  } = useListings({
+    from: searchFrom || undefined,
+    to: searchTo || undefined,
+    date: searchDate || undefined,
+  });
+
+  // Airplane spin for pull-to-refresh
+  const airplaneRotation = useSharedValue(0);
+  const airplaneAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${airplaneRotation.value}deg` }],
+  }));
+
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    airplaneRotation.value = withRepeat(
+      withTiming(360, { duration: 1000, easing: Easing.linear }),
+      -1,
+      false
+    );
+    await refetch();
+    airplaneRotation.value = withTiming(0, { duration: 300 });
+    setRefreshing(false);
+  }, [refetch, airplaneRotation]);
+
+  // Map API listings to the UI Listing type, fallback to mock data on error
+  const allListings = useMemo(() => {
+    if (apiListings && apiListings.length > 0) {
+      return apiListings.map(mapApiListingToListing);
+    }
+    if (isError || (!isLoading && (!apiListings || apiListings.length === 0))) {
+      return MOCK_LISTINGS;
+    }
+    return [];
+  }, [apiListings, isLoading, isError]);
+
+  // Client-side filtering by tab type (server doesn't know about offer/request yet)
   const filteredListings = useMemo(() => {
-    return MOCK_LISTINGS.filter((listing) => {
-      // Filter by type
+    return allListings.filter((listing) => {
       if (activeTab !== 'all' && listing.type !== activeTab) {
         return false;
       }
-      // Filter by from
-      if (searchFrom && !listing.from.code.toLowerCase().includes(searchFrom.toLowerCase()) &&
-          !listing.from.city.toLowerCase().includes(searchFrom.toLowerCase())) {
-        return false;
-      }
-      // Filter by to
-      if (searchTo && !listing.to.code.toLowerCase().includes(searchTo.toLowerCase()) &&
-          !listing.to.city.toLowerCase().includes(searchTo.toLowerCase())) {
-        return false;
-      }
-      // Filter by date
-      if (searchDate) {
-        const listingDate = listing.travelDate.split('T')[0];
-        if (listingDate !== searchDate) {
-          return false;
-        }
-      }
       return true;
     });
-  }, [activeTab, searchFrom, searchTo, searchDate]);
+  }, [allListings, activeTab]);
 
   // Calculate counts for tabs
-  const tabCounts = useMemo(() => ({
-    all: MOCK_LISTINGS.length,
-    offer: MOCK_LISTINGS.filter(l => l.type === 'offer').length,
-    request: MOCK_LISTINGS.filter(l => l.type === 'request').length,
-  }), []);
+  const tabCounts = useMemo(
+    () => ({
+      all: allListings.length,
+      offer: allListings.filter((l) => l.type === 'offer').length,
+      request: allListings.filter((l) => l.type === 'request').length,
+    }),
+    [allListings]
+  );
 
   const handleSwap = useCallback(() => {
     const temp = searchFrom;
@@ -81,78 +145,83 @@ export default function HomeScreen() {
     setSearchTo(temp);
   }, [searchFrom, searchTo]);
 
-  const notificationCount = 3;
+  const handleListingPress = useCallback(
+    (listingId: string) => {
+      router.push(`/listing/${listingId}`);
+    },
+    [router]
+  );
 
-  // Gradient colors for hero
-  const heroGradient = isDark
-    ? ['#1E293B', '#0F172A'] as const
-    : ['#F0F9FF', '#E0F2FE'] as const;
+  const notificationCount = useUnreadCount();
 
-  // Web Layout
-  if (isWeb) {
+  // Desktop web layout (sidebar + topbar handle navigation chrome)
+  if (isWeb && isWideScreen) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
-        <HomeHeader notificationCount={notificationCount} />
-
+      <View style={[styles.container, { backgroundColor: V2_COLORS.bg }]}>
+        <BackgroundBlobs variant="subtle" />
         <ScrollView
-          contentContainerStyle={[styles.scrollContent, isWideScreen && styles.scrollContentWide]}
+          contentContainerStyle={[styles.scrollContent, styles.scrollContentWide]}
           showsVerticalScrollIndicator={false}
         >
-          {/* Hero Section with Gradient */}
-          <LinearGradient
-            colors={heroGradient}
-            style={styles.heroGradient}
+          {/* Hero Card */}
+          <Animated.View
+            entering={FadeInDown.duration(500).springify()}
+            style={styles.heroCardWide}
           >
-            <Animated.View
-              entering={FadeInDown.duration(500).springify()}
-              style={[styles.hero, isWideScreen && styles.heroWide]}
+            <LinearGradient
+              colors={GRADIENTS.hero}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.heroGradient}
             >
-              <View style={styles.heroTextContainer}>
-                <Text style={[styles.heroLabel, { color: colors.primary }]}>
-                  {isRTL ? 'مرحباً بك في' : 'Welcome to'}
-                </Text>
-                <Text style={[styles.heroTitle, { color: colors.text }]}>
-                  {isRTL ? 'سوق الشحن' : 'Luggage'}
-                  <Text style={{ color: colors.primary }}>Share</Text>
-                </Text>
-                <Text style={[styles.heroSubtitle, { color: colors.textSecondary }]}>
-                  {isRTL
-                    ? 'أرسل أغراضك مع مسافرين موثوقين أو اكسب المال من المساحة الإضافية في حقيبتك'
-                    : 'Send your items with trusted travelers or earn money from your extra luggage space'}
-                </Text>
+              <View style={styles.heroDecoCircle1} />
+              <View style={styles.heroDecoCircle2} />
+              <Text style={styles.heroLabel}>{t('home.welcomeTo')}</Text>
+              <Text style={styles.heroTitle}>
+                {t('home.appName')}
+                <Text style={{ color: '#FFE5ED' }}>Share</Text>
+              </Text>
+              <Text style={styles.heroSubtitle}>{t('home.heroDescription')}</Text>
+              <View style={styles.heroCTA}>
+                <BubbleButton
+                  label={t('home.sendPackage')}
+                  icon="cube-outline"
+                  variant="filled"
+                  color="#FFFFFF"
+                  textColor={V2_COLORS.primary}
+                  onPress={() => router.push('/listing/create')}
+                  size="md"
+                />
               </View>
+            </LinearGradient>
+          </Animated.View>
 
-              {/* Stats */}
-              <Animated.View
-                entering={FadeInUp.delay(200).duration(400)}
-                style={styles.statsRow}
-              >
-                <View style={[styles.statItem, { backgroundColor: colors.card }]}>
-                  <Text style={[styles.statValue, { color: colors.primary }]}>2.5K+</Text>
-                  <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-                    {isRTL ? 'مسافر' : 'Travelers'}
-                  </Text>
-                </View>
-                <View style={[styles.statItem, { backgroundColor: colors.card }]}>
-                  <Text style={[styles.statValue, { color: colors.success }]}>15K+</Text>
-                  <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-                    {isRTL ? 'شحنة' : 'Deliveries'}
-                  </Text>
-                </View>
-                <View style={[styles.statItem, { backgroundColor: colors.card }]}>
-                  <Text style={[styles.statValue, { color: colors.warning }]}>4.8</Text>
-                  <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-                    {isRTL ? 'تقييم' : 'Rating'}
-                  </Text>
-                </View>
-              </Animated.View>
-            </Animated.View>
-          </LinearGradient>
+          {/* Stats Row */}
+          <Animated.View entering={FadeInUp.delay(200).duration(400)} style={styles.statsRowWide}>
+            <StatBubble
+              value="2.5K+"
+              label={t('home.travelers')}
+              icon="people"
+              color={V2_COLORS.primary}
+            />
+            <StatBubble
+              value="15K+"
+              label={t('home.deliveries')}
+              icon="airplane"
+              color={V2_COLORS.accent1}
+            />
+            <StatBubble
+              value="4.8"
+              label={t('home.rating')}
+              icon="star"
+              color={V2_COLORS.accent2}
+            />
+          </Animated.View>
 
           {/* Search Bar */}
           <Animated.View
             entering={FadeIn.delay(100).duration(400)}
-            style={[styles.searchContainer, isWideScreen && styles.searchContainerWide]}
+            style={styles.searchContainerWide}
           >
             <SearchBar
               from={searchFrom}
@@ -165,17 +234,13 @@ export default function HomeScreen() {
             />
           </Animated.View>
 
-          {/* Controls Row: Tabs + View Toggle */}
+          {/* Controls Row */}
           <Animated.View
             entering={FadeIn.delay(150).duration(400)}
-            style={[styles.controlsRow, isWideScreen && styles.controlsRowWide]}
+            style={[styles.controlsRow, styles.controlsRowWide]}
           >
             <View style={styles.tabsWrapper}>
-              <PostTypeTabs
-                value={activeTab}
-                onChange={setActiveTab}
-                counts={tabCounts}
-              />
+              <PostTypeTabs value={activeTab} onChange={setActiveTab} counts={tabCounts} />
             </View>
             <View style={styles.toggleWrapper}>
               <ViewToggle value={viewMode} onChange={setViewMode} />
@@ -185,51 +250,43 @@ export default function HomeScreen() {
           {/* Results Header */}
           <Animated.View
             entering={FadeIn.delay(200).duration(400)}
-            style={[styles.resultsHeader, isWideScreen && styles.resultsHeaderWide]}
+            style={[styles.resultsHeader, styles.resultsHeaderWide]}
           >
-            <Text style={[styles.resultsTitle, { color: colors.text }]}>
-              {isRTL ? 'الإعلانات المتاحة' : 'Available Listings'}
-            </Text>
-            <Text style={[styles.resultsCount, { color: colors.textSecondary }]}>
-              {filteredListings.length} {isRTL ? 'إعلان' : 'listings'}
-              {(searchFrom || searchTo || searchDate) && (
-                <Text style={{ color: colors.primary }}> • {isRTL ? 'مفلتر' : 'Filtered'}</Text>
-              )}
+            <SectionHeader title={t('home.availableListings')} />
+            <Text style={styles.resultsCount}>
+              {filteredListings.length} {t('home.listings')}
             </Text>
           </Animated.View>
 
-          {/* Listings Grid/List */}
+          {/* Listings */}
           <Animated.View
             layout={Layout.springify()}
             style={[
               styles.listingsContainer,
-              isWideScreen && styles.listingsContainerWide,
-              viewMode === 'grid' && isWideScreen && styles.listingsGrid,
+              styles.listingsContainerWide,
+              viewMode === 'grid' && styles.listingsGrid,
             ]}
           >
             {filteredListings.map((listing, index) => (
               <Animated.View
                 key={listing.id}
                 layout={Layout.springify()}
-                style={viewMode === 'grid' && isWideScreen ? styles.gridItem : undefined}
+                style={viewMode === 'grid' ? styles.gridItem : undefined}
               >
                 <ListingCard
                   listing={listing}
                   index={index}
                   viewMode={viewMode}
-                  onPress={() => console.log('Listing pressed:', listing.id)}
+                  onPress={() => handleListingPress(listing.id)}
                 />
               </Animated.View>
             ))}
-
             {filteredListings.length === 0 && (
               <EmptyState
                 lottieAnimation="search"
-                title={isRTL ? 'لا توجد نتائج' : 'No listings found'}
-                description={isRTL
-                  ? 'جرب تغيير معايير البحث أو تصفح جميع الإعلانات'
-                  : 'Try adjusting your search filters or browse all listings'}
-                actionLabel={isRTL ? 'مسح الفلاتر' : 'Clear filters'}
+                title={t('home.noListings')}
+                description={t('home.noListingsDescription')}
+                actionLabel={t('home.clearFilters')}
                 onAction={() => {
                   setSearchFrom('');
                   setSearchTo('');
@@ -241,31 +298,92 @@ export default function HomeScreen() {
             )}
           </Animated.View>
         </ScrollView>
-      </SafeAreaView>
+      </View>
     );
   }
 
   // Mobile Layout
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <BackgroundBlobs variant="full" />
       <HomeHeader notificationCount={notificationCount} />
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor="transparent"
+            colors={['transparent']}
+            progressBackgroundColor="transparent"
+          />
+        }
       >
-        {/* Mobile Hero */}
-        <Animated.View entering={FadeInDown.duration(400)} style={styles.mobileHero}>
-          <Text style={[styles.greeting, { color: colors.textSecondary }]}>
-            {t('home.greeting')}
-          </Text>
-          <Text style={[styles.title, { color: colors.text }]}>
-            {isRTL ? 'سوق الشحن' : 'Marketplace'}
-          </Text>
+        {/* Airplane refresh indicator */}
+        {refreshing && (
+          <View style={styles.refreshIndicator}>
+            <Animated.View style={airplaneAnimatedStyle}>
+              <Ionicons name="airplane" size={28} color={V2_COLORS.primary} />
+            </Animated.View>
+          </View>
+        )}
+
+        {/* Hero Gradient Card */}
+        <Animated.View entering={FadeInDown.duration(400)} style={styles.heroCardMobile}>
+          <LinearGradient
+            colors={GRADIENTS.hero}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.heroGradientMobile}
+          >
+            <View style={styles.heroDecoCircle1} />
+            <View style={styles.heroDecoCircle2} />
+            <Text style={styles.heroTitleMobile}>{t('home.marketplace')}</Text>
+            <Text style={styles.heroSubtitleMobile}>{t('home.heroDescription')}</Text>
+            <View style={styles.heroCTA}>
+              <BubbleButton
+                label={t('home.sendPackage')}
+                icon="cube-outline"
+                variant="filled"
+                color="#FFFFFF"
+                textColor={V2_COLORS.primary}
+                onPress={() => router.push('/listing/create')}
+                size="sm"
+              />
+              <BubbleButton
+                label={t('home.carryPackage')}
+                icon="airplane-outline"
+                variant="outline"
+                color="#FFFFFF"
+                onPress={() => router.push('/listing/create')}
+                size="sm"
+              />
+            </View>
+          </LinearGradient>
+        </Animated.View>
+
+        {/* Stats Row */}
+        <Animated.View entering={FadeInUp.delay(100).duration(400)} style={styles.statsRow}>
+          <StatBubble
+            value="2.5K+"
+            label={t('home.travelers')}
+            icon="people"
+            color={V2_COLORS.primary}
+          />
+          <StatBubble
+            value="15K+"
+            label={t('home.deliveries')}
+            icon="airplane"
+            color={V2_COLORS.accent1}
+          />
+          <StatBubble value="4.8" label={t('home.rating')} icon="star" color={V2_COLORS.accent2} />
         </Animated.View>
 
         {/* Search */}
-        <Animated.View entering={FadeIn.delay(100).duration(400)}>
+        <Animated.View entering={FadeIn.delay(150).duration(400)} style={styles.sectionPadded}>
+          <SectionHeader title={t('searchBar.whereAreYouSending')} />
           <SearchBar
             from={searchFrom}
             to={searchTo}
@@ -278,53 +396,75 @@ export default function HomeScreen() {
         </Animated.View>
 
         {/* Tabs */}
-        <Animated.View entering={FadeIn.delay(150).duration(400)}>
-          <PostTypeTabs
-            value={activeTab}
-            onChange={setActiveTab}
-            counts={tabCounts}
-          />
+        <Animated.View entering={FadeIn.delay(200).duration(400)} style={styles.sectionPadded}>
+          <PostTypeTabs value={activeTab} onChange={setActiveTab} counts={tabCounts} />
         </Animated.View>
 
         {/* View Toggle + Results */}
-        <Animated.View entering={FadeIn.delay(200).duration(400)} style={styles.mobileControlsRow}>
-          <Text style={[styles.resultsCount, { color: colors.textSecondary }]}>
-            {filteredListings.length} {isRTL ? 'إعلان' : 'listings'}
+        <Animated.View entering={FadeIn.delay(250).duration(400)} style={styles.mobileControlsRow}>
+          <Text style={styles.resultsCount}>
+            {isLoading ? t('common.loading') : `${filteredListings.length} ${t('home.listings')}`}
           </Text>
           <ViewToggle value={viewMode} onChange={setViewMode} />
         </Animated.View>
 
-        {/* Listings */}
-        <Animated.View layout={Layout.springify()} style={styles.mobileListings}>
-          {filteredListings.map((listing, index) => (
-            <ListingCard
-              key={listing.id}
-              listing={listing}
-              index={index}
-              viewMode={viewMode}
-              onPress={() => console.log('Listing pressed:', listing.id)}
-            />
-          ))}
+        {/* Loading State */}
+        {isLoading && (
+          <View style={styles.mobileListings}>
+            {[0, 1, 2].map((i) => (
+              <Animated.View key={`skel-${i}`} entering={FadeIn.delay(i * 100).duration(300)}>
+                <SkeletonCard />
+              </Animated.View>
+            ))}
+          </View>
+        )}
 
-          {filteredListings.length === 0 && (
-            <EmptyState
-              lottieAnimation="search"
-              title={isRTL ? 'لا توجد نتائج' : 'No listings found'}
-              description={isRTL
-                ? 'جرب تغيير معايير البحث'
-                : 'Try adjusting your search filters'}
-              actionLabel={isRTL ? 'مسح الفلاتر' : 'Clear filters'}
-              onAction={() => {
-                setSearchFrom('');
-                setSearchTo('');
-                setSearchDate('');
-                setActiveTab('all');
-              }}
-              style={styles.emptyState}
-            />
-          )}
-        </Animated.View>
+        {/* Listings */}
+        {!isLoading && (
+          <Animated.View layout={Layout.springify()} style={styles.mobileListings}>
+            {filteredListings.map((listing, index) => (
+              <StaggeredItem key={listing.id} index={index} baseDelay={50}>
+                <ListingCard
+                  listing={listing}
+                  index={index}
+                  viewMode={viewMode}
+                  onPress={() => handleListingPress(listing.id)}
+                />
+              </StaggeredItem>
+            ))}
+            {filteredListings.length === 0 && (
+              <EmptyState
+                lottieAnimation="search"
+                title={t('home.noListings')}
+                description={t('home.noListingsDescriptionShort')}
+                actionLabel={t('home.clearFilters')}
+                onAction={() => {
+                  setSearchFrom('');
+                  setSearchTo('');
+                  setSearchDate('');
+                  setActiveTab('all');
+                }}
+                style={styles.emptyState}
+              />
+            )}
+          </Animated.View>
+        )}
       </ScrollView>
+
+      {/* Floating Action Button */}
+      <Animated.View entering={ZoomIn.delay(400).springify()}>
+        <TouchableOpacity
+          onPress={() => router.push('/listing/create')}
+          style={styles.fab}
+          activeOpacity={0.85}
+          accessibilityRole="button"
+          accessibilityLabel={t('carrier.createListing')}
+        >
+          <LinearGradient colors={GRADIENTS.primaryHorizontal} style={styles.fabGradient}>
+            <Ionicons name="add" size={28} color="#FFF" />
+          </LinearGradient>
+        </TouchableOpacity>
+      </Animated.View>
     </SafeAreaView>
   );
 }
@@ -332,6 +472,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: V2_COLORS.bg,
   } as ViewStyle,
   scrollContent: {
     paddingBottom: 32,
@@ -340,71 +481,117 @@ const styles = StyleSheet.create({
     paddingBottom: 48,
   } as ViewStyle,
 
-  // Hero Section
-  heroGradient: {
-    marginBottom: 24,
+  // Hero Card
+  heroCardMobile: {
+    marginHorizontal: 16,
+    marginBottom: 16,
+    borderRadius: RADIUS.heroCard,
+    overflow: 'hidden',
+    ...BUBBLE_SHADOWS.lg,
   } as ViewStyle,
-  hero: {
-    paddingHorizontal: 16,
-    paddingVertical: 32,
-  } as ViewStyle,
-  heroWide: {
+  heroCardWide: {
     maxWidth: 1200,
     alignSelf: 'center',
     width: '100%',
     paddingHorizontal: 24,
-    paddingVertical: 48,
+    marginBottom: 24,
+    borderRadius: RADIUS.heroCard,
+    overflow: 'hidden',
   } as ViewStyle,
-  heroTextContainer: {
-    marginBottom: 28,
+  heroGradient: {
+    paddingHorizontal: 24,
+    paddingVertical: 32,
+    position: 'relative',
+    overflow: 'hidden',
+  } as ViewStyle,
+  heroGradientMobile: {
+    paddingHorizontal: 20,
+    paddingVertical: 24,
+    position: 'relative',
+    overflow: 'hidden',
+  } as ViewStyle,
+  heroDecoCircle1: {
+    position: 'absolute',
+    top: -30,
+    right: -20,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: 'rgba(255,255,255,0.12)',
+  } as ViewStyle,
+  heroDecoCircle2: {
+    position: 'absolute',
+    bottom: -40,
+    left: -20,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: 'rgba(255,255,255,0.08)',
   } as ViewStyle,
   heroLabel: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
+    color: 'rgba(255,255,255,0.8)',
     letterSpacing: 1,
     textTransform: 'uppercase',
     marginBottom: 8,
   } as TextStyle,
   heroTitle: {
-    fontSize: 42,
+    fontSize: 32,
     fontWeight: '800',
-    marginBottom: 12,
-    letterSpacing: -1,
+    color: '#FFFFFF',
+    marginBottom: 8,
+    letterSpacing: -0.5,
+  } as TextStyle,
+  heroTitleMobile: {
+    ...TYPOGRAPHY.hero,
+    color: '#FFFFFF',
+    marginBottom: 6,
   } as TextStyle,
   heroSubtitle: {
-    fontSize: 17,
-    lineHeight: 26,
+    fontSize: 15,
+    lineHeight: 22,
+    color: 'rgba(255,255,255,0.85)',
     maxWidth: 500,
+    marginBottom: 20,
   } as TextStyle,
+  heroSubtitleMobile: {
+    ...TYPOGRAPHY.caption,
+    color: 'rgba(255,255,255,0.85)',
+    marginBottom: 16,
+  } as TextStyle,
+  heroCTA: {
+    flexDirection: 'row',
+    gap: 10,
+  } as ViewStyle,
+
+  // Stats
   statsRow: {
     flexDirection: 'row',
-    gap: 16,
-  } as ViewStyle,
-  statItem: {
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-    borderRadius: 14,
-    minWidth: 100,
-  } as ViewStyle,
-  statValue: {
-    fontSize: 24,
-    fontWeight: '700',
-    marginBottom: 2,
-  } as TextStyle,
-  statLabel: {
-    fontSize: 13,
-  } as TextStyle,
-
-  // Search styles
-  searchContainer: {
+    gap: 10,
     paddingHorizontal: 16,
     marginBottom: 20,
+  } as ViewStyle,
+  statsRowWide: {
+    flexDirection: 'row',
+    gap: 16,
+    maxWidth: 1200,
+    alignSelf: 'center',
+    width: '100%',
+    paddingHorizontal: 24,
+    marginBottom: 24,
+  } as ViewStyle,
+
+  // Search
+  sectionPadded: {
+    paddingHorizontal: 16,
   } as ViewStyle,
   searchContainerWide: {
     maxWidth: 1200,
     alignSelf: 'center',
     width: '100%',
     paddingHorizontal: 24,
+    marginBottom: 20,
   } as ViewStyle,
 
   // Controls row
@@ -425,7 +612,7 @@ const styles = StyleSheet.create({
     flex: 1,
   } as ViewStyle,
   toggleWrapper: {
-    marginLeft: 16,
+    marginStart: 16,
     paddingTop: 4,
   } as ViewStyle,
 
@@ -443,13 +630,9 @@ const styles = StyleSheet.create({
     width: '100%',
     paddingHorizontal: 24,
   } as ViewStyle,
-  resultsTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-  } as TextStyle,
   resultsCount: {
-    fontSize: 14,
-    fontWeight: '500',
+    ...TYPOGRAPHY.caption,
+    color: V2_COLORS.textSoft,
   } as TextStyle,
 
   // Listings container
@@ -480,20 +663,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   } as ViewStyle,
 
-  // Mobile styles
-  mobileHero: {
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    marginBottom: 20,
+  refreshIndicator: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
   } as ViewStyle,
-  greeting: {
-    fontSize: 14,
-    marginBottom: 4,
-  } as TextStyle,
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-  } as TextStyle,
+
+  // Mobile controls
   mobileControlsRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -503,5 +679,23 @@ const styles = StyleSheet.create({
   } as ViewStyle,
   mobileListings: {
     paddingHorizontal: 16,
+  } as ViewStyle,
+
+  // FAB
+  fab: {
+    position: 'absolute',
+    bottom: 24,
+    end: 20,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    overflow: 'hidden',
+    ...BUBBLE_SHADOWS.glow,
+  } as ViewStyle,
+  fabGradient: {
+    width: 56,
+    height: 56,
+    alignItems: 'center',
+    justifyContent: 'center',
   } as ViewStyle,
 });

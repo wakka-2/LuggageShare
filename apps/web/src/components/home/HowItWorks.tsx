@@ -1,64 +1,70 @@
 'use client';
 
 import { Search, MessageSquare, Package, CheckCircle } from 'lucide-react';
-
-const STEPS = [
-  {
-    icon: Search,
-    title: 'ابحث عن ناقل',
-    description: 'ابحث عن مسافرين متجهين إلى وجهتك مع مساحة متاحة',
-    color: 'bg-blue-100 text-blue-600',
-  },
-  {
-    icon: MessageSquare,
-    title: 'تواصل واتفق',
-    description: 'تواصل مع الناقل واتفقا على التفاصيل والسعر',
-    color: 'bg-purple-100 text-purple-600',
-  },
-  {
-    icon: Package,
-    title: 'سلّم أغراضك',
-    description: 'التقِ بالناقل وسلّمه أغراضك قبل السفر',
-    color: 'bg-orange-100 text-orange-600',
-  },
-  {
-    icon: CheckCircle,
-    title: 'استلم وقيّم',
-    description: 'يستلم المستلم الأغراض ويتم التقييم',
-    color: 'bg-green-100 text-green-600',
-  },
-];
+import { useLanguage } from '@/providers/LanguageProvider';
 
 export function HowItWorks() {
+  const { t } = useLanguage();
+
+  const STEPS = [
+    {
+      icon: Search,
+      title: t('wp.step1Title'),
+      description: t('wp.step1Desc'),
+      accent: 'bg-v2-sky/15 text-v2-sky',
+      gradient: 'from-v2-sky to-v2-primary',
+    },
+    {
+      icon: MessageSquare,
+      title: t('wp.step2Title'),
+      description: t('wp.step2Desc'),
+      accent: 'bg-v2-primary/15 text-v2-primary',
+      gradient: 'from-v2-primary to-v2-primary-light',
+    },
+    {
+      icon: Package,
+      title: t('wp.step3Title'),
+      description: t('wp.step3Desc'),
+      accent: 'bg-v2-amber/15 text-v2-amber',
+      gradient: 'from-v2-amber to-v2-secondary',
+    },
+    {
+      icon: CheckCircle,
+      title: t('wp.step4Title'),
+      description: t('wp.step4Desc'),
+      accent: 'bg-v2-mint/15 text-v2-mint',
+      gradient: 'from-v2-mint to-v2-sky',
+    },
+  ];
+
   return (
     <section className="py-16 px-4">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-12">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">
-            كيف يعمل حصتي؟
-          </h2>
-          <p className="text-gray-600 max-w-xl mx-auto">
-            خطوات بسيطة لإرسال أغراضك بأمان وبتكلفة أقل
-          </p>
+          <h2 className="text-2xl font-bold text-v2-text mb-3">{t('wp.howItWorksTitle')}</h2>
+          <p className="text-v2-text-soft max-w-xl mx-auto">{t('wp.howItWorksSubtitle')}</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {STEPS.map((step, index) => (
-            <div key={index} className="text-center">
+            <div
+              key={index}
+              className="text-center bg-white rounded-[22px] p-6 shadow-bubble-sm hover:shadow-bubble-md transition-all"
+            >
+              {/* Gradient step number */}
               <div
-                className={`w-16 h-16 ${step.color} rounded-2xl flex items-center justify-center mx-auto mb-4`}
+                className={`w-10 h-10 bg-gradient-to-br ${step.gradient} rounded-full flex items-center justify-center mx-auto mb-4 text-white font-bold text-sm shadow-bubble-xs`}
               >
-                <step.icon className="w-8 h-8" />
+                {index + 1}
               </div>
-              <div className="relative">
-                <span className="absolute -top-8 right-1/2 translate-x-1/2 w-8 h-8 bg-primary-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
-                  {index + 1}
-                </span>
+              {/* Icon */}
+              <div
+                className={`w-14 h-14 ${step.accent} rounded-2xl flex items-center justify-center mx-auto mb-4`}
+              >
+                <step.icon className="w-7 h-7" />
               </div>
-              <h3 className="font-semibold text-gray-900 mb-2 mt-4">
-                {step.title}
-              </h3>
-              <p className="text-sm text-gray-600">{step.description}</p>
+              <h3 className="font-semibold text-v2-text mb-2">{step.title}</h3>
+              <p className="text-sm text-v2-text-soft">{step.description}</p>
             </div>
           ))}
         </div>

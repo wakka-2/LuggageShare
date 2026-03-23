@@ -1,18 +1,7 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Param,
-  UseGuards,
-} from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-} from '@nestjs/swagger';
+import { Controller, Get, Post, Body, Param, UseGuards } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { NotificationsService } from './notifications.service';
+import { RegisterTokenDto } from './dto/register-token.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
@@ -33,11 +22,8 @@ export class NotificationsController {
   @Post('register-token')
   @ApiOperation({ summary: 'Register push notification token' })
   @ApiResponse({ status: 200, description: 'Token registered' })
-  async registerToken(
-    @CurrentUser() user: any,
-    @Body() body: { token: string; platform: string },
-  ) {
-    return this.notificationsService.registerToken(user.id, body.token, body.platform);
+  async registerToken(@CurrentUser() user: any, @Body() dto: RegisterTokenDto) {
+    return this.notificationsService.registerToken(user.id, dto.token, dto.platform);
   }
 
   @Post(':id/read')

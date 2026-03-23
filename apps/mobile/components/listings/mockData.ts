@@ -1,4 +1,33 @@
+import type { ApiListing } from '@/hooks/useListings';
 import { Listing } from './types';
+
+/** Convert a UI mock Listing to the ApiListing shape used by detail screens. */
+export function adaptMockListing(mock: Listing): ApiListing {
+  return {
+    id: mock.id,
+    carrierId: mock.user.id,
+    departureCity: mock.from.city,
+    departureCode: mock.from.code,
+    arrivalCity: mock.to.city,
+    arrivalCode: mock.to.code,
+    departureDate: mock.travelDate,
+    flightNumber: null,
+    availableWeight: mock.availableWeight ?? mock.neededWeight ?? 0,
+    price: mock.pricing.small,
+    currency: 'SAR',
+    preferences: null,
+    notes: mock.description ?? null,
+    status: mock.status,
+    createdAt: mock.createdAt,
+    updatedAt: mock.createdAt,
+    carrier: {
+      id: mock.user.id,
+      name: mock.user.name,
+      avatarUrl: mock.user.avatarUrl ?? null,
+      isVerified: mock.user.isVerified,
+    },
+  };
+}
 
 export const MOCK_LISTINGS: Listing[] = [
   // Carrier Offers
@@ -7,8 +36,10 @@ export const MOCK_LISTINGS: Listing[] = [
     type: 'offer',
     title: 'Trip to Dubai - 20kg Available',
     titleAr: 'رحلة إلى دبي - 20 كيلو متاح',
-    description: 'Traveling for business, have extra space in my luggage. Can carry most items except liquids.',
-    descriptionAr: 'مسافر للعمل، لدي مساحة إضافية في حقيبتي. يمكنني حمل معظم الأشياء باستثناء السوائل.',
+    description:
+      'Traveling for business, have extra space in my luggage. Can carry most items except liquids.',
+    descriptionAr:
+      'مسافر للعمل، لدي مساحة إضافية في حقيبتي. يمكنني حمل معظم الأشياء باستثناء السوائل.',
     user: {
       id: 'u1',
       name: 'Ahmed Al-Rashid',
@@ -18,7 +49,13 @@ export const MOCK_LISTINGS: Listing[] = [
       isVerified: true,
       memberSince: '2023-03-15',
     },
-    from: { city: 'Riyadh', cityAr: 'الرياض', country: 'Saudi Arabia', countryAr: 'السعودية', code: 'RUH' },
+    from: {
+      city: 'Riyadh',
+      cityAr: 'الرياض',
+      country: 'Saudi Arabia',
+      countryAr: 'السعودية',
+      code: 'RUH',
+    },
     to: { city: 'Dubai', cityAr: 'دبي', country: 'UAE', countryAr: 'الإمارات', code: 'DXB' },
     travelDate: '2024-02-15T14:30:00Z',
     availableWeight: 20,
@@ -29,9 +66,17 @@ export const MOCK_LISTINGS: Listing[] = [
       notes: 'Prefer small to medium packages',
     },
     handoffOptions: [
-      { type: 'home_pickup', location: 'Al Malqa, North Riyadh', locationAr: 'الملقا، شمال الرياض' },
+      {
+        type: 'home_pickup',
+        location: 'Al Malqa, North Riyadh',
+        locationAr: 'الملقا، شمال الرياض',
+      },
       { type: 'mall_meetup', location: 'Riyadh Gallery Mall', locationAr: 'الرياض جاليري مول' },
-      { type: 'airport_dropoff', location: 'King Khalid Airport T5', locationAr: 'مطار الملك خالد صالة 5' },
+      {
+        type: 'airport_dropoff',
+        location: 'King Khalid Airport T5',
+        locationAr: 'مطار الملك خالد صالة 5',
+      },
     ],
     status: 'active',
     views: 234,
@@ -52,7 +97,13 @@ export const MOCK_LISTINGS: Listing[] = [
       isVerified: true,
       memberSince: '2023-06-20',
     },
-    from: { city: 'Jeddah', cityAr: 'جدة', country: 'Saudi Arabia', countryAr: 'السعودية', code: 'JED' },
+    from: {
+      city: 'Jeddah',
+      cityAr: 'جدة',
+      country: 'Saudi Arabia',
+      countryAr: 'السعودية',
+      code: 'JED',
+    },
     to: { city: 'Cairo', cityAr: 'القاهرة', country: 'Egypt', countryAr: 'مصر', code: 'CAI' },
     travelDate: '2024-02-18T09:00:00Z',
     availableWeight: 10,
@@ -61,9 +112,7 @@ export const MOCK_LISTINGS: Listing[] = [
       allowed: ['documents', 'electronics', 'cosmetics'],
       notAllowed: ['liquids', 'food', 'batteries'],
     },
-    handoffOptions: [
-      { type: 'mall_meetup', location: 'Red Sea Mall', locationAr: 'ردسي مول' },
-    ],
+    handoffOptions: [{ type: 'mall_meetup', location: 'Red Sea Mall', locationAr: 'ردسي مول' }],
     status: 'active',
     views: 156,
     createdAt: '2024-02-11T10:00:00Z',
@@ -85,7 +134,13 @@ export const MOCK_LISTINGS: Listing[] = [
       isVerified: true,
       memberSince: '2022-11-01',
     },
-    from: { city: 'Riyadh', cityAr: 'الرياض', country: 'Saudi Arabia', countryAr: 'السعودية', code: 'RUH' },
+    from: {
+      city: 'Riyadh',
+      cityAr: 'الرياض',
+      country: 'Saudi Arabia',
+      countryAr: 'السعودية',
+      code: 'RUH',
+    },
     to: { city: 'Amman', cityAr: 'عمان', country: 'Jordan', countryAr: 'الأردن', code: 'AMM' },
     travelDate: '2024-02-20T19:00:00Z',
     returnDate: '2024-02-23T15:00:00Z',
@@ -122,7 +177,13 @@ export const MOCK_LISTINGS: Listing[] = [
       isVerified: true,
       memberSince: '2024-01-10',
     },
-    from: { city: 'Riyadh', cityAr: 'الرياض', country: 'Saudi Arabia', countryAr: 'السعودية', code: 'RUH' },
+    from: {
+      city: 'Riyadh',
+      cityAr: 'الرياض',
+      country: 'Saudi Arabia',
+      countryAr: 'السعودية',
+      code: 'RUH',
+    },
     to: { city: 'Istanbul', cityAr: 'إسطنبول', country: 'Turkey', countryAr: 'تركيا', code: 'IST' },
     travelDate: '2024-02-22T00:00:00Z',
     neededWeight: 2,
@@ -156,8 +217,20 @@ export const MOCK_LISTINGS: Listing[] = [
       isVerified: false,
       memberSince: '2023-09-05',
     },
-    from: { city: 'Dammam', cityAr: 'الدمام', country: 'Saudi Arabia', countryAr: 'السعودية', code: 'DMM' },
-    to: { city: 'Manama', cityAr: 'المنامة', country: 'Bahrain', countryAr: 'البحرين', code: 'BAH' },
+    from: {
+      city: 'Dammam',
+      cityAr: 'الدمام',
+      country: 'Saudi Arabia',
+      countryAr: 'السعودية',
+      code: 'DMM',
+    },
+    to: {
+      city: 'Manama',
+      cityAr: 'المنامة',
+      country: 'Bahrain',
+      countryAr: 'البحرين',
+      code: 'BAH',
+    },
     travelDate: '2024-02-14T00:00:00Z',
     neededWeight: 1,
     pricing: { small: 150, medium: 0, large: 0, negotiable: false },
@@ -167,7 +240,11 @@ export const MOCK_LISTINGS: Listing[] = [
       notes: 'Will pay premium for urgent delivery',
     },
     handoffOptions: [
-      { type: 'custom', location: 'Can meet anywhere in Dammam', locationAr: 'يمكن اللقاء في أي مكان بالدمام' },
+      {
+        type: 'custom',
+        location: 'Can meet anywhere in Dammam',
+        locationAr: 'يمكن اللقاء في أي مكان بالدمام',
+      },
     ],
     status: 'active',
     views: 89,
@@ -188,8 +265,20 @@ export const MOCK_LISTINGS: Listing[] = [
       isVerified: true,
       memberSince: '2023-04-12',
     },
-    from: { city: 'Dammam', cityAr: 'الدمام', country: 'Saudi Arabia', countryAr: 'السعودية', code: 'DMM' },
-    to: { city: 'Manama', cityAr: 'المنامة', country: 'Bahrain', countryAr: 'البحرين', code: 'BAH' },
+    from: {
+      city: 'Dammam',
+      cityAr: 'الدمام',
+      country: 'Saudi Arabia',
+      countryAr: 'السعودية',
+      code: 'DMM',
+    },
+    to: {
+      city: 'Manama',
+      cityAr: 'المنامة',
+      country: 'Bahrain',
+      countryAr: 'البحرين',
+      code: 'BAH',
+    },
     travelDate: '2024-02-14T10:00:00Z',
     availableWeight: 5,
     pricing: { small: 30, medium: 60, large: 100, negotiable: true },

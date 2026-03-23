@@ -1,6 +1,8 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { useRouter, useSegments } from 'expo-router';
-import * as SecureStore from 'expo-secure-store';
+import { tokenStorage } from '@/lib/storage';
+import { apiClient } from '@/lib/api';
+import { usePushNotifications } from '@/hooks/usePushNotifications';
 
 export interface User {
   id: string;
@@ -24,8 +26,8 @@ const AuthContext = createContext<AuthContextType | null>(null);
 
 const TOKEN_KEY = 'auth_tokens';
 
-// Set to true to bypass login for development
-const DEV_SKIP_AUTH = __DEV__;
+// Dev auth bypass requires explicit opt-in via env var (never leaks to TestFlight/production)
+const DEV_SKIP_AUTH = __DEV__ && process.env.EXPO_PUBLIC_DEV_SKIP_AUTH === 'true';
 
 const DEMO_USER: User = {
   id: 'demo_user_id',
@@ -41,6 +43,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(!DEV_SKIP_AUTH);
   const segments = useSegments();
   const router = useRouter();
+
+  // Register push notifications when authenticated
+  usePushNotifications(!!user);
 
   // Check authentication on mount (skip in dev mode)
   useEffect(() => {
@@ -66,12 +71,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function checkAuth() {
     try {
-      const tokensJson = await SecureStore.getItemAsync(TOKEN_KEY);
+      const tokensJson = await tokenStorage.getItem(TOKEN_KEY);
       if (tokensJson) {
         const tokens = JSON.parse(tokensJson);
-        // TODO: Validate token with API and get fresh user data
-        if (tokens.user) {
-          setUser(tokens.user);
+        if (tokens.accessToken && tokens.user) {
+          // Validate token by calling the API — rejects expired/invalid tokens
+          try {
+            const response = await apiClient.get('/users/me');
+            setUser(response.data.user || tokens.user);
+          } catch {
+            // Token invalid/expired — clear and redirect to login
+            await tokenStorage.deleteItem(TOKEN_KEY);
+          }
         }
       }
     } catch (error) {
@@ -83,7 +94,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function signIn(tokens: { accessToken: string; refreshToken: string; user: User }) {
     try {
-      await SecureStore.setItemAsync(TOKEN_KEY, JSON.stringify(tokens));
+      await tokenStorage.setItem(TOKEN_KEY, JSON.stringify(tokens));
       setUser(tokens.user);
     } catch (error) {
       console.error('Error signing in:', error);
@@ -93,7 +104,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function signOut() {
     try {
-      await SecureStore.deleteItemAsync(TOKEN_KEY);
+      await tokenStorage.deleteItem(TOKEN_KEY);
       setUser(null);
     } catch (error) {
       console.error('Error signing out:', error);

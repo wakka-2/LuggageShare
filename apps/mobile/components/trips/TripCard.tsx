@@ -1,7 +1,12 @@
 import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import Animated, { FadeInUp, useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
+import Animated, {
+  FadeInUp,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from 'react-native-reanimated';
 
 import { useTheme } from '@/hooks/useTheme';
 import { Avatar } from '@/components/common';
@@ -34,7 +39,7 @@ export interface Trip {
   departureDate: string;
   arrivalDate: string;
   availableWeight: number;
-  pricePerKg: number;
+  price: number;
   flightNumber?: string;
 }
 
@@ -92,9 +97,7 @@ export function TripCard({ trip, index, onPress }: TripCardProps) {
       {/* Route Header */}
       <View style={styles.routeSection}>
         <View style={styles.locationBlock}>
-          <Text style={[styles.cityCode, { color: colors.primary }]}>
-            {trip.from.code}
-          </Text>
+          <Text style={[styles.cityCode, { color: colors.primary }]}>{trip.from.code}</Text>
           <Text style={[styles.cityName, { color: colors.text }]} numberOfLines={1}>
             {isRTL ? trip.from.cityAr : trip.from.city}
           </Text>
@@ -109,9 +112,7 @@ export function TripCard({ trip, index, onPress }: TripCardProps) {
         </View>
 
         <View style={[styles.locationBlock, styles.locationBlockEnd]}>
-          <Text style={[styles.cityCode, { color: colors.success }]}>
-            {trip.to.code}
-          </Text>
+          <Text style={[styles.cityCode, { color: colors.success }]}>{trip.to.code}</Text>
           <Text style={[styles.cityName, { color: colors.text }]} numberOfLines={1}>
             {isRTL ? trip.to.cityAr : trip.to.city}
           </Text>
@@ -169,8 +170,7 @@ export function TripCard({ trip, index, onPress }: TripCardProps) {
             {t('home.startingFrom')}
           </Text>
           <Text style={[styles.price, { color: colors.primary }]}>
-            {trip.pricePerKg} {t('common.sar')}
-            <Text style={styles.priceUnit}>/{t('home.kg')}</Text>
+            {trip.price} {t('common.sar')}
           </Text>
         </View>
       </View>

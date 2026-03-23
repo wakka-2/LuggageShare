@@ -1,3 +1,4 @@
+import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
@@ -7,15 +8,11 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withSpring,
-  withSequence,
   withTiming,
-  interpolate,
-  Extrapolation,
 } from 'react-native-reanimated';
-import { LinearGradient } from 'expo-linear-gradient';
 
-import { useTheme } from '@/hooks/useTheme';
-import { Avatar } from '@/components/common';
+import { Avatar, MetaChip } from '@/components/common';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS, TYPOGRAPHY } from '@/providers/ThemeProvider';
 import { Listing, ViewMode, ITEM_CATEGORIES } from './types';
 
 interface ListingCardProps {
@@ -27,33 +24,29 @@ interface ListingCardProps {
 
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
-export function ListingCard({ listing, index, viewMode, onPress }: ListingCardProps) {
+export const ListingCard = React.memo(function ListingCard({
+  listing,
+  index,
+  viewMode,
+  onPress,
+}: ListingCardProps) {
   const { t, i18n } = useTranslation();
-  const { colors } = useTheme();
   const isRTL = i18n.language === 'ar';
   const isWeb = Platform.OS === 'web';
   const isOffer = listing.type === 'offer';
 
   const scale = useSharedValue(1);
-  const elevation = useSharedValue(0);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
   }));
 
-  const shadowStyle = useAnimatedStyle(() => ({
-    shadowOpacity: interpolate(elevation.value, [0, 1], [0.08, 0.2], Extrapolation.CLAMP),
-    shadowRadius: interpolate(elevation.value, [0, 1], [8, 20], Extrapolation.CLAMP),
-  }));
-
   const handlePressIn = () => {
-    scale.value = withSpring(0.98, { damping: 20, stiffness: 300 });
-    elevation.value = withTiming(1, { duration: 150 });
+    scale.value = withSpring(0.96, { damping: 15, stiffness: 300 });
   };
 
   const handlePressOut = () => {
     scale.value = withSpring(1, { damping: 15, stiffness: 200 });
-    elevation.value = withTiming(0, { duration: 200 });
   };
 
   const formatDate = (dateString: string) => {
@@ -61,9 +54,9 @@ export function ListingCard({ listing, index, viewMode, onPress }: ListingCardPr
     const now = new Date();
     const diffDays = Math.ceil((date.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
 
-    if (diffDays === 0) return isRTL ? 'اليوم' : 'Today';
-    if (diffDays === 1) return isRTL ? 'غداً' : 'Tomorrow';
-    if (diffDays < 7) return isRTL ? `بعد ${diffDays} أيام` : `In ${diffDays} days`;
+    if (diffDays === 0) return t('listingCard.today');
+    if (diffDays === 1) return t('listingCard.tomorrow');
+    if (diffDays < 7) return t('listingCard.inDays', { count: diffDays });
 
     return date.toLocaleDateString(isRTL ? 'ar-SA' : 'en-US', {
       month: 'short',
@@ -76,323 +69,217 @@ export function ListingCard({ listing, index, viewMode, onPress }: ListingCardPr
     const now = new Date();
     const diffHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
 
-    if (diffHours < 1) return isRTL ? 'الآن' : 'Just now';
-    if (diffHours < 24) return isRTL ? `منذ ${diffHours} س` : `${diffHours}h ago`;
+    if (diffHours < 1) return t('listingCard.justNow');
+    if (diffHours < 24) return t('listingCard.hoursAgo', { count: diffHours });
     const diffDays = Math.floor(diffHours / 24);
-    return isRTL ? `منذ ${diffDays} ي` : `${diffDays}d ago`;
+    return t('listingCard.daysAgo', { count: diffDays });
   };
 
-  // Color scheme based on type
-  const typeColors = isOffer
-    ? { primary: colors.primary, gradient: [colors.primary, colors.primaryDark] as const }
-    : { primary: colors.success, gradient: ['#22C55E', '#16A34A'] as const };
+  // V2 color scheme
+  const typeColor = isOffer ? V2_COLORS.primary : V2_COLORS.accent1;
+  const originDotColor = V2_COLORS.accent1;
+  const destDotColor = V2_COLORS.secondary;
+  const typeLabel = isOffer ? t('listingCard.offer') : t('listingCard.request');
 
-  const typeLabel = isOffer
-    ? (isRTL ? 'عرض' : 'Offer')
-    : (isRTL ? 'طلب' : 'Request');
+  const accessibilityLabel = `${typeLabel}: ${listing.from.code} to ${listing.to.code}, ${listing.pricing.small} SAR, by ${listing.user.name}`;
 
-  // List View Layout - Compact and clean
+  // List View Layout - V2 Compact
   if (viewMode === 'list') {
     return (
       <AnimatedTouchable
         entering={FadeIn.delay(index * 30).duration(300)}
-        style={[
-          styles.listContainer,
-          { backgroundColor: colors.card, borderColor: colors.border },
-          animatedStyle,
-          isWeb && styles.listContainerWeb,
-        ]}
+        style={[styles.listContainer, animatedStyle, isWeb && styles.listContainerWeb]}
         onPress={onPress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
         activeOpacity={1}
+        accessibilityRole="button"
+        accessibilityLabel={accessibilityLabel}
       >
-        {/* Type indicator bar */}
-        <View style={[styles.listTypeBar, { backgroundColor: typeColors.primary }]} />
+        {/* Type dot */}
+        <View style={[styles.listTypeDot, { backgroundColor: typeColor }]} />
 
-        {/* Main Content */}
         <View style={styles.listContent}>
           <View style={styles.listHeader}>
-            <Text style={[styles.listTitle, { color: colors.text }]} numberOfLines={1}>
-              {isRTL ? listing.titleAr : listing.title}
+            <Text style={styles.listTitle} numberOfLines={1}>
+              {listing.title}
             </Text>
             <View style={styles.listPriceContainer}>
-              <Text style={[styles.listPrice, { color: typeColors.primary }]}>
-                {listing.pricing.small}
-              </Text>
-              <Text style={[styles.listPriceCurrency, { color: colors.textSecondary }]}>
-                {t('common.sar')}
-              </Text>
+              <Text style={[styles.listPrice, { color: typeColor }]}>{listing.pricing.small}</Text>
+              <Text style={styles.listPriceCurrency}>{t('common.sar')}</Text>
             </View>
           </View>
 
           <View style={styles.listMeta}>
             <View style={styles.listRoute}>
-              <Ionicons name="location" size={14} color={typeColors.primary} />
-              <Text style={[styles.listRouteText, { color: colors.text }]}>
-                {listing.from.code}
-              </Text>
-              <Ionicons name="arrow-forward" size={12} color={colors.textTertiary} />
-              <Text style={[styles.listRouteText, { color: colors.text }]}>
-                {listing.to.code}
-              </Text>
+              <View style={[styles.routeDot, { backgroundColor: originDotColor }]} />
+              <Text style={styles.listRouteText}>{listing.from.code}</Text>
+              <Ionicons name="arrow-forward" size={12} color={V2_COLORS.textMuted} />
+              <View style={[styles.routeDot, { backgroundColor: destDotColor }]} />
+              <Text style={styles.listRouteText}>{listing.to.code}</Text>
             </View>
-            <View style={styles.listDateContainer}>
-              <Ionicons name="calendar-outline" size={14} color={colors.textSecondary} />
-              <Text style={[styles.listDate, { color: colors.textSecondary }]}>
-                {formatDate(listing.travelDate)}
-              </Text>
-            </View>
+            <MetaChip icon="calendar-outline" label={formatDate(listing.travelDate)} />
           </View>
 
           <View style={styles.listFooter}>
             <View style={styles.listUserInfo}>
               <Avatar
-                name={isRTL ? listing.user.nameAr : listing.user.name}
+                name={listing.user.name}
                 source={listing.user.avatarUrl}
                 size="tiny"
                 verified={listing.user.isVerified}
               />
-              <Text style={[styles.listUserName, { color: colors.textSecondary }]} numberOfLines={1}>
-                {isRTL ? listing.user.nameAr : listing.user.name}
+              <Text style={styles.listUserName} numberOfLines={1}>
+                {listing.user.name}
               </Text>
-              {listing.user.isVerified && (
-                <View style={[styles.verifiedBadge, { backgroundColor: colors.success + '20' }]}>
-                  <Ionicons name="checkmark-circle" size={12} color={colors.success} />
-                </View>
-              )}
             </View>
-            <Text style={[styles.listTime, { color: colors.textTertiary }]}>
-              {formatTimeAgo(listing.createdAt)}
-            </Text>
+            <Text style={styles.listTime}>{formatTimeAgo(listing.createdAt)}</Text>
           </View>
         </View>
       </AnimatedTouchable>
     );
   }
 
-  // Grid View Layout - Rich and visually appealing
+  // Grid View Layout - V2 Bubble Card
   return (
     <AnimatedTouchable
-      entering={FadeInDown.delay(index * 60).duration(400).springify()}
-      style={[
-        styles.gridContainer,
-        { backgroundColor: colors.card },
-        animatedStyle,
-        shadowStyle,
-        isWeb && styles.gridContainerWeb,
-      ]}
+      entering={FadeInDown.delay(index * 60)
+        .duration(400)
+        .springify()}
+      style={[styles.gridContainer, animatedStyle, isWeb && styles.gridContainerWeb]}
       onPress={onPress}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
       activeOpacity={1}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
     >
-      {/* Gradient Header */}
-      <View style={styles.gradientHeader}>
-        <LinearGradient
-          colors={typeColors.gradient}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.headerGradient}
-        >
-          <View style={styles.headerContent}>
-            <View style={styles.typeBadge}>
-              <Ionicons
-                name={isOffer ? 'airplane' : 'cube'}
-                size={16}
-                color="#FFFFFF"
-              />
-              <Text style={styles.typeBadgeText}>{typeLabel}</Text>
-            </View>
-            <View style={styles.viewsContainer}>
-              <Ionicons name="eye" size={14} color="rgba(255,255,255,0.8)" />
-              <Text style={styles.viewsText}>{listing.views}</Text>
-            </View>
-          </View>
-
-          {/* Route Display */}
-          <View style={styles.routeDisplay}>
-            <View style={styles.routeCity}>
-              <Text style={styles.routeCode}>{listing.from.code}</Text>
-              <Text style={styles.routeCityName} numberOfLines={1}>
-                {isRTL ? listing.from.cityAr : listing.from.city}
-              </Text>
-            </View>
-            <View style={styles.routeArrow}>
-              <View style={styles.routeLine} />
-              <View style={styles.planeIcon}>
-                <Ionicons name="airplane" size={18} color="#FFFFFF" />
-              </View>
-              <View style={styles.routeLine} />
-            </View>
-            <View style={[styles.routeCity, styles.routeCityEnd]}>
-              <Text style={styles.routeCode}>{listing.to.code}</Text>
-              <Text style={styles.routeCityName} numberOfLines={1}>
-                {isRTL ? listing.to.cityAr : listing.to.city}
-              </Text>
-            </View>
-          </View>
-        </LinearGradient>
+      {/* Type Badge + Views */}
+      <View style={styles.headerContent}>
+        <View style={[styles.typeBadge, { backgroundColor: typeColor + '15' }]}>
+          <Ionicons name={isOffer ? 'airplane' : 'cube'} size={14} color={typeColor} />
+          <Text style={[styles.typeBadgeText, { color: typeColor }]}>{typeLabel}</Text>
+        </View>
+        <View style={styles.viewsContainer}>
+          <Ionicons name="eye-outline" size={14} color={V2_COLORS.textMuted} />
+          <Text style={styles.viewsText}>{listing.views}</Text>
+        </View>
       </View>
 
-      {/* Card Body */}
-      <View style={styles.cardBody}>
-        {/* Title */}
-        <Text style={[styles.gridTitle, { color: colors.text }]} numberOfLines={2}>
-          {isRTL ? listing.titleAr : listing.title}
-        </Text>
-
-        {/* Quick Info Pills */}
-        <View style={styles.infoPills}>
-          <View style={[styles.pill, { backgroundColor: colors.primary + '12' }]}>
-            <Ionicons name="calendar" size={14} color={colors.primary} />
-            <Text style={[styles.pillText, { color: colors.primary }]}>
-              {formatDate(listing.travelDate)}
+      {/* Route Display with colored dots */}
+      <View style={styles.routeDisplay}>
+        <View style={styles.routeCity}>
+          <View style={[styles.routeDotLarge, { backgroundColor: originDotColor }]} />
+          <View>
+            <Text style={styles.routeCode}>{listing.from.code}</Text>
+            <Text style={styles.routeCityName} numberOfLines={1}>
+              {listing.from.city}
             </Text>
           </View>
-          {(listing.availableWeight || listing.neededWeight) && (
-            <View style={[styles.pill, { backgroundColor: colors.success + '12' }]}>
-              <Ionicons name="scale" size={14} color={colors.success} />
-              <Text style={[styles.pillText, { color: colors.success }]}>
-                {listing.availableWeight || listing.neededWeight} kg
-              </Text>
-            </View>
-          )}
         </View>
-
-        {/* Item Restrictions */}
-        <View style={styles.restrictionsSection}>
-          <View style={styles.restrictionsRow}>
-            {listing.restrictions.allowed.slice(0, 4).map((key) => {
-              const category = ITEM_CATEGORIES.allowed.find(c => c.key === key);
-              if (!category) return null;
-              return (
-                <View
-                  key={key}
-                  style={[styles.restrictionIcon, { backgroundColor: colors.success + '10' }]}
-                >
-                  <Ionicons name={category.icon as any} size={14} color={colors.success} />
-                </View>
-              );
-            })}
-            {listing.restrictions.notAllowed.slice(0, 2).map((key) => {
-              const category = ITEM_CATEGORIES.notAllowed.find(c => c.key === key);
-              if (!category) return null;
-              return (
-                <View
-                  key={key}
-                  style={[styles.restrictionIcon, { backgroundColor: colors.error + '10' }]}
-                >
-                  <Ionicons name={category.icon as any} size={14} color={colors.error} />
-                </View>
-              );
-            })}
-          </View>
+        <View style={styles.routeArrow}>
+          <View style={styles.routeLine} />
+          <Ionicons name="airplane" size={16} color={V2_COLORS.textMuted} />
+          <View style={styles.routeLine} />
         </View>
-
-        {/* Pricing Section */}
-        <View style={[styles.pricingSection, { borderColor: colors.border }]}>
-          <View style={styles.priceMain}>
-            <Text style={[styles.priceFrom, { color: colors.textSecondary }]}>
-              {isRTL ? 'يبدأ من' : 'Starting'}
+        <View style={[styles.routeCity, styles.routeCityEnd]}>
+          <View>
+            <Text style={[styles.routeCode, { textAlign: 'right' }]}>{listing.to.code}</Text>
+            <Text style={[styles.routeCityName, { textAlign: 'right' }]} numberOfLines={1}>
+              {listing.to.city}
             </Text>
-            <View style={styles.priceRow}>
-              <Text style={[styles.priceValue, { color: colors.text }]}>
-                {listing.pricing.small}
-              </Text>
-              <Text style={[styles.priceCurrency, { color: colors.textSecondary }]}>
-                {t('common.sar')}
-              </Text>
-            </View>
           </View>
-          {listing.pricing.negotiable && (
-            <View style={[styles.negotiableBadge, { backgroundColor: colors.warning + '15' }]}>
-              <Ionicons name="chatbubble-ellipses" size={14} color={colors.warning} />
-              <Text style={[styles.negotiableText, { color: colors.warning }]}>
-                {isRTL ? 'تفاوض' : 'Negotiate'}
-              </Text>
-            </View>
-          )}
+          <View style={[styles.routeDotLarge, { backgroundColor: destDotColor }]} />
         </View>
+      </View>
 
-        {/* Footer: User Info */}
-        <View style={[styles.cardFooter, { borderColor: colors.border }]}>
-          <View style={styles.userSection}>
-            <Avatar
-              name={isRTL ? listing.user.nameAr : listing.user.name}
-              source={listing.user.avatarUrl}
-              size="small"
-              verified={listing.user.isVerified}
-            />
-            <View style={styles.userInfo}>
-              <Text style={[styles.userName, { color: colors.text }]} numberOfLines={1}>
-                {isRTL ? listing.user.nameAr : listing.user.name}
-              </Text>
-              <View style={styles.userStats}>
-                <Ionicons name="star" size={12} color="#F59E0B" />
-                <Text style={[styles.userRating, { color: colors.textSecondary }]}>
-                  {listing.user.rating}
-                </Text>
-                <Text style={[styles.userDeals, { color: colors.textTertiary }]}>
-                  • {listing.user.completedDeals} {isRTL ? 'صفقة' : 'deals'}
-                </Text>
-              </View>
+      {/* Title */}
+      <Text style={styles.gridTitle} numberOfLines={2}>
+        {listing.title}
+      </Text>
+
+      {/* Meta Chips */}
+      <View style={styles.metaRow}>
+        <MetaChip
+          icon="calendar"
+          label={formatDate(listing.travelDate)}
+          color={V2_COLORS.primary}
+        />
+        {(listing.availableWeight || listing.neededWeight) && (
+          <MetaChip
+            icon="scale"
+            label={`${listing.availableWeight || listing.neededWeight} kg`}
+            color={V2_COLORS.accent1}
+          />
+        )}
+        {listing.pricing.negotiable && (
+          <MetaChip
+            icon="chatbubble-ellipses"
+            label={t('listingCard.negotiate')}
+            color={V2_COLORS.accent2}
+          />
+        )}
+      </View>
+
+      {/* Pricing + User Footer */}
+      <View style={styles.cardFooter}>
+        <View style={styles.userSection}>
+          <Avatar
+            name={listing.user.name}
+            source={listing.user.avatarUrl}
+            size="small"
+            verified={listing.user.isVerified}
+          />
+          <View style={styles.userInfo}>
+            <Text style={styles.userName} numberOfLines={1}>
+              {listing.user.name}
+            </Text>
+            <View style={styles.userStats}>
+              <Ionicons name="star" size={12} color={V2_COLORS.accent2} />
+              <Text style={styles.userRating}>{listing.user.rating}</Text>
             </View>
           </View>
-          <View style={styles.actionHint}>
-            <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
-          </View>
+        </View>
+        <View style={styles.priceBlock}>
+          <Text style={styles.priceValue}>{listing.pricing.small}</Text>
+          <Text style={styles.priceCurrency}>{t('common.sar')}</Text>
         </View>
       </View>
     </AnimatedTouchable>
   );
-}
+});
 
 const styles = StyleSheet.create({
-  // Grid View Styles
+  // Grid View Styles — V2 Bubble Card
   gridContainer: {
-    borderRadius: 20,
-    overflow: 'hidden',
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
+    backgroundColor: '#FFFFFF',
+    borderRadius: RADIUS.card,
+    padding: 18,
+    marginBottom: 16,
+    ...BUBBLE_SHADOWS.lg,
   },
   gridContainerWeb: {
-    ...(Platform.OS === 'web' ? {
-      cursor: 'pointer',
-      transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-    } as any : {}),
-  },
-  gradientHeader: {
-    overflow: 'hidden',
-  },
-  headerGradient: {
-    paddingTop: 16,
-    paddingHorizontal: 16,
-    paddingBottom: 20,
+    ...(Platform.OS === 'web'
+      ? ({ cursor: 'pointer', transition: 'transform 0.2s ease' } as any)
+      : {}),
   },
   headerContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 14,
   },
   typeBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: RADIUS.pill,
+    gap: 5,
   },
   typeBadgeText: {
-    color: '#FFFFFF',
-    fontSize: 13,
-    fontWeight: '600',
+    fontSize: 12,
+    fontWeight: '700',
   },
   viewsContainer: {
     flexDirection: 'row',
@@ -400,129 +287,58 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   viewsText: {
-    color: 'rgba(255,255,255,0.8)',
-    fontSize: 13,
+    color: V2_COLORS.textMuted,
+    fontSize: 12,
     fontWeight: '500',
   },
   routeDisplay: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginBottom: 14,
   },
   routeCity: {
     flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   routeCityEnd: {
-    alignItems: 'flex-end',
+    justifyContent: 'flex-end',
+  },
+  routeDotLarge: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
   },
   routeCode: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    letterSpacing: 1,
+    ...TYPOGRAPHY.h1,
+    color: V2_COLORS.text,
   },
   routeCityName: {
-    fontSize: 13,
-    color: 'rgba(255,255,255,0.8)',
-    marginTop: 2,
+    ...TYPOGRAPHY.small,
+    color: V2_COLORS.textSoft,
   },
   routeArrow: {
     flexDirection: 'row',
     alignItems: 'center',
-    flex: 1.2,
-    paddingHorizontal: 8,
+    flex: 0.8,
+    paddingHorizontal: 4,
   },
   routeLine: {
     flex: 1,
-    height: 2,
-    backgroundColor: 'rgba(255,255,255,0.3)',
-  },
-  planeIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginHorizontal: 4,
-  },
-  cardBody: {
-    padding: 16,
+    height: 1.5,
+    backgroundColor: V2_COLORS.textMuted + '40',
   },
   gridTitle: {
-    fontSize: 17,
-    fontWeight: '600',
-    lineHeight: 24,
-    marginBottom: 14,
+    ...TYPOGRAPHY.h3,
+    color: V2_COLORS.text,
+    marginBottom: 10,
   },
-  infoPills: {
+  metaRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
-    marginBottom: 14,
-  },
-  pill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
     gap: 6,
-  },
-  pillText: {
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  restrictionsSection: {
     marginBottom: 14,
-  },
-  restrictionsRow: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  restrictionIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  pricingSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 14,
-    borderTopWidth: 1,
-    marginBottom: 14,
-  },
-  priceMain: {},
-  priceFrom: {
-    fontSize: 12,
-    marginBottom: 2,
-  },
-  priceRow: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    gap: 4,
-  },
-  priceValue: {
-    fontSize: 26,
-    fontWeight: '700',
-  },
-  priceCurrency: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  negotiableBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 12,
-    gap: 4,
-  },
-  negotiableText: {
-    fontSize: 12,
-    fontWeight: '600',
   },
   cardFooter: {
     flexDirection: 'row',
@@ -530,58 +346,71 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingTop: 14,
     borderTopWidth: 1,
+    borderTopColor: V2_COLORS.cardShadow,
   },
   userSection: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 10,
     flex: 1,
   },
   userInfo: {
     flex: 1,
   },
   userName: {
-    fontSize: 14,
+    ...TYPOGRAPHY.caption,
     fontWeight: '600',
+    color: V2_COLORS.text,
   },
   userStats: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 3,
     marginTop: 2,
   },
   userRating: {
-    fontSize: 13,
-    fontWeight: '500',
-  },
-  userDeals: {
     fontSize: 12,
+    fontWeight: '600',
+    color: V2_COLORS.textSoft,
   },
-  actionHint: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(0,0,0,0.04)',
-    justifyContent: 'center',
-    alignItems: 'center',
+  priceBlock: {
+    alignItems: 'flex-end',
+  },
+  priceValue: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: V2_COLORS.text,
+    letterSpacing: -0.3,
+  },
+  priceCurrency: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: V2_COLORS.textSoft,
   },
 
-  // List View Styles
+  // List View Styles — V2
   listContainer: {
     flexDirection: 'row',
-    borderRadius: 14,
-    borderWidth: 1,
+    backgroundColor: '#FFFFFF',
+    borderRadius: RADIUS.card,
     overflow: 'hidden',
     marginBottom: 10,
+    ...BUBBLE_SHADOWS.sm,
   },
   listContainerWeb: {
-    ...(Platform.OS === 'web' ? {
-      cursor: 'pointer',
-      transition: 'transform 0.15s ease, box-shadow 0.15s ease',
-    } as any : {}),
+    ...(Platform.OS === 'web'
+      ? ({ cursor: 'pointer', transition: 'transform 0.15s ease' } as any)
+      : {}),
   },
-  listTypeBar: {
+  listTypeDot: {
     width: 4,
+    borderTopLeftRadius: RADIUS.card,
+    borderBottomLeftRadius: RADIUS.card,
+  },
+  routeDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
   },
   listContent: {
     flex: 1,
@@ -594,10 +423,11 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   listTitle: {
-    fontSize: 15,
+    ...TYPOGRAPHY.caption,
     fontWeight: '600',
+    color: V2_COLORS.text,
     flex: 1,
-    marginRight: 12,
+    marginEnd: 12,
   },
   listPriceContainer: {
     flexDirection: 'row',
@@ -611,6 +441,7 @@ const styles = StyleSheet.create({
   listPriceCurrency: {
     fontSize: 12,
     fontWeight: '500',
+    color: V2_COLORS.textSoft,
   },
   listMeta: {
     flexDirection: 'row',
@@ -621,19 +452,12 @@ const styles = StyleSheet.create({
   listRoute: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 6,
   },
   listRouteText: {
     fontSize: 14,
-    fontWeight: '600',
-  },
-  listDateContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  listDate: {
-    fontSize: 13,
+    fontWeight: '700',
+    color: V2_COLORS.text,
   },
   listFooter: {
     flexDirection: 'row',
@@ -648,16 +472,11 @@ const styles = StyleSheet.create({
   },
   listUserName: {
     fontSize: 13,
+    color: V2_COLORS.textSoft,
     flex: 1,
-  },
-  verifiedBadge: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   listTime: {
     fontSize: 12,
+    color: V2_COLORS.textMuted,
   },
 });

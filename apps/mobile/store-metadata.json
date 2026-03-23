@@ -1,0 +1,26 @@
+{
+  "appName": {
+    "en": "LuggageShare - Send Luggage with Travelers",
+    "ar": "شارك حقيبتك - أرسل أمتعتك مع المسافرين"
+  },
+  "subtitle": {
+    "en": "Share luggage space, save money",
+    "ar": "شارك مساحة الأمتعة، وفّر المال"
+  },
+  "description": {
+    "en": "LuggageShare connects people who need to send items with travelers who have extra luggage space. Save up to 80% compared to traditional shipping.\n\n• Find travelers going your way\n• Send items safely and affordably\n• Earn money from your extra luggage space\n• Secure in-app messaging\n• ID-verified users for trust\n• Real-time tracking\n\nPopular routes: Saudi Arabia ↔ Egypt, Philippines, Pakistan, India",
+    "ar": "شارك حقيبتك يربط الأشخاص الذين يحتاجون إرسال أغراض مع المسافرين الذين لديهم مساحة إضافية في أمتعتهم. وفّر حتى 80% مقارنة بالشحن التقليدي.\n\n• ابحث عن مسافرين في نفس وجهتك\n• أرسل أغراضك بأمان وبتكلفة منخفضة\n• اكسب مالاً من المساحة الفائضة في حقيبتك\n• محادثات آمنة داخل التطبيق\n• مستخدمون موثقو الهوية\n• تتبع فوري\n\nالمسارات الشائعة: السعودية ↔ مصر، الفلبين، باكستان، الهند"
+  },
+  "keywords": {
+    "en": "luggage,shipping,travel,send,items,carry,affordable,Saudi,international",
+    "ar": "أمتعة,شحن,سفر,إرسال,حقيبة,توفير,سعودية,دولي"
+  },
+  "categories": {
+    "primary": "Travel",
+    "secondary": "Lifestyle"
+  },
+  "privacyPolicyUrl": "https://luggageshare.com/privacy",
+  "termsOfServiceUrl": "https://luggageshare.com/terms",
+  "supportUrl": "https://luggageshare.com/support",
+  "contentRating": "4+"
+}

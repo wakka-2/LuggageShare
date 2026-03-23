@@ -2,7 +2,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 
-import { useTheme } from '@/hooks/useTheme';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS } from '@/providers/ThemeProvider';
 
 type UserRole = 'sender' | 'carrier';
 
@@ -13,26 +13,22 @@ interface RoleSwitcherProps {
 
 export function RoleSwitcher({ activeRole, onRoleChange }: RoleSwitcherProps) {
   const { t } = useTranslation();
-  const { colors } = useTheme();
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.card, borderColor: colors.border }]}>
+    <View style={styles.container}>
       <TouchableOpacity
-        style={[
-          styles.roleButton,
-          activeRole === 'sender' && { backgroundColor: colors.primary },
-        ]}
+        style={[styles.roleButton, activeRole === 'sender' && styles.roleActive]}
         onPress={() => onRoleChange('sender')}
       >
         <Ionicons
           name="cube-outline"
           size={18}
-          color={activeRole === 'sender' ? '#FFFFFF' : colors.textSecondary}
+          color={activeRole === 'sender' ? '#FFFFFF' : V2_COLORS.textSoft}
         />
         <Text
           style={[
             styles.roleText,
-            { color: activeRole === 'sender' ? '#FFFFFF' : colors.textSecondary },
+            { color: activeRole === 'sender' ? '#FFFFFF' : V2_COLORS.textSoft },
           ]}
         >
           {t('trips.asSender')}
@@ -40,21 +36,18 @@ export function RoleSwitcher({ activeRole, onRoleChange }: RoleSwitcherProps) {
       </TouchableOpacity>
 
       <TouchableOpacity
-        style={[
-          styles.roleButton,
-          activeRole === 'carrier' && { backgroundColor: colors.primary },
-        ]}
+        style={[styles.roleButton, activeRole === 'carrier' && styles.roleActive]}
         onPress={() => onRoleChange('carrier')}
       >
         <Ionicons
           name="airplane-outline"
           size={18}
-          color={activeRole === 'carrier' ? '#FFFFFF' : colors.textSecondary}
+          color={activeRole === 'carrier' ? '#FFFFFF' : V2_COLORS.textSoft}
         />
         <Text
           style={[
             styles.roleText,
-            { color: activeRole === 'carrier' ? '#FFFFFF' : colors.textSecondary },
+            { color: activeRole === 'carrier' ? '#FFFFFF' : V2_COLORS.textSoft },
           ]}
         >
           {t('trips.asCarrier')}
@@ -69,9 +62,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginHorizontal: 16,
     marginTop: 8,
-    borderRadius: 12,
-    borderWidth: 1,
+    backgroundColor: '#FFFFFF',
+    borderRadius: RADIUS.pill,
     padding: 4,
+    ...BUBBLE_SHADOWS.sm,
   },
   roleButton: {
     flex: 1,
@@ -80,7 +74,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
     paddingVertical: 10,
-    borderRadius: 8,
+    borderRadius: RADIUS.pill,
+  },
+  roleActive: {
+    backgroundColor: V2_COLORS.primary,
+    ...BUBBLE_SHADOWS.xs,
   },
   roleText: {
     fontSize: 14,

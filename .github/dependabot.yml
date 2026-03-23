@@ -1,0 +1,32 @@
+# Dependabot — automated dependency updates
+# https://docs.github.com/en/code-security/dependabot/dependabot-version-updates
+
+version: 2
+updates:
+  # Root package.json + workspaces
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 10
+    groups:
+      production-deps:
+        patterns: ["*"]
+        exclude-patterns: ["@types/*", "eslint*", "prettier*", "jest*", "ts-*"]
+        update-types: ["minor", "patch"]
+      dev-deps:
+        patterns: ["@types/*", "eslint*", "prettier*", "jest*", "ts-*"]
+        update-types: ["minor", "patch"]
+    labels:
+      - dependencies
+      - automated
+
+  # GitHub Actions
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    labels:
+      - dependencies
+      - ci

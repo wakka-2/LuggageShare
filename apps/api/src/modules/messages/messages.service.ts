@@ -1,5 +1,11 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { containsProfanity } from '../../common/utils/content-filter';
 
 @Injectable()
 export class MessagesService {
@@ -8,10 +14,7 @@ export class MessagesService {
   async getConversations(userId: string) {
     const bookings = await this.prisma.booking.findMany({
       where: {
-        OR: [
-          { senderId: userId },
-          { carrierId: userId },
-        ],
+        OR: [{ senderId: userId }, { carrierId: userId }],
       },
       include: {
         sender: {
@@ -42,14 +45,29 @@ export class MessagesService {
       orderBy: { updatedAt: 'desc' },
     });
 
-    return bookings.map((booking) => {
+    const bookingIds = bookings.map((b: any) => b.id);
+
+    const unreadCounts = await this.prisma.message.groupBy({
+      by: ['bookingId'],
+      where: {
+        bookingId: { in: bookingIds },
+        senderId: { not: userId },
+        isRead: false,
+      },
+      _count: { id: true },
+    });
+
+    const unreadMap = new Map(unreadCounts.map((uc: any) => [uc.bookingId, uc._count.id]));
+
+    return bookings.map((booking: any) => {
+      // explicit any — no generated Prisma types in CI
       const otherUser = booking.senderId === userId ? booking.carrier : booking.sender;
       const lastMessage = booking.messages[0];
 
       return {
         bookingId: booking.id,
         otherUser,
-        route: `${booking.listing.departureCity} → ${booking.listing.arrivalCity}`,
+        route: `${booking.listing?.departureCity ?? ''} → ${booking.listing?.arrivalCity ?? ''}`,
         lastMessage: lastMessage
           ? {
               content: lastMessage.content,
@@ -57,7 +75,7 @@ export class MessagesService {
               isMe: lastMessage.senderId === userId,
             }
           : null,
-        unreadCount: 0, // TODO: Implement unread count
+        unreadCount: unreadMap.get(booking.id) ?? 0,
       };
     });
   }
@@ -113,6 +131,10 @@ export class MessagesService {
       throw new ForbiddenException('You do not have access to this conversation');
     }
 
+    if (containsProfanity(content)) {
+      throw new BadRequestException('Message contains inappropriate content');
+    }
+
     const message = await this.prisma.message.create({
       data: {
         bookingId,
@@ -158,6 +180,81 @@ export class MessagesService {
         senderId: { not: userId },
         isRead: false,
       },
+      data: { isRead: true },
+    });
+
+    return { success: true };
+  }
+
+  // ─── Offer Chat (pre-booking negotiation) ─────────────────────────────────
+
+  private async getOfferParties(offerId: string) {
+    const offer = await this.prisma.offer.findUnique({
+      where: { id: offerId },
+      include: {
+        flight: { select: { posterId: true, departureCity: true, arrivalCity: true } },
+        sender: { select: { id: true } },
+      },
+    });
+    if (!offer) throw new NotFoundException('Offer not found');
+    return offer;
+  }
+
+  private assertOfferAccess(
+    userId: string,
+    offer: { senderId: string; flight: { posterId: string } }
+  ) {
+    if (offer.senderId !== userId && offer.flight.posterId !== userId) {
+      throw new ForbiddenException('You do not have access to this offer conversation');
+    }
+  }
+
+  async getOfferMessages(userId: string, offerId: string, cursor?: string) {
+    const offer = await this.getOfferParties(offerId);
+    this.assertOfferAccess(userId, offer);
+
+    const messages = await this.prisma.message.findMany({
+      where: { offerId },
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+      ...(cursor && { cursor: { id: cursor }, skip: 1 }),
+      include: {
+        sender: { select: { id: true, name: true, avatarUrl: true } },
+      },
+    });
+
+    return {
+      messages: messages.reverse(),
+      nextCursor: messages.length === 50 ? messages[0].id : null,
+    };
+  }
+
+  async sendOfferMessage(userId: string, offerId: string, content: string) {
+    const offer = await this.getOfferParties(offerId);
+    this.assertOfferAccess(userId, offer);
+
+    if (containsProfanity(content)) {
+      throw new BadRequestException('Message contains inappropriate content');
+    }
+
+    return this.prisma.message.create({
+      data: {
+        offerId,
+        senderId: userId,
+        content,
+      },
+      include: {
+        sender: { select: { id: true, name: true, avatarUrl: true } },
+      },
+    });
+  }
+
+  async markOfferMessagesRead(userId: string, offerId: string) {
+    const offer = await this.getOfferParties(offerId);
+    this.assertOfferAccess(userId, offer);
+
+    await this.prisma.message.updateMany({
+      where: { offerId, senderId: { not: userId }, isRead: false },
       data: { isRead: true },
     });
 

@@ -1,0 +1,40 @@
+{
+  "name": "LuggageShare - حصتي",
+  "short_name": "حصتي",
+  "description": "Share luggage space, save money — شارك أمتعتك، وفر تكاليفك",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F8F5FF",
+  "theme_color": "#7C6AFF",
+  "orientation": "portrait",
+  "lang": "ar",
+  "dir": "rtl",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Add Trip",
+      "short_name": "Add Trip",
+      "url": "/listing/create",
+      "description": "Create a new luggage listing"
+    },
+    {
+      "name": "My Trips",
+      "short_name": "Trips",
+      "url": "/trips",
+      "description": "View your trips"
+    }
+  ]
+}

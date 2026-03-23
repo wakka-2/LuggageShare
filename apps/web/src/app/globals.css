@@ -4,58 +4,73 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 239 84% 67%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 239 84% 67%;
-    --radius: 0.75rem;
-  }
+    /* V2 Design System tokens */
+    --v2-primary: #7C6AFF;
+    --v2-primary-light: #9D8FFF;
+    --v2-primary-lighter: #B4ABFF;
+    --v2-secondary: #FF6B9D;
+    --v2-mint: #56D8B1;
+    --v2-amber: #FFBE5C;
+    --v2-sky: #5CB8FF;
+    --v2-bg: #F8F5FF;
+    --v2-text: #2D2B3D;
+    --v2-text-soft: #6E6B8A;
+    --v2-text-muted: #A8A5C0;
 
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 239 84% 67%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 239 84% 67%;
+    --background: 252 100% 98%;
+    --foreground: 252 17% 20%;
+    --card: 0 0% 100%;
+    --card-foreground: 252 17% 20%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 252 17% 20%;
+    --primary: 252 100% 71%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 340 100% 71%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 252 33% 95%;
+    --muted-foreground: 252 13% 48%;
+    --accent: 160 60% 59%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 340 100% 71%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 252 30% 91%;
+    --input: 252 30% 91%;
+    --ring: 252 100% 71%;
+    --radius: 22px;
   }
 }
 
 @layer base {
   * {
     @apply border-border;
+    /* T4.1: Remove blue tap flash on mobile */
+    -webkit-tap-highlight-color: transparent;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-v2-bg text-v2-text;
+    font-feature-settings: 'rlig' 1, 'calt' 1;
+    /* T4.2: Contain overscroll bounce to prevent pull-to-refresh fighting */
+    overscroll-behavior-y: contain;
   }
+}
+
+/* V2 Blob Background */
+.blob-background {
+  background-color: #F8F5FF;
+  background-image:
+    radial-gradient(ellipse 600px 600px at 10% 20%, rgba(124, 106, 255, 0.08) 0%, transparent 70%),
+    radial-gradient(ellipse 500px 500px at 80% 10%, rgba(255, 107, 157, 0.06) 0%, transparent 70%),
+    radial-gradient(ellipse 400px 400px at 60% 80%, rgba(86, 216, 177, 0.06) 0%, transparent 70%),
+    radial-gradient(ellipse 450px 450px at 30% 70%, rgba(92, 184, 255, 0.05) 0%, transparent 70%);
+}
+
+/* V2 Gradient utilities */
+.v2-gradient-primary {
+  background: linear-gradient(135deg, #7C6AFF, #9D8FFF, #B4ABFF);
+}
+
+.v2-gradient-hero {
+  background: linear-gradient(135deg, #7C6AFF 0%, #9D8FFF 50%, #B4ABFF 100%);
 }
 
 /* RTL Support */
@@ -70,4 +85,183 @@
 /* Arabic text optimization */
 .font-arabic {
   text-rendering: optimizeLegibility;
+}
+
+/* ---- Wizard step animations ---- */
+.wizard-step {
+  animation-duration: 300ms;
+  animation-fill-mode: both;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+.wizard-slide-in-right  { animation-name: slideInRight; }
+.wizard-slide-in-left   { animation-name: slideInLeft; }
+.wizard-slide-out-right { animation-name: slideOutRight; }
+.wizard-slide-out-left  { animation-name: slideOutLeft; }
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(60px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-60px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes slideOutRight {
+  from { opacity: 1; transform: translateX(0); }
+  to   { opacity: 0; transform: translateX(60px); }
+}
+@keyframes slideOutLeft {
+  from { opacity: 1; transform: translateX(0); }
+  to   { opacity: 0; transform: translateX(-60px); }
+}
+
+/* Staggered fade-in for wizard step children */
+.wizard-fade-in {
+  animation: fadeInUp 400ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.wizard-fade-in-1 { animation-delay: 50ms; }
+.wizard-fade-in-2 { animation-delay: 150ms; }
+.wizard-fade-in-3 { animation-delay: 250ms; }
+.wizard-fade-in-4 { animation-delay: 350ms; }
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px) scale(0.95); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.animate-slideUp {
+  animation: slideUp 0.35s ease-out;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-slideDown {
+  animation: slideDown 0.3s ease-out;
+}
+
+/* ---- Mobile shell variables & safe area ---- */
+:root {
+  --header-height: 64px; /* matches h-16 in Header.tsx */
+  --bottom-tab-height: 64px; /* matches h-16 in BottomTabBar.tsx */
+}
+
+@media (max-width: 767px) {
+  /* Push page content above bottom tab bar */
+  body {
+    padding-bottom: calc(var(--bottom-tab-height) + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* Safe area utilities */
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  /* T4.5: Tighter mobile typography */
+  h1 { font-size: 1.5rem; }
+  h2 { font-size: 1.25rem; }
+  h3 { font-size: 1.05rem; }
+  p  { line-height: 1.6; }
+}
+
+/* T4.7: Neutralize hover states on true touch-only devices */
+@media (hover: none) and (pointer: coarse) {
+  a:hover,
+  button:hover {
+    opacity: 1 !important;
+    box-shadow: revert !important;
+  }
+  /* Preserve focus-visible for accessibility */
+  a:focus-visible,
+  button:focus-visible {
+    outline: 2px solid var(--v2-primary);
+    outline-offset: 2px;
+  }
+}
+
+/* ---- T4.4: Mobile page entrance transition (template.tsx) ---- */
+@media (max-width: 767px) {
+  @keyframes mobilePageEnter {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .mobile-page-enter {
+    animation: mobilePageEnter 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+}
+
+/* ---- Hide scrollbar utility (for carousels) ---- */
+.scrollbar-none {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}
+
+/* ---- Skeleton shimmer animation ---- */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(124, 106, 255, 0.06) 25%,
+    rgba(124, 106, 255, 0.14) 50%,
+    rgba(124, 106, 255, 0.06) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+/* Prose styling for info pages */
+.prose-v2 h2 {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--v2-text);
+  margin-top: 1.75rem;
+  margin-bottom: 0.75rem;
+}
+.prose-v2 h2:first-child { margin-top: 0; }
+.prose-v2 h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--v2-text);
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+.prose-v2 p {
+  font-size: 0.9rem;
+  line-height: 1.7;
+  color: var(--v2-text-soft);
+  margin-bottom: 0.75rem;
+}
+.prose-v2 ul, .prose-v2 ol {
+  padding-inline-start: 1.25rem;
+  margin-bottom: 0.75rem;
+}
+.prose-v2 li {
+  font-size: 0.9rem;
+  line-height: 1.7;
+  color: var(--v2-text-soft);
+  margin-bottom: 0.25rem;
+}
+.prose-v2 a {
+  color: var(--v2-primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.prose-v2 a:hover { opacity: 0.8; }
+.prose-v2 strong { color: var(--v2-text); font-weight: 600; }
+.prose-v2 hr {
+  border: none;
+  border-top: 1px solid rgba(124, 106, 255, 0.1);
+  margin: 1.5rem 0;
 }

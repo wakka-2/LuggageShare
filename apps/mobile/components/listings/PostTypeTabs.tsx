@@ -1,17 +1,9 @@
-import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import Animated, {
-  useAnimatedStyle,
-  withSpring,
-  useSharedValue,
-  withTiming,
-  Easing,
-  interpolate,
-  FadeIn,
-} from 'react-native-reanimated';
+import Animated, { FadeIn } from 'react-native-reanimated';
 
-import { useTheme } from '@/hooks/useTheme';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS } from '@/providers/ThemeProvider';
 import { ListingType } from './types';
 
 type TabValue = ListingType | 'all';
@@ -28,107 +20,60 @@ interface PostTypeTabsProps {
 
 interface Tab {
   key: TabValue;
-  label: string;
-  labelAr: string;
+  labelKey: string;
   icon: keyof typeof Ionicons.glyphMap;
   activeIcon: keyof typeof Ionicons.glyphMap;
 }
 
-const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
-
 export function PostTypeTabs({ value, onChange, counts }: PostTypeTabsProps) {
-  const { i18n } = useTranslation();
-  const { colors } = useTheme();
-  const isRTL = i18n.language === 'ar';
+  const { t } = useTranslation();
 
   const tabs: Tab[] = [
-    { key: 'all', label: 'All', labelAr: 'الكل', icon: 'apps-outline', activeIcon: 'apps' },
-    { key: 'offer', label: 'Offers', labelAr: 'عروض', icon: 'airplane-outline', activeIcon: 'airplane' },
-    { key: 'request', label: 'Requests', labelAr: 'طلبات', icon: 'cube-outline', activeIcon: 'cube' },
+    { key: 'all', labelKey: 'home.allTab', icon: 'apps-outline', activeIcon: 'apps' },
+    { key: 'offer', labelKey: 'home.offersTab', icon: 'airplane-outline', activeIcon: 'airplane' },
+    { key: 'request', labelKey: 'home.requestsTab', icon: 'cube-outline', activeIcon: 'cube' },
   ];
-
-  const getTabIndex = (key: TabValue) => tabs.findIndex(t => t.key === key);
-  const activeIndex = useSharedValue(getTabIndex(value));
-
-  const handleTabPress = (tab: Tab, index: number) => {
-    activeIndex.value = withSpring(index, {
-      damping: 20,
-      stiffness: 200,
-      mass: 0.8,
-    });
-    onChange(tab.key);
-  };
-
-  // Animated indicator that slides under active tab
-  const indicatorStyle = useAnimatedStyle(() => {
-    return {
-      transform: [
-        { translateX: withTiming(activeIndex.value * (100 / 3) + '%' as unknown as number, { duration: 0 }) },
-      ],
-      left: `${(activeIndex.value * 100) / 3}%`,
-    };
-  });
 
   return (
     <Animated.View entering={FadeIn.duration(400)} style={styles.wrapper}>
-      <View style={[styles.container, { backgroundColor: colors.card, borderColor: colors.border }]}>
-        {/* Animated background indicator */}
-        <Animated.View
-          style={[
-            styles.indicator,
-            {
-              backgroundColor: colors.primary,
-              width: `${100 / 3}%`,
-              left: `${(getTabIndex(value) * 100) / 3}%`,
-            },
-          ]}
-        />
-
-        {tabs.map((tab, index) => {
+      <View style={styles.container}>
+        {tabs.map((tab) => {
           const isActive = value === tab.key;
           const count = counts?.[tab.key];
-
-          // Get color based on tab type
-          const getTabColor = () => {
-            if (!isActive) return colors.textSecondary;
-            if (tab.key === 'offer') return '#FFFFFF';
-            if (tab.key === 'request') return '#FFFFFF';
-            return '#FFFFFF';
-          };
+          const textColor = isActive ? '#FFFFFF' : V2_COLORS.textSoft;
 
           return (
             <TouchableOpacity
               key={tab.key}
-              style={styles.tab}
-              onPress={() => handleTabPress(tab, index)}
+              style={[styles.tab, isActive && styles.tabActive]}
+              onPress={() => onChange(tab.key)}
               activeOpacity={0.7}
+              accessibilityRole="tab"
+              accessibilityLabel={t(tab.labelKey)}
+              accessibilityState={{ selected: isActive }}
             >
               <View style={styles.tabContent}>
-                <Ionicons
-                  name={isActive ? tab.activeIcon : tab.icon}
-                  size={18}
-                  color={getTabColor()}
-                />
+                <Ionicons name={isActive ? tab.activeIcon : tab.icon} size={18} color={textColor} />
                 <Text
-                  style={[
-                    styles.tabLabel,
-                    { color: getTabColor() },
-                    isActive && styles.tabLabelActive,
-                  ]}
+                  style={[styles.tabLabel, { color: textColor }, isActive && styles.tabLabelActive]}
                 >
-                  {isRTL ? tab.labelAr : tab.label}
+                  {t(tab.labelKey)}
                 </Text>
                 {count !== undefined && count > 0 && (
-                  <View style={[
-                    styles.countBadge,
-                    {
-                      backgroundColor: isActive ? 'rgba(255,255,255,0.25)' : colors.background,
-                    }
-                  ]}>
-                    <Text style={[
-                      styles.countText,
-                      { color: isActive ? '#FFFFFF' : colors.textTertiary }
-                    ]}>
+                  <View
+                    style={[
+                      styles.countBadge,
+                      {
+                        backgroundColor: isActive ? 'rgba(255,255,255,0.25)' : V2_COLORS.bg,
+                      },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.countText,
+                        { color: isActive ? '#FFFFFF' : V2_COLORS.textMuted },
+                      ]}
+                    >
                       {count}
                     </Text>
                   </View>
@@ -148,42 +93,38 @@ const styles = StyleSheet.create({
   },
   container: {
     flexDirection: 'row',
-    borderRadius: 16,
-    borderWidth: 1,
+    backgroundColor: '#FFFFFF',
+    borderRadius: RADIUS.pill,
     padding: 4,
-    position: 'relative',
-    overflow: 'hidden',
-  },
-  indicator: {
-    position: 'absolute',
-    top: 4,
-    bottom: 4,
-    borderRadius: 12,
-    ...(Platform.OS === 'web' ? { transition: 'left 0.3s cubic-bezier(0.4, 0, 0.2, 1)' as any } : {}),
+    ...BUBBLE_SHADOWS.sm,
   },
   tab: {
     flex: 1,
-    zIndex: 1,
+    borderRadius: RADIUS.pill,
+  },
+  tabActive: {
+    backgroundColor: V2_COLORS.primary,
+    ...BUBBLE_SHADOWS.xs,
   },
   tabContent: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 12,
+    paddingVertical: 10,
     paddingHorizontal: 8,
     gap: 6,
   },
   tabLabel: {
-    fontSize: 14,
-    fontWeight: '500',
+    fontSize: 13,
+    fontWeight: '600',
   },
   tabLabelActive: {
-    fontWeight: '600',
+    fontWeight: '700',
   },
   countBadge: {
     paddingHorizontal: 6,
     paddingVertical: 2,
-    borderRadius: 10,
+    borderRadius: RADIUS.pill,
     minWidth: 22,
     alignItems: 'center',
   },

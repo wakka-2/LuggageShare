@@ -1,13 +1,15 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../prisma/prisma.service';
 import axios from 'axios';
 
 @Injectable()
 export class NotificationsService {
+  private readonly logger = new Logger(NotificationsService.name);
+
   constructor(
     private readonly prisma: PrismaService,
-    private readonly configService: ConfigService,
+    private readonly configService: ConfigService
   ) {}
 
   async getNotifications(userId: string) {
@@ -72,7 +74,7 @@ export class NotificationsService {
     userId: string,
     title: string,
     body: string,
-    data?: Record<string, any>,
+    data?: Record<string, any>
   ) {
     // Get user's push tokens
     const pushTokens = await this.prisma.pushToken.findMany({
@@ -96,7 +98,8 @@ export class NotificationsService {
     // Send via Expo Push Notifications
     const expoToken = this.configService.get<string>('EXPO_ACCESS_TOKEN');
 
-    const messages = pushTokens.map((pt) => ({
+    const messages = pushTokens.map((pt: any) => ({
+      // explicit any — no generated Prisma types in CI
       to: pt.token,
       title,
       body,
@@ -105,19 +108,18 @@ export class NotificationsService {
     }));
 
     try {
-      await axios.post(
-        'https://exp.host/--/api/v2/push/send',
-        messages,
-        {
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            ...(expoToken && { 'Authorization': `Bearer ${expoToken}` }),
-          },
+      await axios.post('https://exp.host/--/api/v2/push/send', messages, {
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          ...(expoToken && { Authorization: `Bearer ${expoToken}` }),
         },
-      );
+      });
     } catch (error) {
-      console.error('Failed to send push notification:', error);
+      this.logger.error(
+        'Failed to send push notification',
+        error instanceof Error ? error.stack : error
+      );
     }
   }
 }

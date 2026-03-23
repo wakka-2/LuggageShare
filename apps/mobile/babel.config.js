@@ -9,6 +9,7 @@ module.exports = function (api) {
           root: ['./'],
           alias: {
             '@': './',
+            '@luggageshare/shared': '../../packages/shared/src',
           },
         },
       ],

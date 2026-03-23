@@ -1,5 +1,7 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { CreateListingDto } from './dto/create-listing.dto';
+import { UpdateListingDto } from './dto/update-listing.dto';
 
 @Injectable()
 export class ListingsService {
@@ -10,34 +12,99 @@ export class ListingsService {
     to?: string;
     date?: string;
     minWeight?: number;
+    page?: number;
+    limit?: number;
   }) {
     const { from, to, date, minWeight } = params;
+    const page = Number(params.page) || 1;
+    const limit = Math.min(Number(params.limit) || 20, 100);
+    const skip = (page - 1) * limit;
 
-    return this.prisma.listing.findMany({
-      where: {
-        status: 'active',
-        ...(from && { departureCity: { contains: from, mode: 'insensitive' } }),
-        ...(to && { arrivalCity: { contains: to, mode: 'insensitive' } }),
-        ...(date && {
-          departureDate: {
-            gte: new Date(date),
-            lt: new Date(new Date(date).setDate(new Date(date).getDate() + 1)),
-          },
-        }),
-        ...(minWeight && { availableWeight: { gte: minWeight } }),
-      },
-      include: {
-        carrier: {
-          select: {
-            id: true,
-            name: true,
-            avatarUrl: true,
-            isVerified: true,
+    const where = {
+      status: 'active' as const,
+      // Only show listings with future departure dates
+      ...(!date && { departureDate: { gte: new Date() } }),
+      ...(from && { departureCity: { contains: from, mode: 'insensitive' as const } }),
+      ...(to && { arrivalCity: { contains: to, mode: 'insensitive' as const } }),
+      ...(date && {
+        departureDate: {
+          gte: new Date(date),
+          lt: new Date(new Date(date).setDate(new Date(date).getDate() + 1)),
+        },
+      }),
+      ...(minWeight && { availableWeight: { gte: minWeight } }),
+    };
+
+    const [data, total] = await Promise.all([
+      this.prisma.listing.findMany({
+        where,
+        include: {
+          carrier: {
+            select: {
+              id: true,
+              name: true,
+              avatarUrl: true,
+              isVerified: true,
+            },
           },
         },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      this.prisma.listing.count({ where }),
+    ]);
+
+    return {
+      data,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
       },
-      orderBy: { departureDate: 'asc' },
-    });
+    };
+  }
+
+  async findByUser(userId: string, params?: { page?: number; limit?: number }) {
+    const page = Number(params?.page) || 1;
+    const limit = Math.min(Number(params?.limit) || 20, 100);
+    const skip = (page - 1) * limit;
+
+    const where = { carrierId: userId };
+
+    const [data, total] = await Promise.all([
+      this.prisma.listing.findMany({
+        where,
+        include: {
+          carrier: {
+            select: {
+              id: true,
+              name: true,
+              avatarUrl: true,
+              isVerified: true,
+            },
+          },
+          _count: {
+            select: { bookings: true },
+          },
+        },
+        orderBy: { departureDate: 'desc' },
+        skip,
+        take: limit,
+      }),
+      this.prisma.listing.count({ where }),
+    ]);
+
+    return {
+      data,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 
   async findById(id: string) {
@@ -64,26 +131,56 @@ export class ListingsService {
     return listing;
   }
 
-  async create(userId: string, createListingDto: any) {
+  async create(userId: string, createListingDto: CreateListingDto) {
+    // Explicit field mapping — prevent mass assignment
     return this.prisma.listing.create({
       data: {
-        ...createListingDto,
         carrierId: userId,
         status: 'active',
+        departureCity: createListingDto.departureCity,
+        arrivalCity: createListingDto.arrivalCity,
+        departureDate: new Date(createListingDto.departureDate),
+        flightNumber: createListingDto.flightNumber,
+        availableWeight: createListingDto.availableWeight,
+        price: createListingDto.price,
+        currency: createListingDto.currency || 'SAR',
+        preferences: createListingDto.preferences as any,
+        notes: createListingDto.notes,
       },
     });
   }
 
-  async update(userId: string, id: string, updateListingDto: any) {
+  async update(userId: string, id: string, updateListingDto: UpdateListingDto) {
     const listing = await this.findById(id);
 
     if (listing.carrierId !== userId) {
       throw new ForbiddenException('You can only update your own listings');
     }
 
+    // Explicit field mapping — prevent mass assignment
+    const allowedUpdates: Record<string, any> = {};
+    const allowedFields = [
+      'departureCity',
+      'arrivalCity',
+      'departureDate',
+      'flightNumber',
+      'availableWeight',
+      'price',
+      'currency',
+      'preferences',
+      'notes',
+    ];
+    const dtoRecord = updateListingDto as Record<string, any>;
+    for (const field of allowedFields) {
+      if (dtoRecord[field] !== undefined) {
+        allowedUpdates[field] =
+          field === 'departureDate' ? new Date(dtoRecord[field]) : dtoRecord[field];
+      }
+    }
+
     return this.prisma.listing.update({
       where: { id },
-      data: updateListingDto,
+      data: allowedUpdates,
     });
   }
 
