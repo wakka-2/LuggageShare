@@ -16,10 +16,18 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
-import { V2_COLORS, RADIUS, BUBBLE_SHADOWS, TYPOGRAPHY } from '@/providers/ThemeProvider';
+import {
+  V2_COLORS,
+  RADIUS,
+  BUBBLE_SHADOWS,
+  TYPOGRAPHY,
+  GRADIENTS,
+} from '@/providers/ThemeProvider';
 import { useConversations, ApiConversation } from '@/hooks/useMessages';
 import { EmptyState, Avatar, BackgroundBlobs } from '@/components/common';
 import { SkeletonLoader } from '@/components/animations';
+import { FloatingIcons, GradientAccentStrip, SparkleGroup } from '@/components/decorations';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const ConversationItem = React.memo(function ConversationItem({
   conversation,
@@ -51,6 +59,10 @@ const ConversationItem = React.memo(function ConversationItem({
       accessibilityLabel={`${conversation.otherUser.name}${lastMsg}${unreadLabel}`}
     >
       <View style={styles.conversationItem}>
+        <GradientAccentStrip
+          gradient={conversation.unreadCount > 0 ? 'warm' : 'cool'}
+          position="left"
+        />
         <Avatar
           name={conversation.otherUser.name}
           avatarUrl={conversation.otherUser.avatarUrl}
@@ -92,9 +104,22 @@ export default function MessagesScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <BackgroundBlobs variant="subtle" />
+      <FloatingIcons variant="sparse" />
 
+      {/* Decorated Header with gradient accent */}
       <View style={styles.header}>
-        <Text style={styles.title}>{t('messages.title')}</Text>
+        <View style={styles.headerRow}>
+          <Text style={styles.title}>{t('messages.title')}</Text>
+          <SparkleGroup variant="accent" style={{ marginStart: 8, marginTop: -4 }} />
+        </View>
+        <View style={styles.headerAccent}>
+          <LinearGradient
+            colors={[...GRADIENTS.cool]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.headerAccentGradient}
+          />
+        </View>
       </View>
 
       <ScrollView
@@ -158,8 +183,17 @@ export default function MessagesScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: V2_COLORS.bg } as ViewStyle,
-  header: { padding: 16, paddingBottom: 8 } as ViewStyle,
+  header: { padding: 16, paddingBottom: 12 } as ViewStyle,
+  headerRow: { flexDirection: 'row', alignItems: 'center' } as ViewStyle,
   title: { ...TYPOGRAPHY.h1, color: V2_COLORS.text } as TextStyle,
+  headerAccent: {
+    height: 3,
+    borderRadius: 2,
+    overflow: 'hidden',
+    marginTop: 8,
+    width: 60,
+  } as ViewStyle,
+  headerAccentGradient: { flex: 1 } as ViewStyle,
   scrollContent: { padding: 16, paddingBottom: 32 } as ViewStyle,
   loading: { paddingVertical: 8 } as ViewStyle,
   skeletonConv: {

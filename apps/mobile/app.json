@@ -39,7 +39,7 @@
     },
     "web": {
       "bundler": "metro",
-      "output": "static",
+      "output": "single",
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
@@ -85,6 +85,12 @@
         "projectId": "144efabf-b267-46fe-9609-8147fcd00585"
       }
     },
-    "owner": "aimanqaid"
+    "owner": "aimanqaid",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/144efabf-b267-46fe-9609-8147fcd00585"
+    }
   }
 }

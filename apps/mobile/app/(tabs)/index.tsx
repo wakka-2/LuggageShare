@@ -51,6 +51,7 @@ import {
 } from '@/components/listings';
 import { useUnreadCount } from '@/hooks/useNotifications';
 import { SkeletonCard, StaggeredItem } from '@/components/animations';
+import { FloatingIcons, WaveDivider, SparkleGroup, OrbCluster } from '@/components/decorations';
 import {
   V2_COLORS,
   GRADIENTS,
@@ -306,6 +307,7 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <BackgroundBlobs variant="full" />
+      <FloatingIcons variant="full" />
       <HomeHeader notificationCount={notificationCount} />
 
       <ScrollView
@@ -340,6 +342,8 @@ export default function HomeScreen() {
           >
             <View style={styles.heroDecoCircle1} />
             <View style={styles.heroDecoCircle2} />
+            <SparkleGroup variant="corner" style={{ position: 'absolute', top: 8, right: 12 }} />
+            <OrbCluster position="top-right" style={{ top: -10, right: -10, opacity: 0.5 }} />
             <Text style={styles.heroTitleMobile}>{t('home.marketplace')}</Text>
             <Text style={styles.heroSubtitleMobile}>{t('home.heroDescription')}</Text>
             <View style={styles.heroCTA}>
@@ -381,6 +385,9 @@ export default function HomeScreen() {
           <StatBubble value="4.8" label={t('home.rating')} icon="star" color={V2_COLORS.accent2} />
         </Animated.View>
 
+        {/* Wave Divider */}
+        <WaveDivider color="mint" />
+
         {/* Search */}
         <Animated.View entering={FadeIn.delay(150).duration(400)} style={styles.sectionPadded}>
           <SectionHeader title={t('searchBar.whereAreYouSending')} />
@@ -399,6 +406,9 @@ export default function HomeScreen() {
         <Animated.View entering={FadeIn.delay(200).duration(400)} style={styles.sectionPadded}>
           <PostTypeTabs value={activeTab} onChange={setActiveTab} counts={tabCounts} />
         </Animated.View>
+
+        {/* Wave Divider */}
+        <WaveDivider color="primary" flip />
 
         {/* View Toggle + Results */}
         <Animated.View entering={FadeIn.delay(250).duration(400)} style={styles.mobileControlsRow}>

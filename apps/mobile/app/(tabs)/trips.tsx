@@ -35,6 +35,12 @@ import { useAuth } from '@/hooks/useAuth';
 import { EmptyState, Avatar, BackgroundBlobs, MetaChip } from '@/components/common';
 import { LiveIndicator, MiniStepper } from '@/components/status';
 import { SkeletonLoader } from '@/components/animations';
+import {
+  FloatingIcons,
+  WaveDivider,
+  GradientAccentStrip,
+  SparkleGroup,
+} from '@/components/decorations';
 
 type MainTab = 'bookings' | 'flights' | 'offers';
 type FilterTab = 'all' | 'active' | 'completed' | 'cancelled';
@@ -106,6 +112,16 @@ const BookingCard = React.memo(function BookingCard({
       accessibilityRole="button"
       accessibilityLabel={`${t('trips.booking')}: ${departureCity} to ${arrivalCity}, ${statusLabel}`}
     >
+      <GradientAccentStrip
+        gradient={
+          booking.status === 'delivered'
+            ? 'mint'
+            : booking.status === 'in_transit'
+              ? 'cool'
+              : 'primary'
+        }
+        position="left"
+      />
       <View style={styles.routeRow}>
         <View style={[styles.routeDot, { backgroundColor: V2_COLORS.accent1 }]} />
         <Text style={styles.cityText}>{(booking.listing as any)?.departureCity ?? '—'}</Text>
@@ -186,6 +202,7 @@ const FlightCard = React.memo(function FlightCard({
       accessibilityRole="button"
       accessibilityLabel={`${t('trips.flight')}: ${flight.departureCity} to ${flight.arrivalCity}, ${flight.status}`}
     >
+      <GradientAccentStrip gradient="mint" position="left" />
       <View style={styles.routeRow}>
         <View style={[styles.routeDot, { backgroundColor: V2_COLORS.accent1 }]} />
         <Text style={styles.cityText}>{flight.departureCity}</Text>
@@ -256,6 +273,7 @@ const OfferCard = React.memo(function OfferCard({
       accessibilityRole="button"
       accessibilityLabel={`${t('trips.offer')}: ${offer.flight.departureCity} to ${offer.flight.arrivalCity}, ${offer.status}`}
     >
+      <GradientAccentStrip gradient="warm" position="left" />
       <View style={styles.routeRow}>
         <View style={[styles.routeDot, { backgroundColor: V2_COLORS.accent1 }]} />
         <Text style={styles.cityText}>{offer.flight.departureCity}</Text>
@@ -346,8 +364,12 @@ export default function TripsScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <BackgroundBlobs variant="subtle" />
+      <FloatingIcons variant="sparse" />
       <View style={styles.header}>
-        <Text style={styles.title}>{t('trips.title')}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <Text style={styles.title}>{t('trips.title')}</Text>
+          <SparkleGroup variant="accent" style={{ marginStart: 8, marginTop: -4 }} />
+        </View>
         <TouchableOpacity
           onPress={() => router.push('/flight/create' as any)}
           style={styles.postFlightBtn}
@@ -412,6 +434,10 @@ export default function TripsScreen() {
           })}
         </ScrollView>
       )}
+
+      <WaveDivider
+        color={mainTab === 'bookings' ? 'primary' : mainTab === 'flights' ? 'mint' : 'warm'}
+      />
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
