@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { LogIn, Chrome } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
@@ -64,6 +65,7 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const { signIn, isAuthenticated, isLoading: authLoading } = useAuth();
   const { t } = useLanguage();
+  const router = useRouter();
 
   function handleAuthSuccess(data: any) {
     signIn({
@@ -78,7 +80,8 @@ export default function LoginPage() {
         profileComplete: data.user.profileComplete ?? true,
       },
     });
-    // Redirect is handled by AuthProvider's useEffect when user state changes
+    // Redirect immediately — don't rely on AuthProvider useEffect timing
+    router.replace('/');
   }
 
   async function handleDevLogin(userIndex = 0, retryCount = 0) {

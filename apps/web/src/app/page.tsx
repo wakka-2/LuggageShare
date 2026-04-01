@@ -33,15 +33,17 @@ export default function HomePage() {
     limit: 20,
   });
 
+  const hasFilters = from || to || date;
+
   const listings = useMemo(() => {
     if (apiListings && apiListings.length > 0) return apiListings;
+    // When filters are active, show actual results (even if empty) — don't mask with mock data
+    if (hasFilters) return apiListings ?? [];
     if (isError || (!isLoading && (!apiListings || apiListings.length === 0))) {
       return MOCK_LISTINGS;
     }
     return [];
-  }, [apiListings, isLoading, isError]);
-
-  const hasFilters = from || to || date;
+  }, [apiListings, isLoading, isError, hasFilters]);
 
   const handleClearFilters = () => {
     setFrom('');
