@@ -36,6 +36,13 @@ import { SkeletonLoader } from '@/components/animations';
 import { VerificationBadge, BadgeRow } from '@/components/trust';
 import { ReviewCard } from '@/components/trust';
 import { useUserReviews, ReviewWithBooking } from '@/hooks/useReviews';
+import {
+  FloatingIcons,
+  SparkleGroup,
+  OrbCluster,
+  WaveDivider,
+  GradientAccentStrip,
+} from '@/components/decorations';
 
 export default function ProfileScreen() {
   const { t, i18n } = useTranslation();
@@ -96,6 +103,7 @@ export default function ProfileScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <BackgroundBlobs variant="subtle" />
+      <FloatingIcons variant="sparse" />
       <ScrollView
         showsVerticalScrollIndicator={false}
         refreshControl={
@@ -108,7 +116,10 @@ export default function ProfileScreen() {
       >
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>{t('profile.title')}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Text style={styles.title}>{t('profile.title')}</Text>
+            <SparkleGroup variant="accent" style={{ marginStart: 8, marginTop: -4 }} />
+          </View>
         </View>
 
         {isLoading ? (
@@ -133,6 +144,11 @@ export default function ProfileScreen() {
               >
                 <View style={styles.bannerCircle1} />
                 <View style={styles.bannerCircle2} />
+                <SparkleGroup
+                  variant="corner"
+                  style={{ position: 'absolute', top: 10, right: 16 }}
+                />
+                <OrbCluster position="top-left" style={{ top: -10, left: -5, opacity: 0.4 }} />
               </LinearGradient>
             </View>
 
@@ -235,6 +251,9 @@ export default function ProfileScreen() {
             ))}
           </Animated.View>
         )}
+
+        {/* Divider before menu */}
+        <WaveDivider color="primary" style={{ marginHorizontal: 16, marginTop: 16 }} />
 
         {/* Menu Items */}
         <View style={styles.menu}>

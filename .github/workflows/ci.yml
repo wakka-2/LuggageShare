@@ -69,13 +69,13 @@ jobs:
         run: cd apps/api && npx prisma generate
 
       - name: Typecheck
-        run: turbo run typecheck
+        run: npx turbo run typecheck
 
       - name: Lint
         run: npm run lint
 
       - name: Test
-        run: turbo run test
+        run: npx turbo run test
 
-      - name: Build
-        run: turbo run build
+      - name: Build (API + Web only, mobile uses EAS Build)
+        run: npx turbo run build --filter=@luggageshare/api --filter=@luggageshare/web

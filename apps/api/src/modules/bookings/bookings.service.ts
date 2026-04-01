@@ -4,6 +4,7 @@ import {
   ForbiddenException,
   BadRequestException,
 } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
@@ -29,7 +30,18 @@ export class BookingsService {
       this.prisma.booking.findMany({
         where,
         include: {
-          listing: true,
+          listing: {
+            select: {
+              id: true,
+              departureCity: true,
+              departureCode: true,
+              arrivalCity: true,
+              arrivalCode: true,
+              departureDate: true,
+              price: true,
+              currency: true,
+            },
+          },
           sender: {
             select: {
               id: true,
@@ -44,7 +56,14 @@ export class BookingsService {
               avatarUrl: true,
             },
           },
-          items: true,
+          items: {
+            select: {
+              id: true,
+              name: true,
+              weight: true,
+              imageUrls: true,
+            },
+          },
         },
         orderBy: { createdAt: 'desc' },
         skip,
@@ -103,7 +122,21 @@ export class BookingsService {
     const booking = await this.prisma.booking.findUnique({
       where: { id },
       include: {
-        listing: true,
+        listing: {
+          select: {
+            id: true,
+            departureCity: true,
+            departureCode: true,
+            arrivalCity: true,
+            arrivalCode: true,
+            departureDate: true,
+            flightNumber: true,
+            price: true,
+            availableWeight: true,
+            currency: true,
+            status: true,
+          },
+        },
         sender: {
           select: {
             id: true,
@@ -147,7 +180,7 @@ export class BookingsService {
 
   async create(userId: string, createBookingDto: CreateBookingDto) {
     // Wrap in transaction to prevent race conditions on weight availability
-    const booking = await this.prisma.$transaction(async (tx) => {
+    const booking = await this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const listing = await tx.listing.findUnique({
         where: { id: createBookingDto.listingId },
       });

@@ -7,8 +7,11 @@ import {
   TouchableOpacity,
   TextInput,
   Alert,
+  Image,
+  ActivityIndicator,
   ViewStyle,
   TextStyle,
+  ImageStyle,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -26,6 +29,7 @@ import {
 } from '@/providers/ThemeProvider';
 import { useFlight } from '@/hooks/useFlights';
 import { useCreateOffer } from '@/hooks/useOffers';
+import { useImageUpload } from '@/hooks/useImageUpload';
 import { ScreenHeader } from '@/components/common/ScreenHeader';
 import { MetaChip } from '@/components/common';
 import { SkeletonLoader } from '@/components/animations';
@@ -42,6 +46,8 @@ export default function MakeOfferScreen() {
   const [weight, setWeight] = useState('');
   const [price, setPrice] = useState('');
   const [note, setNote] = useState('');
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const imageUpload = useImageUpload();
 
   const remaining = flight ? Number(flight.remainingWeight) : 0;
   const pricePerKg = flight ? Number(flight.pricePerKg) : 0;
@@ -53,6 +59,18 @@ export default function MakeOfferScreen() {
     if (!isNaN(w) && w > 0 && pricePerKg > 0) {
       setPrice(String(Math.round(w * pricePerKg)));
     }
+  };
+
+  const handleAddPhoto = async () => {
+    if (imageUrls.length >= 3) return;
+    const url = await imageUpload.pickAndUpload({ folder: 'items' });
+    if (url) {
+      setImageUrls((prev) => [...prev, url]);
+    }
+  };
+
+  const handleRemovePhoto = (index: number) => {
+    setImageUrls((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async () => {
@@ -78,6 +96,7 @@ export default function MakeOfferScreen() {
         offeredPrice: p,
         currency: flight?.currency ?? 'SAR',
         note: note.trim() || undefined,
+        imageUrls: imageUrls.length > 0 ? imageUrls : undefined,
       });
 
       Alert.alert(t('offer.submitted'), t('offer.submittedDescription'), [
@@ -249,6 +268,41 @@ export default function MakeOfferScreen() {
               textAlign={isRTL ? 'right' : 'left'}
             />
           </View>
+
+          {/* Item Photos */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>{t('offer.itemPhotos')}</Text>
+            <View style={styles.photoGrid}>
+              {imageUrls.map((url, index) => (
+                <View key={url} style={styles.photoWrapper}>
+                  <Image source={{ uri: url }} style={styles.photo} />
+                  <TouchableOpacity
+                    style={styles.photoRemoveBtn}
+                    onPress={() => handleRemovePhoto(index)}
+                  >
+                    <Ionicons name="close-circle" size={22} color={V2_COLORS.secondary} />
+                  </TouchableOpacity>
+                </View>
+              ))}
+              {imageUrls.length < 3 && (
+                <TouchableOpacity
+                  style={styles.photoAddBtn}
+                  onPress={handleAddPhoto}
+                  disabled={imageUpload.isUploading}
+                >
+                  {imageUpload.isUploading ? (
+                    <ActivityIndicator size="small" color={V2_COLORS.primary} />
+                  ) : (
+                    <>
+                      <Ionicons name="camera-outline" size={28} color={V2_COLORS.primary} />
+                      <Text style={styles.photoAddText}>{t('offer.addPhoto')}</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              )}
+            </View>
+            <Text style={styles.photoHint}>{t('offer.photoHint')}</Text>
+          </View>
         </Animated.View>
 
         {/* Info note */}
@@ -354,6 +408,49 @@ const styles = StyleSheet.create({
   } as ViewStyle,
   unitText: { fontSize: 14, fontWeight: '700', color: V2_COLORS.primary } as TextStyle,
   perKgHint: { fontSize: 12, color: V2_COLORS.textMuted, marginTop: 6 } as TextStyle,
+
+  photoGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  } as ViewStyle,
+  photoWrapper: {
+    position: 'relative',
+  } as ViewStyle,
+  photo: {
+    width: 90,
+    height: 90,
+    borderRadius: RADIUS.card,
+  } as ImageStyle,
+  photoRemoveBtn: {
+    position: 'absolute',
+    top: -6,
+    right: -6,
+    backgroundColor: '#FFF',
+    borderRadius: 12,
+  } as ViewStyle,
+  photoAddBtn: {
+    width: 90,
+    height: 90,
+    borderRadius: RADIUS.card,
+    borderWidth: 2,
+    borderStyle: 'dashed',
+    borderColor: V2_COLORS.primary + '40',
+    backgroundColor: V2_COLORS.primary + '08',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+  } as ViewStyle,
+  photoAddText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: V2_COLORS.primary,
+  } as TextStyle,
+  photoHint: {
+    fontSize: 12,
+    color: V2_COLORS.textMuted,
+    marginTop: 8,
+  } as TextStyle,
 
   presetRow: { flexDirection: 'row', gap: 8, marginTop: 10 } as ViewStyle,
   presetChip: {

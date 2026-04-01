@@ -10,7 +10,7 @@
         "simulator": true
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "http://localhost:3001/api/v1"
+        "EXPO_PUBLIC_API_URL": "http://localhost:3001"
       }
     },
     "preview": {
@@ -22,13 +22,13 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://api-staging.luggageshare.com/api/v1"
+        "EXPO_PUBLIC_API_URL": "https://luggageshareapi-production.up.railway.app"
       }
     },
     "production": {
       "autoIncrement": true,
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://api.luggageshare.com/api/v1"
+        "EXPO_PUBLIC_API_URL": "https://api.luggageshare.com"
       }
     }
   },

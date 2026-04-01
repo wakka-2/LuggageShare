@@ -46,8 +46,12 @@ export default function RootLayout() {
   const colorScheme = useColorScheme();
 
   useEffect(() => {
-    // Sync RTL direction with the detected language, then reveal UI
-    syncRTL();
+    // Sync RTL direction with the detected language, then reveal UI.
+    // Wrap in try-catch: forceRTL on first Android install can throw on
+    // some devices/new-arch configs — splash must always hide regardless.
+    try {
+      syncRTL();
+    } catch {}
     SplashScreen.hideAsync();
   }, []);
 

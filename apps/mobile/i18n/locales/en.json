@@ -613,7 +613,11 @@
     "withdrawConfirm": "Withdraw your offer? You can submit a new one later.",
     "withdrawnTitle": "Offer Withdrawn",
     "senderNote": "Sender's note:",
-    "chatClosed": "This offer chat is closed"
+    "chatClosed": "This offer chat is closed",
+    "itemPhotos": "Item Photos (optional)",
+    "addPhoto": "Add",
+    "photoHint": "Add up to 3 photos of your items to help the carrier",
+    "photoUploadError": "Photo upload failed, please try again"
   },
   "dispute": {
     "title": "File a Dispute",

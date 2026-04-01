@@ -33,12 +33,13 @@
         "android.permission.CAMERA",
         "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.ACCESS_FINE_LOCATION",
-        "android.permission.ACCESS_COARSE_LOCATION"
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.RECORD_AUDIO"
       ]
     },
     "web": {
       "bundler": "metro",
-      "output": "static",
+      "output": "single",
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
@@ -71,8 +72,7 @@
         }
       ],
       "expo-font",
-      "@react-native-community/datetimepicker",
-      "@sentry/react-native"
+      "@react-native-community/datetimepicker"
     ],
     "experiments": {
       "typedRoutes": true
@@ -82,12 +82,15 @@
         "origin": false
       },
       "eas": {
-        "projectId": "your-eas-project-id"
+        "projectId": "144efabf-b267-46fe-9609-8147fcd00585"
       }
     },
-    "locales": {
-      "ar": "./locales/ar.json",
-      "en": "./locales/en.json"
+    "owner": "aimanqaid",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/144efabf-b267-46fe-9609-8147fcd00585"
     }
   }
 }

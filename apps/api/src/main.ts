@@ -73,7 +73,7 @@ async function bootstrap() {
   // Graceful shutdown
   app.enableShutdownHooks();
 
-  const port = process.env.API_PORT || 3001;
+  const port = process.env.PORT || process.env.API_PORT || 3001;
   await app.listen(port);
 
   const logger = new Logger('Bootstrap');
@@ -84,3 +84,4 @@ async function bootstrap() {
 }
 
 bootstrap();
+// railway-deploy

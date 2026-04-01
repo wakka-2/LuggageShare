@@ -4,8 +4,10 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Image,
   ViewStyle,
   TextStyle,
+  ImageStyle,
   Alert,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -300,6 +302,13 @@ export default function FlightDetailScreen() {
                     </View>
                   </View>
                   {offer.note && <Text style={styles.offerNote}>{offer.note}</Text>}
+                  {offer.imageUrls && offer.imageUrls.length > 0 && (
+                    <View style={styles.offerPhotos}>
+                      {offer.imageUrls.map((url: string) => (
+                        <Image key={url} source={{ uri: url }} style={styles.offerPhotoThumb} />
+                      ))}
+                    </View>
+                  )}
                   {offer.status === 'pending' && (
                     <View style={styles.offerActions}>
                       <TouchableOpacity
@@ -565,6 +574,16 @@ const styles = StyleSheet.create({
     marginTop: 10,
     fontStyle: 'italic',
   } as TextStyle,
+  offerPhotos: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 10,
+  } as ViewStyle,
+  offerPhotoThumb: {
+    width: 56,
+    height: 56,
+    borderRadius: 12,
+  } as ImageStyle,
   offerActions: {
     flexDirection: 'row',
     justifyContent: 'flex-end',

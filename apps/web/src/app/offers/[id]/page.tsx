@@ -397,17 +397,34 @@ export default function OfferChatPage() {
 
           {/* Messages area */}
           <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
-            {/* Offer note as initial message */}
-            {offer.note && (messages ?? []).length === 0 && (
-              <div className="flex justify-center">
-                <div className="bg-v2-primary/10 rounded-[18px] px-4 py-3 max-w-[80%]">
-                  <p className="text-xs text-v2-primary font-semibold mb-1">
-                    {t('offer.senderNote') || 'Sender note'}
-                  </p>
-                  <p className="text-sm text-v2-text">{offer.note}</p>
+            {/* Offer note + item photos as initial message */}
+            {(offer.note || (offer.imageUrls && offer.imageUrls.length > 0)) &&
+              (messages ?? []).length === 0 && (
+                <div className="flex justify-center">
+                  <div className="bg-v2-primary/10 rounded-[18px] px-4 py-3 max-w-[80%]">
+                    {offer.note && (
+                      <>
+                        <p className="text-xs text-v2-primary font-semibold mb-1">
+                          {t('offer.senderNote') || 'Sender note'}
+                        </p>
+                        <p className="text-sm text-v2-text">{offer.note}</p>
+                      </>
+                    )}
+                    {offer.imageUrls && offer.imageUrls.length > 0 && (
+                      <div className={`flex gap-2 ${offer.note ? 'mt-2' : ''}`}>
+                        {offer.imageUrls.map((url: string) => (
+                          <img
+                            key={url}
+                            src={url}
+                            alt="Item"
+                            className="w-14 h-14 rounded-xl object-cover"
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
             {messagesLoading ? (
               <div className="flex justify-center py-8">
