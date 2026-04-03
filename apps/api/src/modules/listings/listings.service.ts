@@ -3,6 +3,68 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { CreateListingDto } from './dto/create-listing.dto';
 import { UpdateListingDto } from './dto/update-listing.dto';
 
+// Bilingual city name map — allows searching in both Arabic and English
+const CITY_ALIASES: Record<string, string[]> = {
+  // Saudi Arabia
+  'جدة': ['jeddah', 'jiddah', 'jed'],
+  'الرياض': ['riyadh', 'ruh'],
+  'مكة': ['makkah', 'mecca'],
+  'المدينة': ['madinah', 'medina'],
+  'الدمام': ['dammam', 'dmm'],
+  'الخبر': ['khobar', 'kbr'],
+  'تبوك': ['tabuk'],
+  'أبها': ['abha'],
+  'جيزان': ['jazan', 'jizan'],
+  'نجران': ['najran'],
+  'حائل': ['hail'],
+  'الطائف': ['taif'],
+  'ينبع': ['yanbu'],
+  // Common international
+  'القاهرة': ['cairo', 'cai'],
+  'دبي': ['dubai', 'dxb'],
+  'اسطنبول': ['istanbul', 'ist'],
+  'لندن': ['london', 'lhr'],
+  'باريس': ['paris', 'cdg'],
+  'عمان': ['amman', 'amm'],
+  'بيروت': ['beirut', 'bey'],
+  'الكويت': ['kuwait', 'kwi'],
+  'الدوحة': ['doha', 'doh'],
+  'مسقط': ['muscat', 'mct'],
+  'البحرين': ['bahrain', 'bah'],
+};
+
+/** Expand a search term to include its bilingual equivalents */
+function expandCitySearch(term: string): string[] {
+  const lower = term.toLowerCase().trim();
+  const matches: string[] = [term];
+
+  for (const [arabic, aliases] of Object.entries(CITY_ALIASES)) {
+    // English input → add Arabic equivalent
+    if (aliases.some((a) => a.startsWith(lower) || lower.startsWith(a))) {
+      matches.push(arabic);
+    }
+    // Arabic input → add English equivalents
+    if (arabic.includes(term)) {
+      matches.push(...aliases);
+    }
+  }
+
+  return [...new Set(matches)];
+}
+
+/** Build an OR filter for a city field with bilingual support */
+function cityFilter(field: string, term: string) {
+  const variants = expandCitySearch(term);
+  if (variants.length === 1) {
+    return { [field]: { contains: term, mode: 'insensitive' as const } };
+  }
+  return {
+    OR: variants.map((v) => ({
+      [field]: { contains: v, mode: 'insensitive' as const },
+    })),
+  };
+}
+
 @Injectable()
 export class ListingsService {
   constructor(private readonly prisma: PrismaService) {}
@@ -20,20 +82,22 @@ export class ListingsService {
     const limit = Math.min(Number(params.limit) || 20, 100);
     const skip = (page - 1) * limit;
 
-    const where = {
-      status: 'active' as const,
-      // Only show listings with future departure dates
-      ...(!date && { departureDate: { gte: new Date() } }),
-      ...(from && { departureCity: { contains: from, mode: 'insensitive' as const } }),
-      ...(to && { arrivalCity: { contains: to, mode: 'insensitive' as const } }),
-      ...(date && {
+    // Use AND array to safely combine multiple OR filters (from + to)
+    const andConditions: any[] = [{ status: 'active' as const }];
+    if (!date) andConditions.push({ departureDate: { gte: new Date() } });
+    if (from) andConditions.push(cityFilter('departureCity', from));
+    if (to) andConditions.push(cityFilter('arrivalCity', to));
+    if (date) {
+      andConditions.push({
         departureDate: {
           gte: new Date(date),
           lt: new Date(new Date(date).setDate(new Date(date).getDate() + 1)),
         },
-      }),
-      ...(minWeight && { availableWeight: { gte: minWeight } }),
-    };
+      });
+    }
+    if (minWeight) andConditions.push({ availableWeight: { gte: minWeight } });
+
+    const where = { AND: andConditions };
 
     const [data, total] = await Promise.all([
       this.prisma.listing.findMany({
