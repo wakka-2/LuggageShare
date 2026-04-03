@@ -49,7 +49,9 @@ async function bootstrap() {
   app.useGlobalFilters(new AllExceptionsFilter());
 
   // API prefix
-  app.setGlobalPrefix('api/v1');
+  app.setGlobalPrefix('api/v1', {
+    exclude: ['health', 'health/ready'],
+  });
 
   // Swagger documentation — disabled in production
   if (process.env.NODE_ENV !== 'production') {
