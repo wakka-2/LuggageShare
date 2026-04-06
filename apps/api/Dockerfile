@@ -8,6 +8,9 @@ COPY package.json package-lock.json turbo.json ./
 COPY apps/api/package.json apps/api/
 COPY packages/ packages/
 
+# Install OpenSSL for Prisma engine
+RUN apk add --no-cache openssl1.1-compat
+
 # Install dependencies
 RUN npm ci --ignore-scripts
 
@@ -26,6 +29,9 @@ FROM node:20-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
+
+# Install OpenSSL 1.1 for Prisma engine compatibility
+RUN apk add --no-cache openssl1.1-compat
 
 # Create non-root user
 RUN addgroup --system --gid 1001 nestjs && \
