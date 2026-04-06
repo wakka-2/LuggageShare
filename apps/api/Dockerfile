@@ -1,5 +1,7 @@
-# --- Build stage --- (2026-03-18)
-FROM node:20-alpine AS builder
+# --- Build stage ---
+FROM node:20-slim AS builder
+
+RUN apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
@@ -7,9 +9,6 @@ WORKDIR /app
 COPY package.json package-lock.json turbo.json ./
 COPY apps/api/package.json apps/api/
 COPY packages/ packages/
-
-# Install OpenSSL for Prisma engine
-RUN apk add --no-cache openssl1.1-compat
 
 # Install dependencies
 RUN npm ci --ignore-scripts
@@ -24,18 +23,17 @@ RUN cd apps/api && node ../../node_modules/prisma/build/index.js generate
 RUN npx turbo run build --filter=@luggageshare/api
 
 # --- Production stage ---
-FROM node:20-alpine AS runner
+FROM node:20-slim AS runner
+
+RUN apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
 ENV NODE_ENV=production
 
-# Install OpenSSL 1.1 for Prisma engine compatibility
-RUN apk add --no-cache openssl1.1-compat
-
 # Create non-root user
-RUN addgroup --system --gid 1001 nestjs && \
-    adduser --system --uid 1001 nestjs
+RUN groupadd --system --gid 1001 nestjs && \
+    useradd --system --uid 1001 --gid nestjs nestjs
 
 # Copy built output and dependencies
 COPY --from=builder /app/node_modules ./node_modules
