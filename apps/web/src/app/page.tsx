@@ -2,7 +2,14 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { Plane, SearchX, SlidersHorizontal, DollarSign } from 'lucide-react';
+import {
+  Plane,
+  SearchX,
+  SlidersHorizontal,
+  DollarSign,
+  ChevronLeft,
+  ChevronRight,
+} from 'lucide-react';
 import { useListings } from '@/hooks/useListings';
 import { MOCK_LISTINGS } from '@/lib/mockListings';
 import { useLanguage } from '@/providers/LanguageProvider';
@@ -15,53 +22,68 @@ import TripCard from '@/components/home/TripCard';
 import TripCardSkeleton from '@/components/home/TripCardSkeleton';
 import { BottomSheet } from '@/components/common/BottomSheet';
 
+const PAGE_SIZE = 6;
+
 export default function HomePage() {
   const { t } = useLanguage();
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
   const [date, setDate] = useState('');
+  const [page, setPage] = useState(1);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const {
-    data: apiListings,
+    data: apiResult,
     isLoading,
     isError,
   } = useListings({
     from: from || undefined,
     to: to || undefined,
     date: date || undefined,
-    limit: 20,
+    page,
+    limit: PAGE_SIZE,
   });
 
   const hasFilters = from || to || date;
 
   const listings = useMemo(() => {
-    if (apiListings && apiListings.length > 0) return apiListings;
-    // When filters are active, show actual results (even if empty) — don't mask with mock data
-    if (hasFilters) return apiListings ?? [];
-    if (isError || (!isLoading && (!apiListings || apiListings.length === 0))) {
+    if (apiResult && apiResult.data.length > 0) return apiResult.data;
+    if (hasFilters) return apiResult?.data ?? [];
+    if (isError || (!isLoading && (!apiResult || apiResult.data.length === 0))) {
       return MOCK_LISTINGS;
     }
     return [];
-  }, [apiListings, isLoading, isError, hasFilters]);
+  }, [apiResult, isLoading, isError, hasFilters]);
+
+  const totalPages = apiResult?.meta?.totalPages ?? 1;
+  const total = apiResult?.meta?.total ?? listings.length;
+  const isMock = !apiResult || (apiResult.data.length === 0 && !hasFilters);
 
   const handleClearFilters = () => {
     setFrom('');
     setTo('');
     setDate('');
+    setPage(1);
   };
 
   const handleSwap = () => {
     const temp = from;
     setFrom(to);
     setTo(temp);
+    setPage(1);
   };
 
   const handleRouteSelect = (fromCity: string, toCity: string) => {
     setFrom(fromCity);
     setTo(toCity);
+    setPage(1);
     setIsFilterOpen(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleFilterChange = (setter: (v: string) => void) => (value: string) => {
+    setter(value);
+    setPage(1);
   };
 
   return (
@@ -113,7 +135,7 @@ export default function HomePage() {
             <div className="flex items-center gap-2">
               <Plane className="w-4 h-4 text-v2-primary -rotate-90 rtl:rotate-90" />
               <p className="text-sm text-v2-text-soft">
-                {isLoading ? t('common.loading') : `${listings.length} ${t('home.trips')}`}
+                {isLoading ? t('common.loading') : `${total} ${t('home.trips')}`}
               </p>
             </div>
             <button
@@ -139,12 +161,12 @@ export default function HomePage() {
                 from={from}
                 to={to}
                 date={date}
-                onFromChange={setFrom}
-                onToChange={setTo}
-                onDateChange={setDate}
+                onFromChange={handleFilterChange(setFrom)}
+                onToChange={handleFilterChange(setTo)}
+                onDateChange={handleFilterChange(setDate)}
                 onClear={handleClearFilters}
                 onSwap={handleSwap}
-                resultCount={hasFilters ? listings.length : undefined}
+                resultCount={hasFilters ? total : undefined}
               />
             </div>
           </div>
@@ -160,21 +182,21 @@ export default function HomePage() {
             from={from}
             to={to}
             date={date}
-            onFromChange={setFrom}
-            onToChange={setTo}
-            onDateChange={setDate}
+            onFromChange={handleFilterChange(setFrom)}
+            onToChange={handleFilterChange(setTo)}
+            onDateChange={handleFilterChange(setDate)}
             onClear={handleClearFilters}
             onSwap={handleSwap}
-            resultCount={hasFilters ? listings.length : undefined}
+            resultCount={hasFilters ? total : undefined}
           />
         </BottomSheet>
 
         {/* Trips Grid */}
-        <section className="px-4 pb-8">
+        <section className="px-4 pb-4">
           <div className="max-w-6xl mx-auto">
             {isLoading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {[...Array(6)].map((_, i) => (
+                {[...Array(PAGE_SIZE)].map((_, i) => (
                   <TripCardSkeleton key={i} />
                 ))}
               </div>
@@ -203,6 +225,56 @@ export default function HomePage() {
             )}
           </div>
         </section>
+
+        {/* Pagination */}
+        {!isLoading && !isMock && totalPages > 1 && (
+          <section className="px-4 pb-8">
+            <div className="max-w-6xl mx-auto flex items-center justify-center gap-2">
+              <button
+                onClick={() => {
+                  setPage((p) => Math.max(1, p - 1));
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                disabled={page <= 1}
+                className="flex items-center gap-1 px-4 py-2.5 rounded-full bg-white shadow-bubble-xs text-sm font-medium text-v2-text-soft hover:text-v2-text hover:shadow-bubble-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:shadow-bubble-xs"
+              >
+                <ChevronLeft className="w-4 h-4 rtl:rotate-180" />
+                {t('home.prev')}
+              </button>
+
+              <div className="flex items-center gap-1">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                  <button
+                    key={p}
+                    onClick={() => {
+                      setPage(p);
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                    className={`w-10 h-10 rounded-full text-sm font-semibold transition-all ${
+                      p === page
+                        ? 'bg-v2-primary text-white shadow-bubble-sm'
+                        : 'bg-white text-v2-text-soft hover:text-v2-text shadow-bubble-xs hover:shadow-bubble-sm'
+                    }`}
+                  >
+                    {p}
+                  </button>
+                ))}
+              </div>
+
+              <button
+                onClick={() => {
+                  setPage((p) => Math.min(totalPages, p + 1));
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                disabled={page >= totalPages}
+                className="flex items-center gap-1 px-4 py-2.5 rounded-full bg-white shadow-bubble-xs text-sm font-medium text-v2-text-soft hover:text-v2-text hover:shadow-bubble-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:shadow-bubble-xs"
+              >
+                {t('home.next')}
+                <ChevronRight className="w-4 h-4 rtl:rotate-180" />
+              </button>
+            </div>
+          </section>
+        )}
 
         {/* How It Works */}
         <HowItWorks />

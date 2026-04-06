@@ -71,6 +71,8 @@
     "noListingsDescription": "Try adjusting your search filters or browse all listings",
     "noListingsDescriptionShort": "Try adjusting your search filters",
     "clearFilters": "Clear filters",
+    "prev": "Previous",
+    "next": "Next",
     "allTab": "All",
     "offersTab": "Offers",
     "requestsTab": "Requests"

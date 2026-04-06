@@ -61,8 +61,13 @@ export function useListing(id: string | null) {
   });
 }
 
+export interface PaginatedListings {
+  data: ApiListing[];
+  meta: { total: number; page: number; limit: number; totalPages: number };
+}
+
 export function useListings(params: SearchParams = {}) {
-  return useQuery<ApiListing[]>({
+  return useQuery<PaginatedListings>({
     queryKey: ['listings', params],
     queryFn: async () => {
       const searchParams = new URLSearchParams();
@@ -74,8 +79,14 @@ export function useListings(params: SearchParams = {}) {
       if (params.limit) searchParams.set('limit', String(params.limit));
 
       const { data } = await apiClient.get(`/listings?${searchParams.toString()}`);
-      // API returns paginated { data: [...], meta: {...} } — extract the array
-      return Array.isArray(data) ? data : (data?.data ?? []);
+      // API returns paginated { data: [...], meta: {...} }
+      if (Array.isArray(data)) {
+        return { data, meta: { total: data.length, page: 1, limit: data.length, totalPages: 1 } };
+      }
+      return {
+        data: data?.data ?? [],
+        meta: data?.meta ?? { total: 0, page: 1, limit: 6, totalPages: 0 },
+      };
     },
   });
 }
