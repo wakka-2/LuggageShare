@@ -14,6 +14,8 @@ import { Throttle } from '@nestjs/throttler';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { CurrentUser } from './decorators/current-user.decorator';
 import { AuthService } from './auth.service';
+import { RegisterDto } from './dto/register.dto';
+import { LoginDto } from './dto/login.dto';
 import { GoogleAuthDto } from './dto/google-auth.dto';
 import { AppleAuthDto } from './dto/apple-auth.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
@@ -25,6 +27,26 @@ export class AuthController {
     private readonly authService: AuthService,
     private readonly configService: ConfigService
   ) {}
+
+  @Post('register')
+  @Throttle({ short: { ttl: 60000, limit: 10 } })
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Register with email and password' })
+  @ApiResponse({ status: 201, description: 'Account created' })
+  @ApiResponse({ status: 409, description: 'Email already registered' })
+  async register(@Body() dto: RegisterDto) {
+    return this.authService.register(dto);
+  }
+
+  @Post('login')
+  @Throttle({ short: { ttl: 60000, limit: 20 } })
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Login with email and password' })
+  @ApiResponse({ status: 200, description: 'Successfully authenticated' })
+  @ApiResponse({ status: 401, description: 'Invalid credentials' })
+  async login(@Body() dto: LoginDto) {
+    return this.authService.login(dto);
+  }
 
   @Post('google')
   @Throttle({ short: { ttl: 60000, limit: 20 } })

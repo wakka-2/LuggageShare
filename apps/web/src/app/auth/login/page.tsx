@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, FormEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { LogIn, Chrome } from 'lucide-react';
+import { LogIn, Chrome, Mail, Lock } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { useAuth } from '@/providers/AuthProvider';
@@ -63,6 +63,8 @@ function GoogleLoginButton({
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const { signIn, isAuthenticated, isLoading: authLoading } = useAuth();
   const { t } = useLanguage();
   const router = useRouter();
@@ -82,6 +84,28 @@ export default function LoginPage() {
     });
     // Redirect immediately — don't rely on AuthProvider useEffect timing
     router.replace('/');
+  }
+
+  async function handleEmailLogin(e: FormEvent) {
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
+    try {
+      const res = await apiClient.post('/auth/login', { email, password });
+      handleAuthSuccess(res.data);
+    } catch (err: any) {
+      const status = err?.response?.status;
+      if (status === 429) {
+        setError(t('auth.rateLimitError'));
+      } else if (status === 401) {
+        setError(t('auth.invalidCredentials'));
+      } else {
+        const msg = err?.response?.data?.message || err?.message || '';
+        setError(msg || t('wp.loginError'));
+      }
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   async function handleDevLogin(userIndex = 0, retryCount = 0) {
@@ -166,6 +190,55 @@ export default function LoginPage() {
                 {error}
               </div>
             )}
+
+            <form onSubmit={handleEmailLogin} className="space-y-4">
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-v2-text-muted" />
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder={t('auth.email')}
+                  className="w-full pl-11 pr-4 py-3 rounded-full border-2 border-v2-primary/20 focus:border-v2-primary focus:outline-none bg-white text-v2-text placeholder:text-v2-text-muted transition-colors"
+                  aria-label={t('auth.email')}
+                />
+              </div>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-v2-text-muted" />
+                <input
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder={t('auth.password')}
+                  className="w-full pl-11 pr-4 py-3 rounded-full border-2 border-v2-primary/20 focus:border-v2-primary focus:outline-none bg-white text-v2-text placeholder:text-v2-text-muted transition-colors"
+                  aria-label={t('auth.password')}
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full bg-v2-primary hover:bg-v2-primary/90 text-white font-semibold py-3.5 rounded-full transition-all hover:shadow-bubble-sm active:scale-[0.97] disabled:opacity-50"
+              >
+                {isLoading ? t('common.loading') : t('auth.signIn')}
+              </button>
+            </form>
+
+            <p className="text-center text-sm text-v2-text-soft mt-4">
+              {t('auth.noAccount')}{' '}
+              <Link href="/auth/register" className="text-v2-primary font-semibold hover:underline">
+                {t('auth.createOne')}
+              </Link>
+            </p>
+
+            <div className="flex items-center gap-3 my-5">
+              <div className="flex-1 h-px bg-v2-primary/10" />
+              <span className="text-xs text-v2-text-muted uppercase">
+                {t('auth.orContinueWith')}
+              </span>
+              <div className="flex-1 h-px bg-v2-primary/10" />
+            </div>
 
             {GOOGLE_CLIENT_ID ? (
               <GoogleLoginButton

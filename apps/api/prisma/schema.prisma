@@ -25,7 +25,8 @@ model User {
   bankName      String?
   googleId      String?   @unique
   appleId       String?   @unique
-  provider      String    // 'google' | 'apple'
+  passwordHash  String?
+  provider      String    // 'google' | 'apple' | 'email'
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
