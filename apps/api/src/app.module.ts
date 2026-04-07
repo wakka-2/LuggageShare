@@ -17,6 +17,7 @@ import { ReviewsModule } from './modules/reviews/reviews.module';
 import { WalletModule } from './modules/wallet/wallet.module';
 import { DisputesModule } from './modules/disputes/disputes.module';
 import { UploadsModule } from './modules/uploads/uploads.module';
+import { TicketsModule } from './modules/tickets/tickets.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { HealthController } from './health.controller';
 import { APP_GUARD } from '@nestjs/core';
@@ -102,6 +103,7 @@ import { ThrottlerGuard } from '@nestjs/throttler';
     WalletModule,
     DisputesModule,
     UploadsModule,
+    TicketsModule,
   ],
   controllers: [HealthController],
   providers: [

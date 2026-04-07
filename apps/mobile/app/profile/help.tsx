@@ -75,14 +75,14 @@ export default function HelpScreen() {
         <Animated.View entering={FadeInUp.delay(530).duration(300).springify()}>
           <TouchableOpacity
             style={styles.contactCard}
-            onPress={() => Linking.openURL('mailto:support@luggageshare.app')}
+            onPress={() => Linking.openURL('mailto:help@luggageshare.com')}
           >
             <View style={styles.contactIcon}>
               <Ionicons name="mail-outline" size={22} color={V2_COLORS.primary} />
             </View>
             <View style={styles.contactInfo}>
               <Text style={styles.contactLabel}>{t('help.emailSupport')}</Text>
-              <Text style={styles.contactValue}>support@luggageshare.app</Text>
+              <Text style={styles.contactValue}>help@luggageshare.com</Text>
             </View>
             <Ionicons name="chevron-forward" size={18} color={V2_COLORS.textMuted} />
           </TouchableOpacity>

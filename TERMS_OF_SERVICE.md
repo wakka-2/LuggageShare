@@ -350,12 +350,12 @@ You may not assign your rights under these Terms. We may assign our rights to an
 For questions about these Terms, please contact us:
 
 **LuggageShare Support**
-- Email: support@luggageshare.com
+- Email: help@luggageshare.com
 - In-App: Help & Support section
 - Address: [Company Address], Saudi Arabia
 
 للأسئلة حول هذه الشروط، يرجى التواصل معنا:
-- البريد الإلكتروني: support@luggageshare.com
+- البريد الإلكتروني: help@luggageshare.com
 - داخل التطبيق: قسم المساعدة والدعم
 
 ---
