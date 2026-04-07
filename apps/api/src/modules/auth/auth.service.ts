@@ -11,7 +11,7 @@ import { RefreshTokenDto } from './dto/refresh-token.dto';
 import axios from 'axios';
 import * as jwt from 'jsonwebtoken';
 import * as crypto from 'crypto';
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 
 // Cache Apple's public keys (refresh every 24 hours)
 let appleKeysCache: { keys: any[]; fetchedAt: number } | null = null;
