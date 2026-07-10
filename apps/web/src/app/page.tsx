@@ -18,6 +18,7 @@ import { Footer } from '@/components/layout/Footer';
 import { HowItWorks } from '@/components/home/HowItWorks';
 import { PopularRoutes } from '@/components/home/PopularRoutes';
 import FilterBar from '@/components/home/FilterBar';
+import type { Flexibility } from '@/lib/dates';
 import TripCard from '@/components/home/TripCard';
 import TripCardSkeleton from '@/components/home/TripCardSkeleton';
 import { BottomSheet } from '@/components/common/BottomSheet';
@@ -29,6 +30,7 @@ export default function HomePage() {
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
   const [date, setDate] = useState('');
+  const [flex, setFlex] = useState<Flexibility>(0);
   const [page, setPage] = useState(1);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
@@ -40,6 +42,7 @@ export default function HomePage() {
     from: from || undefined,
     to: to || undefined,
     date: date || undefined,
+    flex: date ? flex : undefined,
     page,
     limit: PAGE_SIZE,
   });
@@ -63,6 +66,13 @@ export default function HomePage() {
     setFrom('');
     setTo('');
     setDate('');
+    setFlex(0);
+    setPage(1);
+  };
+
+  const handleDateChange = (dateISO: string, f: Flexibility) => {
+    setDate(dateISO);
+    setFlex(f);
     setPage(1);
   };
 
@@ -161,9 +171,10 @@ export default function HomePage() {
                 from={from}
                 to={to}
                 date={date}
+                flex={flex}
                 onFromChange={handleFilterChange(setFrom)}
                 onToChange={handleFilterChange(setTo)}
-                onDateChange={handleFilterChange(setDate)}
+                onDateChange={handleDateChange}
                 onClear={handleClearFilters}
                 onSwap={handleSwap}
                 resultCount={hasFilters ? total : undefined}
@@ -182,9 +193,10 @@ export default function HomePage() {
             from={from}
             to={to}
             date={date}
+            flex={flex}
             onFromChange={handleFilterChange(setFrom)}
             onToChange={handleFilterChange(setTo)}
-            onDateChange={handleFilterChange(setDate)}
+            onDateChange={handleDateChange}
             onClear={handleClearFilters}
             onSwap={handleSwap}
             resultCount={hasFilters ? total : undefined}

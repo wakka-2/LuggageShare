@@ -20,11 +20,12 @@ export class ListingsController {
     @Query('from') from?: string,
     @Query('to') to?: string,
     @Query('date') date?: string,
+    @Query('flex') flex?: number,
     @Query('minWeight') minWeight?: number,
     @Query('page') page?: number,
     @Query('limit') limit?: number
   ) {
-    return this.listingsService.search({ from, to, date, minWeight, page, limit });
+    return this.listingsService.search({ from, to, date, flex, minWeight, page, limit });
   }
 
   @Get('me')

@@ -1,4 +1,4 @@
-import { IsOptional, IsString, IsDateString, IsNumber, IsPositive } from 'class-validator';
+import { IsOptional, IsString, IsDateString, IsNumber, IsPositive, IsIn } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
@@ -17,6 +17,16 @@ export class SearchFlightsDto {
   @IsOptional()
   @IsDateString()
   date?: string;
+
+  @ApiPropertyOptional({
+    example: 3,
+    description: 'Date flexibility in days (± window around date). 0, 1, or 3.',
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @IsIn([0, 1, 3])
+  flex?: number;
 
   @ApiPropertyOptional({ example: 5, description: 'Minimum kg required' })
   @IsOptional()

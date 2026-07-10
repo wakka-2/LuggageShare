@@ -26,6 +26,13 @@ export class NotificationsController {
     return this.notificationsService.registerToken(user.id, dto.token, dto.platform);
   }
 
+  @Post('test')
+  @ApiOperation({ summary: 'Send a test push notification to the current user' })
+  @ApiResponse({ status: 201, description: 'Test notification sent' })
+  async sendTest(@CurrentUser() user: any) {
+    return this.notificationsService.sendTestNotification(user.id);
+  }
+
   @Post(':id/read')
   @ApiOperation({ summary: 'Mark notification as read' })
   @ApiResponse({ status: 200, description: 'Notification marked as read' })

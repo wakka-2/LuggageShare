@@ -2,15 +2,28 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../prisma/prisma.service';
 import axios from 'axios';
+import * as webpush from 'web-push';
 
 @Injectable()
 export class NotificationsService {
   private readonly logger = new Logger(NotificationsService.name);
+  private readonly vapidConfigured: boolean;
 
   constructor(
     private readonly prisma: PrismaService,
     private readonly configService: ConfigService
-  ) {}
+  ) {
+    const publicKey = this.configService.get<string>('VAPID_PUBLIC_KEY');
+    const privateKey = this.configService.get<string>('VAPID_PRIVATE_KEY');
+    const subject =
+      this.configService.get<string>('VAPID_SUBJECT') || 'mailto:support@luggageshare.com';
+    if (publicKey && privateKey) {
+      webpush.setVapidDetails(subject, publicKey, privateKey);
+      this.vapidConfigured = true;
+    } else {
+      this.vapidConfigured = false;
+    }
+  }
 
   async getNotifications(userId: string) {
     return this.prisma.notification.findMany({
@@ -95,11 +108,61 @@ export class NotificationsService {
       },
     });
 
-    // Send via Expo Push Notifications
+    // explicit any — no generated Prisma types in CI
+    const webTokens = pushTokens.filter((pt: any) => pt.platform === 'web');
+    const nativeTokens = pushTokens.filter((pt: any) => pt.platform !== 'web');
+
+    await Promise.all([
+      this.sendWebPush(webTokens, title, body, data),
+      this.sendExpoPush(nativeTokens, title, body, data),
+    ]);
+  }
+
+  private async sendWebPush(
+    tokens: any[],
+    title: string,
+    body: string,
+    data?: Record<string, any>
+  ) {
+    if (tokens.length === 0 || !this.vapidConfigured) {
+      return;
+    }
+
+    const payload = JSON.stringify({ title, body, url: data?.url });
+
+    await Promise.all(
+      tokens.map(async (pt: any) => {
+        try {
+          const subscription = JSON.parse(pt.token);
+          await webpush.sendNotification(subscription, payload);
+        } catch (error: any) {
+          // 404/410 → subscription expired; prune it so it isn't retried.
+          if (error?.statusCode === 404 || error?.statusCode === 410) {
+            await this.prisma.pushToken.delete({ where: { id: pt.id } }).catch(() => undefined);
+          } else {
+            this.logger.error(
+              'Failed to send web push notification',
+              error instanceof Error ? error.stack : error
+            );
+          }
+        }
+      })
+    );
+  }
+
+  private async sendExpoPush(
+    tokens: any[],
+    title: string,
+    body: string,
+    data?: Record<string, any>
+  ) {
+    if (tokens.length === 0) {
+      return;
+    }
+
     const expoToken = this.configService.get<string>('EXPO_ACCESS_TOKEN');
 
-    const messages = pushTokens.map((pt: any) => ({
-      // explicit any — no generated Prisma types in CI
+    const messages = tokens.map((pt: any) => ({
       to: pt.token,
       title,
       body,
@@ -121,5 +184,10 @@ export class NotificationsService {
         error instanceof Error ? error.stack : error
       );
     }
+  }
+
+  async sendTestNotification(userId: string) {
+    await this.sendPushNotification(userId, 'حصتي', 'هذا إشعار تجريبي - الإشعارات تعمل بنجاح!');
+    return { success: true };
   }
 }

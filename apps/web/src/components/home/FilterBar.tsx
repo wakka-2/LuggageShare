@@ -2,14 +2,17 @@
 
 import { Search, X, ArrowLeftRight } from 'lucide-react';
 import { useLanguage } from '@/providers/LanguageProvider';
+import DateFlexPicker from './DateFlexPicker';
+import type { Flexibility } from '@/lib/dates';
 
 interface FilterBarProps {
   from: string;
   to: string;
   date: string;
+  flex: Flexibility;
   onFromChange: (v: string) => void;
   onToChange: (v: string) => void;
-  onDateChange: (v: string) => void;
+  onDateChange: (dateISO: string, flex: Flexibility) => void;
   onClear: () => void;
   onSwap: () => void;
   resultCount?: number;
@@ -19,6 +22,7 @@ export default function FilterBar({
   from,
   to,
   date,
+  flex,
   onFromChange,
   onToChange,
   onDateChange,
@@ -65,13 +69,8 @@ export default function FilterBar({
           />
         </div>
 
-        {/* Date */}
-        <input
-          type="date"
-          value={date}
-          onChange={(e) => onDateChange(e.target.value)}
-          className="bg-v2-bg rounded-full px-3 py-2.5 text-sm text-v2-text outline-none focus:ring-2 focus:ring-v2-primary/20 sm:w-40"
-        />
+        {/* Date + flexibility */}
+        <DateFlexPicker value={date} flex={flex} onChange={onDateChange} />
 
         {/* Actions */}
         <div className="flex items-center gap-2">

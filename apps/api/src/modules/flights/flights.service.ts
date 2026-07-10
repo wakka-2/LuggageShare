@@ -44,11 +44,16 @@ export class FlightsService {
       where.arrivalCity = { contains: dto.to, mode: 'insensitive' };
     }
     if (dto.date) {
+      const flex = dto.flex === 1 || dto.flex === 3 ? dto.flex : 0;
       const start = new Date(dto.date);
+      start.setDate(start.getDate() - flex);
       start.setHours(0, 0, 0, 0);
       const end = new Date(dto.date);
+      end.setDate(end.getDate() + flex);
       end.setHours(23, 59, 59, 999);
-      where.departureDate = { gte: start, lte: end };
+      // Never search into the past.
+      const now = new Date();
+      where.departureDate = { gte: start < now ? now : start, lte: end };
     }
     if (dto.minWeight) {
       where.remainingWeight = { gte: dto.minWeight };

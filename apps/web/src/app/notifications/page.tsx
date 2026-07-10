@@ -12,6 +12,7 @@ import {
   useMarkNotificationRead,
   useMarkAllNotificationsRead,
 } from '@/hooks/useNotifications';
+import PushEnableBanner from '@/components/pwa/PushEnableBanner';
 
 /* -------------------------------------------------------------------------- */
 /*  Types                                                                     */
@@ -199,6 +200,9 @@ export default function NotificationsPage() {
               </button>
             )}
           </div>
+
+          {/* ---- OS push opt-in ---- */}
+          <PushEnableBanner />
 
           {/* ---- Content ---- */}
           {isLoading ? (

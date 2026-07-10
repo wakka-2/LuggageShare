@@ -7,6 +7,8 @@ import { AuthProvider } from '@/providers/AuthProvider';
 import { LanguageProvider } from '@/providers/LanguageProvider';
 import { ToastProvider } from '@/components/common/Toast';
 import NotificationPopup from '@/components/common/NotificationPopup';
+import ServiceWorkerRegister from '@/components/pwa/ServiceWorkerRegister';
+import InstallPrompt from '@/components/pwa/InstallPrompt';
 
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '';
 
@@ -30,6 +32,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
           <ToastProvider>
             {children}
             <NotificationPopup />
+            <ServiceWorkerRegister />
+            <InstallPrompt />
           </ToastProvider>
         </AuthProvider>
       </LanguageProvider>

@@ -31,6 +31,7 @@ interface SearchParams {
   from?: string;
   to?: string;
   date?: string;
+  flex?: number;
   minWeight?: number;
   page?: number;
   limit?: number;
@@ -74,6 +75,7 @@ export function useListings(params: SearchParams = {}) {
       if (params.from) searchParams.set('from', params.from);
       if (params.to) searchParams.set('to', params.to);
       if (params.date) searchParams.set('date', params.date);
+      if (params.date && params.flex) searchParams.set('flex', String(params.flex));
       if (params.minWeight) searchParams.set('minWeight', String(params.minWeight));
       if (params.page) searchParams.set('page', String(params.page));
       if (params.limit) searchParams.set('limit', String(params.limit));

@@ -73,11 +73,13 @@ export class ListingsService {
     from?: string;
     to?: string;
     date?: string;
+    flex?: number;
     minWeight?: number;
     page?: number;
     limit?: number;
   }) {
     const { from, to, date, minWeight } = params;
+    const flex = Number(params.flex) === 1 || Number(params.flex) === 3 ? Number(params.flex) : 0;
     const page = Number(params.page) || 1;
     const limit = Math.min(Number(params.limit) || 20, 100);
     const skip = (page - 1) * limit;
@@ -88,11 +90,14 @@ export class ListingsService {
     if (from) andConditions.push(cityFilter('departureCity', from));
     if (to) andConditions.push(cityFilter('arrivalCity', to));
     if (date) {
+      // ±flex-day inclusive window; clamped so it never searches into the past.
+      const start = new Date(date);
+      start.setDate(start.getDate() - flex);
+      const end = new Date(date);
+      end.setDate(end.getDate() + flex + 1); // exclusive upper bound
+      const now = new Date();
       andConditions.push({
-        departureDate: {
-          gte: new Date(date),
-          lt: new Date(new Date(date).setDate(new Date(date).getDate() + 1)),
-        },
+        departureDate: { gte: start < now ? now : start, lt: end },
       });
     }
     if (minWeight) andConditions.push({ availableWeight: { gte: minWeight } });
