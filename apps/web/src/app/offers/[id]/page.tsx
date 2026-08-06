@@ -17,7 +17,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/providers/AuthProvider';
 import { useLanguage } from '@/providers/LanguageProvider';
 import { useOffer, useAcceptOffer, useRejectOffer, useWithdrawOffer } from '@/hooks/useOffers';
-import { getSocket, connectSocket } from '@/lib/socket';
+import { subscribeToChat } from '@/lib/realtime';
 import { Header } from '@/components/layout/Header';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import ChatBubble from '@/components/chat/ChatBubble';
@@ -114,88 +114,51 @@ export default function OfferChatPage() {
   const [isTyping, setIsTyping] = useState(false);
   const [confirmAction, setConfirmAction] = useState<'accept' | 'reject' | 'withdraw' | null>(null);
 
-  // Connect socket on mount
-  useEffect(() => {
-    let mounted = true;
-    connectSocket()
-      .then(() => {
-        if (!mounted) return;
-        setIsConnected(true);
-        const s = getSocket();
-        s.on('connect', () => {
-          if (mounted) setIsConnected(true);
-        });
-        s.on('disconnect', () => {
-          if (mounted) setIsConnected(false);
-        });
-      })
-      .catch(() => {});
-    return () => {
-      mounted = false;
-    };
-  }, []);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const queryClient = useQueryClient();
+  const channelRef = useRef<ReturnType<typeof subscribeToChat> | null>(null);
 
   // Auto-scroll to bottom
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Join offer room via socket
+  // Offer-chat realtime via Supabase broadcast (was Socket.io). New messages
+  // arrive as a `newMessage` broadcast the API sends on POST; typing is an
+  // ephemeral client-to-client broadcast.
   useEffect(() => {
-    if (!isConnected || !id) return;
-    const s = getSocket();
-    s.emit('joinOffer', { offerId: id });
+    if (!id) return;
+    const sub = subscribeToChat(`offer:${id}`, {
+      onStatus: setIsConnected,
+      onNewMessage: () => queryClient.invalidateQueries({ queryKey: ['offerMessages', id] }),
+      onTyping: (senderId) => {
+        if (senderId && senderId !== user?.id) {
+          setIsTyping(true);
+          if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+          typingTimeoutRef.current = setTimeout(() => setIsTyping(false), 3000);
+        }
+      },
+    });
+    channelRef.current = sub;
     return () => {
-      s.emit('leaveOffer', { offerId: id });
+      sub.unsubscribe();
+      channelRef.current = null;
     };
-  }, [isConnected, id]);
-
-  // Listen for socket messages
-  const queryClient = useQueryClient();
-  useEffect(() => {
-    if (!isConnected) return;
-    const s = getSocket();
-    const handler = () => {
-      queryClient.invalidateQueries({ queryKey: ['offerMessages', id] });
-    };
-    const typingHandler = ({ senderId }: { senderId: string }) => {
-      if (senderId !== user?.id) {
-        setIsTyping(true);
-        if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-        typingTimeoutRef.current = setTimeout(() => setIsTyping(false), 3000);
-      }
-    };
-    s.on('newOfferMessage', handler);
-    s.on('offerUserTyping', typingHandler);
-    return () => {
-      s.off('newOfferMessage', handler);
-      s.off('offerUserTyping', typingHandler);
-    };
-  }, [isConnected, id, user?.id, queryClient]);
+  }, [id, user?.id, queryClient]);
 
   // Emit typing event
   const emitTyping = useCallback(() => {
-    if (isConnected) {
-      getSocket().emit('offerTyping', { offerId: id });
-    }
-  }, [isConnected, id]);
+    channelRef.current?.sendTyping(user?.id ?? '');
+  }, [user?.id]);
 
   async function handleSend(e: FormEvent) {
     e.preventDefault();
     const text = input.trim();
     if (!text) return;
     setInput('');
-
-    if (isConnected) {
-      getSocket().emit('sendOfferMessage', { offerId: id, content: text });
-      setTimeout(() => {
-        queryClient.invalidateQueries({ queryKey: ['offerMessages', id] });
-      }, 500);
-    } else {
-      await sendMessage.mutateAsync(text);
-    }
+    // Persist via REST; the API broadcasts `newMessage` to subscribers.
+    await sendMessage.mutateAsync(text);
   }
 
   async function handleAccept() {

@@ -6,10 +6,14 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { containsProfanity } from '../../common/utils/content-filter';
+import { RealtimeService } from '../../common/realtime/realtime.service';
 
 @Injectable()
 export class MessagesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly realtime: RealtimeService
+  ) {}
 
   async getConversations(userId: string) {
     const bookings = await this.prisma.booking.findMany({
@@ -158,6 +162,9 @@ export class MessagesService {
       data: { updatedAt: new Date() },
     });
 
+    // Live nudge for subscribers (replaces the old Socket.io `newMessage` emit).
+    await this.realtime.broadcast(`booking:${bookingId}`, 'newMessage', message);
+
     return message;
   }
 
@@ -237,7 +244,7 @@ export class MessagesService {
       throw new BadRequestException('Message contains inappropriate content');
     }
 
-    return this.prisma.message.create({
+    const message = await this.prisma.message.create({
       data: {
         offerId,
         senderId: userId,
@@ -247,6 +254,10 @@ export class MessagesService {
         sender: { select: { id: true, name: true, avatarUrl: true } },
       },
     });
+
+    await this.realtime.broadcast(`offer:${offerId}`, 'newMessage', message);
+
+    return message;
   }
 
   async markOfferMessagesRead(userId: string, offerId: string) {

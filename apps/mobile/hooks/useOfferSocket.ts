@@ -1,87 +1,80 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { getSocket, connectSocket, disconnectSocket } from '@/lib/socket';
+import apiClient from '@/lib/api';
+import { tokenStorage } from '@/lib/storage';
+import { subscribeToChat } from '@/lib/realtime';
 
+/**
+ * Offer-chat realtime, backed by Supabase Realtime broadcast (was Socket.io).
+ * Same interface as before so the offer-chat screen needs no changes:
+ *  - new messages arrive via a `newMessage` broadcast the API sends on POST
+ *  - sendMessage persists over REST (which triggers that broadcast server-side)
+ *  - typing is an ephemeral client-to-client broadcast
+ */
 export function useOfferSocket(offerId: string | undefined) {
   const queryClient = useQueryClient();
   const [isConnected, setIsConnected] = useState(false);
   const [isOtherTyping, setIsOtherTyping] = useState(false);
   const typingTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastTypingEmit = useRef(0);
+  const channelRef = useRef<ReturnType<typeof subscribeToChat> | null>(null);
+  const senderIdRef = useRef<string>('');
 
   useEffect(() => {
     if (!offerId) return;
-
     let mounted = true;
 
-    const setup = async () => {
-      try {
-        await connectSocket();
-        const socket = getSocket();
+    tokenStorage
+      .getItem('auth_tokens')
+      .then((json) => {
+        try {
+          senderIdRef.current = json ? (JSON.parse(json)?.user?.id ?? '') : '';
+        } catch {
+          senderIdRef.current = '';
+        }
+      })
+      .catch(() => {
+        senderIdRef.current = '';
+      });
 
+    const sub = subscribeToChat(`offer:${offerId}`, {
+      onStatus: (subscribed) => mounted && setIsConnected(subscribed),
+      onNewMessage: () => {
+        queryClient.invalidateQueries({ queryKey: ['offerMessages', offerId] });
+      },
+      onTyping: () => {
         if (!mounted) return;
-        setIsConnected(socket.connected);
-
-        // Join the offer room
-        socket.emit('joinOffer', { offerId });
-
-        // Listen for new offer messages
-        socket.on('newOfferMessage', () => {
-          queryClient.invalidateQueries({ queryKey: ['offerMessages', offerId] });
-        });
-
-        // Listen for typing indicators
-        socket.on('offerUserTyping', () => {
-          if (!mounted) return;
-          setIsOtherTyping(true);
-          if (typingTimeout.current) clearTimeout(typingTimeout.current);
-          typingTimeout.current = setTimeout(() => {
-            if (mounted) setIsOtherTyping(false);
-          }, 3000);
-        });
-
-        socket.on('connect', () => mounted && setIsConnected(true));
-        socket.on('disconnect', () => mounted && setIsConnected(false));
-      } catch {
-        // Socket connection failed — fall back silently
-      }
-    };
-
-    setup();
+        setIsOtherTyping(true);
+        if (typingTimeout.current) clearTimeout(typingTimeout.current);
+        typingTimeout.current = setTimeout(() => mounted && setIsOtherTyping(false), 3000);
+      },
+    });
+    channelRef.current = sub;
 
     return () => {
       mounted = false;
       if (typingTimeout.current) clearTimeout(typingTimeout.current);
-      const socket = getSocket();
-      socket.emit('leaveOffer', { offerId });
-      socket.off('newOfferMessage');
-      socket.off('offerUserTyping');
-      socket.off('connect');
-      socket.off('disconnect');
-      disconnectSocket();
+      sub.unsubscribe();
+      channelRef.current = null;
     };
   }, [offerId, queryClient]);
 
   const sendMessage = useCallback(
-    (content: string) => {
+    async (content: string) => {
       if (!offerId) return;
-      const socket = getSocket();
-      if (socket.connected) {
-        socket.emit('sendOfferMessage', { offerId, content });
-      }
+      // Persist via REST; the API broadcasts `newMessage` to subscribers.
+      await apiClient.post(`/messages/offers/${offerId}`, { content });
+      queryClient.invalidateQueries({ queryKey: ['offerMessages', offerId] });
     },
-    [offerId]
+    [offerId, queryClient]
   );
 
   const sendTyping = useCallback(() => {
     if (!offerId) return;
     const now = Date.now();
-    if (now - lastTypingEmit.current < 2000) return;
+    if (now - lastTypingEmit.current < 2000) return; // debounce
     lastTypingEmit.current = now;
-    const socket = getSocket();
-    if (socket.connected) {
-      socket.emit('offerTyping', { offerId });
-    }
+    channelRef.current?.sendTyping(senderIdRef.current);
   }, [offerId]);
 
   return { isConnected, sendMessage, sendTyping, isOtherTyping };

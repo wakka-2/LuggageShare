@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
-import { ScheduleModule } from '@nestjs/schedule';
 import { TerminusModule } from '@nestjs/terminus';
 import { LoggerModule } from 'nestjs-pino';
 import * as Joi from 'joi';
@@ -19,6 +18,7 @@ import { DisputesModule } from './modules/disputes/disputes.module';
 import { UploadsModule } from './modules/uploads/uploads.module';
 import { TicketsModule } from './modules/tickets/tickets.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { RealtimeModule } from './common/realtime/realtime.module';
 import { HealthController } from './health.controller';
 import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard } from '@nestjs/throttler';
@@ -88,9 +88,9 @@ import { ThrottlerGuard } from '@nestjs/throttler';
         limit: 200,
       },
     ]),
-    ScheduleModule.forRoot(),
     TerminusModule,
     PrismaModule,
+    RealtimeModule,
     AuthModule,
     UsersModule,
     ListingsModule,

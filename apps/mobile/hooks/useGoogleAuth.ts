@@ -61,15 +61,16 @@ export function useGoogleAuth() {
 
       const result = await promptAsync();
 
-      if (result.type === 'success' && result.authentication?.idToken) {
-        // Send token to backend for verification
-        const authResponse = await apiClient.post('/auth/social', {
-          provider: 'google',
-          idToken: result.authentication.idToken,
+      if (result.type === 'success' && result.authentication?.accessToken) {
+        // Verify the Google OAuth2 access token with the backend.
+        // Endpoint + contract match the API (POST /auth/google { accessToken })
+        // and the web client; the API calls Google's userinfo endpoint to verify.
+        const authResponse = await apiClient.post('/auth/google', {
           accessToken: result.authentication.accessToken,
         });
 
-        await signIn(authResponse.data.data);
+        // mobile apiClient already unwraps the { data } envelope once.
+        await signIn(authResponse.data);
       }
     } catch (error) {
       console.error('Google sign in error:', error);

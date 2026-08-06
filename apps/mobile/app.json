@@ -83,7 +83,13 @@
       },
       "eas": {
         "projectId": "144efabf-b267-46fe-9609-8147fcd00585"
-      }
+      },
+      "apiUrl": "https://luggageshare-api.vercel.app",
+      "supabaseUrl": "https://gbdhlolfyycabpjoqhan.supabase.co",
+      "supabasePublishableKey": "sb_publishable_IJg01FKuDoOraYCEpXA6ag_1XlB-0gu",
+      "googleWebClientId": "74009374313-rak28eramgaojnr67fivn8qqo9hjin6r.apps.googleusercontent.com",
+      "googleIosClientId": "",
+      "googleAndroidClientId": ""
     },
     "owner": "aimanqaid",
     "runtimeVersion": {
