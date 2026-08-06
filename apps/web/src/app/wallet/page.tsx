@@ -1,20 +1,40 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { Wallet, ArrowUpRight, ArrowDownRight, Send, Loader2, History } from 'lucide-react';
+import {
+  Wallet,
+  ArrowUpRight,
+  ArrowDownRight,
+  Plus,
+  Loader2,
+  History,
+  Copy,
+  Check,
+  Gift,
+  ShieldCheck,
+  Banknote,
+} from 'lucide-react';
+import Link from 'next/link';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { useLanguage } from '@/providers/LanguageProvider';
+import { useAuth } from '@/providers/AuthProvider';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import Modal from '@/components/common/Modal';
-import { useWalletBalance, useTransactionHistory, useWithdrawal } from '@/hooks/useWallet';
-import type { Transaction } from '@/hooks/useWallet';
+import {
+  useWalletBalance,
+  useTransactionHistory,
+  useRequestTopUp,
+  useMyTopUps,
+  type Transaction,
+  type TopUpResult,
+} from '@/hooks/useWallet';
 
 function formatCurrency(amount: number): string {
   return amount.toFixed(2);
 }
 
-function formatDate(dateStr: string, locale: string = 'ar-SA'): string {
+function formatDate(dateStr: string, locale = 'ar-SA'): string {
   return new Date(dateStr).toLocaleDateString(locale, {
     year: 'numeric',
     month: 'short',
@@ -22,116 +42,128 @@ function formatDate(dateStr: string, locale: string = 'ar-SA'): string {
   });
 }
 
-function isIncomeType(type: string): boolean {
-  return (
-    type === 'BOOKING_PAYMENT' ||
-    type === 'REFUND' ||
-    type === 'commission' ||
-    type === 'top_up' ||
-    type === 'refund'
-  );
-}
-
-function getTransactionLabel(type: string, t: (key: string) => string): string {
-  const labels: Record<string, string> = {
-    BOOKING_PAYMENT: t('wp.bookingPayment'),
-    WITHDRAWAL: t('wallet.withdrawal'),
-    REFUND: t('wallet.refund'),
-    COMMISSION: t('wallet.commission'),
-    commission: t('wallet.commission'),
-    top_up: t('wallet.topUpType'),
-    refund: t('wallet.refund'),
+// Bilingual labels for the new credit UI (avoids depending on missing i18n keys).
+function labels(lang: string) {
+  const ar = lang === 'ar';
+  return {
+    creditsTitle: ar ? 'المحفظة' : 'Credits',
+    creditsSubtitle: ar ? 'رصيد النقاط لرسوم المنصة' : 'Your credit balance for platform fees',
+    balance: ar ? 'الرصيد' : 'Balance',
+    topUp: ar ? 'شحن الرصيد' : 'Top up credits',
+    topUpTitle: ar ? 'شحن الرصيد' : 'Top up credits',
+    amount: ar ? 'المبلغ' : 'Amount',
+    reference: ar ? 'مرجع التحويل (اختياري)' : 'Transfer reference (optional)',
+    submit: ar ? 'متابعة' : 'Continue',
+    submitting: ar ? 'جارٍ الإرسال...' : 'Submitting...',
+    transferTo: ar ? 'حوّل إلى هذا الحساب' : 'Transfer to this account',
+    iban: 'IBAN',
+    bank: ar ? 'البنك' : 'Bank',
+    accountName: ar ? 'اسم الحساب' : 'Account name',
+    copied: ar ? 'تم النسخ' : 'Copied',
+    copy: ar ? 'نسخ' : 'Copy',
+    pendingNote: ar
+      ? 'سيُضاف رصيدك بعد تأكيد استلام التحويل.'
+      : 'Your credits are added once we confirm the transfer.',
+    done: ar ? 'تم' : 'Done',
+    error: ar ? 'حدث خطأ، حاول مرة أخرى' : 'Something went wrong, please try again',
+    inviteTitle: ar ? 'ادعُ أصدقاءك' : 'Invite friends',
+    inviteDesc: ar
+      ? 'شارك رمزك — تحصل على 10 نقاط لكل صديق يسجّل به.'
+      : 'Share your code — earn 10 credits for every friend who signs up.',
+    yourCode: ar ? 'رمز الدعوة' : 'Your invite code',
+    transactions: ar ? 'العمليات' : 'Transactions',
+    noTx: ar ? 'لا توجد عمليات بعد' : 'No transactions yet',
+    adminLink: ar ? 'لوحة تأكيد الشحن' : 'Top-up admin',
+    pending: ar ? 'قيد الانتظار' : 'Pending',
+    confirmed: ar ? 'مؤكد' : 'Confirmed',
+    rejected: ar ? 'مرفوض' : 'Rejected',
   };
-  return labels[type] ?? type;
 }
 
-function getStatusBadge(status: string | undefined, t: (key: string) => string) {
-  if (!status) return null;
-  const map: Record<string, { label: string; className: string }> = {
-    COMPLETED: { label: t('wp.statusCompleted'), className: 'bg-v2-mint/15 text-emerald-700' },
-    PENDING: { label: t('wp.statusPending'), className: 'bg-v2-amber/15 text-amber-700' },
-    FAILED: { label: t('wp.statusFailed'), className: 'bg-v2-secondary/15 text-v2-secondary' },
-  };
-  const badge = map[status];
-  if (!badge) return null;
+function CopyButton({
+  value,
+  copyLabel,
+  copiedLabel,
+}: {
+  value: string;
+  copyLabel: string;
+  copiedLabel: string;
+}) {
+  const [copied, setCopied] = useState(false);
   return (
-    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${badge.className}`}>
-      {badge.label}
-    </span>
+    <button
+      type="button"
+      onClick={() => {
+        navigator.clipboard?.writeText(value);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1500);
+      }}
+      className="inline-flex items-center gap-1 text-xs font-semibold text-v2-primary hover:opacity-80 transition"
+    >
+      {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+      {copied ? copiedLabel : copyLabel}
+    </button>
   );
 }
 
-/* ---------- Skeleton components ---------- */
-
-function BalanceSkeleton() {
-  return (
-    <div className="bg-white rounded-[22px] p-6 shadow-bubble-md animate-pulse">
-      <div className="flex items-center gap-3 mb-5">
-        <div className="w-12 h-12 rounded-full bg-v2-primary/10" />
-        <div className="h-5 w-28 bg-v2-primary/10 rounded-full" />
-      </div>
-      <div className="h-10 w-40 bg-v2-primary/10 rounded-xl mb-5" />
-      <div className="h-11 w-36 bg-v2-primary/10 rounded-full" />
-    </div>
-  );
-}
-
-function TransactionSkeleton() {
-  return (
-    <div className="bg-white rounded-[22px] p-4 shadow-bubble-sm animate-pulse">
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-full bg-v2-primary/10" />
-        <div className="flex-1 space-y-2">
-          <div className="h-4 w-32 bg-v2-primary/10 rounded-full" />
-          <div className="h-3 w-20 bg-v2-primary/5 rounded-full" />
-        </div>
-        <div className="h-5 w-16 bg-v2-primary/10 rounded-full" />
-      </div>
-    </div>
-  );
-}
-
-/* ---------- Withdrawal form ---------- */
-
-function WithdrawalForm({ onSuccess, onClose }: { onSuccess: () => void; onClose: () => void }) {
-  const { t } = useLanguage();
+function TopUpForm({ L, onDone }: { L: ReturnType<typeof labels>; onDone: () => void }) {
   const [amount, setAmount] = useState('');
-  const [bankName, setBankName] = useState('');
-  const [iban, setIban] = useState('');
+  const [reference, setReference] = useState('');
+  const [result, setResult] = useState<TopUpResult | null>(null);
+  const topUp = useRequestTopUp();
 
-  const withdrawal = useWithdrawal();
+  const inputClasses =
+    'w-full rounded-xl border border-v2-primary/15 bg-v2-bg/50 px-4 py-3 text-v2-text placeholder:text-v2-text-muted focus:outline-none focus:ring-2 focus:ring-v2-primary/30 focus:border-v2-primary/40 transition-all text-sm';
 
   const handleSubmit = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault();
       const numericAmount = parseFloat(amount);
-      if (!numericAmount || numericAmount <= 0 || !bankName.trim() || !iban.trim()) return;
-
-      withdrawal.mutate(
-        { amount: numericAmount, bankAccountName: bankName.trim(), iban: iban.trim() },
-        {
-          onSuccess: () => {
-            onSuccess();
-            onClose();
-          },
-        }
+      if (!numericAmount || numericAmount <= 0) return;
+      topUp.mutate(
+        { amount: numericAmount, reference: reference.trim() || undefined },
+        { onSuccess: (data) => setResult(data) }
       );
     },
-    [amount, bankName, iban, withdrawal, onSuccess, onClose]
+    [amount, reference, topUp]
   );
 
-  const inputClasses =
-    'w-full rounded-xl border border-v2-primary/15 bg-v2-bg/50 px-4 py-3 text-v2-text placeholder:text-v2-text-muted focus:outline-none focus:ring-2 focus:ring-v2-primary/30 focus:border-v2-primary/40 transition-all text-sm';
+  // Step 2: show where to transfer.
+  if (result) {
+    return (
+      <div className="space-y-4">
+        <div className="rounded-2xl bg-v2-bg/60 p-4 space-y-3">
+          <div className="flex items-center gap-2 text-v2-text font-semibold">
+            <Banknote className="w-4 h-4 text-v2-primary" />
+            {L.transferTo}
+          </div>
+          <div className="text-2xl font-extrabold text-v2-text" dir="ltr">
+            {formatCurrency(result.amount)} {result.currency}
+          </div>
+          <Row label={L.iban} value={result.payTo.iban} L={L} mono />
+          <Row label={L.bank} value={result.payTo.bankName} L={L} />
+          <Row label={L.accountName} value={result.payTo.accountName} L={L} />
+        </div>
+        <p className="text-sm text-v2-text-soft">{L.pendingNote}</p>
+        <button
+          onClick={onDone}
+          className="w-full v2-gradient-primary text-white font-semibold py-3 rounded-full shadow-bubble-sm hover:shadow-bubble-md transition-all"
+        >
+          {L.done}
+        </button>
+      </div>
+    );
+  }
 
+  // Step 1: choose amount.
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {/* Amount */}
       <div>
-        <label htmlFor="wd-amount" className="block text-sm font-semibold text-v2-text mb-1.5">
-          {t('wp.amount')}
+        <label htmlFor="tu-amount" className="block text-sm font-semibold text-v2-text mb-1.5">
+          {L.amount}
         </label>
         <input
-          id="wd-amount"
+          id="tu-amount"
           type="number"
           min="1"
           step="0.01"
@@ -143,76 +175,72 @@ function WithdrawalForm({ onSuccess, onClose }: { onSuccess: () => void; onClose
           dir="ltr"
         />
       </div>
-
-      {/* Bank name */}
       <div>
-        <label htmlFor="wd-bank" className="block text-sm font-semibold text-v2-text mb-1.5">
-          {t('wp.bankNameLabel')}
+        <label htmlFor="tu-ref" className="block text-sm font-semibold text-v2-text mb-1.5">
+          {L.reference}
         </label>
         <input
-          id="wd-bank"
+          id="tu-ref"
           type="text"
-          required
-          value={bankName}
-          onChange={(e) => setBankName(e.target.value)}
-          placeholder={t('wp.bankNamePlaceholder')}
+          value={reference}
+          onChange={(e) => setReference(e.target.value)}
           className={inputClasses}
         />
       </div>
-
-      {/* IBAN */}
-      <div>
-        <label htmlFor="wd-iban" className="block text-sm font-semibold text-v2-text mb-1.5">
-          {t('wp.ibanLabel')}
-        </label>
-        <input
-          id="wd-iban"
-          type="text"
-          required
-          value={iban}
-          onChange={(e) => setIban(e.target.value)}
-          placeholder="SA0000000000000000000000"
-          className={inputClasses}
-          dir="ltr"
-        />
-      </div>
-
-      {/* Error */}
-      {withdrawal.isError && (
+      {topUp.isError && (
         <p className="text-sm text-v2-secondary" role="alert">
-          {t('wp.withdrawalError')}
+          {L.error}
         </p>
       )}
-
-      {/* Submit */}
       <button
         type="submit"
-        disabled={withdrawal.isPending}
-        className="w-full flex items-center justify-center gap-2 v2-gradient-primary text-white font-semibold py-3 rounded-full shadow-bubble-sm hover:shadow-bubble-md disabled:opacity-60 disabled:cursor-not-allowed transition-all"
+        disabled={topUp.isPending}
+        className="w-full flex items-center justify-center gap-2 v2-gradient-primary text-white font-semibold py-3 rounded-full shadow-bubble-sm hover:shadow-bubble-md disabled:opacity-60 transition-all"
       >
-        {withdrawal.isPending ? (
+        {topUp.isPending ? (
           <Loader2 className="w-5 h-5 animate-spin" />
         ) : (
-          <Send className="w-4 h-4" />
+          <Plus className="w-4 h-4" />
         )}
-        {withdrawal.isPending ? t('wp.withdrawing') : t('wp.confirmWithdraw')}
+        {topUp.isPending ? L.submitting : L.submit}
       </button>
     </form>
   );
 }
 
-/* ---------- Main page ---------- */
+function Row({
+  label,
+  value,
+  L,
+  mono,
+}: {
+  label: string;
+  value: string;
+  L: ReturnType<typeof labels>;
+  mono?: boolean;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <span className="text-xs text-v2-text-muted">{label}</span>
+      <span className="flex items-center gap-2">
+        <span className={`text-sm font-semibold text-v2-text ${mono ? 'font-mono' : ''}`} dir="ltr">
+          {value}
+        </span>
+        <CopyButton value={value} copyLabel={L.copy} copiedLabel={L.copied} />
+      </span>
+    </div>
+  );
+}
 
 export default function WalletPage() {
-  const { t, lang } = useLanguage();
-  const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
+  const { lang } = useLanguage();
+  const { user } = useAuth();
+  const L = labels(lang);
+  const [isTopUpOpen, setIsTopUpOpen] = useState(false);
 
   const { data: balanceData, isLoading: balanceLoading } = useWalletBalance();
   const { data: transactions, isLoading: txLoading } = useTransactionHistory();
-
-  const handleWithdrawalSuccess = useCallback(() => {
-    // Queries are auto-invalidated by the useWithdrawal hook onSuccess
-  }, []);
+  useMyTopUps(); // prefetch so status shows after a top-up
 
   return (
     <ProtectedRoute>
@@ -220,44 +248,76 @@ export default function WalletPage() {
         <Header />
 
         <main className="flex-1 max-w-2xl mx-auto w-full px-4 py-8">
-          {/* Page title */}
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-11 h-11 rounded-full v2-gradient-primary flex items-center justify-center shadow-bubble-xs">
-              <Wallet className="w-5 h-5 text-white" />
+          {/* Title + admin link */}
+          <div className="flex items-center justify-between gap-3 mb-6">
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 rounded-full v2-gradient-primary flex items-center justify-center shadow-bubble-xs">
+                <Wallet className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-extrabold text-v2-text">{L.creditsTitle}</h1>
+                <p className="text-sm text-v2-text-soft">{L.creditsSubtitle}</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-2xl font-extrabold text-v2-text">{t('wallet.title')}</h1>
-              <p className="text-sm text-v2-text-soft">{t('wp.walletSubtitle')}</p>
-            </div>
+            {user?.isAdmin && (
+              <Link
+                href="/admin/topups"
+                className="inline-flex items-center gap-1.5 text-sm font-semibold text-v2-primary bg-white px-3 py-2 rounded-full shadow-bubble-xs"
+              >
+                <ShieldCheck className="w-4 h-4" />
+                {L.adminLink}
+              </Link>
+            )}
           </div>
 
           {/* Balance card */}
           {balanceLoading ? (
-            <BalanceSkeleton />
+            <div className="bg-white rounded-[22px] p-6 shadow-bubble-md mb-6 h-40 animate-pulse" />
           ) : (
-            <div className="bg-white rounded-[22px] p-6 shadow-bubble-md mb-8">
+            <div className="bg-white rounded-[22px] p-6 shadow-bubble-md mb-6">
               <div className="flex items-center gap-3 mb-1">
                 <div className="w-12 h-12 rounded-full bg-v2-primary/10 flex items-center justify-center">
                   <Wallet className="w-6 h-6 text-v2-primary" />
                 </div>
-                <p className="text-sm font-semibold text-v2-text-soft">{t('wallet.balance')}</p>
+                <p className="text-sm font-semibold text-v2-text-soft">{L.balance}</p>
               </div>
-
               <p className="text-4xl font-extrabold text-v2-text mt-3 mb-5" dir="ltr">
                 <span>{formatCurrency(balanceData?.balance ?? 0)}</span>
-                <span className="text-lg font-bold text-v2-text-muted mr-2">
+                <span className="text-lg font-bold text-v2-text-muted">
                   {' '}
-                  {t('common.sar')}
+                  {balanceData?.currency ?? 'SAR'}
                 </span>
               </p>
-
               <button
-                onClick={() => setIsWithdrawOpen(true)}
+                onClick={() => setIsTopUpOpen(true)}
                 className="inline-flex items-center gap-2 v2-gradient-primary text-white font-semibold px-6 py-2.5 rounded-full shadow-bubble-sm hover:shadow-bubble-md transition-all"
               >
-                <Send className="w-4 h-4" />
-                {t('wp.withdrawBalance')}
+                <Plus className="w-4 h-4" />
+                {L.topUp}
               </button>
+            </div>
+          )}
+
+          {/* Invite card */}
+          {user?.inviteCode && (
+            <div className="bg-white rounded-[22px] p-5 shadow-bubble-sm mb-8">
+              <div className="flex items-center gap-2 mb-1">
+                <Gift className="w-5 h-5 text-v2-primary" />
+                <h2 className="text-base font-extrabold text-v2-text">{L.inviteTitle}</h2>
+              </div>
+              <p className="text-sm text-v2-text-soft mb-3">{L.inviteDesc}</p>
+              <div className="flex items-center justify-between rounded-xl bg-v2-bg/60 px-4 py-3">
+                <div>
+                  <p className="text-[11px] text-v2-text-muted">{L.yourCode}</p>
+                  <p
+                    className="text-lg font-extrabold tracking-widest text-v2-text font-mono"
+                    dir="ltr"
+                  >
+                    {user.inviteCode}
+                  </p>
+                </div>
+                <CopyButton value={user.inviteCode} copyLabel={L.copy} copiedLabel={L.copied} />
+              </div>
             </div>
           )}
 
@@ -265,26 +325,25 @@ export default function WalletPage() {
           <div>
             <div className="flex items-center gap-2 mb-4">
               <History className="w-5 h-5 text-v2-primary" />
-              <h2 className="text-lg font-extrabold text-v2-text">{t('wallet.transactions')}</h2>
+              <h2 className="text-lg font-extrabold text-v2-text">{L.transactions}</h2>
             </div>
 
             {txLoading ? (
               <div className="space-y-3">
-                {[1, 2, 3, 4].map((i) => (
-                  <TransactionSkeleton key={i} />
+                {[1, 2, 3].map((i) => (
+                  <div
+                    key={i}
+                    className="bg-white rounded-[22px] p-4 shadow-bubble-sm h-16 animate-pulse"
+                  />
                 ))}
               </div>
             ) : transactions && transactions.length > 0 ? (
               <div className="space-y-3">
                 {transactions.map((tx: Transaction) => {
-                  const income = isIncomeType(tx.type);
+                  const income = tx.amount >= 0;
                   return (
-                    <div
-                      key={tx.id}
-                      className="bg-white rounded-[22px] p-4 shadow-bubble-sm hover:shadow-bubble-md transition-all"
-                    >
+                    <div key={tx.id} className="bg-white rounded-[22px] p-4 shadow-bubble-sm">
                       <div className="flex items-center gap-3">
-                        {/* Icon */}
                         <div
                           className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
                             income ? 'bg-emerald-50' : 'bg-red-50'
@@ -296,22 +355,14 @@ export default function WalletPage() {
                             <ArrowUpRight className="w-5 h-5 text-v2-secondary" />
                           )}
                         </div>
-
-                        {/* Details */}
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <p className="text-sm font-semibold text-v2-text truncate">
-                              {tx.description || getTransactionLabel(tx.type, t)}
-                            </p>
-                            {(tx as Transaction & { status?: string }).status &&
-                              getStatusBadge((tx as Transaction & { status?: string }).status, t)}
-                          </div>
+                          <p className="text-sm font-semibold text-v2-text truncate">
+                            {tx.description || tx.type}
+                          </p>
                           <p className="text-xs text-v2-text-muted mt-0.5">
                             {formatDate(tx.createdAt, lang === 'ar' ? 'ar-SA' : 'en-US')}
                           </p>
                         </div>
-
-                        {/* Amount */}
                         <p
                           className={`text-sm font-bold flex-shrink-0 ${
                             income ? 'text-emerald-600' : 'text-v2-secondary'
@@ -319,7 +370,7 @@ export default function WalletPage() {
                           dir="ltr"
                         >
                           {income ? '+' : '-'}
-                          {formatCurrency(Math.abs(tx.amount))} {t('common.sar')}
+                          {formatCurrency(Math.abs(tx.amount))} {balanceData?.currency ?? 'SAR'}
                         </p>
                       </div>
                     </div>
@@ -331,10 +382,7 @@ export default function WalletPage() {
                 <div className="w-14 h-14 rounded-full bg-v2-primary/10 flex items-center justify-center mx-auto mb-3">
                   <History className="w-7 h-7 text-v2-primary" />
                 </div>
-                <h3 className="text-base font-bold text-v2-text mb-1">
-                  {t('wallet.noTransactions')}
-                </h3>
-                <p className="text-sm text-v2-text-soft">{t('wp.noTransactionsDesc')}</p>
+                <h3 className="text-base font-bold text-v2-text mb-1">{L.noTx}</h3>
               </div>
             )}
           </div>
@@ -342,16 +390,8 @@ export default function WalletPage() {
 
         <Footer />
 
-        {/* Withdrawal modal */}
-        <Modal
-          isOpen={isWithdrawOpen}
-          onClose={() => setIsWithdrawOpen(false)}
-          title={t('wp.withdrawBalance')}
-        >
-          <WithdrawalForm
-            onSuccess={handleWithdrawalSuccess}
-            onClose={() => setIsWithdrawOpen(false)}
-          />
+        <Modal isOpen={isTopUpOpen} onClose={() => setIsTopUpOpen(false)} title={L.topUpTitle}>
+          <TopUpForm L={L} onDone={() => setIsTopUpOpen(false)} />
         </Modal>
       </div>
     </ProtectedRoute>

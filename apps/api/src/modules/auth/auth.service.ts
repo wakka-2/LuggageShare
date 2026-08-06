@@ -38,6 +38,7 @@ export class AuthService {
       name: dto.name,
       passwordHash,
       provider: 'email',
+      referralCode: dto.inviteCode,
     });
 
     return this.generateTokens(user);
@@ -82,6 +83,7 @@ export class AuthService {
           avatarUrl: picture,
           googleId,
           provider: 'google',
+          referralCode: dto.inviteCode,
         });
       }
 
@@ -116,6 +118,7 @@ export class AuthService {
           name,
           appleId,
           provider: 'apple',
+          referralCode: dto.inviteCode,
         });
       }
 

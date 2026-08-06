@@ -25,4 +25,9 @@ export class CreateUserDto {
 
   @IsEnum(['google', 'apple', 'dev', 'email'])
   provider: 'google' | 'apple' | 'dev' | 'email';
+
+  /** Optional invite code entered at signup — rewards the inviter, not persisted directly. */
+  @IsString()
+  @IsOptional()
+  referralCode?: string;
 }

@@ -9,6 +9,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { SubmitPaymentProofDto } from './dto/submit-payment-proof.dto';
+import { WALLET, LEDGER_TYPE, roundMoney } from '../../common/constants/wallet.constants';
 
 @Injectable()
 export class BookingsService {
@@ -377,9 +378,30 @@ export class BookingsService {
       throw new BadRequestException('Items must be in transit before marking as delivered');
     }
 
-    const updated = await this.prisma.booking.update({
-      where: { id },
-      data: { status: 'delivered' },
+    // Platform commission: 15% of the agreed amount, charged to the carrier's
+    // credit balance. The in_transit -> delivered guard above makes this run
+    // exactly once per booking. Status flip + ledger debit are atomic.
+    const commission = roundMoney(Number(booking.totalPrice) * WALLET.COMMISSION_RATE);
+
+    const updated = await this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+      const result = await tx.booking.update({
+        where: { id },
+        data: { status: 'delivered' },
+      });
+
+      if (commission > 0) {
+        await tx.balanceHistory.create({
+          data: {
+            userId: booking.carrierId,
+            amount: -commission,
+            type: LEDGER_TYPE.COMMISSION,
+            description: `Platform fee (${Math.round(WALLET.COMMISSION_RATE * 100)}%) on ${booking.totalPrice} ${booking.currency ?? WALLET.CURRENCY} delivery`,
+            bookingId: id,
+          },
+        });
+      }
+
+      return result;
     });
 
     this.notifications.sendPushNotification(

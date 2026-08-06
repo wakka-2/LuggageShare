@@ -4,11 +4,11 @@ import { IsOptional, IsString, IsDateString, IsIn } from 'class-validator';
 export class WalletHistoryQueryDto {
   @ApiPropertyOptional({
     description: 'Filter by transaction type',
-    enum: ['credit', 'debit', 'commission', 'refund'],
+    enum: ['signup_bonus', 'referral_bonus', 'commission', 'topup', 'withdrawal', 'refund'],
   })
   @IsOptional()
   @IsString()
-  @IsIn(['credit', 'debit', 'commission', 'refund'])
+  @IsIn(['signup_bonus', 'referral_bonus', 'commission', 'topup', 'withdrawal', 'refund'])
   type?: string;
 
   @ApiPropertyOptional({ description: 'Start date for filtering', example: '2026-01-01' })

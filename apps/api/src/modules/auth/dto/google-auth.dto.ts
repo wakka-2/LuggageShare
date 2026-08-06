@@ -1,5 +1,5 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNotEmpty } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsString, IsNotEmpty, IsOptional, MaxLength } from 'class-validator';
 
 export class GoogleAuthDto {
   @ApiProperty({
@@ -9,4 +9,10 @@ export class GoogleAuthDto {
   @IsString()
   @IsNotEmpty()
   accessToken: string;
+
+  @ApiPropertyOptional({ description: 'Optional invite code (rewards the inviter)' })
+  @IsString()
+  @IsOptional()
+  @MaxLength(32)
+  inviteCode?: string;
 }

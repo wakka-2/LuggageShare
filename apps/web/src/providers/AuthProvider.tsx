@@ -13,6 +13,8 @@ export interface User {
   isNewUser: boolean;
   profileComplete: boolean;
   isVerified?: boolean;
+  isAdmin?: boolean;
+  inviteCode?: string | null;
 }
 
 interface AuthContextType {
@@ -96,6 +98,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               isNewUser: false,
               profileComplete: true,
               isVerified: userData.isVerified,
+              isAdmin: userData.isAdmin,
+              inviteCode: userData.inviteCode,
             });
           } catch {
             localStorage.removeItem(TOKEN_KEY);

@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, FormEvent } from 'react';
+import { useState, useEffect, FormEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { UserPlus, Chrome, Mail, Lock, User } from 'lucide-react';
+import { UserPlus, Chrome, Mail, Lock, User, Gift } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { useAuth } from '@/providers/AuthProvider';
@@ -66,8 +66,16 @@ export default function RegisterPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [inviteCode, setInviteCode] = useState('');
+
+  // Prefill the invite code from a referral link (?ref=CODE or ?invite=CODE).
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const ref = params.get('ref') || params.get('invite');
+    if (ref) setInviteCode(ref.trim().toUpperCase());
+  }, []);
   const { signIn, isAuthenticated, isLoading: authLoading } = useAuth();
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const router = useRouter();
 
   function handleAuthSuccess(data: any) {
@@ -101,7 +109,12 @@ export default function RegisterPage() {
 
     setIsLoading(true);
     try {
-      const res = await apiClient.post('/auth/register', { email, name, password });
+      const res = await apiClient.post('/auth/register', {
+        email,
+        name,
+        password,
+        inviteCode: inviteCode.trim() || undefined,
+      });
       handleAuthSuccess(res.data);
     } catch (err: any) {
       const status = err?.response?.status;
@@ -218,6 +231,18 @@ export default function RegisterPage() {
                   placeholder={t('auth.confirmPassword')}
                   className="w-full pl-11 pr-4 py-3 rounded-full border-2 border-v2-primary/20 focus:border-v2-primary focus:outline-none bg-white text-v2-text placeholder:text-v2-text-muted transition-colors"
                   aria-label={t('auth.confirmPassword')}
+                />
+              </div>
+              <div className="relative">
+                <Gift className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-v2-text-muted" />
+                <input
+                  type="text"
+                  value={inviteCode}
+                  onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
+                  placeholder={lang === 'ar' ? 'رمز الدعوة (اختياري)' : 'Invite code (optional)'}
+                  className="w-full pl-11 pr-4 py-3 rounded-full border-2 border-v2-primary/20 focus:border-v2-primary focus:outline-none bg-white text-v2-text placeholder:text-v2-text-muted transition-colors tracking-widest font-mono"
+                  dir="ltr"
+                  aria-label="Invite code"
                 />
               </div>
               <button

@@ -28,10 +28,16 @@ model User {
   appleId       String?   @unique
   passwordHash  String?
   provider      String    // 'google' | 'apple' | 'email'
+  isAdmin       Boolean   @default(false)
+  inviteCode    String?   @unique
+  referredById  String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
   // Relations
+  referredBy      User?           @relation("Referrals", fields: [referredById], references: [id])
+  referrals       User[]          @relation("Referrals")
+  topUpRequests   TopUpRequest[]
   settings        UserSettings?
   carrierListings Listing[]       @relation("CarrierListings")
   flights         Flight[]        @relation("UserFlights")
@@ -360,7 +366,7 @@ model BalanceHistory {
   id          String   @id @default(cuid())
   userId      String
   amount      Decimal  @db.Decimal(10, 2)
-  type        String   // commission, top_up, refund
+  type        String   // signup_bonus, referral_bonus, commission, topup, withdrawal, refund
   description String?
   bookingId   String?
   createdAt   DateTime @default(now())
@@ -369,4 +375,23 @@ model BalanceHistory {
 
   @@index([userId, createdAt])
   @@map("balance_history")
+}
+
+// Prepaid-credit top-up: user declares a bank transfer to the platform IBAN,
+// admin confirms receipt, then the amount is credited to the ledger.
+model TopUpRequest {
+  id            String    @id @default(cuid())
+  userId        String
+  amount        Decimal   @db.Decimal(10, 2)
+  status        String    @default("pending") // pending | confirmed | rejected
+  reference     String? // optional user-provided transfer reference/note
+  createdAt     DateTime  @default(now())
+  reviewedAt    DateTime?
+  reviewedById  String? // admin user id who confirmed/rejected
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([status, createdAt])
+  @@index([userId, createdAt])
+  @@map("topup_requests")
 }

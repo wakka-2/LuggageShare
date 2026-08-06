@@ -1,4 +1,4 @@
-import { IsEmail, IsString, MinLength, MaxLength } from 'class-validator';
+import { IsEmail, IsString, IsOptional, MinLength, MaxLength } from 'class-validator';
 
 export class RegisterDto {
   @IsEmail()
@@ -13,4 +13,10 @@ export class RegisterDto {
   @MinLength(8)
   @MaxLength(128)
   password: string;
+
+  /** Optional invite code — rewards the inviter with referral credits. */
+  @IsString()
+  @IsOptional()
+  @MaxLength(32)
+  inviteCode?: string;
 }

@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, IsNotEmpty, IsOptional, ValidateNested } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, ValidateNested, MaxLength } from 'class-validator';
 import { Type } from 'class-transformer';
 
 class AppleFullName {
@@ -38,4 +38,10 @@ export class AppleAuthDto {
   @Type(() => AppleFullName)
   @IsOptional()
   fullName?: AppleFullName;
+
+  @ApiPropertyOptional({ description: 'Optional invite code (rewards the inviter)' })
+  @IsString()
+  @IsOptional()
+  @MaxLength(32)
+  inviteCode?: string;
 }
