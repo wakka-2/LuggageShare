@@ -79,15 +79,24 @@ export class UsersService {
         });
       }
 
-      // Referral reward for the inviter.
+      // Referral reward — BOTH sides get it: the inviter for referring, and the
+      // new user for joining with a valid code (on top of their signup bonus).
       if (referredById && WALLET.REFERRAL_BONUS > 0) {
-        await tx.balanceHistory.create({
-          data: {
-            userId: referredById,
-            amount: WALLET.REFERRAL_BONUS,
-            type: LEDGER_TYPE.REFERRAL_BONUS,
-            description: `Referral bonus — ${user.name} joined with your code`,
-          },
+        await tx.balanceHistory.createMany({
+          data: [
+            {
+              userId: referredById,
+              amount: WALLET.REFERRAL_BONUS,
+              type: LEDGER_TYPE.REFERRAL_BONUS,
+              description: `Referral bonus — ${user.name} joined with your code`,
+            },
+            {
+              userId: user.id,
+              amount: WALLET.REFERRAL_BONUS,
+              type: LEDGER_TYPE.REFERRAL_BONUS,
+              description: 'Referral bonus — joined with an invite code',
+            },
+          ],
         });
       }
 
