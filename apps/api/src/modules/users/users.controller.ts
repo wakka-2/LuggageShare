@@ -4,6 +4,7 @@ import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { VerificationRequestDto } from './dto/verification-request.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { Public } from '../auth/decorators/public.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
 @ApiTags('users')
@@ -49,6 +50,7 @@ export class UsersController {
     return this.usersService.requestVerification(user.id, dto);
   }
 
+  @Public()
   @Get(':id')
   @ApiOperation({ summary: 'Get public user profile by ID' })
   @ApiResponse({ status: 200, description: 'Returns public user profile' })
