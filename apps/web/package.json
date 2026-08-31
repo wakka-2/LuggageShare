@@ -10,10 +10,10 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@react-oauth/google": "^0.13.4",
-    "@supabase/supabase-js": "^2.110.2",
-    "@tanstack/react-query": "^5.17.0",
-    "axios": "^1.6.5",
+    "@react-oauth/google": "^0.13.5",
+    "@supabase/supabase-js": "^2.112.4",
+    "@tanstack/react-query": "^5.102.8",
+    "axios": "^1.20.0",
     "clsx": "^2.1.0",
     "i18next": "^23.7.16",
     "lucide-react": "^0.312.0",
@@ -21,7 +21,7 @@
     "next-i18next": "^15.2.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-hook-form": "^7.49.3",
+    "react-hook-form": "^7.86.0",
     "react-i18next": "^14.0.1",
     "socket.io-client": "^4.8.3",
     "tailwind-merge": "^2.2.0",
@@ -31,10 +31,10 @@
     "@types/node": "^20.11.0",
     "@types/react": "^18.2.48",
     "@types/react-dom": "^18.2.18",
-    "autoprefixer": "^10.4.17",
+    "autoprefixer": "^10.5.4",
     "eslint": "^8.56.0",
     "eslint-config-next": "^14.2.35",
-    "postcss": "^8.4.33",
+    "postcss": "^8.5.26",
     "tailwindcss": "^3.4.1",
     "typescript": "^5.3.3"
   }
