@@ -202,7 +202,7 @@ export default function BookingsPage() {
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
-                        <h3 className="text-lg font-bold text-gray-900">{booking.listingTitleAr}</h3>
+                        <h3 className="text-lg font-bold text-gray-900">{'listingTitleAr' in booking ? booking.listingTitleAr : `${booking.listing.departureCity} → ${booking.listing.arrivalCity}`}</h3>
                         {'unreadCount' in booking && (booking as { unreadCount?: number }).unreadCount! > 0 && (
                           <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
                             {(booking as { unreadCount?: number }).unreadCount}

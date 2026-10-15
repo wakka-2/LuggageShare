@@ -108,7 +108,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    // Return safe defaults during SSR/static generation
+    return {
+      user: null,
+      isAuthenticated: false,
+      isLoading: true,
+      signInWithGoogle: async () => {},
+      signInWithApple: async () => {},
+      signOut: () => {},
+    } as AuthContextValue;
   }
   return context;
 }
