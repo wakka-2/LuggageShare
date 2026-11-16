@@ -155,7 +155,6 @@ export function SearchBar({
           <View pointerEvents="none">
             <BubbleInput
               value={date ? formatDateDisplay(date) : ''}
-              editable={false}
               onChangeText={() => undefined}
               placeholder={t('searchBar.date')}
               dotColor={V2_COLORS.accent2}
