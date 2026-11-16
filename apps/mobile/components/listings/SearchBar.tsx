@@ -1,4 +1,5 @@
-import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import { useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Platform, Pressable } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, {
@@ -12,6 +13,13 @@ import Animated, {
 import { BubbleInput, BubbleButton, BubblePill } from '@/components/common';
 import { V2_COLORS, RADIUS, BUBBLE_SHADOWS, themed } from '@/providers/ThemeProvider';
 import { cityLabel } from '@/lib/airports';
+import { CalendarModal } from '@/components/common/CalendarModal';
+
+/** Local calendar date as YYYY-MM-DD (toISOString would use UTC). */
+function localYmd(d: Date): string {
+  const p = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+}
 
 interface SearchBarProps {
   from: string;
@@ -22,6 +30,8 @@ interface SearchBarProps {
   onDateChange: (value: string) => void;
   onSearch?: () => void;
   onSwap?: () => void;
+  /** Open a calendar rendered by the screen (a Modal nested in scroll content mis-sizes on Android). */
+  onOpenDatePicker?: () => void;
 }
 
 const POPULAR_ROUTES = [
@@ -35,7 +45,7 @@ const QUICK_DATES = [
   {
     key: 'today',
     labelKey: 'searchBar.today',
-    getValue: () => new Date().toISOString().split('T')[0],
+    getValue: () => localYmd(new Date()),
   },
   {
     key: 'tomorrow',
@@ -43,7 +53,7 @@ const QUICK_DATES = [
     getValue: () => {
       const d = new Date();
       d.setDate(d.getDate() + 1);
-      return d.toISOString().split('T')[0];
+      return localYmd(d);
     },
   },
   {
@@ -52,7 +62,7 @@ const QUICK_DATES = [
     getValue: () => {
       const d = new Date();
       d.setDate(d.getDate() + 7);
-      return d.toISOString().split('T')[0];
+      return localYmd(d);
     },
   },
 ];
@@ -64,10 +74,12 @@ export function SearchBar({
   onFromChange,
   onToChange,
   onDateChange,
+  onOpenDatePicker,
   onSearch,
   onSwap,
 }: SearchBarProps) {
   const { t, i18n } = useTranslation();
+  const [calendarOpen, setCalendarOpen] = useState(false);
   const isRTL = i18n.language === 'ar';
   const isWeb = Platform.OS === 'web';
 
@@ -134,13 +146,35 @@ export function SearchBar({
           icon="navigate"
         />
 
-        <BubbleInput
-          value={date ? formatDateDisplay(date) : ''}
-          onChangeText={onDateChange}
-          placeholder={t('searchBar.date')}
-          dotColor={V2_COLORS.accent2}
-          icon="calendar"
-        />
+        {/* Date opens the calendar; typing a date by hand was error-prone. */}
+        <Pressable
+          onPress={() => (onOpenDatePicker ? onOpenDatePicker() : setCalendarOpen(true))}
+          accessibilityRole="button"
+          accessibilityLabel={t('searchBar.date')}
+        >
+          <View pointerEvents="none">
+            <BubbleInput
+              value={date ? formatDateDisplay(date) : ''}
+              editable={false}
+              onChangeText={() => undefined}
+              placeholder={t('searchBar.date')}
+              dotColor={V2_COLORS.accent2}
+              icon="calendar"
+            />
+          </View>
+        </Pressable>
+        {calendarOpen && (
+          <CalendarModal
+            visible
+            value={date ? new Date(`${date}T00:00:00`) : null}
+            minimumDate={new Date()}
+            onSelect={(d) => {
+              const p = (n: number) => String(n).padStart(2, '0');
+              onDateChange(`${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`);
+            }}
+            onClose={() => setCalendarOpen(false)}
+          />
+        )}
 
         <BubbleButton
           label={isWeb ? t('searchBar.search') : ''}

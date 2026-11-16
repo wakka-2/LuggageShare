@@ -804,5 +804,10 @@
     "selectDeparture": "اختر مدينة المغادرة",
     "selectArrival": "اختر مدينة الوصول",
     "sameCity": "يجب أن تختلف مدينة المغادرة عن مدينة الوصول"
+  },
+  "calendar": {
+    "today": "اليوم",
+    "previousMonth": "الشهر السابق",
+    "nextMonth": "الشهر التالي"
   }
 }

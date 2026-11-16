@@ -31,6 +31,18 @@ import {
 import { useCreateFlight } from '@/hooks/useFlights';
 import { ScreenHeader } from '@/components/common/ScreenHeader';
 import { CityPickerField } from '@/components/common/CityPickerField';
+import { DatePickerInput } from '@/components/common/DatePickerInput';
+import i18n from '@/i18n';
+
+/** "YYYY-MM-DD" <-> local Date (no timezone shift). */
+function parseLocalDate(v: string): Date | null {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v);
+  return m ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])) : null;
+}
+function toLocalDateString(d: Date): string {
+  const p = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+}
 
 const TOTAL_STEPS = 5;
 
@@ -110,15 +122,11 @@ function DateStep({
 
       <View style={styles.inputGroup}>
         <Text style={styles.inputLabel}>{t('flight.create.date')} *</Text>
-        <TextInput
-          style={styles.textInput}
-          value={form.departureDate}
-          onChangeText={(v) => onChange('departureDate', v)}
-          placeholder="YYYY-MM-DD"
-          placeholderTextColor={V2_COLORS.textMuted}
-          keyboardType={Platform.OS === 'ios' ? 'numbers-and-punctuation' : 'default'}
+        <DatePickerInput
+          value={parseLocalDate(form.departureDate)}
+          onChange={(d) => onChange('departureDate', toLocalDateString(d))}
+          minimumDate={new Date()}
         />
-        <Text style={styles.inputHint}>{t('flight.create.dateHint')}</Text>
       </View>
 
       <View style={styles.inputGroup}>
@@ -272,7 +280,12 @@ function ReviewStep({
         </View>
         <View style={styles.reviewRow}>
           <Ionicons name="calendar" size={18} color={V2_COLORS.accent3} />
-          <Text style={styles.reviewText}>{form.departureDate}</Text>
+          <Text style={styles.reviewText}>
+            {parseLocalDate(form.departureDate)?.toLocaleDateString(
+              i18n.language === 'ar' ? 'ar-SA-u-ca-gregory-nu-latn' : 'en-GB',
+              { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' }
+            )}
+          </Text>
         </View>
         {form.flightNumber ? (
           <View style={styles.reviewRow}>

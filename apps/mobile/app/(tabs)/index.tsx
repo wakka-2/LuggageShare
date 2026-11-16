@@ -34,6 +34,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { useListings } from '@/hooks/useListings';
 import { mapApiListingToListing } from '@/lib/mappers';
 import { HomeHeader } from '@/components/home';
+import { CalendarModal } from '@/components/common/CalendarModal';
 import { EmptyState, BackgroundBlobs, SectionHeader, BubbleButton } from '@/components/common';
 import {
   ListingCard,
@@ -74,6 +75,7 @@ export default function HomeScreen() {
   const [searchFrom, setSearchFrom] = useState('');
   const [searchTo, setSearchTo] = useState('');
   const [searchDate, setSearchDate] = useState('');
+  const [dateCalendarOpen, setDateCalendarOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
   // Fetch real listings from API (server-side filtering for from/to/date)
@@ -211,6 +213,7 @@ export default function HomeScreen() {
               onToChange={setSearchTo}
               onDateChange={setSearchDate}
               onSwap={handleSwap}
+              onOpenDatePicker={() => setDateCalendarOpen(true)}
             />
           </Animated.View>
 
@@ -285,6 +288,19 @@ export default function HomeScreen() {
   // Mobile Layout
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      {dateCalendarOpen && (
+        <CalendarModal
+          overlay
+          visible
+          value={searchDate ? new Date(`${searchDate}T00:00:00`) : null}
+          minimumDate={new Date()}
+          onSelect={(d) => {
+            const p = (n: number) => String(n).padStart(2, '0');
+            setSearchDate(`${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`);
+          }}
+          onClose={() => setDateCalendarOpen(false)}
+        />
+      )}
       <BackgroundBlobs variant="full" />
       <FloatingIcons variant="full" />
       <HomeHeader notificationCount={notificationCount} />
@@ -361,6 +377,7 @@ export default function HomeScreen() {
             onToChange={setSearchTo}
             onDateChange={setSearchDate}
             onSwap={handleSwap}
+            onOpenDatePicker={() => setDateCalendarOpen(true)}
           />
         </Animated.View>
 

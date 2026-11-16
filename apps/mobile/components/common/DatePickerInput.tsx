@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import i18n from '@/i18n';
-import { View, Text, TouchableOpacity, Platform, StyleSheet } from 'react-native';
-import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { V2_COLORS, RADIUS, BUBBLE_SHADOWS, themed } from '@/providers/ThemeProvider';
-import { isDarkScheme } from '@/lib/colorScheme';
+import { CalendarModal } from './CalendarModal';
 
 interface DatePickerInputProps {
   value: Date | null;
@@ -28,15 +27,6 @@ export function DatePickerInput({
   textAlign,
 }: DatePickerInputProps) {
   const [show, setShow] = useState(false);
-
-  const handleChange = (_event: DateTimePickerEvent, selectedDate?: Date) => {
-    if (Platform.OS === 'android') {
-      setShow(false);
-    }
-    if (selectedDate) {
-      onChange(selectedDate);
-    }
-  };
 
   const formatDate = (date: Date) => {
     // Readable, localized date. Arabic uses the Gregorian calendar and Western
@@ -64,16 +54,13 @@ export function DatePickerInput({
         </Text>
       </TouchableOpacity>
 
-      {show && (
-        <DateTimePicker
-          value={value || new Date()}
-          mode="date"
-          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-          themeVariant={isDarkScheme() ? 'dark' : 'light'}
-          onChange={handleChange}
-          minimumDate={minimumDate}
-        />
-      )}
+      <CalendarModal
+        visible={show}
+        value={value}
+        minimumDate={minimumDate}
+        onSelect={onChange}
+        onClose={() => setShow(false)}
+      />
     </View>
   );
 }

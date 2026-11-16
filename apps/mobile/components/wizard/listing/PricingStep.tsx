@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { V2_COLORS, RADIUS, BUBBLE_SHADOWS, themed } from '@/providers/ThemeProvider';
 import { QuestionTitle } from '../QuestionTitle';
 import { AnimatedButton } from '@/components/animations/AnimatedButton';
+import { ValueSlider } from '@/components/common/ValueSlider';
 import type { StepProps } from '../WizardContainer';
 
 export function PricingStep({ data, updateData, goNext }: StepProps) {
@@ -50,13 +51,27 @@ export function PricingStep({ data, updateData, goNext }: StepProps) {
 
       {/* +/- buttons */}
       <Animated.View entering={FadeInUp.delay(200).springify()} style={styles.adjustRow}>
-        <TouchableOpacity style={styles.adjustBtn} onPress={() => adjustPrice(-1)}>
+        <TouchableOpacity
+          style={styles.adjustBtn}
+          onPress={() => adjustPrice(-1)}
+          accessibilityRole="button"
+          accessibilityLabel="-1"
+        >
           <Ionicons name="remove" size={20} color={V2_COLORS.text} />
         </TouchableOpacity>
-        <View style={styles.sliderTrack}>
-          <View style={[styles.sliderFill, { width: `${Math.min(price, 50) * 2}%` }]} />
-        </View>
-        <TouchableOpacity style={styles.adjustBtn} onPress={() => adjustPrice(1)}>
+        <ValueSlider
+          value={price}
+          min={1}
+          max={100}
+          onChange={(v) => updateData({ price: v })}
+          accessibilityLabel={t('listing.wizard.pricing.title')}
+        />
+        <TouchableOpacity
+          style={styles.adjustBtn}
+          onPress={() => adjustPrice(1)}
+          accessibilityRole="button"
+          accessibilityLabel="+1"
+        >
           <Ionicons name="add" size={20} color={V2_COLORS.text} />
         </TouchableOpacity>
       </Animated.View>

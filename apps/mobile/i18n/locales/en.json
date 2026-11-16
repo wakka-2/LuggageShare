@@ -800,5 +800,10 @@
     "selectDeparture": "Select departure city",
     "selectArrival": "Select arrival city",
     "sameCity": "Departure and arrival must be different cities"
+  },
+  "calendar": {
+    "today": "Today",
+    "previousMonth": "Previous month",
+    "nextMonth": "Next month"
   }
 }
