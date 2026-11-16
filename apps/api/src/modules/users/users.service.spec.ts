@@ -103,15 +103,15 @@ describe('UsersService', () => {
       );
     });
 
-    it('should grant the signup bonus and a unique invite code', async () => {
+    it('should grant a unique invite code but NO signup credits (welcome gift is debt-only)', async () => {
       prisma.user.create.mockResolvedValue(makeUser());
 
       await service.create({ email: 'new@example.com', name: 'New', provider: 'email' });
 
       expect(prisma.user.create.mock.calls[0][0].data.inviteCode).toMatch(/^[A-HJ-NP-Z2-9]{8}$/);
-      expect(prisma.balanceHistory.create).toHaveBeenCalledWith({
-        data: expect.objectContaining({ userId: USER_ID, type: 'signup_bonus' }),
-      });
+      // The complimentary 10 SAR is no longer free signup money: it is granted
+      // only when a platform fee leaves the user owing us (bookings service).
+      expect(prisma.balanceHistory.create).not.toHaveBeenCalled();
       expect(prisma.balanceHistory.createMany).not.toHaveBeenCalled();
     });
 

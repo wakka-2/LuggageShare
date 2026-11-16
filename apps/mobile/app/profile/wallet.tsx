@@ -40,6 +40,16 @@ const TYPE_CONFIG: Record<
     color: V2_COLORS.accent1,
     labelKey: 'wallet.commission',
   },
+  signup_bonus: {
+    icon: 'gift-outline',
+    color: V2_COLORS.accent3,
+    labelKey: 'wallet.welcomeGift',
+  },
+  referral_bonus: {
+    icon: 'people-outline',
+    color: V2_COLORS.accent3,
+    labelKey: 'wallet.referralBonus',
+  },
   top_up: { icon: 'add-circle-outline', color: V2_COLORS.accent3, labelKey: 'wallet.topUpType' },
   refund: { icon: 'refresh-outline', color: V2_COLORS.accent2, labelKey: 'wallet.refund' },
   withdrawal: {

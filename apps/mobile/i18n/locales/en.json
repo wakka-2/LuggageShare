@@ -410,7 +410,9 @@
     "ibanNumber": "IBAN Number",
     "accountHolderName": "Account Holder Name",
     "accountHolderPlaceholder": "Name as in bank account",
-    "confirmWithdrawal": "Confirm Withdrawal"
+    "confirmWithdrawal": "Confirm Withdrawal",
+    "welcomeGift": "Welcome gift",
+    "referralBonus": "Referral bonus"
   },
   "chat": {
     "title": "Chat",

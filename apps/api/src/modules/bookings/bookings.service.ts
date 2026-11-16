@@ -420,6 +420,34 @@ export class BookingsService {
             bookingId: id,
           },
         });
+
+        // Complimentary welcome gift: granted once per user, and only when a fee
+        // leaves them owing the platform (balance < 0) — never as free signup
+        // money. It covers their first fee as a goodwill gesture.
+        if (WALLET.SIGNUP_BONUS > 0) {
+          const agg = await tx.balanceHistory.aggregate({
+            where: { userId: booking.carrierId },
+            _sum: { amount: true },
+          });
+          const balance = Number(agg._sum.amount ?? 0);
+          if (balance < 0) {
+            const priorGift = await tx.balanceHistory.findFirst({
+              where: { userId: booking.carrierId, type: LEDGER_TYPE.SIGNUP_BONUS },
+              select: { id: true },
+            });
+            if (!priorGift) {
+              await tx.balanceHistory.create({
+                data: {
+                  userId: booking.carrierId,
+                  amount: WALLET.SIGNUP_BONUS,
+                  type: LEDGER_TYPE.SIGNUP_BONUS,
+                  description: 'Welcome gift — your first platform fee is on us',
+                  bookingId: id,
+                },
+              });
+            }
+          }
+        }
       }
 
       return result;

@@ -36,7 +36,7 @@ export class UsersService {
   }
 
   /**
-   * Create a user with starter credits, a unique invite code, and — if they
+   * Create a user with a unique invite code and — if they
    * registered with someone's invite code — a referral reward for the inviter.
    * All writes are atomic so a partial signup can never grant/skip credits.
    */
@@ -74,20 +74,12 @@ export class UsersService {
         },
       });
 
-      // Starter credits for every new user.
-      if (WALLET.SIGNUP_BONUS > 0) {
-        await tx.balanceHistory.create({
-          data: {
-            userId: user.id,
-            amount: WALLET.SIGNUP_BONUS,
-            type: LEDGER_TYPE.SIGNUP_BONUS,
-            description: 'Welcome credits',
-          },
-        });
-      }
+      // No starter credits at signup: the complimentary welcome gift is granted
+      // later, only if a platform fee ever leaves the user owing money
+      // (see BookingsService.markDelivered).
 
       // Referral reward — BOTH sides get it: the inviter for referring, and the
-      // new user for joining with a valid code (on top of their signup bonus).
+      // new user for joining with a valid code.
       if (referredById && WALLET.REFERRAL_BONUS > 0) {
         await tx.balanceHistory.createMany({
           data: [

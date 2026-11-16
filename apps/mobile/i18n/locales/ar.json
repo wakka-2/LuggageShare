@@ -410,7 +410,9 @@
     "ibanNumber": "رقم الآيبان",
     "accountHolderName": "اسم صاحب الحساب",
     "accountHolderPlaceholder": "الاسم كما في البنك",
-    "confirmWithdrawal": "تأكيد السحب"
+    "confirmWithdrawal": "تأكيد السحب",
+    "welcomeGift": "هدية ترحيبية",
+    "referralBonus": "مكافأة دعوة"
   },
   "chat": {
     "title": "المحادثة",

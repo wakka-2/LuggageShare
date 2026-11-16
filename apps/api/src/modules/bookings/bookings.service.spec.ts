@@ -20,6 +20,11 @@ const mockPrismaService = () => {
     listing: {
       findUnique: jest.fn(),
     },
+    balanceHistory: {
+      create: jest.fn(),
+      aggregate: jest.fn().mockResolvedValue({ _sum: { amount: 0 } }),
+      findFirst: jest.fn().mockResolvedValue(null),
+    },
     $transaction: jest.fn(),
   };
   // $transaction executes the callback with the mock itself (simulating tx)
@@ -691,6 +696,69 @@ describe('BookingsService', () => {
       await expect(service.cancel(SENDER_ID, BOOKING_ID)).rejects.toThrow();
 
       expect(prisma.booking.update).not.toHaveBeenCalled();
+    });
+  });
+  // =========================================================================
+  // markDelivered — commission + debt-only welcome gift
+  // =========================================================================
+  describe('markDelivered', () => {
+    const inTransit = () => makeBooking({ status: 'in_transit', totalPrice: 100 });
+
+    beforeEach(() => {
+      prisma.booking.findUnique.mockResolvedValue(inTransit());
+      prisma.booking.update.mockResolvedValue(makeBooking({ status: 'delivered' }));
+    });
+
+    it('charges the carrier the platform commission', async () => {
+      await service.markDelivered(CARRIER_ID, BOOKING_ID);
+
+      expect(prisma.balanceHistory.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          userId: CARRIER_ID,
+          amount: -15, // 15% of 100
+          type: 'commission',
+          bookingId: BOOKING_ID,
+        }),
+      });
+    });
+
+    it('grants the welcome gift when the fee leaves the carrier in debt', async () => {
+      prisma.balanceHistory.aggregate.mockResolvedValue({ _sum: { amount: -15 } });
+
+      await service.markDelivered(CARRIER_ID, BOOKING_ID);
+
+      expect(prisma.balanceHistory.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          userId: CARRIER_ID,
+          amount: 10,
+          type: 'signup_bonus',
+        }),
+      });
+    });
+
+    it('does NOT grant the gift while the carrier still has a positive balance', async () => {
+      prisma.balanceHistory.aggregate.mockResolvedValue({ _sum: { amount: 85 } });
+
+      await service.markDelivered(CARRIER_ID, BOOKING_ID);
+
+      const types = prisma.balanceHistory.create.mock.calls.map((c: any) => c[0].data.type);
+      expect(types).toEqual(['commission']);
+    });
+
+    it('grants the gift only once per carrier', async () => {
+      prisma.balanceHistory.aggregate.mockResolvedValue({ _sum: { amount: -30 } });
+      prisma.balanceHistory.findFirst.mockResolvedValue({ id: 'earlier-gift' });
+
+      await service.markDelivered(CARRIER_ID, BOOKING_ID);
+
+      const types = prisma.balanceHistory.create.mock.calls.map((c: any) => c[0].data.type);
+      expect(types).toEqual(['commission']);
+    });
+
+    it('rejects anyone who is not the carrier', async () => {
+      await expect(service.markDelivered(SENDER_ID, BOOKING_ID)).rejects.toThrow(
+        ForbiddenException
+      );
     });
   });
 });
