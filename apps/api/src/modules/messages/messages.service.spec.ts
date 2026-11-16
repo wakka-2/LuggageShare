@@ -2,6 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { MessagesService } from './messages.service';
 import { PrismaService } from '../../prisma/prisma.service';
+import { RealtimeService } from '../../common/realtime/realtime.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 jest.mock('../../common/utils/content-filter', () => ({
   containsProfanity: jest.fn().mockReturnValue(false),
@@ -49,14 +51,29 @@ const makeMessage = (overrides: Record<string, unknown> = {}) => ({
 describe('MessagesService', () => {
   let service: MessagesService;
   let prisma: ReturnType<typeof mockPrismaService>;
+  let realtime: { broadcast: jest.Mock };
+  let notifications: { sendPushNotification: jest.Mock };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [MessagesService, { provide: PrismaService, useFactory: mockPrismaService }],
+      providers: [
+        MessagesService,
+        { provide: PrismaService, useFactory: mockPrismaService },
+        {
+          provide: RealtimeService,
+          useValue: { broadcast: jest.fn().mockResolvedValue(undefined) },
+        },
+        {
+          provide: NotificationsService,
+          useValue: { sendPushNotification: jest.fn().mockResolvedValue(undefined) },
+        },
+      ],
     }).compile();
 
     service = module.get<MessagesService>(MessagesService);
     prisma = module.get(PrismaService);
+    realtime = module.get(RealtimeService);
+    notifications = module.get(NotificationsService);
   });
 
   afterEach(() => {
@@ -121,6 +138,28 @@ describe('MessagesService', () => {
             content: 'Hi',
           },
         })
+      );
+      // Live delivery to the other participant via Supabase Realtime
+      expect(realtime.broadcast).toHaveBeenCalledWith(
+        `booking:${BOOKING_ID}`,
+        'newMessage',
+        expect.objectContaining({ content: 'Hi' })
+      );
+    });
+
+    it('should push the other participant without adding an in-app notification row', async () => {
+      prisma.booking.findUnique.mockResolvedValue(makeBooking());
+      prisma.message.create.mockResolvedValue(makeMessage({ content: 'Hi' }));
+      prisma.booking.update.mockResolvedValue({});
+
+      await service.sendMessage(SENDER_ID, BOOKING_ID, 'Hi');
+
+      expect(notifications.sendPushNotification).toHaveBeenCalledWith(
+        CARRIER_ID,
+        'Sender',
+        'Hi',
+        { type: 'new_message', bookingId: BOOKING_ID },
+        { persist: false }
       );
     });
 

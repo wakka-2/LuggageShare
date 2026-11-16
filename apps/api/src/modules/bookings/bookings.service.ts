@@ -216,6 +216,9 @@ export class BookingsService {
           status: 'pending',
           totalWeight: createBookingDto.totalWeight,
           totalPrice,
+          pickupAddress: createBookingDto.pickupAddress?.trim() || null,
+          pickupLat: createBookingDto.pickupLat ?? null,
+          pickupLng: createBookingDto.pickupLng ?? null,
           ...(createBookingDto.items?.length ? { items: { create: createBookingDto.items } } : {}),
         },
         include: {
@@ -344,10 +347,19 @@ export class BookingsService {
       throw new BadRequestException('Booking must be accepted before marking as picked up');
     }
 
-    return this.prisma.booking.update({
+    const updated = await this.prisma.booking.update({
       where: { id },
       data: { status: 'picked_up' },
     });
+
+    this.notifications.sendPushNotification(
+      booking.senderId,
+      'Items Picked Up',
+      `${booking.carrier.name} has picked up your items`,
+      { type: 'booking_picked_up', bookingId: id }
+    );
+
+    return updated;
   }
 
   async markInTransit(userId: string, id: string) {
@@ -361,10 +373,19 @@ export class BookingsService {
       throw new BadRequestException('Items must be picked up before marking as in transit');
     }
 
-    return this.prisma.booking.update({
+    const updated = await this.prisma.booking.update({
       where: { id },
       data: { status: 'in_transit' },
     });
+
+    this.notifications.sendPushNotification(
+      booking.senderId,
+      'Items In Transit',
+      'Your items are on their way',
+      { type: 'booking_in_transit', bookingId: id }
+    );
+
+    return updated;
   }
 
   async markDelivered(userId: string, id: string) {

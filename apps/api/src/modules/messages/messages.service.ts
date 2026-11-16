@@ -6,13 +6,15 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { containsProfanity } from '../../common/utils/content-filter';
+import { NotificationsService } from '../notifications/notifications.service';
 import { RealtimeService } from '../../common/realtime/realtime.service';
 
 @Injectable()
 export class MessagesService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly realtime: RealtimeService
+    private readonly realtime: RealtimeService,
+    private readonly notifications: NotificationsService
   ) {}
 
   async getConversations(userId: string) {
@@ -164,6 +166,18 @@ export class MessagesService {
 
     // Live nudge for subscribers (replaces the old Socket.io `newMessage` emit).
     await this.realtime.broadcast(`booking:${bookingId}`, 'newMessage', message);
+
+    // Push the other participant (fire-and-forget: a push failure must not fail the send).
+    const recipientId = booking.senderId === userId ? booking.carrierId : booking.senderId;
+    this.notifications
+      .sendPushNotification(
+        recipientId,
+        message.sender?.name ?? 'New message',
+        content.length > 120 ? `${content.slice(0, 117)}...` : content,
+        { type: 'new_message', bookingId },
+        { persist: false }
+      )
+      .catch(() => undefined);
 
     return message;
   }

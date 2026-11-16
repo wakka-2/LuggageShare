@@ -1,7 +1,8 @@
-import { Controller, Get, Post, Put, Body, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UpdateSettingsDto } from './dto/update-settings.dto';
 import { VerificationRequestDto } from './dto/verification-request.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Public } from '../auth/decorators/public.decorator';
@@ -19,6 +20,21 @@ export class UsersController {
   @ApiResponse({ status: 200, description: 'Returns user profile' })
   async getCurrentUser(@CurrentUser() user: any) {
     return this.usersService.getProfile(user.id);
+  }
+
+  @Put('me/settings')
+  @ApiOperation({ summary: 'Update current user preferences (push notifications, language)' })
+  @ApiResponse({ status: 200, description: 'Updated settings' })
+  async updateMySettings(@CurrentUser() user: any, @Body() dto: UpdateSettingsDto) {
+    return this.usersService.updateSettings(user.id, dto);
+  }
+
+  @Delete('me')
+  @ApiOperation({ summary: 'Delete (anonymize) the current user account' })
+  @ApiResponse({ status: 200, description: 'Account deleted and all sessions revoked' })
+  @ApiResponse({ status: 409, description: 'Deliveries in progress — complete or cancel first' })
+  async deleteCurrentUser(@CurrentUser() user: any) {
+    return this.usersService.deleteAccount(user.id);
   }
 
   @Put('me')

@@ -10,6 +10,8 @@ import {
   Max,
   MaxLength,
   ValidateNested,
+  IsLatitude,
+  IsLongitude,
 } from 'class-validator';
 
 export class BookingItemDto {
@@ -102,4 +104,24 @@ export class CreateBookingDto {
   @ValidateNested({ each: true })
   @Type(() => BookingItemDto)
   items?: BookingItemDto[];
+
+  @ApiPropertyOptional({
+    description: 'Pickup meeting point (free text)',
+    example: 'King Khalid Airport, Terminal 1, Gate 3',
+    maxLength: 300,
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(300)
+  pickupAddress?: string;
+
+  @ApiPropertyOptional({ description: 'Pickup latitude', example: 24.9576 })
+  @IsOptional()
+  @IsLatitude()
+  pickupLat?: number;
+
+  @ApiPropertyOptional({ description: 'Pickup longitude', example: 46.6988 })
+  @IsOptional()
+  @IsLongitude()
+  pickupLng?: number;
 }

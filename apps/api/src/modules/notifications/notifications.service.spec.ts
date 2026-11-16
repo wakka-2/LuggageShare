@@ -20,6 +20,10 @@ const mockPrismaService = () => ({
     upsert: jest.fn(),
     findMany: jest.fn(),
   },
+  userSettings: {
+    // Default: no explicit preference row → push allowed.
+    findUnique: jest.fn().mockResolvedValue(null),
+  },
 });
 
 const mockConfigService = () => ({
@@ -167,13 +171,28 @@ describe('NotificationsService', () => {
       );
     });
 
-    it('should not send when user has no push tokens', async () => {
+    it('should still record the in-app notification when user has no push tokens', async () => {
       prisma.pushToken.findMany.mockResolvedValue([]);
 
       await service.sendPushNotification(USER_ID, 'Title', 'Body');
 
+      expect(prisma.notification.create).toHaveBeenCalledWith({
+        data: { userId: USER_ID, title: 'Title', body: 'Body', data: {} },
+      });
       expect(mockedAxios.post).not.toHaveBeenCalled();
-      expect(prisma.notification.create).not.toHaveBeenCalled();
+    });
+
+    it('should record but not push when the user turned push notifications off', async () => {
+      prisma.userSettings.findUnique.mockResolvedValueOnce({ notifications: false });
+      prisma.pushToken.findMany.mockResolvedValue([
+        { token: 'ExponentPushToken[aaa]', platform: 'ios' },
+      ]);
+
+      await service.sendPushNotification(USER_ID, 'Title', 'Body');
+
+      expect(prisma.notification.create).toHaveBeenCalled();
+      expect(prisma.pushToken.findMany).not.toHaveBeenCalled();
+      expect(mockedAxios.post).not.toHaveBeenCalled();
     });
 
     it('should not throw when Expo API fails', async () => {

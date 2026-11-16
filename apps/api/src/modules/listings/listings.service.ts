@@ -208,6 +208,8 @@ export class ListingsService {
         status: 'active',
         departureCity: createListingDto.departureCity,
         arrivalCity: createListingDto.arrivalCity,
+        departureCode: createListingDto.departureCode?.trim().toUpperCase() || null,
+        arrivalCode: createListingDto.arrivalCode?.trim().toUpperCase() || null,
         departureDate: new Date(createListingDto.departureDate),
         flightNumber: createListingDto.flightNumber,
         availableWeight: createListingDto.availableWeight,
@@ -231,6 +233,8 @@ export class ListingsService {
     const allowedFields = [
       'departureCity',
       'arrivalCity',
+      'departureCode',
+      'arrivalCode',
       'departureDate',
       'flightNumber',
       'availableWeight',

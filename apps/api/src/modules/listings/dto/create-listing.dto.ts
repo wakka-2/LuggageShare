@@ -11,7 +11,20 @@ import {
   Max,
   MaxLength,
   ValidateNested,
+  IsArray,
+  ArrayMaxSize,
+  IsIn,
 } from 'class-validator';
+
+export const LISTING_CATEGORIES = [
+  'documents',
+  'clothing',
+  'electronics',
+  'gifts',
+  'medicine',
+  'food',
+] as const;
+export type ListingCategory = (typeof LISTING_CATEGORIES)[number];
 
 export class ListingPreferencesDto {
   @ApiPropertyOptional({
@@ -55,6 +68,18 @@ export class ListingPreferencesDto {
   @IsNumber()
   @Min(0)
   maxItemValue?: number;
+
+  @ApiPropertyOptional({
+    description: 'Item categories the carrier accepts',
+    example: ['documents', 'clothing', 'gifts'],
+    enum: LISTING_CATEGORIES,
+    isArray: true,
+  })
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(LISTING_CATEGORIES.length)
+  @IsIn(LISTING_CATEGORIES, { each: true })
+  acceptedCategories?: ListingCategory[];
 }
 
 export class CreateListingDto {
@@ -73,6 +98,18 @@ export class CreateListingDto {
   @IsString()
   @IsNotEmpty()
   arrivalCity: string;
+
+  @ApiPropertyOptional({ description: 'Departure airport IATA code', example: 'RUH' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(8)
+  departureCode?: string;
+
+  @ApiPropertyOptional({ description: 'Arrival airport IATA code', example: 'JED' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(8)
+  arrivalCode?: string;
 
   @ApiProperty({
     description: 'Departure date in ISO 8601 format',

@@ -7,6 +7,7 @@ import { UsersService } from '../users/users.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import axios from 'axios';
 import * as jsonwebtoken from 'jsonwebtoken';
+import * as nodeCrypto from 'crypto';
 
 jest.mock('axios');
 jest.mock('jsonwebtoken');
@@ -126,7 +127,9 @@ describe('AuthService', () => {
     });
 
     it('should verify Google token and return tokens for an existing user', async () => {
-      mockedAxios.get.mockResolvedValueOnce({ data: googleTokenInfo });
+      mockedAxios.get
+        .mockResolvedValueOnce({ data: googleTokenInfo }) // tokeninfo
+        .mockResolvedValueOnce({ data: googleTokenInfo }); // userinfo
       configService.get.mockImplementation((key: string, defaultValue?: string) => {
         if (key === 'GOOGLE_CLIENT_ID') return 'valid-client-id';
         if (key === 'JWT_EXPIRES_IN') return defaultValue ?? '1h';
@@ -137,6 +140,9 @@ describe('AuthService', () => {
 
       const result = await service.googleAuth(googleAuthDto);
 
+      expect(mockedAxios.get).toHaveBeenCalledWith('https://oauth2.googleapis.com/tokeninfo', {
+        params: { access_token: googleAuthDto.accessToken },
+      });
       expect(mockedAxios.get).toHaveBeenCalledWith(
         'https://www.googleapis.com/oauth2/v3/userinfo',
         { headers: { Authorization: `Bearer ${googleAuthDto.accessToken}` } }
@@ -156,7 +162,9 @@ describe('AuthService', () => {
     });
 
     it('should create a new user when one does not exist', async () => {
-      mockedAxios.get.mockResolvedValueOnce({ data: googleTokenInfo });
+      mockedAxios.get
+        .mockResolvedValueOnce({ data: googleTokenInfo }) // tokeninfo
+        .mockResolvedValueOnce({ data: googleTokenInfo }); // userinfo
       configService.get.mockImplementation((key: string, defaultValue?: string) => {
         if (key === 'GOOGLE_CLIENT_ID') return 'valid-client-id';
         if (key === 'JWT_EXPIRES_IN') return defaultValue ?? '1h';
@@ -193,12 +201,60 @@ describe('AuthService', () => {
       );
     });
 
+    it('should reject a token issued to another app even when the profile is valid', async () => {
+      // Only tokeninfo is reached: the audience check must reject before userinfo.
+      mockedAxios.get.mockResolvedValueOnce({
+        data: { ...googleTokenInfo, aud: 'attacker-app', azp: 'attacker-app' },
+      });
+      configService.get.mockImplementation((key: string) =>
+        key === 'GOOGLE_CLIENT_ID'
+          ? 'web-id'
+          : key === 'GOOGLE_IOS_CLIENT_ID'
+            ? 'ios-id'
+            : undefined
+      );
+
+      await expect(service.googleAuth(googleAuthDto)).rejects.toThrow(
+        new UnauthorizedException('Google token audience mismatch')
+      );
+      expect(usersService.findByEmail).not.toHaveBeenCalled();
+    });
+
+    it('should accept tokens from the iOS / Android client IDs', async () => {
+      mockedAxios.get
+        .mockResolvedValueOnce({ data: { ...googleTokenInfo, aud: 'android-id' } })
+        .mockResolvedValueOnce({ data: googleTokenInfo });
+      configService.get.mockImplementation((key: string, defaultValue?: string) => {
+        if (key === 'GOOGLE_CLIENT_ID') return 'web-id';
+        if (key === 'GOOGLE_ANDROID_CLIENT_ID') return 'android-id';
+        return defaultValue;
+      });
+      usersService.findByEmail.mockResolvedValueOnce(mockUser as any);
+
+      await expect(service.googleAuth(googleAuthDto)).resolves.toEqual(mockTokenResponse);
+    });
+
+    it('should reject when userinfo belongs to a different account than the token', async () => {
+      mockedAxios.get
+        .mockResolvedValueOnce({ data: googleTokenInfo })
+        .mockResolvedValueOnce({ data: { ...googleTokenInfo, sub: 'someone-else' } });
+      configService.get.mockImplementation((key: string) =>
+        key === 'GOOGLE_CLIENT_ID' ? 'valid-client-id' : undefined
+      );
+
+      await expect(service.googleAuth(googleAuthDto)).rejects.toThrow(
+        new UnauthorizedException('Invalid Google token')
+      );
+    });
+
     it('should skip audience check when GOOGLE_CLIENT_ID is not configured', async () => {
       const tokenInfoWithDifferentAud = {
         ...googleTokenInfo,
         aud: 'any-client-id-should-work',
       };
-      mockedAxios.get.mockResolvedValueOnce({ data: tokenInfoWithDifferentAud });
+      mockedAxios.get
+        .mockResolvedValueOnce({ data: tokenInfoWithDifferentAud })
+        .mockResolvedValueOnce({ data: tokenInfoWithDifferentAud });
       configService.get.mockImplementation((key: string, defaultValue?: string) => {
         if (key === 'GOOGLE_CLIENT_ID') return undefined;
         if (key === 'JWT_EXPIRES_IN') return defaultValue ?? '1h';
@@ -221,7 +277,9 @@ describe('AuthService', () => {
     });
 
     it('should use default JWT expiration values when config values are absent', async () => {
-      mockedAxios.get.mockResolvedValueOnce({ data: googleTokenInfo });
+      mockedAxios.get
+        .mockResolvedValueOnce({ data: googleTokenInfo }) // tokeninfo
+        .mockResolvedValueOnce({ data: googleTokenInfo }); // userinfo
       configService.get.mockImplementation((key: string, defaultValue?: string) => {
         if (key === 'GOOGLE_CLIENT_ID') return 'valid-client-id';
         return defaultValue;
@@ -315,7 +373,7 @@ describe('AuthService', () => {
       // Mock crypto.createPublicKey indirectly by mocking the jwkToPem result
       // We need to mock the entire flow: the service calls jwkToPem which calls crypto.createPublicKey
       // Then it passes the PEM to jwt.verify. We mock jwt.verify to accept any key and return decoded token.
-      const cryptoSpy = jest.spyOn(require('crypto'), 'createPublicKey').mockReturnValue({
+      const cryptoSpy = jest.spyOn(nodeCrypto, 'createPublicKey').mockReturnValue({
         export: jest
           .fn()
           .mockReturnValue('-----BEGIN PUBLIC KEY-----\nfake\n-----END PUBLIC KEY-----'),
@@ -356,7 +414,7 @@ describe('AuthService', () => {
         return undefined;
       });
 
-      const cryptoSpy = jest.spyOn(require('crypto'), 'createPublicKey').mockReturnValue({
+      const cryptoSpy = jest.spyOn(nodeCrypto, 'createPublicKey').mockReturnValue({
         export: jest
           .fn()
           .mockReturnValue('-----BEGIN PUBLIC KEY-----\nfake\n-----END PUBLIC KEY-----'),
@@ -396,7 +454,7 @@ describe('AuthService', () => {
         return undefined;
       });
 
-      const cryptoSpy = jest.spyOn(require('crypto'), 'createPublicKey').mockReturnValue({
+      const cryptoSpy = jest.spyOn(nodeCrypto, 'createPublicKey').mockReturnValue({
         export: jest
           .fn()
           .mockReturnValue('-----BEGIN PUBLIC KEY-----\nfake\n-----END PUBLIC KEY-----'),
@@ -432,7 +490,7 @@ describe('AuthService', () => {
         return undefined;
       });
 
-      const cryptoSpy = jest.spyOn(require('crypto'), 'createPublicKey').mockReturnValue({
+      const cryptoSpy = jest.spyOn(nodeCrypto, 'createPublicKey').mockReturnValue({
         export: jest
           .fn()
           .mockReturnValue('-----BEGIN PUBLIC KEY-----\nfake\n-----END PUBLIC KEY-----'),
@@ -468,7 +526,7 @@ describe('AuthService', () => {
         return undefined;
       });
 
-      const cryptoSpy = jest.spyOn(require('crypto'), 'createPublicKey').mockReturnValue({
+      const cryptoSpy = jest.spyOn(nodeCrypto, 'createPublicKey').mockReturnValue({
         export: jest
           .fn()
           .mockReturnValue('-----BEGIN PUBLIC KEY-----\nfake\n-----END PUBLIC KEY-----'),
@@ -498,7 +556,7 @@ describe('AuthService', () => {
         return undefined;
       });
 
-      const cryptoSpy = jest.spyOn(require('crypto'), 'createPublicKey').mockReturnValue({
+      const cryptoSpy = jest.spyOn(nodeCrypto, 'createPublicKey').mockReturnValue({
         export: jest
           .fn()
           .mockReturnValue('-----BEGIN PUBLIC KEY-----\nfake\n-----END PUBLIC KEY-----'),
@@ -522,7 +580,7 @@ describe('AuthService', () => {
         return undefined;
       });
 
-      const cryptoSpy = jest.spyOn(require('crypto'), 'createPublicKey').mockReturnValue({
+      const cryptoSpy = jest.spyOn(nodeCrypto, 'createPublicKey').mockReturnValue({
         export: jest
           .fn()
           .mockReturnValue('-----BEGIN PUBLIC KEY-----\nfake\n-----END PUBLIC KEY-----'),
@@ -711,7 +769,9 @@ describe('AuthService', () => {
         aud: 'valid-client-id',
       };
 
-      mockedAxios.get.mockResolvedValueOnce({ data: googleTokenInfo });
+      mockedAxios.get
+        .mockResolvedValueOnce({ data: googleTokenInfo }) // tokeninfo
+        .mockResolvedValueOnce({ data: googleTokenInfo }); // userinfo
       configService.get.mockImplementation((key: string, defaultValue?: string) => {
         if (key === 'GOOGLE_CLIENT_ID') return 'valid-client-id';
         if (key === 'JWT_EXPIRES_IN') return '2h';
@@ -758,7 +818,9 @@ describe('AuthService', () => {
         isVerified: true,
       };
 
-      mockedAxios.get.mockResolvedValueOnce({ data: googleTokenInfo });
+      mockedAxios.get
+        .mockResolvedValueOnce({ data: googleTokenInfo }) // tokeninfo
+        .mockResolvedValueOnce({ data: googleTokenInfo }); // userinfo
       configService.get.mockImplementation((key: string, defaultValue?: string) => {
         if (key === 'GOOGLE_CLIENT_ID') return 'valid-client-id';
         return defaultValue;

@@ -166,7 +166,21 @@ describe('BookingsService', () => {
       expect(prisma.booking.findUnique).toHaveBeenCalledWith({
         where: { id: BOOKING_ID },
         include: {
-          listing: true,
+          listing: {
+            select: {
+              id: true,
+              departureCity: true,
+              departureCode: true,
+              arrivalCity: true,
+              arrivalCode: true,
+              departureDate: true,
+              flightNumber: true,
+              price: true,
+              availableWeight: true,
+              currency: true,
+              status: true,
+            },
+          },
           sender: {
             select: { id: true, name: true, avatarUrl: true, phone: true },
           },
@@ -249,12 +263,37 @@ describe('BookingsService', () => {
           status: 'pending',
           totalWeight: 5,
           totalPrice: expectedPrice,
+          pickupAddress: null,
+          pickupLat: null,
+          pickupLng: null,
           items: {
             create: dto.items,
           },
         },
         include: { items: true },
       });
+    });
+
+    it('should store the pickup meeting point (trimmed address + coordinates)', async () => {
+      prisma.listing.findUnique.mockResolvedValue(makeListing({ price: 30, availableWeight: 20 }));
+      prisma.booking.create.mockResolvedValue(makeBooking());
+
+      await service.create(SENDER_ID, {
+        ...makeCreateDto({ totalWeight: 2 }),
+        pickupAddress: '  King Khalid Airport, Gate 3  ',
+        pickupLat: 24.9576,
+        pickupLng: 46.6988,
+      });
+
+      expect(prisma.booking.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            pickupAddress: 'King Khalid Airport, Gate 3',
+            pickupLat: 24.9576,
+            pickupLng: 46.6988,
+          }),
+        })
+      );
     });
 
     it('should correctly multiply Decimal-like price field by weight', async () => {
