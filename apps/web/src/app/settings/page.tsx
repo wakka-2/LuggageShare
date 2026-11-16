@@ -12,7 +12,11 @@ import {
   Plane,
   ArrowLeft,
   ChevronRight,
+  Trash2,
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import apiClient from '@/lib/api';
+import { useAuth } from '@/providers/AuthProvider';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
@@ -24,6 +28,31 @@ export default function SettingsPage() {
   const { t, lang, toggleLang } = useLanguage();
   const isRTL = lang === 'ar';
   const [pushEnabled, setPushEnabled] = useState(true);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const { signOut } = useAuth();
+  const router = useRouter();
+
+  // Account deletion (also the public "delete your account" link for Google Play).
+  async function handleDeleteAccount() {
+    if (
+      !window.confirm(
+        `${t('settings.deleteAccountTitle')}\n\n${t('settings.deleteAccountMessage')}`
+      )
+    ) {
+      return;
+    }
+    setIsDeleting(true);
+    try {
+      await apiClient.delete('/users/me');
+      signOut();
+      router.push('/');
+    } catch (err) {
+      const status = (err as { response?: { status?: number } })?.response?.status;
+      window.alert(status === 409 ? t('settings.deleteAccountBlocked') : t('common.error'));
+    } finally {
+      setIsDeleting(false);
+    }
+  }
 
   return (
     <ProtectedRoute>
@@ -151,6 +180,26 @@ export default function SettingsPage() {
                 <ChevronRight className="w-4 h-4 text-v2-text-muted" />
               </Link>
             </div>
+          </div>
+
+          {/* Account */}
+          <div className="mt-4 bg-white rounded-[22px] shadow-bubble-sm overflow-hidden">
+            <p className="text-[11px] font-semibold uppercase tracking-widest text-v2-text-muted px-5 pt-4 pb-1">
+              {t('settings.account')}
+            </p>
+            <button
+              onClick={handleDeleteAccount}
+              disabled={isDeleting}
+              className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-v2-secondary/5 transition-colors disabled:opacity-60"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-full bg-v2-secondary/10 flex items-center justify-center">
+                  <Trash2 className="w-4 h-4 text-v2-secondary" />
+                </div>
+                <span className="text-[15px] text-v2-secondary">{t('settings.deleteAccount')}</span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-v2-text-muted" />
+            </button>
           </div>
 
           {/* Footer branding */}
