@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
-import { V2_COLORS } from '@/providers/ThemeProvider';
+import { V2_COLORS, themed } from '@/providers/ThemeProvider';
 import { QuestionTitle } from '../QuestionTitle';
 import { OptionChips, ChipOption } from '../OptionChips';
 import { AnimatedButton } from '@/components/animations/AnimatedButton';
@@ -81,34 +81,36 @@ export function WeightStep({ data, updateData, goNext }: StepProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  suitcaseContainer: {
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  weightDisplay: {
-    fontSize: 24,
-    fontWeight: '700',
-    marginTop: 8,
-    color: V2_COLORS.primary,
-  },
-  section: {
-    marginBottom: 24,
-  },
-  sectionLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    marginBottom: 10,
-    color: V2_COLORS.textSoft,
-  },
-  hint: {
-    marginBottom: 24,
-  },
-  hintText: {
-    fontSize: 14,
-    color: V2_COLORS.textMuted,
-  },
-  nextContainer: {
-    marginTop: 8,
-  },
-});
+const styles = themed(() =>
+  StyleSheet.create({
+    suitcaseContainer: {
+      alignItems: 'center',
+      marginBottom: 24,
+    },
+    weightDisplay: {
+      fontSize: 24,
+      fontWeight: '700',
+      marginTop: 8,
+      color: V2_COLORS.primary,
+    },
+    section: {
+      marginBottom: 24,
+    },
+    sectionLabel: {
+      fontSize: 14,
+      fontWeight: '600',
+      marginBottom: 10,
+      color: V2_COLORS.textSoft,
+    },
+    hint: {
+      marginBottom: 24,
+    },
+    hintText: {
+      fontSize: 14,
+      color: V2_COLORS.textMuted,
+    },
+    nextContainer: {
+      marginTop: 8,
+    },
+  })
+);

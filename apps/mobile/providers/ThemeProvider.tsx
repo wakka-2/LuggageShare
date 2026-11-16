@@ -1,6 +1,6 @@
 import { createContext, useContext, ReactNode } from 'react';
 import { Platform } from 'react-native';
-import { IS_DARK } from '@/lib/colorScheme';
+import { isDarkScheme, subscribeColorScheme, useColorSchemeValue } from '@/lib/colorScheme';
 
 export interface ThemeColors {
   primary: string;
@@ -133,9 +133,7 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | null>(null);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  // Frozen at launch so live-themed (useTheme) and module-level (V2_COLORS)
-  // styles always agree. See lib/colorScheme.ts.
-  const isDark = IS_DARK;
+  const isDark = useColorSchemeValue() === 'dark';
 
   const theme: Theme = {
     dark: isDark,
@@ -335,8 +333,46 @@ const V2_DARK: V2Palette = {
   cardShadow: 'rgba(0,0,0,0.35)',
 };
 
-/** Active V2 palette for this launch (see lib/colorScheme.ts). */
-export const V2_COLORS: V2Palette = IS_DARK ? V2_DARK : V2_LIGHT;
+/**
+ * Active V2 palette. A single mutable object, updated in place when the color
+ * scheme changes, so `V2_COLORS.x` read during render is always current.
+ */
+export const V2_COLORS: V2Palette = { ...(isDarkScheme() ? V2_DARK : V2_LIGHT) };
+
+let themeVersion = 0;
+
+// Registered at module load, so it runs before any React subscriber re-renders.
+subscribeColorScheme(() => {
+  Object.assign(V2_COLORS, isDarkScheme() ? V2_DARK : V2_LIGHT);
+  themeVersion++;
+});
+
+/**
+ * Lazily build a theme-dependent module-level value (StyleSheet, color map) and
+ * rebuild it after a color-scheme change. Access goes through a Proxy, so
+ * `styles.card` keeps working unchanged at every call site.
+ */
+export function themed<T extends object>(factory: () => T): T {
+  let cache: T | undefined;
+  let builtFor = -1;
+  const current = (): any => {
+    if (cache === undefined || builtFor !== themeVersion) {
+      cache = factory();
+      builtFor = themeVersion;
+    }
+    return cache;
+  };
+  return new Proxy({} as T, {
+    get: (_t, prop) => current()[prop],
+    has: (_t, prop) => prop in current(),
+    ownKeys: () => Reflect.ownKeys(current()),
+    getOwnPropertyDescriptor: (_t, prop) => {
+      const desc = Object.getOwnPropertyDescriptor(current(), prop);
+      if (desc) desc.configurable = true;
+      return desc;
+    },
+  });
+}
 
 // ─── V1 Deprecated Exports (backward compat) ───────────
 

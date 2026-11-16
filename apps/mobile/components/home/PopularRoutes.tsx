@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 
 import { SectionHeader } from '@/components/common';
-import { V2_COLORS, RADIUS, BUBBLE_SHADOWS, TYPOGRAPHY } from '@/providers/ThemeProvider';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS, TYPOGRAPHY, themed } from '@/providers/ThemeProvider';
 
 interface Route {
   id: string;
@@ -102,74 +102,76 @@ export function PopularRoutes() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    marginTop: 24,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-    paddingHorizontal: 16,
-  },
-  seeAll: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: V2_COLORS.primary,
-  },
-  scrollContent: {
-    paddingHorizontal: 16,
-    gap: 12,
-  },
-  routeCard: {
-    width: 200,
-    backgroundColor: V2_COLORS.surface,
-    padding: 16,
-    borderRadius: RADIUS.card,
-    ...BUBBLE_SHADOWS.md,
-  },
-  routeHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginBottom: 14,
-  },
-  routeDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  routeFrom: {
-    ...TYPOGRAPHY.caption,
-    fontWeight: '700',
-    color: V2_COLORS.text,
-  },
-  routeTo: {
-    ...TYPOGRAPHY.caption,
-    fontWeight: '700',
-    color: V2_COLORS.text,
-  },
-  routeInfo: {
-    gap: 8,
-  },
-  infoItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  infoLabel: {
-    fontSize: 12,
-    color: V2_COLORS.textMuted,
-  },
-  infoValue: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: V2_COLORS.primary,
-  },
-  carriersValue: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: V2_COLORS.text,
-  },
-});
+const styles = themed(() =>
+  StyleSheet.create({
+    container: {
+      marginTop: 24,
+    },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 16,
+      paddingHorizontal: 16,
+    },
+    seeAll: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: V2_COLORS.primary,
+    },
+    scrollContent: {
+      paddingHorizontal: 16,
+      gap: 12,
+    },
+    routeCard: {
+      width: 200,
+      backgroundColor: V2_COLORS.surface,
+      padding: 16,
+      borderRadius: RADIUS.card,
+      ...BUBBLE_SHADOWS.md,
+    },
+    routeHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      marginBottom: 14,
+    },
+    routeDot: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+    },
+    routeFrom: {
+      ...TYPOGRAPHY.caption,
+      fontWeight: '700',
+      color: V2_COLORS.text,
+    },
+    routeTo: {
+      ...TYPOGRAPHY.caption,
+      fontWeight: '700',
+      color: V2_COLORS.text,
+    },
+    routeInfo: {
+      gap: 8,
+    },
+    infoItem: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    infoLabel: {
+      fontSize: 12,
+      color: V2_COLORS.textMuted,
+    },
+    infoValue: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: V2_COLORS.primary,
+    },
+    carriersValue: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: V2_COLORS.text,
+    },
+  })
+);

@@ -11,7 +11,7 @@ import Animated, {
   interpolate,
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
-import { V2_COLORS } from '@/providers/ThemeProvider';
+import { V2_COLORS, themed } from '@/providers/ThemeProvider';
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 
@@ -27,7 +27,7 @@ interface FloatingIcon {
   rotation: number;
 }
 
-const ICONS: FloatingIcon[] = [
+const ICONS: FloatingIcon[] = themed(() => [
   {
     icon: 'airplane',
     size: 18,
@@ -94,7 +94,7 @@ const ICONS: FloatingIcon[] = [
     drift: 18,
     rotation: 15,
   },
-];
+]);
 
 function FloatingItem({ item }: { item: FloatingIcon }) {
   const progress = useSharedValue(0);

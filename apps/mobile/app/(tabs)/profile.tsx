@@ -1,4 +1,5 @@
 import { useRefreshOnFocus } from '@/hooks/useRefreshOnFocus';
+import { useUnreadCount } from '@/hooks/useNotifications';
 import {
   View,
   Text,
@@ -23,6 +24,7 @@ import {
   BUBBLE_SHADOWS,
   TYPOGRAPHY,
   GRADIENTS,
+  themed,
 } from '@/providers/ThemeProvider';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
@@ -55,6 +57,8 @@ export default function ProfileScreen() {
   useRefreshOnFocus(refetch);
   const { data: reviews } = useUserReviews(profile?.id ?? null);
 
+  const unreadNotifications = useUnreadCount();
+
   const menuItems = [
     {
       icon: 'person-outline' as const,
@@ -85,6 +89,7 @@ export default function ProfileScreen() {
       label: t('profile.notifications'),
       route: '/notifications',
       color: V2_COLORS.accent3,
+      badge: unreadNotifications,
     },
     {
       icon: 'settings-outline' as const,
@@ -265,7 +270,11 @@ export default function ProfileScreen() {
               style={styles.menuItem}
               onPress={() => router.push(item.route as any)}
               accessibilityRole="button"
-              accessibilityLabel={item.label}
+              accessibilityLabel={
+                item.badge
+                  ? `${item.label}, ${t('notifications.unreadCount', { count: item.badge })}`
+                  : item.label
+              }
             >
               <View style={styles.menuItemLeft}>
                 <View style={[styles.menuIconBox, { backgroundColor: item.color + '15' }]}>
@@ -273,11 +282,18 @@ export default function ProfileScreen() {
                 </View>
                 <Text style={styles.menuItemLabel}>{item.label}</Text>
               </View>
-              <Ionicons
-                name={isRTL ? 'chevron-back' : 'chevron-forward'}
-                size={18}
-                color={V2_COLORS.textMuted}
-              />
+              <View style={styles.menuItemRight}>
+                {!!item.badge && (
+                  <View style={styles.menuBadge}>
+                    <Text style={styles.menuBadgeText}>{item.badge > 99 ? '99+' : item.badge}</Text>
+                  </View>
+                )}
+                <Ionicons
+                  name={isRTL ? 'chevron-back' : 'chevron-forward'}
+                  size={18}
+                  color={V2_COLORS.textMuted}
+                />
+              </View>
             </TouchableOpacity>
           ))}
         </View>
@@ -297,113 +313,126 @@ export default function ProfileScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: V2_COLORS.bg } as ViewStyle,
-  loading: { paddingVertical: 60, alignItems: 'center', justifyContent: 'center' } as ViewStyle,
-  header: { padding: 16, paddingBottom: 8 } as ViewStyle,
-  title: { ...TYPOGRAPHY.h1, color: V2_COLORS.text } as TextStyle,
+const styles = themed(() =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: V2_COLORS.bg } as ViewStyle,
+    loading: { paddingVertical: 60, alignItems: 'center', justifyContent: 'center' } as ViewStyle,
+    header: { padding: 16, paddingBottom: 8 } as ViewStyle,
+    title: { ...TYPOGRAPHY.h1, color: V2_COLORS.text } as TextStyle,
 
-  bannerWrapper: { marginHorizontal: 16, marginBottom: -30 } as ViewStyle,
-  banner: {
-    height: 100,
-    borderRadius: RADIUS.heroCard,
-    overflow: 'hidden',
-  } as ViewStyle,
-  bannerCircle1: {
-    position: 'absolute',
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: 'rgba(255,255,255,0.12)',
-    top: -20,
-    right: 20,
-  } as ViewStyle,
-  bannerCircle2: {
-    position: 'absolute',
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    bottom: -10,
-    left: 30,
-  } as ViewStyle,
+    bannerWrapper: { marginHorizontal: 16, marginBottom: -30 } as ViewStyle,
+    banner: {
+      height: 100,
+      borderRadius: RADIUS.heroCard,
+      overflow: 'hidden',
+    } as ViewStyle,
+    bannerCircle1: {
+      position: 'absolute',
+      width: 80,
+      height: 80,
+      borderRadius: 40,
+      backgroundColor: 'rgba(255,255,255,0.12)',
+      top: -20,
+      right: 20,
+    } as ViewStyle,
+    bannerCircle2: {
+      position: 'absolute',
+      width: 50,
+      height: 50,
+      borderRadius: 25,
+      backgroundColor: 'rgba(255,255,255,0.08)',
+      bottom: -10,
+      left: 30,
+    } as ViewStyle,
 
-  userCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: V2_COLORS.surface,
-    padding: 20,
-    marginHorizontal: 16,
-    borderRadius: RADIUS.card,
-    gap: 14,
-    ...BUBBLE_SHADOWS.lg,
-  } as ViewStyle,
-  userInfo: { flex: 1 } as ViewStyle,
-  userName: { ...TYPOGRAPHY.h2, color: V2_COLORS.text } as TextStyle,
-  userEmail: { fontSize: 13, color: V2_COLORS.textSoft, marginTop: 2 } as TextStyle,
-  locationRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 } as ViewStyle,
-  locationText: { fontSize: 12, color: V2_COLORS.textMuted } as TextStyle,
+    userCard: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: V2_COLORS.surface,
+      padding: 20,
+      marginHorizontal: 16,
+      borderRadius: RADIUS.card,
+      gap: 14,
+      ...BUBBLE_SHADOWS.lg,
+    } as ViewStyle,
+    userInfo: { flex: 1 } as ViewStyle,
+    userName: { ...TYPOGRAPHY.h2, color: V2_COLORS.text } as TextStyle,
+    userEmail: { fontSize: 13, color: V2_COLORS.textSoft, marginTop: 2 } as TextStyle,
+    locationRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 } as ViewStyle,
+    locationText: { fontSize: 12, color: V2_COLORS.textMuted } as TextStyle,
 
-  statsRow: {
-    flexDirection: 'row',
-    gap: 10,
-    paddingHorizontal: 16,
-    marginTop: 16,
-  } as ViewStyle,
+    statsRow: {
+      flexDirection: 'row',
+      gap: 10,
+      paddingHorizontal: 16,
+      marginTop: 16,
+    } as ViewStyle,
 
-  bioCard: {
-    marginHorizontal: 16,
-    marginTop: 16,
-    padding: 16,
-    backgroundColor: V2_COLORS.accent2 + '12',
-    borderRadius: RADIUS.card,
-  } as ViewStyle,
-  bioText: { fontSize: 14, lineHeight: 21, color: V2_COLORS.text } as TextStyle,
+    bioCard: {
+      marginHorizontal: 16,
+      marginTop: 16,
+      padding: 16,
+      backgroundColor: V2_COLORS.accent2 + '12',
+      borderRadius: RADIUS.card,
+    } as ViewStyle,
+    bioText: { fontSize: 14, lineHeight: 21, color: V2_COLORS.text } as TextStyle,
 
-  memberSince: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 16,
-    marginTop: 12,
-  } as ViewStyle,
-  memberSinceText: { fontSize: 12, color: V2_COLORS.textMuted } as TextStyle,
+    memberSince: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      paddingHorizontal: 16,
+      marginTop: 12,
+    } as ViewStyle,
+    memberSinceText: { fontSize: 12, color: V2_COLORS.textMuted } as TextStyle,
 
-  reviewsSection: { marginTop: 24, marginHorizontal: 16 } as ViewStyle,
+    reviewsSection: { marginTop: 24, marginHorizontal: 16 } as ViewStyle,
 
-  menu: { marginTop: 24, marginHorizontal: 16, gap: 8 } as ViewStyle,
-  menuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: V2_COLORS.surface,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderRadius: RADIUS.card,
-    ...BUBBLE_SHADOWS.xs,
-  } as ViewStyle,
-  menuItemLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 } as ViewStyle,
-  menuIconBox: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-  } as ViewStyle,
-  menuItemLabel: { ...TYPOGRAPHY.caption, fontWeight: '600', color: V2_COLORS.text } as TextStyle,
+    menu: { marginTop: 24, marginHorizontal: 16, gap: 8 } as ViewStyle,
+    menuItemRight: { flexDirection: 'row', alignItems: 'center', gap: 8 } as ViewStyle,
+    menuBadge: {
+      minWidth: 22,
+      height: 22,
+      paddingHorizontal: 6,
+      borderRadius: 11,
+      backgroundColor: '#EF4444',
+      alignItems: 'center',
+      justifyContent: 'center',
+    } as ViewStyle,
+    menuBadgeText: { color: '#FFFFFF', fontSize: 12, fontWeight: '700' } as TextStyle,
+    menuItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      backgroundColor: V2_COLORS.surface,
+      paddingVertical: 14,
+      paddingHorizontal: 16,
+      borderRadius: RADIUS.card,
+      ...BUBBLE_SHADOWS.xs,
+    } as ViewStyle,
+    menuItemLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 } as ViewStyle,
+    menuIconBox: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      alignItems: 'center',
+      justifyContent: 'center',
+    } as ViewStyle,
+    menuItemLabel: { ...TYPOGRAPHY.caption, fontWeight: '600', color: V2_COLORS.text } as TextStyle,
 
-  signOutButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginHorizontal: 16,
-    marginTop: 24,
-    marginBottom: 40,
-    padding: 16,
-    borderRadius: RADIUS.pill,
-    borderWidth: 1.5,
-    borderColor: V2_COLORS.secondary + '40',
-    gap: 8,
-  } as ViewStyle,
-  signOutText: { fontSize: 15, fontWeight: '600', color: V2_COLORS.secondary } as TextStyle,
-});
+    signOutButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginHorizontal: 16,
+      marginTop: 24,
+      marginBottom: 40,
+      padding: 16,
+      borderRadius: RADIUS.pill,
+      borderWidth: 1.5,
+      borderColor: V2_COLORS.secondary + '40',
+      gap: 8,
+    } as ViewStyle,
+    signOutText: { fontSize: 15, fontWeight: '600', color: V2_COLORS.secondary } as TextStyle,
+  })
+);

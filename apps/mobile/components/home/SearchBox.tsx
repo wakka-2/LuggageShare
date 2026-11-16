@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 
 import { useTheme } from '@/hooks/useTheme';
-import { V2_COLORS } from '@/providers/ThemeProvider';
+import { V2_COLORS, themed } from '@/providers/ThemeProvider';
 
 export function SearchBox() {
   const { t } = useTranslation();
@@ -76,93 +76,95 @@ export function SearchBox() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    borderRadius: 16,
-    borderWidth: 1,
-    overflow: 'hidden',
-  },
-  routeContainer: {
-    padding: 16,
-  },
-  routeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  routeIconContainer: {
-    width: 32,
-    alignItems: 'center',
-  },
-  routeIcon: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-  },
-  routeInput: {
-    flex: 1,
-    paddingVertical: 8,
-  },
-  routeLabel: {
-    fontSize: 12,
-    marginBottom: 2,
-  },
-  routeValue: {
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  swapButton: {
-    position: 'absolute',
-    end: 16,
-    top: '50%',
-    marginTop: -20,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: V2_COLORS.surfaceAlt,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  divider: {
-    height: 1,
-    marginHorizontal: 16,
-  },
-  detailsContainer: {
-    flexDirection: 'row',
-    padding: 16,
-  },
-  detailItem: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  detailText: {
-    marginStart: 8,
-  },
-  detailLabel: {
-    fontSize: 12,
-  },
-  detailValue: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  detailDivider: {
-    width: 1,
-    height: '100%',
-    marginHorizontal: 16,
-  },
-  searchButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    margin: 16,
-    marginTop: 0,
-    padding: 16,
-    borderRadius: 12,
-    gap: 8,
-  },
-  searchButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-});
+const styles = themed(() =>
+  StyleSheet.create({
+    container: {
+      borderRadius: 16,
+      borderWidth: 1,
+      overflow: 'hidden',
+    },
+    routeContainer: {
+      padding: 16,
+    },
+    routeRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    routeIconContainer: {
+      width: 32,
+      alignItems: 'center',
+    },
+    routeIcon: {
+      width: 12,
+      height: 12,
+      borderRadius: 6,
+    },
+    routeInput: {
+      flex: 1,
+      paddingVertical: 8,
+    },
+    routeLabel: {
+      fontSize: 12,
+      marginBottom: 2,
+    },
+    routeValue: {
+      fontSize: 16,
+      fontWeight: '500',
+    },
+    swapButton: {
+      position: 'absolute',
+      end: 16,
+      top: '50%',
+      marginTop: -20,
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: V2_COLORS.surfaceAlt,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    divider: {
+      height: 1,
+      marginHorizontal: 16,
+    },
+    detailsContainer: {
+      flexDirection: 'row',
+      padding: 16,
+    },
+    detailItem: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    detailText: {
+      marginStart: 8,
+    },
+    detailLabel: {
+      fontSize: 12,
+    },
+    detailValue: {
+      fontSize: 14,
+      fontWeight: '500',
+    },
+    detailDivider: {
+      width: 1,
+      height: '100%',
+      marginHorizontal: 16,
+    },
+    searchButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      margin: 16,
+      marginTop: 0,
+      padding: 16,
+      borderRadius: 12,
+      gap: 8,
+    },
+    searchButtonText: {
+      color: '#FFFFFF',
+      fontSize: 16,
+      fontWeight: '600',
+    },
+  })
+);

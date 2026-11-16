@@ -34,7 +34,8 @@
     "reviewsCount": "{{count}} reviews",
     "uploadFailed": "Upload failed",
     "cameraPermission": "Camera permission is required",
-    "photosPermission": "Photo library permission is required"
+    "photosPermission": "Photo library permission is required",
+    "close": "Close"
   },
   "tabs": {
     "home": "Home",
@@ -441,7 +442,9 @@
     "justNow": "Just now",
     "minutesAgo": "{{count}}m ago",
     "hoursAgo": "{{count}}h ago",
-    "daysAgo": "{{count}}d ago"
+    "daysAgo": "{{count}}d ago",
+    "unreadCount_one": "{{count}} unread",
+    "unreadCount_other": "{{count}} unread"
   },
   "listingCard": {
     "offer": "Offer",
@@ -562,7 +565,8 @@
     "deleteAccountTitle": "Delete your account?",
     "deleteAccountMessage": "This permanently removes your profile and personal data, signs you out everywhere, and cancels your open trips, bookings and offers. Remaining credits are forfeited. This cannot be undone.",
     "deleteAccountConfirm": "Delete",
-    "deleteAccountBlocked": "You have deliveries in progress. Complete or cancel them before deleting your account."
+    "deleteAccountBlocked": "You have deliveries in progress. Complete or cancel them before deleting your account.",
+    "themeSystem": "System"
   },
   "web": {
     "sidebar": {
@@ -788,5 +792,13 @@
     "skip": "Skip",
     "publish": "Publish Listing",
     "confirm": "Confirm Booking"
+  },
+  "cityPicker": {
+    "search": "Search city, country or airport code",
+    "useCustom": "Use \"{{city}}\"",
+    "noResults": "No matching cities",
+    "selectDeparture": "Select departure city",
+    "selectArrival": "Select arrival city",
+    "sameCity": "Departure and arrival must be different cities"
   }
 }

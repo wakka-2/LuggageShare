@@ -9,12 +9,13 @@ import {
   TextStyle,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { dirIcon } from '@/lib/rtl';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 
-import { V2_COLORS, RADIUS, BUBBLE_SHADOWS } from '@/providers/ThemeProvider';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS, themed } from '@/providers/ThemeProvider';
 import { BackgroundBlobs } from '@/components/common';
 
 const FAQ_KEYS = [
@@ -84,7 +85,7 @@ export default function HelpScreen() {
               <Text style={styles.contactLabel}>{t('help.emailSupport')}</Text>
               <Text style={styles.contactValue}>help@luggageshare.com</Text>
             </View>
-            <Ionicons name="chevron-forward" size={18} color={V2_COLORS.textMuted} />
+            <Ionicons name={dirIcon('chevron-forward')} size={18} color={V2_COLORS.textMuted} />
           </TouchableOpacity>
         </Animated.View>
       </ScrollView>
@@ -92,73 +93,75 @@ export default function HelpScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: V2_COLORS.bg } as ViewStyle,
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-  } as ViewStyle,
-  backBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: RADIUS.pill,
-    backgroundColor: V2_COLORS.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...BUBBLE_SHADOWS.xs,
-  } as ViewStyle,
-  headerTitle: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: V2_COLORS.text,
-  } as TextStyle,
-  scrollContent: { padding: 16 } as ViewStyle,
-  sectionTitle: {
-    fontSize: 13,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    marginBottom: 12,
-    color: V2_COLORS.textMuted,
-  } as TextStyle,
-  faqCard: {
-    borderRadius: RADIUS.card,
-    padding: 16,
-    marginBottom: 12,
-    backgroundColor: V2_COLORS.surface,
-    ...BUBBLE_SHADOWS.sm,
-  } as ViewStyle,
-  faqQuestion: {
-    fontSize: 15,
-    fontWeight: '600',
-    marginBottom: 8,
-    color: V2_COLORS.text,
-  } as TextStyle,
-  faqAnswer: {
-    fontSize: 14,
-    lineHeight: 21,
-    color: V2_COLORS.textSoft,
-  } as TextStyle,
-  contactCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: RADIUS.card,
-    padding: 16,
-    gap: 12,
-    backgroundColor: V2_COLORS.surface,
-    ...BUBBLE_SHADOWS.sm,
-  } as ViewStyle,
-  contactIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: V2_COLORS.primary + '15',
-    alignItems: 'center',
-    justifyContent: 'center',
-  } as ViewStyle,
-  contactInfo: { flex: 1 } as ViewStyle,
-  contactLabel: { fontSize: 15, fontWeight: '600', color: V2_COLORS.text } as TextStyle,
-  contactValue: { fontSize: 13, marginTop: 2, color: V2_COLORS.textMuted } as TextStyle,
-});
+const styles = themed(() =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: V2_COLORS.bg } as ViewStyle,
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+      paddingVertical: 10,
+    } as ViewStyle,
+    backBtn: {
+      width: 36,
+      height: 36,
+      borderRadius: RADIUS.pill,
+      backgroundColor: V2_COLORS.surface,
+      alignItems: 'center',
+      justifyContent: 'center',
+      ...BUBBLE_SHADOWS.xs,
+    } as ViewStyle,
+    headerTitle: {
+      fontSize: 17,
+      fontWeight: '700',
+      color: V2_COLORS.text,
+    } as TextStyle,
+    scrollContent: { padding: 16 } as ViewStyle,
+    sectionTitle: {
+      fontSize: 13,
+      fontWeight: '600',
+      textTransform: 'uppercase',
+      marginBottom: 12,
+      color: V2_COLORS.textMuted,
+    } as TextStyle,
+    faqCard: {
+      borderRadius: RADIUS.card,
+      padding: 16,
+      marginBottom: 12,
+      backgroundColor: V2_COLORS.surface,
+      ...BUBBLE_SHADOWS.sm,
+    } as ViewStyle,
+    faqQuestion: {
+      fontSize: 15,
+      fontWeight: '600',
+      marginBottom: 8,
+      color: V2_COLORS.text,
+    } as TextStyle,
+    faqAnswer: {
+      fontSize: 14,
+      lineHeight: 21,
+      color: V2_COLORS.textSoft,
+    } as TextStyle,
+    contactCard: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      borderRadius: RADIUS.card,
+      padding: 16,
+      gap: 12,
+      backgroundColor: V2_COLORS.surface,
+      ...BUBBLE_SHADOWS.sm,
+    } as ViewStyle,
+    contactIcon: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      backgroundColor: V2_COLORS.primary + '15',
+      alignItems: 'center',
+      justifyContent: 'center',
+    } as ViewStyle,
+    contactInfo: { flex: 1 } as ViewStyle,
+    contactLabel: { fontSize: 15, fontWeight: '600', color: V2_COLORS.text } as TextStyle,
+    contactValue: { fontSize: 13, marginTop: 2, color: V2_COLORS.textMuted } as TextStyle,
+  })
+);

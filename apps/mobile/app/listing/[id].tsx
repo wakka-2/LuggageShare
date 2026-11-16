@@ -8,6 +8,7 @@ import {
   TextStyle,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { cityLabel } from '@/lib/airports';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -20,6 +21,7 @@ import {
   BUBBLE_SHADOWS,
   TYPOGRAPHY,
   GRADIENTS,
+  themed,
 } from '@/providers/ThemeProvider';
 import { useListing } from '@/hooks/useListings';
 import { useBookings } from '@/hooks/useBookings';
@@ -123,7 +125,7 @@ export default function ListingDetailScreen() {
           <View style={styles.routeRow}>
             <View style={styles.routePoint}>
               <View style={[styles.routeDot, { backgroundColor: V2_COLORS.accent1 }]} />
-              <Text style={styles.cityName}>{listing.departureCity}</Text>
+              <Text style={styles.cityName}>{cityLabel(listing.departureCity)}</Text>
               {listing.departureCode && (
                 <Text style={styles.cityCode}>{listing.departureCode}</Text>
               )}
@@ -135,7 +137,7 @@ export default function ListingDetailScreen() {
             </View>
             <View style={styles.routePoint}>
               <View style={[styles.routeDot, { backgroundColor: V2_COLORS.secondary }]} />
-              <Text style={styles.cityName}>{listing.arrivalCity}</Text>
+              <Text style={styles.cityName}>{cityLabel(listing.arrivalCity)}</Text>
               {listing.arrivalCode && <Text style={styles.cityCode}>{listing.arrivalCode}</Text>}
             </View>
           </View>
@@ -284,165 +286,167 @@ export default function ListingDetailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: V2_COLORS.bg } as ViewStyle,
-  loadingContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 16,
-  } as ViewStyle,
-  errorText: { ...TYPOGRAPHY.caption, color: V2_COLORS.textSoft, marginTop: 8 } as TextStyle,
-  backButton: {
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: RADIUS.pill,
-    backgroundColor: V2_COLORS.primary,
-  } as ViewStyle,
-  backButtonText: { color: '#FFF', fontSize: 15, fontWeight: '600' } as TextStyle,
+const styles = themed(() =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: V2_COLORS.bg } as ViewStyle,
+    loadingContainer: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 16,
+    } as ViewStyle,
+    errorText: { ...TYPOGRAPHY.caption, color: V2_COLORS.textSoft, marginTop: 8 } as TextStyle,
+    backButton: {
+      paddingHorizontal: 24,
+      paddingVertical: 12,
+      borderRadius: RADIUS.pill,
+      backgroundColor: V2_COLORS.primary,
+    } as ViewStyle,
+    backButtonText: { color: '#FFF', fontSize: 15, fontWeight: '600' } as TextStyle,
 
-  scrollContent: { padding: 16, paddingBottom: 100 } as ViewStyle,
+    scrollContent: { padding: 16, paddingBottom: 100 } as ViewStyle,
 
-  // Route Card
-  routeCard: {
-    backgroundColor: V2_COLORS.surface,
-    borderRadius: RADIUS.card,
-    padding: 20,
-    marginBottom: 16,
-    ...BUBBLE_SHADOWS.lg,
-  } as ViewStyle,
-  routeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  } as ViewStyle,
-  routePoint: { alignItems: 'center', flex: 1 } as ViewStyle,
-  routeDot: { width: 12, height: 12, borderRadius: 6, marginBottom: 8 } as ViewStyle,
-  cityName: { ...TYPOGRAPHY.h2, color: V2_COLORS.text, textAlign: 'center' } as TextStyle,
-  cityCode: { fontSize: 13, color: V2_COLORS.textMuted, marginTop: 2 } as TextStyle,
-  routeLine: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 8,
-    gap: 6,
-  } as ViewStyle,
-  dashedLine: {
-    width: 20,
-    height: 1.5,
-    backgroundColor: V2_COLORS.textMuted,
-    opacity: 0.3,
-  } as ViewStyle,
-  metaRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginTop: 16,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: V2_COLORS.cardShadow,
-  } as ViewStyle,
+    // Route Card
+    routeCard: {
+      backgroundColor: V2_COLORS.surface,
+      borderRadius: RADIUS.card,
+      padding: 20,
+      marginBottom: 16,
+      ...BUBBLE_SHADOWS.lg,
+    } as ViewStyle,
+    routeRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    } as ViewStyle,
+    routePoint: { alignItems: 'center', flex: 1 } as ViewStyle,
+    routeDot: { width: 12, height: 12, borderRadius: 6, marginBottom: 8 } as ViewStyle,
+    cityName: { ...TYPOGRAPHY.h2, color: V2_COLORS.text, textAlign: 'center' } as TextStyle,
+    cityCode: { fontSize: 13, color: V2_COLORS.textMuted, marginTop: 2 } as TextStyle,
+    routeLine: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 8,
+      gap: 6,
+    } as ViewStyle,
+    dashedLine: {
+      width: 20,
+      height: 1.5,
+      backgroundColor: V2_COLORS.textMuted,
+      opacity: 0.3,
+    } as ViewStyle,
+    metaRow: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 8,
+      marginTop: 16,
+      paddingTop: 16,
+      borderTopWidth: 1,
+      borderTopColor: V2_COLORS.cardShadow,
+    } as ViewStyle,
 
-  // Stats
-  statsCards: { flexDirection: 'row', gap: 12, marginBottom: 16 } as ViewStyle,
-  statCard: {
-    flex: 1,
-    backgroundColor: V2_COLORS.surface,
-    borderRadius: RADIUS.card,
-    padding: 18,
-    alignItems: 'center',
-    gap: 8,
-    ...BUBBLE_SHADOWS.md,
-  } as ViewStyle,
-  statIconCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
-  } as ViewStyle,
-  statValue: { ...TYPOGRAPHY.h2, color: V2_COLORS.text } as TextStyle,
-  statLabel: { fontSize: 13, color: V2_COLORS.textSoft } as TextStyle,
+    // Stats
+    statsCards: { flexDirection: 'row', gap: 12, marginBottom: 16 } as ViewStyle,
+    statCard: {
+      flex: 1,
+      backgroundColor: V2_COLORS.surface,
+      borderRadius: RADIUS.card,
+      padding: 18,
+      alignItems: 'center',
+      gap: 8,
+      ...BUBBLE_SHADOWS.md,
+    } as ViewStyle,
+    statIconCircle: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      alignItems: 'center',
+      justifyContent: 'center',
+    } as ViewStyle,
+    statValue: { ...TYPOGRAPHY.h2, color: V2_COLORS.text } as TextStyle,
+    statLabel: { fontSize: 13, color: V2_COLORS.textSoft } as TextStyle,
 
-  // Notes
-  notesCard: {
-    backgroundColor: V2_COLORS.accent2 + '12',
-    borderRadius: RADIUS.card,
-    padding: 18,
-    marginBottom: 16,
-  } as ViewStyle,
-  notesTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginBottom: 8,
-  } as ViewStyle,
-  notesTitleText: {
-    ...TYPOGRAPHY.caption,
-    fontWeight: '700',
-    color: V2_COLORS.accent2,
-  } as TextStyle,
-  notesText: { fontSize: 14, lineHeight: 22, color: V2_COLORS.text } as TextStyle,
+    // Notes
+    notesCard: {
+      backgroundColor: V2_COLORS.accent2 + '12',
+      borderRadius: RADIUS.card,
+      padding: 18,
+      marginBottom: 16,
+    } as ViewStyle,
+    notesTitleRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      marginBottom: 8,
+    } as ViewStyle,
+    notesTitleText: {
+      ...TYPOGRAPHY.caption,
+      fontWeight: '700',
+      color: V2_COLORS.accent2,
+    } as TextStyle,
+    notesText: { fontSize: 14, lineHeight: 22, color: V2_COLORS.text } as TextStyle,
 
-  // Carrier section
-  section: {
-    backgroundColor: V2_COLORS.surface,
-    borderRadius: RADIUS.card,
-    padding: 20,
-    marginBottom: 16,
-    ...BUBBLE_SHADOWS.md,
-  } as ViewStyle,
-  carrierRow: { flexDirection: 'row', alignItems: 'center', gap: 12 } as ViewStyle,
-  carrierInfo: { flex: 1 } as ViewStyle,
-  carrierName: { ...TYPOGRAPHY.h3, color: V2_COLORS.text } as TextStyle,
-  carrierLocationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 3,
-    marginTop: 2,
-  } as ViewStyle,
-  carrierCity: { fontSize: 12, color: V2_COLORS.textMuted } as TextStyle,
-  carrierBio: {
-    fontSize: 14,
-    lineHeight: 21,
-    color: V2_COLORS.textSoft,
-    marginTop: 12,
-  } as TextStyle,
-  ratingSection: {
-    marginTop: 16,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: V2_COLORS.cardShadow,
-  } as ViewStyle,
+    // Carrier section
+    section: {
+      backgroundColor: V2_COLORS.surface,
+      borderRadius: RADIUS.card,
+      padding: 20,
+      marginBottom: 16,
+      ...BUBBLE_SHADOWS.md,
+    } as ViewStyle,
+    carrierRow: { flexDirection: 'row', alignItems: 'center', gap: 12 } as ViewStyle,
+    carrierInfo: { flex: 1 } as ViewStyle,
+    carrierName: { ...TYPOGRAPHY.h3, color: V2_COLORS.text } as TextStyle,
+    carrierLocationRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 3,
+      marginTop: 2,
+    } as ViewStyle,
+    carrierCity: { fontSize: 12, color: V2_COLORS.textMuted } as TextStyle,
+    carrierBio: {
+      fontSize: 14,
+      lineHeight: 21,
+      color: V2_COLORS.textSoft,
+      marginTop: 12,
+    } as TextStyle,
+    ratingSection: {
+      marginTop: 16,
+      paddingTop: 16,
+      borderTopWidth: 1,
+      borderTopColor: V2_COLORS.cardShadow,
+    } as ViewStyle,
 
-  // Reviews
-  reviewsSection: { marginBottom: 16 } as ViewStyle,
+    // Reviews
+    reviewsSection: { marginBottom: 16 } as ViewStyle,
 
-  // Action Bar
-  actionBar: {
-    flexDirection: 'row',
-    padding: 16,
-    gap: 12,
-    backgroundColor: V2_COLORS.surface,
-    ...BUBBLE_SHADOWS.lg,
-  } as ViewStyle,
-  messageButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    paddingHorizontal: 20,
-    height: 50,
-    borderRadius: RADIUS.pill,
-    borderWidth: 1.5,
-    borderColor: V2_COLORS.primary,
-  } as ViewStyle,
-  messageButtonText: { fontSize: 14, fontWeight: '600', color: V2_COLORS.primary } as TextStyle,
-  bookButtonWrap: { flex: 1 } as ViewStyle,
-  bookButton: {
-    height: 50,
-    borderRadius: RADIUS.pill,
-    alignItems: 'center',
-    justifyContent: 'center',
-  } as ViewStyle,
-  bookButtonText: { color: '#FFF', fontSize: 16, fontWeight: '700' } as TextStyle,
-});
+    // Action Bar
+    actionBar: {
+      flexDirection: 'row',
+      padding: 16,
+      gap: 12,
+      backgroundColor: V2_COLORS.surface,
+      ...BUBBLE_SHADOWS.lg,
+    } as ViewStyle,
+    messageButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 6,
+      paddingHorizontal: 20,
+      height: 50,
+      borderRadius: RADIUS.pill,
+      borderWidth: 1.5,
+      borderColor: V2_COLORS.primary,
+    } as ViewStyle,
+    messageButtonText: { fontSize: 14, fontWeight: '600', color: V2_COLORS.primary } as TextStyle,
+    bookButtonWrap: { flex: 1 } as ViewStyle,
+    bookButton: {
+      height: 50,
+      borderRadius: RADIUS.pill,
+      alignItems: 'center',
+      justifyContent: 'center',
+    } as ViewStyle,
+    bookButtonText: { color: '#FFF', fontSize: 16, fontWeight: '700' } as TextStyle,
+  })
+);

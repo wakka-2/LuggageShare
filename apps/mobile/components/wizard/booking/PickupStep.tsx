@@ -12,7 +12,7 @@ import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
 
-import { V2_COLORS, RADIUS, BUBBLE_SHADOWS } from '@/providers/ThemeProvider';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS, themed } from '@/providers/ThemeProvider';
 import { QuestionTitle } from '../QuestionTitle';
 import { AnimatedButton } from '@/components/animations/AnimatedButton';
 import { LeafletMap, type LeafletMapHandle, type LatLng } from '@/components/maps/LeafletMap';
@@ -149,59 +149,61 @@ export function PickupStep({ data, updateData, goNext }: StepProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  mapCard: {
-    borderRadius: RADIUS.card,
-    overflow: 'hidden',
-    marginBottom: 8,
-    ...BUBBLE_SHADOWS.sm,
-  },
-  map: {
-    height: 240,
-  },
-  mapLoading: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: V2_COLORS.surface,
-  },
-  locateBtn: {
-    position: 'absolute',
-    bottom: 28,
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    backgroundColor: V2_COLORS.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...BUBBLE_SHADOWS.sm,
-  },
-  hint: {
-    fontSize: 12,
-    color: V2_COLORS.textMuted,
-    marginBottom: 20,
-  },
-  section: {
-    marginBottom: 24,
-  },
-  labelRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: V2_COLORS.textSoft,
-  },
-  textArea: {
-    height: 80,
-    borderRadius: RADIUS.card,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    fontSize: 15,
-    backgroundColor: V2_COLORS.surface,
-    color: V2_COLORS.text,
-    ...BUBBLE_SHADOWS.xs,
-  },
-});
+const styles = themed(() =>
+  StyleSheet.create({
+    mapCard: {
+      borderRadius: RADIUS.card,
+      overflow: 'hidden',
+      marginBottom: 8,
+      ...BUBBLE_SHADOWS.sm,
+    },
+    map: {
+      height: 240,
+    },
+    mapLoading: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: V2_COLORS.surface,
+    },
+    locateBtn: {
+      position: 'absolute',
+      bottom: 28,
+      width: 42,
+      height: 42,
+      borderRadius: 21,
+      backgroundColor: V2_COLORS.surface,
+      alignItems: 'center',
+      justifyContent: 'center',
+      ...BUBBLE_SHADOWS.sm,
+    },
+    hint: {
+      fontSize: 12,
+      color: V2_COLORS.textMuted,
+      marginBottom: 20,
+    },
+    section: {
+      marginBottom: 24,
+    },
+    labelRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 8,
+    },
+    label: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: V2_COLORS.textSoft,
+    },
+    textArea: {
+      height: 80,
+      borderRadius: RADIUS.card,
+      paddingHorizontal: 20,
+      paddingVertical: 12,
+      fontSize: 15,
+      backgroundColor: V2_COLORS.surface,
+      color: V2_COLORS.text,
+      ...BUBBLE_SHADOWS.xs,
+    },
+  })
+);

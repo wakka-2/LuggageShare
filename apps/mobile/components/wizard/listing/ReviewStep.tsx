@@ -1,9 +1,10 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { routeArrow } from '@/lib/rtl';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { V2_COLORS, RADIUS, BUBBLE_SHADOWS } from '@/providers/ThemeProvider';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS, themed } from '@/providers/ThemeProvider';
 import { QuestionTitle } from '../QuestionTitle';
 import { AnimatedButton } from '@/components/animations/AnimatedButton';
 import type { StepProps } from '../WizardContainer';
@@ -37,7 +38,7 @@ export function ReviewStep({ data, goNext, goBack }: StepProps) {
       <Animated.View entering={FadeInUp.delay(150).springify()} style={styles.summaryCard}>
         <SummaryRow
           icon="airplane"
-          label={`${data.departureCity || '—'} → ${data.arrivalCity || '—'}`}
+          label={`${data.departureCity || '—'} ${routeArrow()} ${data.arrivalCity || '—'}`}
           delay={200}
         />
         <SummaryRow icon="calendar" label={formatDate(data.departureDate)} delay={250} />
@@ -103,53 +104,55 @@ function SummaryRow({ icon, label, delay }: { icon: string; label: string; delay
   );
 }
 
-const styles = StyleSheet.create({
-  summaryCard: {
-    borderRadius: RADIUS.card,
-    padding: 20,
-    marginBottom: 20,
-    gap: 14,
-    backgroundColor: V2_COLORS.surface,
-    ...BUBBLE_SHADOWS.sm,
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  rowIconCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: V2_COLORS.primary + '15',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  rowText: {
-    fontSize: 15,
-    flex: 1,
-    color: V2_COLORS.text,
-  },
-  earningsCard: {
-    borderRadius: RADIUS.card,
-    padding: 20,
-    alignItems: 'center',
-    marginBottom: 24,
-    backgroundColor: V2_COLORS.primary + '08',
-  },
-  earningsLabel: {
-    fontSize: 14,
-    marginBottom: 4,
-    color: V2_COLORS.textSoft,
-  },
-  earningsValue: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: V2_COLORS.primary,
-  },
-  earningsNote: {
-    fontSize: 13,
-    marginTop: 4,
-    color: V2_COLORS.textMuted,
-  },
-});
+const styles = themed(() =>
+  StyleSheet.create({
+    summaryCard: {
+      borderRadius: RADIUS.card,
+      padding: 20,
+      marginBottom: 20,
+      gap: 14,
+      backgroundColor: V2_COLORS.surface,
+      ...BUBBLE_SHADOWS.sm,
+    },
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+    },
+    rowIconCircle: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: V2_COLORS.primary + '15',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    rowText: {
+      fontSize: 15,
+      flex: 1,
+      color: V2_COLORS.text,
+    },
+    earningsCard: {
+      borderRadius: RADIUS.card,
+      padding: 20,
+      alignItems: 'center',
+      marginBottom: 24,
+      backgroundColor: V2_COLORS.primary + '08',
+    },
+    earningsLabel: {
+      fontSize: 14,
+      marginBottom: 4,
+      color: V2_COLORS.textSoft,
+    },
+    earningsValue: {
+      fontSize: 32,
+      fontWeight: '700',
+      color: V2_COLORS.primary,
+    },
+    earningsNote: {
+      fontSize: 13,
+      marginTop: 4,
+      color: V2_COLORS.textMuted,
+    },
+  })
+);

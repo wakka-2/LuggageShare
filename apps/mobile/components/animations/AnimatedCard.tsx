@@ -9,7 +9,7 @@ import Animated, {
   interpolate,
   Extrapolation,
 } from 'react-native-reanimated';
-import { V2_COLORS, RADIUS, BUBBLE_SHADOWS } from '@/providers/ThemeProvider';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS, themed } from '@/providers/ThemeProvider';
 import { ANIM, createStaggerDelay } from '@/lib/animations';
 
 interface AnimatedCardProps {
@@ -71,10 +71,12 @@ export function AnimatedCard({ children, onPress, style, delay, index = 0 }: Ani
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    borderRadius: RADIUS.card,
-    overflow: 'hidden',
-    ...BUBBLE_SHADOWS.sm,
-  },
-});
+const styles = themed(() =>
+  StyleSheet.create({
+    card: {
+      borderRadius: RADIUS.card,
+      overflow: 'hidden',
+      ...BUBBLE_SHADOWS.sm,
+    },
+  })
+);

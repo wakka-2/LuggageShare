@@ -2,8 +2,8 @@ import { useState } from 'react';
 import i18n from '@/i18n';
 import { View, Text, TouchableOpacity, Platform, StyleSheet } from 'react-native';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
-import { V2_COLORS, RADIUS, BUBBLE_SHADOWS } from '@/providers/ThemeProvider';
-import { IS_DARK } from '@/lib/colorScheme';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS, themed } from '@/providers/ThemeProvider';
+import { isDarkScheme } from '@/lib/colorScheme';
 
 interface DatePickerInputProps {
   value: Date | null;
@@ -25,7 +25,7 @@ export function DatePickerInput({
   textColor = V2_COLORS.text,
   backgroundColor = V2_COLORS.surface,
   placeholderColor = V2_COLORS.textMuted,
-  textAlign = 'left',
+  textAlign,
 }: DatePickerInputProps) {
   const [show, setShow] = useState(false);
 
@@ -39,7 +39,15 @@ export function DatePickerInput({
   };
 
   const formatDate = (date: Date) => {
-    return date.toLocaleDateString('en-CA'); // YYYY-MM-DD format
+    // Readable, localized date. Arabic uses the Gregorian calendar and Western
+    // digits to match the rest of the app (ar-SA defaults to Hijri).
+    const locale = i18n.language === 'ar' ? 'ar-SA-u-ca-gregory-nu-latn' : 'en-GB';
+    return date.toLocaleDateString(locale, {
+      weekday: 'short',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
   };
 
   return (
@@ -48,7 +56,7 @@ export function DatePickerInput({
         <Text
           style={[
             styles.inputText,
-            { textAlign },
+            { textAlign: textAlign ?? (i18n.language === 'ar' ? 'right' : 'left') },
             value ? { color: textColor } : { color: placeholderColor },
           ]}
         >
@@ -61,7 +69,7 @@ export function DatePickerInput({
           value={value || new Date()}
           mode="date"
           display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-          themeVariant={IS_DARK ? 'dark' : 'light'}
+          themeVariant={isDarkScheme() ? 'dark' : 'light'}
           onChange={handleChange}
           minimumDate={minimumDate}
         />
@@ -70,15 +78,17 @@ export function DatePickerInput({
   );
 }
 
-const styles = StyleSheet.create({
-  input: {
-    height: 48,
-    borderRadius: RADIUS.input,
-    paddingHorizontal: 20,
-    justifyContent: 'center',
-    ...BUBBLE_SHADOWS.xs,
-  },
-  inputText: {
-    fontSize: 16,
-  },
-});
+const styles = themed(() =>
+  StyleSheet.create({
+    input: {
+      height: 48,
+      borderRadius: RADIUS.input,
+      paddingHorizontal: 20,
+      justifyContent: 'center',
+      ...BUBBLE_SHADOWS.xs,
+    },
+    inputText: {
+      fontSize: 16,
+    },
+  })
+);

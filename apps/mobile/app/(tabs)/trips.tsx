@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useRefreshOnFocus } from '@/hooks/useRefreshOnFocus';
+import { cityLabel } from '@/lib/airports';
 import {
   View,
   Text,
@@ -28,6 +29,7 @@ import {
   BUBBLE_SHADOWS,
   TYPOGRAPHY,
   GRADIENTS,
+  themed,
 } from '@/providers/ThemeProvider';
 import { useBookings, getMockBookings, ApiBooking } from '@/hooks/useBookings';
 import { useMyFlights, ApiFlight } from '@/hooks/useFlights';
@@ -214,9 +216,9 @@ const FlightCard = React.memo(function FlightCard({
       <GradientAccentStrip gradient="mint" position="left" />
       <View style={styles.routeRow}>
         <View style={[styles.routeDot, { backgroundColor: V2_COLORS.accent1 }]} />
-        <Text style={styles.cityText}>{flight.departureCity}</Text>
+        <Text style={styles.cityText}>{cityLabel(flight.departureCity)}</Text>
         <Ionicons name="airplane" size={14} color={V2_COLORS.textMuted} />
-        <Text style={styles.cityText}>{flight.arrivalCity}</Text>
+        <Text style={styles.cityText}>{cityLabel(flight.arrivalCity)}</Text>
         <View style={[styles.routeDot, { backgroundColor: V2_COLORS.secondary }]} />
       </View>
       <View style={[styles.statusBadge, { backgroundColor: statusColor + '15' }]}>
@@ -285,9 +287,9 @@ const OfferCard = React.memo(function OfferCard({
       <GradientAccentStrip gradient="warm" position="left" />
       <View style={styles.routeRow}>
         <View style={[styles.routeDot, { backgroundColor: V2_COLORS.accent1 }]} />
-        <Text style={styles.cityText}>{offer.flight.departureCity}</Text>
+        <Text style={styles.cityText}>{cityLabel(offer.flight.departureCity)}</Text>
         <Ionicons name="airplane" size={14} color={V2_COLORS.textMuted} />
-        <Text style={styles.cityText}>{offer.flight.arrivalCity}</Text>
+        <Text style={styles.cityText}>{cityLabel(offer.flight.arrivalCity)}</Text>
         <View style={[styles.routeDot, { backgroundColor: V2_COLORS.secondary }]} />
       </View>
       <View style={[styles.statusBadge, { backgroundColor: statusColor + '15' }]}>
@@ -589,115 +591,117 @@ export default function TripsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: V2_COLORS.bg } as ViewStyle,
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 16,
-    paddingBottom: 8,
-  } as ViewStyle,
-  title: { ...TYPOGRAPHY.h1, color: V2_COLORS.text } as TextStyle,
-  postFlightBtn: { borderRadius: RADIUS.pill, overflow: 'hidden' } as ViewStyle,
-  postFlightGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 14,
-    paddingVertical: 9,
-    borderRadius: RADIUS.pill,
-  } as ViewStyle,
-  postFlightText: { fontSize: 13, fontWeight: '700', color: '#FFF' } as TextStyle,
-  mainTabBar: {
-    flexDirection: 'row',
-    paddingHorizontal: 16,
-    paddingBottom: 10,
-    gap: 8,
-  } as ViewStyle,
-  // Equal-width segments so the row never overflows (long Arabic labels) and
-  // the active pill does not change size when switching.
-  mainTabBtn: {
-    flex: 1,
-    minWidth: 0,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 5,
-    paddingHorizontal: 8,
-    paddingVertical: 9,
-    minHeight: 40,
-    borderRadius: RADIUS.pill,
-    backgroundColor: V2_COLORS.surface,
-    ...BUBBLE_SHADOWS.xs,
-  } as ViewStyle,
-  mainTabBtnActive: { backgroundColor: V2_COLORS.primary } as ViewStyle,
-  mainTabText: {
-    flexShrink: 1,
-    fontSize: 13,
-    fontWeight: '600',
-    color: V2_COLORS.textSoft,
-  } as TextStyle,
-  mainTabTextActive: { color: '#FFFFFF' } as TextStyle,
-  filterBar: { flexGrow: 0, flexShrink: 0 } as ViewStyle,
-  filterBarContent: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    gap: 8,
-    alignItems: 'center',
-  } as ViewStyle,
-  filterChip: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: RADIUS.pill,
-    backgroundColor: V2_COLORS.surface,
-    ...BUBBLE_SHADOWS.xs,
-  } as ViewStyle,
-  filterChipActive: { backgroundColor: V2_COLORS.primary } as ViewStyle,
-  filterChipText: { fontSize: 13, fontWeight: '600', color: V2_COLORS.textSoft } as TextStyle,
-  filterChipTextActive: { color: '#FFFFFF' } as TextStyle,
-  scrollContent: { padding: 16, paddingBottom: 32 } as ViewStyle,
-  loading: { paddingVertical: 16 } as ViewStyle,
-  skeletonCard: {
-    backgroundColor: V2_COLORS.surface,
-    borderRadius: RADIUS.card,
-    padding: 18,
-    marginBottom: 12,
-    ...BUBBLE_SHADOWS.sm,
-  } as ViewStyle,
-  emptyState: { marginTop: 40 } as ViewStyle,
-  card: {
-    backgroundColor: V2_COLORS.surface,
-    borderRadius: RADIUS.card,
-    padding: 18,
-    marginBottom: 12,
-    ...BUBBLE_SHADOWS.lg,
-  } as ViewStyle,
-  routeRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 } as ViewStyle,
-  routeDot: { width: 10, height: 10, borderRadius: 5 } as ViewStyle,
-  cityText: { ...TYPOGRAPHY.h3, color: V2_COLORS.text } as TextStyle,
-  statusBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-    borderRadius: RADIUS.pill,
-    gap: 6,
-    marginBottom: 10,
-  } as ViewStyle,
-  statusDot: { width: 7, height: 7, borderRadius: 4 } as ViewStyle,
-  statusText: { fontSize: 12, fontWeight: '700' } as TextStyle,
-  metaRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 14 } as ViewStyle,
-  userFooter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    paddingTop: 14,
-    borderTopWidth: 1,
-    borderTopColor: V2_COLORS.cardShadow,
-  } as ViewStyle,
-  userName: { fontSize: 14, fontWeight: '600', color: V2_COLORS.text } as TextStyle,
-  bookingLinkRow: { flexDirection: 'row', alignItems: 'center', gap: 6 } as ViewStyle,
-  bookingLinkText: { fontSize: 12, color: '#56D8B1', fontWeight: '600' } as TextStyle,
-});
+const styles = themed(() =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: V2_COLORS.bg } as ViewStyle,
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      padding: 16,
+      paddingBottom: 8,
+    } as ViewStyle,
+    title: { ...TYPOGRAPHY.h1, color: V2_COLORS.text } as TextStyle,
+    postFlightBtn: { borderRadius: RADIUS.pill, overflow: 'hidden' } as ViewStyle,
+    postFlightGradient: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      paddingHorizontal: 14,
+      paddingVertical: 9,
+      borderRadius: RADIUS.pill,
+    } as ViewStyle,
+    postFlightText: { fontSize: 13, fontWeight: '700', color: '#FFF' } as TextStyle,
+    mainTabBar: {
+      flexDirection: 'row',
+      paddingHorizontal: 16,
+      paddingBottom: 10,
+      gap: 8,
+    } as ViewStyle,
+    // Equal-width segments so the row never overflows (long Arabic labels) and
+    // the active pill does not change size when switching.
+    mainTabBtn: {
+      flex: 1,
+      minWidth: 0,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 5,
+      paddingHorizontal: 8,
+      paddingVertical: 9,
+      minHeight: 40,
+      borderRadius: RADIUS.pill,
+      backgroundColor: V2_COLORS.surface,
+      ...BUBBLE_SHADOWS.xs,
+    } as ViewStyle,
+    mainTabBtnActive: { backgroundColor: V2_COLORS.primary } as ViewStyle,
+    mainTabText: {
+      flexShrink: 1,
+      fontSize: 13,
+      fontWeight: '600',
+      color: V2_COLORS.textSoft,
+    } as TextStyle,
+    mainTabTextActive: { color: '#FFFFFF' } as TextStyle,
+    filterBar: { flexGrow: 0, flexShrink: 0 } as ViewStyle,
+    filterBarContent: {
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+      gap: 8,
+      alignItems: 'center',
+    } as ViewStyle,
+    filterChip: {
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+      borderRadius: RADIUS.pill,
+      backgroundColor: V2_COLORS.surface,
+      ...BUBBLE_SHADOWS.xs,
+    } as ViewStyle,
+    filterChipActive: { backgroundColor: V2_COLORS.primary } as ViewStyle,
+    filterChipText: { fontSize: 13, fontWeight: '600', color: V2_COLORS.textSoft } as TextStyle,
+    filterChipTextActive: { color: '#FFFFFF' } as TextStyle,
+    scrollContent: { padding: 16, paddingBottom: 32 } as ViewStyle,
+    loading: { paddingVertical: 16 } as ViewStyle,
+    skeletonCard: {
+      backgroundColor: V2_COLORS.surface,
+      borderRadius: RADIUS.card,
+      padding: 18,
+      marginBottom: 12,
+      ...BUBBLE_SHADOWS.sm,
+    } as ViewStyle,
+    emptyState: { marginTop: 40 } as ViewStyle,
+    card: {
+      backgroundColor: V2_COLORS.surface,
+      borderRadius: RADIUS.card,
+      padding: 18,
+      marginBottom: 12,
+      ...BUBBLE_SHADOWS.lg,
+    } as ViewStyle,
+    routeRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 } as ViewStyle,
+    routeDot: { width: 10, height: 10, borderRadius: 5 } as ViewStyle,
+    cityText: { ...TYPOGRAPHY.h3, color: V2_COLORS.text } as TextStyle,
+    statusBadge: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      alignSelf: 'flex-start',
+      paddingHorizontal: 12,
+      paddingVertical: 5,
+      borderRadius: RADIUS.pill,
+      gap: 6,
+      marginBottom: 10,
+    } as ViewStyle,
+    statusDot: { width: 7, height: 7, borderRadius: 4 } as ViewStyle,
+    statusText: { fontSize: 12, fontWeight: '700' } as TextStyle,
+    metaRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 14 } as ViewStyle,
+    userFooter: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      paddingTop: 14,
+      borderTopWidth: 1,
+      borderTopColor: V2_COLORS.cardShadow,
+    } as ViewStyle,
+    userName: { fontSize: 14, fontWeight: '600', color: V2_COLORS.text } as TextStyle,
+    bookingLinkRow: { flexDirection: 'row', alignItems: 'center', gap: 6 } as ViewStyle,
+    bookingLinkText: { fontSize: 12, color: '#56D8B1', fontWeight: '600' } as TextStyle,
+  })
+);

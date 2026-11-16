@@ -1,9 +1,9 @@
-import { View, TouchableOpacity, StyleSheet, I18nManager } from 'react-native';
+import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import i18n from '@/i18n';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { useAnimatedStyle, withSpring, useSharedValue } from 'react-native-reanimated';
 
-import { V2_COLORS, RADIUS, BUBBLE_SHADOWS } from '@/providers/ThemeProvider';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS, themed } from '@/providers/ThemeProvider';
 import { ViewMode } from './types';
 
 interface ViewToggleProps {
@@ -26,7 +26,7 @@ export function ViewToggle({ value, onChange }: ViewToggleProps) {
     onChange(mode);
   };
 
-  const rtlMultiplier = I18nManager.isRTL ? -1 : 1;
+  const rtlMultiplier = i18n.language === 'ar' ? -1 : 1;
   const indicatorStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: indicatorPosition.value * 40 * rtlMultiplier }],
   }));
@@ -63,29 +63,31 @@ export function ViewToggle({ value, onChange }: ViewToggleProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    backgroundColor: V2_COLORS.surface,
-    borderRadius: RADIUS.pill,
-    padding: 3,
-    position: 'relative',
-    ...BUBBLE_SHADOWS.xs,
-  },
-  indicator: {
-    position: 'absolute',
-    top: 3,
-    start: 3,
-    width: 36,
-    height: 32,
-    borderRadius: RADIUS.pill,
-    backgroundColor: V2_COLORS.primary,
-  },
-  button: {
-    width: 36,
-    height: 32,
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 1,
-  },
-});
+const styles = themed(() =>
+  StyleSheet.create({
+    container: {
+      flexDirection: 'row',
+      backgroundColor: V2_COLORS.surface,
+      borderRadius: RADIUS.pill,
+      padding: 3,
+      position: 'relative',
+      ...BUBBLE_SHADOWS.xs,
+    },
+    indicator: {
+      position: 'absolute',
+      top: 3,
+      start: 3,
+      width: 36,
+      height: 32,
+      borderRadius: RADIUS.pill,
+      backgroundColor: V2_COLORS.primary,
+    },
+    button: {
+      width: 36,
+      height: 32,
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 1,
+    },
+  })
+);

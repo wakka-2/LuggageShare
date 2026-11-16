@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
-import { V2_COLORS, RADIUS, BUBBLE_SHADOWS, TYPOGRAPHY } from '@/providers/ThemeProvider';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS, TYPOGRAPHY, themed } from '@/providers/ThemeProvider';
 
 interface ScreenHeaderProps {
   title: string;
@@ -44,28 +44,30 @@ export function ScreenHeader({ title, onBack, right }: ScreenHeaderProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-  } as ViewStyle,
-  headerBtn: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: RADIUS.pill,
-    backgroundColor: V2_COLORS.surface,
-    ...BUBBLE_SHADOWS.xs,
-    ...({ cursor: 'pointer' } as any),
-  } as ViewStyle,
-  headerTitle: {
-    ...TYPOGRAPHY.h3,
-    color: V2_COLORS.text,
-    flex: 1,
-    textAlign: 'center',
-  } as TextStyle,
-});
+const styles = themed(() =>
+  StyleSheet.create({
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+      paddingVertical: 10,
+    } as ViewStyle,
+    headerBtn: {
+      width: 40,
+      height: 40,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: RADIUS.pill,
+      backgroundColor: V2_COLORS.surface,
+      ...BUBBLE_SHADOWS.xs,
+      ...({ cursor: 'pointer' } as any),
+    } as ViewStyle,
+    headerTitle: {
+      ...TYPOGRAPHY.h3,
+      color: V2_COLORS.text,
+      flex: 1,
+      textAlign: 'center',
+    } as TextStyle,
+  })
+);

@@ -16,7 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeIn, FadeInUp, ZoomIn } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 
-import { V2_COLORS, RADIUS, BUBBLE_SHADOWS, GRADIENTS } from '@/providers/ThemeProvider';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS, GRADIENTS, themed } from '@/providers/ThemeProvider';
 import { BackgroundBlobs } from '@/components/common';
 import { useGoogleAuth } from '@/hooks/useGoogleAuth';
 import { useAppleAuth } from '@/hooks/useAppleAuth';
@@ -315,164 +315,166 @@ export default function LoginScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: V2_COLORS.bg,
-  },
-  flex: {
-    flex: 1,
-  },
-  content: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    padding: 24,
-    gap: 20,
-  },
-  logoContainer: {
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  input: {
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    borderRadius: RADIUS.pill,
-    fontSize: 16,
-    backgroundColor: V2_COLORS.surface,
-    color: V2_COLORS.text,
-    ...BUBBLE_SHADOWS.sm,
-  },
-  primaryButton: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 16,
-    minHeight: 54,
-    borderRadius: RADIUS.pill,
-    backgroundColor: V2_COLORS.primary,
-  },
-  primaryButtonText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-  buttonDisabled: {
-    opacity: 0.6,
-  },
-  modeToggle: {
-    alignItems: 'center',
-    paddingVertical: 4,
-  },
-  modeToggleText: {
-    fontSize: 14,
-    color: V2_COLORS.textSoft,
-  },
-  divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  dividerLine: {
-    flex: 1,
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: V2_COLORS.textMuted,
-  },
-  dividerText: {
-    fontSize: 13,
-    color: V2_COLORS.textMuted,
-  },
-  logo: {
-    width: 100,
-    height: 100,
-    borderRadius: 28,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
-    ...BUBBLE_SHADOWS.lg,
-  },
-  appName: {
-    fontSize: 32,
-    fontWeight: '800',
-    marginBottom: 8,
-    color: V2_COLORS.text,
-  },
-  tagline: {
-    fontSize: 16,
-    textAlign: 'center',
-    color: V2_COLORS.textSoft,
-  },
-  authButtons: {
-    gap: 14,
-  },
-  googleButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 16,
-    borderRadius: RADIUS.pill,
-    gap: 12,
-    backgroundColor: V2_COLORS.surface,
-    ...BUBBLE_SHADOWS.sm,
-  },
-  googleButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: V2_COLORS.text,
-  },
-  appleButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 16,
-    borderRadius: RADIUS.pill,
-    gap: 12,
-    backgroundColor: '#000000',
-  },
-  appleButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
-  devButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 16,
-    borderRadius: RADIUS.pill,
-    gap: 12,
-    backgroundColor: V2_COLORS.primary,
-    marginTop: 8,
-  },
-  devButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
-  terms: {
-    marginTop: 32,
-    paddingHorizontal: 16,
-  },
-  termsText: {
-    fontSize: 12,
-    textAlign: 'center',
-    lineHeight: 18,
-    color: V2_COLORS.textMuted,
-  },
-  termsLink: {
-    fontWeight: '600',
-    color: V2_COLORS.primary,
-  },
-  errorBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    padding: 12,
-    borderRadius: RADIUS.card,
-    marginBottom: 16,
-    backgroundColor: V2_COLORS.secondary + '12',
-  },
-  errorText: {
-    flex: 1,
-    fontSize: 13,
-    color: V2_COLORS.secondary,
-  },
-});
+const styles = themed(() =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: V2_COLORS.bg,
+    },
+    flex: {
+      flex: 1,
+    },
+    content: {
+      flexGrow: 1,
+      justifyContent: 'center',
+      padding: 24,
+      gap: 20,
+    },
+    logoContainer: {
+      alignItems: 'center',
+      marginBottom: 12,
+    },
+    input: {
+      paddingVertical: 14,
+      paddingHorizontal: 20,
+      borderRadius: RADIUS.pill,
+      fontSize: 16,
+      backgroundColor: V2_COLORS.surface,
+      color: V2_COLORS.text,
+      ...BUBBLE_SHADOWS.sm,
+    },
+    primaryButton: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: 16,
+      minHeight: 54,
+      borderRadius: RADIUS.pill,
+      backgroundColor: V2_COLORS.primary,
+    },
+    primaryButtonText: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: '#FFFFFF',
+    },
+    buttonDisabled: {
+      opacity: 0.6,
+    },
+    modeToggle: {
+      alignItems: 'center',
+      paddingVertical: 4,
+    },
+    modeToggleText: {
+      fontSize: 14,
+      color: V2_COLORS.textSoft,
+    },
+    divider: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+    },
+    dividerLine: {
+      flex: 1,
+      height: StyleSheet.hairlineWidth,
+      backgroundColor: V2_COLORS.textMuted,
+    },
+    dividerText: {
+      fontSize: 13,
+      color: V2_COLORS.textMuted,
+    },
+    logo: {
+      width: 100,
+      height: 100,
+      borderRadius: 28,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: 16,
+      ...BUBBLE_SHADOWS.lg,
+    },
+    appName: {
+      fontSize: 32,
+      fontWeight: '800',
+      marginBottom: 8,
+      color: V2_COLORS.text,
+    },
+    tagline: {
+      fontSize: 16,
+      textAlign: 'center',
+      color: V2_COLORS.textSoft,
+    },
+    authButtons: {
+      gap: 14,
+    },
+    googleButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: 16,
+      borderRadius: RADIUS.pill,
+      gap: 12,
+      backgroundColor: V2_COLORS.surface,
+      ...BUBBLE_SHADOWS.sm,
+    },
+    googleButtonText: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: V2_COLORS.text,
+    },
+    appleButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: 16,
+      borderRadius: RADIUS.pill,
+      gap: 12,
+      backgroundColor: '#000000',
+    },
+    appleButtonText: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: '#FFFFFF',
+    },
+    devButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: 16,
+      borderRadius: RADIUS.pill,
+      gap: 12,
+      backgroundColor: V2_COLORS.primary,
+      marginTop: 8,
+    },
+    devButtonText: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: '#FFFFFF',
+    },
+    terms: {
+      marginTop: 32,
+      paddingHorizontal: 16,
+    },
+    termsText: {
+      fontSize: 12,
+      textAlign: 'center',
+      lineHeight: 18,
+      color: V2_COLORS.textMuted,
+    },
+    termsLink: {
+      fontWeight: '600',
+      color: V2_COLORS.primary,
+    },
+    errorBanner: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      padding: 12,
+      borderRadius: RADIUS.card,
+      marginBottom: 16,
+      backgroundColor: V2_COLORS.secondary + '12',
+    },
+    errorText: {
+      flex: 1,
+      fontSize: 13,
+      color: V2_COLORS.secondary,
+    },
+  })
+);

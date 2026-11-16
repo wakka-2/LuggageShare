@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { View, TextInput, Text, StyleSheet, I18nManager, TextInputProps } from 'react-native';
+import { View, TextInput, Text, StyleSheet, TextInputProps } from 'react-native';
+import i18n from '@/i18n';
 import { Ionicons } from '@expo/vector-icons';
-import { RADIUS, BUBBLE_SHADOWS, V2_COLORS } from '@/providers/ThemeProvider';
+import { RADIUS, BUBBLE_SHADOWS, V2_COLORS, themed } from '@/providers/ThemeProvider';
 
 type IoniconsName = keyof typeof Ionicons.glyphMap;
 
@@ -28,7 +29,7 @@ export function BubbleInput({
   ...rest
 }: BubbleInputProps) {
   const [isFocused, setIsFocused] = useState(false);
-  const isRTL = I18nManager.isRTL;
+  const isRTL = i18n.language === 'ar';
 
   const indicator = dotColor ? (
     <View style={[styles.dot, { backgroundColor: dotColor }]} />
@@ -70,62 +71,64 @@ export function BubbleInput({
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: V2_COLORS.surface,
-    borderRadius: RADIUS.input,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderWidth: 1.5,
-    borderColor: 'transparent',
-  },
-  multiline: {
-    borderRadius: RADIUS.card,
-    alignItems: 'flex-start',
-    minHeight: 100,
-    paddingVertical: 16,
-  },
-  focused: {
-    borderColor: V2_COLORS.primary,
-  },
-  errorBorder: {
-    borderColor: V2_COLORS.secondary,
-  },
-  readOnly: {
-    opacity: 0.6,
-  },
-  indicatorWrap: {
-    marginRight: 10,
-  },
-  indicatorRTL: {
-    marginRight: 0,
-    marginLeft: 10,
-  },
-  dot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-  },
-  input: {
-    flex: 1,
-    fontSize: 14,
-    fontWeight: '500',
-    color: V2_COLORS.text,
-    padding: 0,
-  },
-  inputMultiline: {
-    minHeight: 60,
-  },
-  inputRTL: {
-    textAlign: 'right',
-  },
-  errorText: {
-    fontSize: 12,
-    color: V2_COLORS.secondary,
-    marginTop: 6,
-    marginLeft: 16,
-    fontWeight: '500',
-  },
-});
+const styles = themed(() =>
+  StyleSheet.create({
+    container: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: V2_COLORS.surface,
+      borderRadius: RADIUS.input,
+      paddingHorizontal: 16,
+      paddingVertical: 14,
+      borderWidth: 1.5,
+      borderColor: 'transparent',
+    },
+    multiline: {
+      borderRadius: RADIUS.card,
+      alignItems: 'flex-start',
+      minHeight: 100,
+      paddingVertical: 16,
+    },
+    focused: {
+      borderColor: V2_COLORS.primary,
+    },
+    errorBorder: {
+      borderColor: V2_COLORS.secondary,
+    },
+    readOnly: {
+      opacity: 0.6,
+    },
+    indicatorWrap: {
+      marginRight: 10,
+    },
+    indicatorRTL: {
+      marginRight: 0,
+      marginLeft: 10,
+    },
+    dot: {
+      width: 10,
+      height: 10,
+      borderRadius: 5,
+    },
+    input: {
+      flex: 1,
+      fontSize: 14,
+      fontWeight: '500',
+      color: V2_COLORS.text,
+      padding: 0,
+    },
+    inputMultiline: {
+      minHeight: 60,
+    },
+    inputRTL: {
+      textAlign: 'right',
+    },
+    errorText: {
+      fontSize: 12,
+      color: V2_COLORS.secondary,
+      marginTop: 6,
+      marginLeft: 16,
+      fontWeight: '500',
+    },
+  })
+);

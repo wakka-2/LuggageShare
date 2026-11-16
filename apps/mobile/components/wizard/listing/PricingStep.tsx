@@ -3,7 +3,7 @@ import { View, Text, TextInput, StyleSheet, TouchableOpacity } from 'react-nativ
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { V2_COLORS, RADIUS, BUBBLE_SHADOWS } from '@/providers/ThemeProvider';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS, themed } from '@/providers/ThemeProvider';
 import { QuestionTitle } from '../QuestionTitle';
 import { AnimatedButton } from '@/components/animations/AnimatedButton';
 import type { StepProps } from '../WizardContainer';
@@ -12,8 +12,10 @@ export function PricingStep({ data, updateData, goNext }: StepProps) {
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === 'ar';
 
-  const price = data.price ?? 15;
-  const weight = data.availableWeight ?? 5;
+  // Coerce: wizard data may hold strings (initialData, text input); string + number
+  // concatenates, which made the -/+ buttons produce NaN.
+  const price = Number(data.price ?? 15) || 0;
+  const weight = Number(data.availableWeight ?? 5) || 0;
   const estimatedTotal = price * weight;
   const canAdvance = price > 0;
 
@@ -101,88 +103,90 @@ export function PricingStep({ data, updateData, goNext }: StepProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  priceDisplay: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    justifyContent: 'center',
-    marginBottom: 24,
-    gap: 8,
-  },
-  currency: {
-    fontSize: 18,
-    fontWeight: '500',
-    color: V2_COLORS.textSoft,
-  },
-  priceInput: {
-    fontSize: 48,
-    fontWeight: '700',
-    minWidth: 80,
-    textAlign: 'center',
-    color: V2_COLORS.text,
-  },
-  perKg: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: V2_COLORS.textSoft,
-  },
-  adjustRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginBottom: 24,
-  },
-  adjustBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: V2_COLORS.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...BUBBLE_SHADOWS.xs,
-  },
-  sliderTrack: {
-    flex: 1,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: V2_COLORS.cardShadow,
-    overflow: 'hidden',
-  },
-  sliderFill: {
-    height: '100%',
-    borderRadius: 3,
-    backgroundColor: V2_COLORS.primary,
-  },
-  infoRow: {
-    marginBottom: 16,
-  },
-  infoText: {
-    fontSize: 14,
-    color: V2_COLORS.textSoft,
-  },
-  estimateCard: {
-    borderRadius: RADIUS.card,
-    padding: 20,
-    alignItems: 'center',
-    marginBottom: 24,
-    backgroundColor: V2_COLORS.primary + '08',
-  },
-  estimateLabel: {
-    fontSize: 13,
-    marginBottom: 4,
-    color: V2_COLORS.textSoft,
-  },
-  estimateValue: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: V2_COLORS.primary,
-  },
-  estimateNote: {
-    fontSize: 13,
-    marginTop: 2,
-    color: V2_COLORS.textMuted,
-  },
-  nextContainer: {
-    marginTop: 8,
-  },
-});
+const styles = themed(() =>
+  StyleSheet.create({
+    priceDisplay: {
+      flexDirection: 'row',
+      alignItems: 'baseline',
+      justifyContent: 'center',
+      marginBottom: 24,
+      gap: 8,
+    },
+    currency: {
+      fontSize: 18,
+      fontWeight: '500',
+      color: V2_COLORS.textSoft,
+    },
+    priceInput: {
+      fontSize: 48,
+      fontWeight: '700',
+      minWidth: 80,
+      textAlign: 'center',
+      color: V2_COLORS.text,
+    },
+    perKg: {
+      fontSize: 16,
+      fontWeight: '500',
+      color: V2_COLORS.textSoft,
+    },
+    adjustRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      marginBottom: 24,
+    },
+    adjustBtn: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: V2_COLORS.surface,
+      alignItems: 'center',
+      justifyContent: 'center',
+      ...BUBBLE_SHADOWS.xs,
+    },
+    sliderTrack: {
+      flex: 1,
+      height: 6,
+      borderRadius: 3,
+      backgroundColor: V2_COLORS.cardShadow,
+      overflow: 'hidden',
+    },
+    sliderFill: {
+      height: '100%',
+      borderRadius: 3,
+      backgroundColor: V2_COLORS.primary,
+    },
+    infoRow: {
+      marginBottom: 16,
+    },
+    infoText: {
+      fontSize: 14,
+      color: V2_COLORS.textSoft,
+    },
+    estimateCard: {
+      borderRadius: RADIUS.card,
+      padding: 20,
+      alignItems: 'center',
+      marginBottom: 24,
+      backgroundColor: V2_COLORS.primary + '08',
+    },
+    estimateLabel: {
+      fontSize: 13,
+      marginBottom: 4,
+      color: V2_COLORS.textSoft,
+    },
+    estimateValue: {
+      fontSize: 28,
+      fontWeight: '700',
+      color: V2_COLORS.primary,
+    },
+    estimateNote: {
+      fontSize: 13,
+      marginTop: 2,
+      color: V2_COLORS.textMuted,
+    },
+    nextContainer: {
+      marginTop: 8,
+    },
+  })
+);

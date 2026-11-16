@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
+import { dirIcon } from '@/lib/rtl';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, {
@@ -12,7 +13,8 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { Avatar, MetaChip } from '@/components/common';
-import { V2_COLORS, RADIUS, BUBBLE_SHADOWS, TYPOGRAPHY } from '@/providers/ThemeProvider';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS, TYPOGRAPHY, themed } from '@/providers/ThemeProvider';
+import { cityLabel } from '@/lib/airports';
 import { Listing, ViewMode, ITEM_CATEGORIES } from './types';
 
 interface ListingCardProps {
@@ -120,7 +122,7 @@ export const ListingCard = React.memo(function ListingCard({
             <View style={styles.listRoute}>
               <View style={[styles.routeDot, { backgroundColor: originDotColor }]} />
               <Text style={styles.listRouteText}>{listing.from.code}</Text>
-              <Ionicons name="arrow-forward" size={12} color={V2_COLORS.textMuted} />
+              <Ionicons name={dirIcon('arrow-forward')} size={12} color={V2_COLORS.textMuted} />
               <View style={[styles.routeDot, { backgroundColor: destDotColor }]} />
               <Text style={styles.listRouteText}>{listing.to.code}</Text>
             </View>
@@ -179,7 +181,7 @@ export const ListingCard = React.memo(function ListingCard({
           <View>
             <Text style={styles.routeCode}>{listing.from.code}</Text>
             <Text style={styles.routeCityName} numberOfLines={1}>
-              {listing.from.city}
+              {cityLabel(listing.from.city)}
             </Text>
           </View>
         </View>
@@ -192,7 +194,7 @@ export const ListingCard = React.memo(function ListingCard({
           <View>
             <Text style={[styles.routeCode, { textAlign: 'right' }]}>{listing.to.code}</Text>
             <Text style={[styles.routeCityName, { textAlign: 'right' }]} numberOfLines={1}>
-              {listing.to.city}
+              {cityLabel(listing.to.city)}
             </Text>
           </View>
           <View style={[styles.routeDotLarge, { backgroundColor: destDotColor }]} />
@@ -255,234 +257,236 @@ export const ListingCard = React.memo(function ListingCard({
   );
 });
 
-const styles = StyleSheet.create({
-  // Grid View Styles — V2 Bubble Card
-  gridContainer: {
-    backgroundColor: V2_COLORS.surface,
-    borderRadius: RADIUS.card,
-    padding: 18,
-    marginBottom: 16,
-    ...BUBBLE_SHADOWS.lg,
-  },
-  gridContainerWeb: {
-    ...(Platform.OS === 'web'
-      ? ({ cursor: 'pointer', transition: 'transform 0.2s ease' } as any)
-      : {}),
-  },
-  headerContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 14,
-  },
-  typeBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: RADIUS.pill,
-    gap: 5,
-  },
-  typeBadgeText: {
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  viewsContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  viewsText: {
-    color: V2_COLORS.textMuted,
-    fontSize: 12,
-    fontWeight: '500',
-  },
-  routeDisplay: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 14,
-  },
-  routeCity: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  routeCityEnd: {
-    justifyContent: 'flex-end',
-  },
-  routeDotLarge: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-  },
-  routeCode: {
-    ...TYPOGRAPHY.h1,
-    color: V2_COLORS.text,
-  },
-  routeCityName: {
-    ...TYPOGRAPHY.small,
-    color: V2_COLORS.textSoft,
-  },
-  routeArrow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 0.8,
-    paddingHorizontal: 4,
-  },
-  routeLine: {
-    flex: 1,
-    height: 1.5,
-    backgroundColor: V2_COLORS.textMuted + '40',
-  },
-  gridTitle: {
-    ...TYPOGRAPHY.h3,
-    color: V2_COLORS.text,
-    marginBottom: 10,
-  },
-  metaRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-    marginBottom: 14,
-  },
-  cardFooter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingTop: 14,
-    borderTopWidth: 1,
-    borderTopColor: V2_COLORS.cardShadow,
-  },
-  userSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    flex: 1,
-  },
-  userInfo: {
-    flex: 1,
-  },
-  userName: {
-    ...TYPOGRAPHY.caption,
-    fontWeight: '600',
-    color: V2_COLORS.text,
-  },
-  userStats: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 3,
-    marginTop: 2,
-  },
-  userRating: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: V2_COLORS.textSoft,
-  },
-  priceBlock: {
-    alignItems: 'flex-end',
-  },
-  priceValue: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: V2_COLORS.text,
-    letterSpacing: -0.3,
-  },
-  priceCurrency: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: V2_COLORS.textSoft,
-  },
+const styles = themed(() =>
+  StyleSheet.create({
+    // Grid View Styles — V2 Bubble Card
+    gridContainer: {
+      backgroundColor: V2_COLORS.surface,
+      borderRadius: RADIUS.card,
+      padding: 18,
+      marginBottom: 16,
+      ...BUBBLE_SHADOWS.lg,
+    },
+    gridContainerWeb: {
+      ...(Platform.OS === 'web'
+        ? ({ cursor: 'pointer', transition: 'transform 0.2s ease' } as any)
+        : {}),
+    },
+    headerContent: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 14,
+    },
+    typeBadge: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 10,
+      paddingVertical: 5,
+      borderRadius: RADIUS.pill,
+      gap: 5,
+    },
+    typeBadgeText: {
+      fontSize: 12,
+      fontWeight: '700',
+    },
+    viewsContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+    },
+    viewsText: {
+      color: V2_COLORS.textMuted,
+      fontSize: 12,
+      fontWeight: '500',
+    },
+    routeDisplay: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 14,
+    },
+    routeCity: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+    routeCityEnd: {
+      justifyContent: 'flex-end',
+    },
+    routeDotLarge: {
+      width: 12,
+      height: 12,
+      borderRadius: 6,
+    },
+    routeCode: {
+      ...TYPOGRAPHY.h1,
+      color: V2_COLORS.text,
+    },
+    routeCityName: {
+      ...TYPOGRAPHY.small,
+      color: V2_COLORS.textSoft,
+    },
+    routeArrow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flex: 0.8,
+      paddingHorizontal: 4,
+    },
+    routeLine: {
+      flex: 1,
+      height: 1.5,
+      backgroundColor: V2_COLORS.textMuted + '40',
+    },
+    gridTitle: {
+      ...TYPOGRAPHY.h3,
+      color: V2_COLORS.text,
+      marginBottom: 10,
+    },
+    metaRow: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 6,
+      marginBottom: 14,
+    },
+    cardFooter: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingTop: 14,
+      borderTopWidth: 1,
+      borderTopColor: V2_COLORS.cardShadow,
+    },
+    userSection: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      flex: 1,
+    },
+    userInfo: {
+      flex: 1,
+    },
+    userName: {
+      ...TYPOGRAPHY.caption,
+      fontWeight: '600',
+      color: V2_COLORS.text,
+    },
+    userStats: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 3,
+      marginTop: 2,
+    },
+    userRating: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: V2_COLORS.textSoft,
+    },
+    priceBlock: {
+      alignItems: 'flex-end',
+    },
+    priceValue: {
+      fontSize: 22,
+      fontWeight: '800',
+      color: V2_COLORS.text,
+      letterSpacing: -0.3,
+    },
+    priceCurrency: {
+      fontSize: 12,
+      fontWeight: '500',
+      color: V2_COLORS.textSoft,
+    },
 
-  // List View Styles — V2
-  listContainer: {
-    flexDirection: 'row',
-    backgroundColor: V2_COLORS.surface,
-    borderRadius: RADIUS.card,
-    overflow: 'hidden',
-    marginBottom: 10,
-    ...BUBBLE_SHADOWS.sm,
-  },
-  listContainerWeb: {
-    ...(Platform.OS === 'web'
-      ? ({ cursor: 'pointer', transition: 'transform 0.15s ease' } as any)
-      : {}),
-  },
-  listTypeDot: {
-    width: 4,
-    borderTopLeftRadius: RADIUS.card,
-    borderBottomLeftRadius: RADIUS.card,
-  },
-  routeDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  listContent: {
-    flex: 1,
-    padding: 14,
-  },
-  listHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 8,
-  },
-  listTitle: {
-    ...TYPOGRAPHY.caption,
-    fontWeight: '600',
-    color: V2_COLORS.text,
-    flex: 1,
-    marginEnd: 12,
-  },
-  listPriceContainer: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    gap: 2,
-  },
-  listPrice: {
-    fontSize: 17,
-    fontWeight: '700',
-  },
-  listPriceCurrency: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: V2_COLORS.textSoft,
-  },
-  listMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 10,
-  },
-  listRoute: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  listRouteText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: V2_COLORS.text,
-  },
-  listFooter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  listUserInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    flex: 1,
-  },
-  listUserName: {
-    fontSize: 13,
-    color: V2_COLORS.textSoft,
-    flex: 1,
-  },
-  listTime: {
-    fontSize: 12,
-    color: V2_COLORS.textMuted,
-  },
-});
+    // List View Styles — V2
+    listContainer: {
+      flexDirection: 'row',
+      backgroundColor: V2_COLORS.surface,
+      borderRadius: RADIUS.card,
+      overflow: 'hidden',
+      marginBottom: 10,
+      ...BUBBLE_SHADOWS.sm,
+    },
+    listContainerWeb: {
+      ...(Platform.OS === 'web'
+        ? ({ cursor: 'pointer', transition: 'transform 0.15s ease' } as any)
+        : {}),
+    },
+    listTypeDot: {
+      width: 4,
+      borderTopLeftRadius: RADIUS.card,
+      borderBottomLeftRadius: RADIUS.card,
+    },
+    routeDot: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+    },
+    listContent: {
+      flex: 1,
+      padding: 14,
+    },
+    listHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      marginBottom: 8,
+    },
+    listTitle: {
+      ...TYPOGRAPHY.caption,
+      fontWeight: '600',
+      color: V2_COLORS.text,
+      flex: 1,
+      marginEnd: 12,
+    },
+    listPriceContainer: {
+      flexDirection: 'row',
+      alignItems: 'baseline',
+      gap: 2,
+    },
+    listPrice: {
+      fontSize: 17,
+      fontWeight: '700',
+    },
+    listPriceCurrency: {
+      fontSize: 12,
+      fontWeight: '500',
+      color: V2_COLORS.textSoft,
+    },
+    listMeta: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 10,
+    },
+    listRoute: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+    },
+    listRouteText: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: V2_COLORS.text,
+    },
+    listFooter: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    listUserInfo: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      flex: 1,
+    },
+    listUserName: {
+      fontSize: 13,
+      color: V2_COLORS.textSoft,
+      flex: 1,
+    },
+    listTime: {
+      fontSize: 12,
+      color: V2_COLORS.textMuted,
+    },
+  })
+);

@@ -13,7 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
-import { V2_COLORS, RADIUS, BUBBLE_SHADOWS } from '@/providers/ThemeProvider';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS, themed } from '@/providers/ThemeProvider';
 import { BackgroundBlobs } from '@/components/common/BackgroundBlobs';
 import { ScreenHeader } from '@/components/common/ScreenHeader';
 import { ReviewCard } from '@/components/trust';
@@ -119,116 +119,118 @@ export default function MyReviewsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: V2_COLORS.bg,
-  } as ViewStyle,
-  centered: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  } as ViewStyle,
-  scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 8,
-    paddingBottom: 32,
-  },
-  emptyContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 32,
-  } as ViewStyle,
-  emptyContent: {
-    alignItems: 'center',
-    gap: 12,
-  } as ViewStyle,
-  emptyIconCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: V2_COLORS.primary + '15',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
-  } as ViewStyle,
-  emptyTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: V2_COLORS.text,
-    textAlign: 'center',
-  } as TextStyle,
-  emptySubtitle: {
-    fontSize: 14,
-    color: V2_COLORS.textSoft,
-    textAlign: 'center',
-    lineHeight: 20,
-    maxWidth: 260,
-  } as TextStyle,
-  // Summary card
-  summaryCard: {
-    backgroundColor: V2_COLORS.surface,
-    borderRadius: RADIUS.card,
-    padding: 20,
-    marginBottom: 16,
-    ...BUBBLE_SHADOWS.md,
-  } as ViewStyle,
-  summaryTop: {
-    flexDirection: 'row',
-    gap: 20,
-    alignItems: 'center',
-  } as ViewStyle,
-  avgBlock: {
-    alignItems: 'center',
-    gap: 4,
-  } as ViewStyle,
-  avgNumber: {
-    fontSize: 40,
-    fontWeight: '800',
-    color: V2_COLORS.text,
-    lineHeight: 44,
-  } as TextStyle,
-  starsRow: {
-    flexDirection: 'row',
-    gap: 2,
-  } as ViewStyle,
-  reviewCount: {
-    fontSize: 12,
-    color: V2_COLORS.textSoft,
-    marginTop: 2,
-  } as TextStyle,
-  distBlock: {
-    flex: 1,
-    gap: 5,
-  } as ViewStyle,
-  distRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  } as ViewStyle,
-  distLabel: {
-    fontSize: 11,
-    color: V2_COLORS.textSoft,
-    width: 10,
-    textAlign: 'right',
-  } as TextStyle,
-  distBarBg: {
-    flex: 1,
-    height: 6,
-    backgroundColor: V2_COLORS.textMuted + '30',
-    borderRadius: 3,
-    overflow: 'hidden',
-  } as ViewStyle,
-  distBarFill: {
-    height: '100%',
-    backgroundColor: V2_COLORS.accent2,
-    borderRadius: 3,
-  } as ViewStyle,
-  distCount: {
-    fontSize: 11,
-    color: V2_COLORS.textSoft,
-    width: 16,
-    textAlign: 'right',
-  } as TextStyle,
-});
+const styles = themed(() =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: V2_COLORS.bg,
+    } as ViewStyle,
+    centered: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+    } as ViewStyle,
+    scrollContent: {
+      paddingHorizontal: 20,
+      paddingTop: 8,
+      paddingBottom: 32,
+    },
+    emptyContainer: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: 32,
+    } as ViewStyle,
+    emptyContent: {
+      alignItems: 'center',
+      gap: 12,
+    } as ViewStyle,
+    emptyIconCircle: {
+      width: 80,
+      height: 80,
+      borderRadius: 40,
+      backgroundColor: V2_COLORS.primary + '15',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: 8,
+    } as ViewStyle,
+    emptyTitle: {
+      fontSize: 18,
+      fontWeight: '700',
+      color: V2_COLORS.text,
+      textAlign: 'center',
+    } as TextStyle,
+    emptySubtitle: {
+      fontSize: 14,
+      color: V2_COLORS.textSoft,
+      textAlign: 'center',
+      lineHeight: 20,
+      maxWidth: 260,
+    } as TextStyle,
+    // Summary card
+    summaryCard: {
+      backgroundColor: V2_COLORS.surface,
+      borderRadius: RADIUS.card,
+      padding: 20,
+      marginBottom: 16,
+      ...BUBBLE_SHADOWS.md,
+    } as ViewStyle,
+    summaryTop: {
+      flexDirection: 'row',
+      gap: 20,
+      alignItems: 'center',
+    } as ViewStyle,
+    avgBlock: {
+      alignItems: 'center',
+      gap: 4,
+    } as ViewStyle,
+    avgNumber: {
+      fontSize: 40,
+      fontWeight: '800',
+      color: V2_COLORS.text,
+      lineHeight: 44,
+    } as TextStyle,
+    starsRow: {
+      flexDirection: 'row',
+      gap: 2,
+    } as ViewStyle,
+    reviewCount: {
+      fontSize: 12,
+      color: V2_COLORS.textSoft,
+      marginTop: 2,
+    } as TextStyle,
+    distBlock: {
+      flex: 1,
+      gap: 5,
+    } as ViewStyle,
+    distRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+    } as ViewStyle,
+    distLabel: {
+      fontSize: 11,
+      color: V2_COLORS.textSoft,
+      width: 10,
+      textAlign: 'right',
+    } as TextStyle,
+    distBarBg: {
+      flex: 1,
+      height: 6,
+      backgroundColor: V2_COLORS.textMuted + '30',
+      borderRadius: 3,
+      overflow: 'hidden',
+    } as ViewStyle,
+    distBarFill: {
+      height: '100%',
+      backgroundColor: V2_COLORS.accent2,
+      borderRadius: 3,
+    } as ViewStyle,
+    distCount: {
+      fontSize: 11,
+      color: V2_COLORS.textSoft,
+      width: 16,
+      textAlign: 'right',
+    } as TextStyle,
+  })
+);

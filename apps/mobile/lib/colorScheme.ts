@@ -1,15 +1,14 @@
-import { Appearance, DevSettings, Platform } from 'react-native';
+import { useSyncExternalStore } from 'react';
+import { Appearance, Platform } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
-import * as Updates from 'expo-updates';
 
 /**
- * App color scheme, resolved ONCE at startup.
+ * Live app color scheme (System / Light / Dark), switchable without reloading.
  *
- * Most styles are built with StyleSheet.create at module load from V2_COLORS, so
- * the palette has to be known before any screen module evaluates. We therefore
- * read the user's preference synchronously here and freeze the scheme for the
- * lifetime of the JS runtime. Changing the preference reloads the JS bundle
- * (instant, no app restart) so every stylesheet is rebuilt with the new palette.
+ * Module-level styles are wrapped in `themed()` (providers/ThemeProvider), which
+ * rebuilds them lazily whenever the scheme changes. Listeners registered here
+ * run in insertion order: ThemeProvider registers first (at module load) to swap
+ * the V2_COLORS palette in place, then the root layout re-renders the tree.
  */
 
 export type ThemePreference = 'system' | 'light' | 'dark';
@@ -29,30 +28,78 @@ function readPreference(): ThemePreference {
   }
 }
 
-export const THEME_PREFERENCE: ThemePreference = readPreference();
+function resolve(pref: ThemePreference): ColorScheme {
+  if (pref !== 'system') return pref;
+  return Appearance.getColorScheme() === 'dark' ? 'dark' : 'light';
+}
 
-export const COLOR_SCHEME: ColorScheme =
-  THEME_PREFERENCE === 'system'
-    ? Appearance.getColorScheme() === 'dark'
-      ? 'dark'
-      : 'light'
-    : THEME_PREFERENCE;
-
-export const IS_DARK = COLOR_SCHEME === 'dark';
-
-/** Persist the preference and reload the JS bundle so it takes effect everywhere. */
-export async function setThemePreference(preference: ThemePreference): Promise<void> {
-  if (Platform.OS === 'web') {
-    globalThis.localStorage?.setItem(STORAGE_KEY, preference);
-    globalThis.location?.reload();
-    return;
+/**
+ * Tell the native side which mode the app uses, so native dialogs (date picker,
+ * alerts) match. null = follow the OS. The Activity declares uiMode in
+ * configChanges, so this does not recreate the screen.
+ */
+function applyNativeOverride(pref: ThemePreference) {
+  if (Platform.OS === 'web') return;
+  try {
+    Appearance.setColorScheme(pref === 'system' ? null : pref);
+  } catch {
+    // Older runtimes without setColorScheme: native dialogs just follow the OS.
   }
+}
 
-  SecureStore.setItem(STORAGE_KEY, preference);
+let preference: ThemePreference = readPreference();
+applyNativeOverride(preference);
+let scheme: ColorScheme = resolve(preference);
+const listeners = new Set<() => void>();
 
-  if (__DEV__) {
-    DevSettings.reload();
-    return;
+function notify() {
+  listeners.forEach((listener) => listener());
+}
+
+export function getThemePreference(): ThemePreference {
+  return preference;
+}
+
+export function getColorScheme(): ColorScheme {
+  return scheme;
+}
+
+export function isDarkScheme(): boolean {
+  return scheme === 'dark';
+}
+
+export function subscribeColorScheme(listener: () => void): () => void {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+}
+
+/** Persist the preference and apply it immediately (no reload). */
+export function setThemePreference(next: ThemePreference): void {
+  try {
+    if (Platform.OS === 'web') globalThis.localStorage?.setItem(STORAGE_KEY, next);
+    else SecureStore.setItem(STORAGE_KEY, next);
+  } catch {
+    // Storage failure only affects the next launch; still apply now.
   }
-  await Updates.reloadAsync();
+  preference = next;
+  applyNativeOverride(next);
+  scheme = resolve(next);
+  notify();
+}
+
+// Follow the OS setting live when the preference is "system".
+Appearance.addChangeListener(({ colorScheme }) => {
+  if (preference !== 'system') return;
+  const next: ColorScheme = colorScheme === 'dark' ? 'dark' : 'light';
+  if (next === scheme) return;
+  scheme = next;
+  notify();
+});
+
+export function useColorSchemeValue(): ColorScheme {
+  return useSyncExternalStore(subscribeColorScheme, getColorScheme);
+}
+
+export function useThemePreference(): ThemePreference {
+  return useSyncExternalStore(subscribeColorScheme, getThemePreference);
 }

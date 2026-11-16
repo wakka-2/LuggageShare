@@ -2,7 +2,7 @@ import { View, Image, Text, StyleSheet } from 'react-native';
 import i18n from '@/i18n';
 
 import { useTheme } from '@/hooks/useTheme';
-import { V2_COLORS } from '@/providers/ThemeProvider';
+import { V2_COLORS, themed } from '@/providers/ThemeProvider';
 
 interface AvatarProps {
   source?: string | null;
@@ -104,33 +104,35 @@ export function Avatar({
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    position: 'relative',
-  },
-  image: {
-    resizeMode: 'cover',
-  },
-  placeholder: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  initials: {
-    fontWeight: '600',
-  },
-  verifiedBadge: {
-    position: 'absolute',
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: V2_COLORS.surface,
-  },
-  verifiedIcon: {
-    color: '#FFFFFF',
-    fontSize: 10,
-    fontWeight: 'bold',
-  },
-});
+const styles = themed(() =>
+  StyleSheet.create({
+    container: {
+      position: 'relative',
+    },
+    image: {
+      resizeMode: 'cover',
+    },
+    placeholder: {
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    initials: {
+      fontWeight: '600',
+    },
+    verifiedBadge: {
+      position: 'absolute',
+      width: 16,
+      height: 16,
+      borderRadius: 8,
+      justifyContent: 'center',
+      alignItems: 'center',
+      borderWidth: 2,
+      borderColor: V2_COLORS.surface,
+    },
+    verifiedIcon: {
+      color: '#FFFFFF',
+      fontSize: 10,
+      fontWeight: 'bold',
+    },
+  })
+);

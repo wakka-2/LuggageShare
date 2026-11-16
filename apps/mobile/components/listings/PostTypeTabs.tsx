@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeIn } from 'react-native-reanimated';
 
-import { V2_COLORS, RADIUS, BUBBLE_SHADOWS } from '@/providers/ThemeProvider';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS, themed } from '@/providers/ThemeProvider';
 import { ListingType } from './types';
 
 type TabValue = ListingType | 'all';
@@ -87,49 +87,51 @@ export function PostTypeTabs({ value, onChange, counts }: PostTypeTabsProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  wrapper: {
-    marginBottom: 20,
-  },
-  container: {
-    flexDirection: 'row',
-    backgroundColor: V2_COLORS.surface,
-    borderRadius: RADIUS.pill,
-    padding: 4,
-    ...BUBBLE_SHADOWS.sm,
-  },
-  tab: {
-    flex: 1,
-    borderRadius: RADIUS.pill,
-  },
-  tabActive: {
-    backgroundColor: V2_COLORS.primary,
-    ...BUBBLE_SHADOWS.xs,
-  },
-  tabContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 8,
-    gap: 6,
-  },
-  tabLabel: {
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  tabLabelActive: {
-    fontWeight: '700',
-  },
-  countBadge: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: RADIUS.pill,
-    minWidth: 22,
-    alignItems: 'center',
-  },
-  countText: {
-    fontSize: 11,
-    fontWeight: '600',
-  },
-});
+const styles = themed(() =>
+  StyleSheet.create({
+    wrapper: {
+      marginBottom: 20,
+    },
+    container: {
+      flexDirection: 'row',
+      backgroundColor: V2_COLORS.surface,
+      borderRadius: RADIUS.pill,
+      padding: 4,
+      ...BUBBLE_SHADOWS.sm,
+    },
+    tab: {
+      flex: 1,
+      borderRadius: RADIUS.pill,
+    },
+    tabActive: {
+      backgroundColor: V2_COLORS.primary,
+      ...BUBBLE_SHADOWS.xs,
+    },
+    tabContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 10,
+      paddingHorizontal: 8,
+      gap: 6,
+    },
+    tabLabel: {
+      fontSize: 13,
+      fontWeight: '600',
+    },
+    tabLabelActive: {
+      fontWeight: '700',
+    },
+    countBadge: {
+      paddingHorizontal: 6,
+      paddingVertical: 2,
+      borderRadius: RADIUS.pill,
+      minWidth: 22,
+      alignItems: 'center',
+    },
+    countText: {
+      fontSize: 11,
+      fontWeight: '600',
+    },
+  })
+);

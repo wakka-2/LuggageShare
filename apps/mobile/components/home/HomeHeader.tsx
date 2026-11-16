@@ -6,7 +6,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { IconButton } from '@/components/common';
 import { changeLanguage } from '@/i18n';
 import { showAlert } from '@/lib/alert';
-import { V2_COLORS, TYPOGRAPHY } from '@/providers/ThemeProvider';
+import { V2_COLORS, TYPOGRAPHY, themed } from '@/providers/ThemeProvider';
 
 interface HomeHeaderProps {
   notificationCount?: number;
@@ -19,10 +19,8 @@ export function HomeHeader({ notificationCount = 0 }: HomeHeaderProps) {
 
   const toggleLanguage = async () => {
     const newLang = i18n.language === 'ar' ? 'en' : 'ar';
+    // Applies live: text re-renders and the root layout flips direction.
     await changeLanguage(newLang as 'ar' | 'en');
-    if (Platform.OS !== 'web') {
-      showAlert(t('settings.restartRequired'), t('settings.restartDescription'));
-    }
   };
 
   const firstName = user?.displayName?.split(' ')[0] || t('profile.guest');
@@ -40,35 +38,39 @@ export function HomeHeader({ notificationCount = 0 }: HomeHeaderProps) {
           icon="notifications-outline"
           onPress={() => router.push('/notifications')}
           badge={notificationCount > 0 ? notificationCount : undefined}
+          badgeColor="#EF4444"
+          accessibilityLabel={t('profile.notifications')}
         />
       </View>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  greetingBlock: {
-    flex: 1,
-  },
-  greeting: {
-    ...TYPOGRAPHY.caption,
-    color: V2_COLORS.textSoft,
-    marginBottom: 2,
-  },
-  name: {
-    ...TYPOGRAPHY.h1,
-    color: V2_COLORS.text,
-  },
-  actions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-});
+const styles = themed(() =>
+  StyleSheet.create({
+    container: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+    },
+    greetingBlock: {
+      flex: 1,
+    },
+    greeting: {
+      ...TYPOGRAPHY.caption,
+      color: V2_COLORS.textSoft,
+      marginBottom: 2,
+    },
+    name: {
+      ...TYPOGRAPHY.h1,
+      color: V2_COLORS.text,
+    },
+    actions: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+  })
+);

@@ -1,6 +1,6 @@
-import { Pressable, View, StyleSheet } from 'react-native';
+import { Pressable, View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { BUBBLE_SHADOWS, V2_COLORS } from '@/providers/ThemeProvider';
+import { BUBBLE_SHADOWS, V2_COLORS, themed } from '@/providers/ThemeProvider';
 
 type IoniconsName = keyof typeof Ionicons.glyphMap;
 
@@ -41,30 +41,38 @@ export function IconButton({
     >
       <Ionicons name={icon} size={iconSize} color={V2_COLORS.text} />
       {badge !== undefined && badge > 0 && (
-        <View style={[styles.badge, { backgroundColor: badgeColor }]} />
+        <View style={[styles.badge, { backgroundColor: badgeColor }]}>
+          <Text style={styles.badgeText}>{badge > 99 ? '99+' : badge}</Text>
+        </View>
       )}
     </Pressable>
   );
 }
 
-const styles = StyleSheet.create({
-  button: {
-    backgroundColor: V2_COLORS.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  pressed: {
-    opacity: 0.8,
-    transform: [{ scale: 0.95 }],
-  },
-  badge: {
-    position: 'absolute',
-    top: 10,
-    right: 10,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    borderWidth: 1.5,
-    borderColor: V2_COLORS.surface,
-  },
-});
+const styles = themed(() =>
+  StyleSheet.create({
+    button: {
+      backgroundColor: V2_COLORS.surface,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    pressed: {
+      opacity: 0.8,
+      transform: [{ scale: 0.95 }],
+    },
+    badge: {
+      position: 'absolute',
+      top: -2,
+      end: -2,
+      minWidth: 18,
+      height: 18,
+      paddingHorizontal: 4,
+      borderRadius: 9,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 1.5,
+      borderColor: V2_COLORS.surface,
+    },
+    badgeText: { color: '#FFFFFF', fontSize: 10, fontWeight: '700' },
+  })
+);

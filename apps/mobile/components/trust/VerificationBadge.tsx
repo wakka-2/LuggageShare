@@ -3,7 +3,7 @@ import i18n from '@/i18n';
 import { View, Text, StyleSheet } from 'react-native';
 import Animated, { ZoomIn } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
-import { V2_COLORS, RADIUS } from '@/providers/ThemeProvider';
+import { V2_COLORS, RADIUS, themed } from '@/providers/ThemeProvider';
 
 type BadgeType = 'verified' | 'id_verified' | 'phone_verified' | 'top_carrier';
 
@@ -17,7 +17,7 @@ interface VerificationBadgeProps {
 const BADGE_CONFIG: Record<
   BadgeType,
   { icon: keyof typeof Ionicons.glyphMap; defaultLabel: string; color: string }
-> = {
+> = themed(() => ({
   verified: {
     icon: 'shield-checkmark',
     defaultLabel: 'verification.badgeVerified',
@@ -38,7 +38,7 @@ const BADGE_CONFIG: Record<
     defaultLabel: 'verification.badgeTopCarrier',
     color: V2_COLORS.accent2,
   },
-};
+}));
 
 const SIZE_MAP = {
   small: { icon: 14, text: 11, padding: 4, gap: 3 },

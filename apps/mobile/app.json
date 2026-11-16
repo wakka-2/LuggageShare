@@ -73,7 +73,8 @@
         }
       ],
       "expo-font",
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      "./plugins/withAndroidDialogTheme"
     ],
     "experiments": {
       "typedRoutes": true

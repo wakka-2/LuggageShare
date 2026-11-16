@@ -34,7 +34,8 @@
     "reviewsCount": "{{count}} تقييم",
     "uploadFailed": "فشل رفع الملف",
     "cameraPermission": "يلزم السماح بالوصول إلى الكاميرا",
-    "photosPermission": "يلزم السماح بالوصول إلى الصور"
+    "photosPermission": "يلزم السماح بالوصول إلى الصور",
+    "close": "إغلاق"
   },
   "tabs": {
     "home": "الرئيسية",
@@ -441,7 +442,13 @@
     "justNow": "الآن",
     "minutesAgo": "منذ {{count}} دقيقة",
     "hoursAgo": "منذ {{count}} ساعة",
-    "daysAgo": "منذ {{count}} يوم"
+    "daysAgo": "منذ {{count}} يوم",
+    "unreadCount_one": "{{count}} غير مقروء",
+    "unreadCount_other": "{{count}} غير مقروءة",
+    "unreadCount_zero": "{{count}} غير مقروءة",
+    "unreadCount_two": "{{count}} غير مقروءة",
+    "unreadCount_few": "{{count}} غير مقروءة",
+    "unreadCount_many": "{{count}} غير مقروءة"
   },
   "listingCard": {
     "offer": "عرض",
@@ -487,17 +494,17 @@
     "fromLabel": "من:",
     "toLabel": "إلى:",
     "clearAll": "مسح الكل",
-    "routeRuhDxb": "الرياض → دبي",
-    "routeJedCai": "جدة → القاهرة",
-    "routeDmmBah": "الدمام → البحرين",
-    "routeRuhAmm": "الرياض → عمان",
+    "routeRuhDxb": "الرياض ← دبي",
+    "routeJedCai": "جدة ← القاهرة",
+    "routeDmmBah": "الدمام ← البحرين",
+    "routeRuhAmm": "الرياض ← عمان",
     "whereAreYouSending": "إلى أين ترسل؟",
     "clearAllFilters": "مسح جميع الفلاتر",
     "removeDateFilter": "إزالة فلتر التاريخ",
     "removeFromFilter": "إزالة فلتر مدينة المغادرة",
     "removeToFilter": "إزالة فلتر مدينة الوصول",
     "swapCities": "تبديل مدينتي المغادرة والوصول",
-    "routeRuhJed": "الرياض → جدة"
+    "routeRuhJed": "الرياض ← جدة"
   },
   "carrier": {
     "earnings": "الأرباح",
@@ -562,7 +569,8 @@
     "deleteAccountTitle": "حذف حسابك؟",
     "deleteAccountMessage": "سيؤدي ذلك إلى حذف ملفك الشخصي وبياناتك الشخصية نهائيًا، وتسجيل خروجك من جميع الأجهزة، وإلغاء رحلاتك وحجوزاتك وعروضك المفتوحة. سيتم فقدان الرصيد المتبقي. لا يمكن التراجع عن هذا الإجراء.",
     "deleteAccountConfirm": "حذف",
-    "deleteAccountBlocked": "لديك عمليات توصيل جارية. أكملها أو ألغها قبل حذف حسابك."
+    "deleteAccountBlocked": "لديك عمليات توصيل جارية. أكملها أو ألغها قبل حذف حسابك.",
+    "themeSystem": "النظام"
   },
   "web": {
     "sidebar": {
@@ -788,5 +796,13 @@
     "skip": "تخطي",
     "publish": "نشر الرحلة",
     "confirm": "تأكيد الحجز"
+  },
+  "cityPicker": {
+    "search": "ابحث عن مدينة أو دولة أو رمز مطار",
+    "useCustom": "استخدم \"{{city}}\"",
+    "noResults": "لا توجد مدن مطابقة",
+    "selectDeparture": "اختر مدينة المغادرة",
+    "selectArrival": "اختر مدينة الوصول",
+    "sameCity": "يجب أن تختلف مدينة المغادرة عن مدينة الوصول"
   }
 }

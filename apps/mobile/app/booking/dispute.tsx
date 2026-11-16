@@ -17,7 +17,9 @@ import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 
-import { V2_COLORS, RADIUS, BUBBLE_SHADOWS, GRADIENTS } from '@/providers/ThemeProvider';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS, GRADIENTS, themed } from '@/providers/ThemeProvider';
+import { routeArrow } from '@/lib/rtl';
+import { cityLabel } from '@/lib/airports';
 import { BackgroundBlobs } from '@/components/common/BackgroundBlobs';
 import { showAlert } from '@/lib/alert';
 import { useCreateDispute, type DisputeReason } from '@/hooks/useDisputes';
@@ -190,7 +192,7 @@ export default function DisputeScreen() {
           <Animated.View entering={FadeInDown.delay(50)} style={styles.routeCard}>
             <Ionicons name="airplane-outline" size={16} color={V2_COLORS.primary} />
             <Text style={styles.routeText}>
-              {from} → {to}
+              {cityLabel(from)} {routeArrow()} {cityLabel(to)}
             </Text>
           </Animated.View>
         )}
@@ -280,242 +282,244 @@ export default function DisputeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: V2_COLORS.bg,
-  } as ViewStyle,
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-  } as ViewStyle,
-  backBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: V2_COLORS.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...BUBBLE_SHADOWS.sm,
-  } as ViewStyle,
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: V2_COLORS.text,
-  } as TextStyle,
-  scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 8,
-  },
-  routeCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    backgroundColor: V2_COLORS.surface,
-    borderRadius: RADIUS.pill,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    alignSelf: 'flex-start',
-    marginBottom: 16,
-    ...BUBBLE_SHADOWS.sm,
-  } as ViewStyle,
-  routeText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: V2_COLORS.text,
-  } as TextStyle,
-  infoBanner: {
-    flexDirection: 'row',
-    gap: 10,
-    alignItems: 'flex-start',
-    backgroundColor: V2_COLORS.primary + '15',
-    borderRadius: RADIUS.card,
-    padding: 14,
-    marginBottom: 24,
-  } as ViewStyle,
-  infoText: {
-    flex: 1,
-    fontSize: 13,
-    color: V2_COLORS.primary,
-    lineHeight: 18,
-  } as TextStyle,
-  sectionLabel: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: V2_COLORS.text,
-    marginBottom: 12,
-  } as TextStyle,
-  reasonGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-    marginBottom: 24,
-  } as ViewStyle,
-  reasonCard: {
-    width: 100,
-    backgroundColor: V2_COLORS.surface,
-    borderRadius: RADIUS.card,
-    padding: 12,
-    alignItems: 'center',
-    gap: 6,
-    borderWidth: 2,
-    borderColor: 'transparent',
-    ...BUBBLE_SHADOWS.sm,
-  } as ViewStyle,
-  reasonCardSelected: {
-    borderColor: V2_COLORS.primary,
-    backgroundColor: V2_COLORS.primary + '10',
-  } as ViewStyle,
-  reasonText: {
-    fontSize: 11,
-    color: V2_COLORS.textSoft,
-    textAlign: 'center',
-    fontWeight: '500',
-  } as TextStyle,
-  reasonTextSelected: {
-    color: V2_COLORS.primary,
-    fontWeight: '700',
-  } as TextStyle,
-  textArea: {
-    backgroundColor: V2_COLORS.surface,
-    borderRadius: RADIUS.card,
-    padding: 14,
-    fontSize: 14,
-    color: V2_COLORS.text,
-    minHeight: 120,
-    borderWidth: 1.5,
-    borderColor: V2_COLORS.textMuted + '30',
-    ...BUBBLE_SHADOWS.sm,
-  } as TextStyle,
-  textAreaRTL: {
-    textAlign: 'right',
-  } as TextStyle,
-  charCount: {
-    fontSize: 11,
-    color: V2_COLORS.textSoft,
-    textAlign: 'right',
-    marginTop: 4,
-  } as TextStyle,
-  submitBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    borderRadius: RADIUS.pill,
-    paddingVertical: 16,
-    ...BUBBLE_SHADOWS.md,
-  } as ViewStyle,
-  submitBtnText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#fff',
-  } as TextStyle,
-  // Status view
-  statusCard: {
-    backgroundColor: V2_COLORS.surface,
-    borderRadius: RADIUS.card,
-    padding: 24,
-    alignItems: 'center',
-    gap: 12,
-    ...BUBBLE_SHADOWS.md,
-  } as ViewStyle,
-  statusBadge: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
-  } as ViewStyle,
-  statusTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: V2_COLORS.text,
-    textAlign: 'center',
-  } as TextStyle,
-  statusSubtitle: {
-    fontSize: 13,
-    color: V2_COLORS.textSoft,
-    textAlign: 'center',
-    lineHeight: 18,
-  } as TextStyle,
-  statusPill: {
-    paddingHorizontal: 16,
-    paddingVertical: 6,
-    borderRadius: RADIUS.pill,
-    marginTop: 4,
-  } as ViewStyle,
-  statusPillText: {
-    fontSize: 13,
-    fontWeight: '700',
-  } as TextStyle,
-  detailRow: {
-    width: '100%',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: V2_COLORS.textMuted + '30',
-  } as ViewStyle,
-  detailLabel: {
-    fontSize: 13,
-    color: V2_COLORS.textSoft,
-    fontWeight: '500',
-  } as TextStyle,
-  detailValue: {
-    fontSize: 13,
-    color: V2_COLORS.text,
-    fontWeight: '600',
-    maxWidth: '60%',
-    textAlign: 'right',
-  } as TextStyle,
-  // Success state
-  successContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 32,
-  } as ViewStyle,
-  successContent: {
-    alignItems: 'center',
-    gap: 16,
-  } as ViewStyle,
-  successIcon: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
-    ...BUBBLE_SHADOWS.md,
-  } as ViewStyle,
-  successTitle: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: V2_COLORS.text,
-    textAlign: 'center',
-  } as TextStyle,
-  successSubtitle: {
-    fontSize: 14,
-    color: V2_COLORS.textSoft,
-    textAlign: 'center',
-    lineHeight: 20,
-  } as TextStyle,
-  successBtn: {
-    marginTop: 8,
-    backgroundColor: V2_COLORS.surface,
-    borderRadius: RADIUS.pill,
-    paddingHorizontal: 32,
-    paddingVertical: 14,
-    ...BUBBLE_SHADOWS.sm,
-  } as ViewStyle,
-  successBtnText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: V2_COLORS.primary,
-  } as TextStyle,
-});
+const styles = themed(() =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: V2_COLORS.bg,
+    } as ViewStyle,
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 20,
+      paddingVertical: 12,
+    } as ViewStyle,
+    backBtn: {
+      width: 38,
+      height: 38,
+      borderRadius: 19,
+      backgroundColor: V2_COLORS.surface,
+      alignItems: 'center',
+      justifyContent: 'center',
+      ...BUBBLE_SHADOWS.sm,
+    } as ViewStyle,
+    headerTitle: {
+      fontSize: 18,
+      fontWeight: '700',
+      color: V2_COLORS.text,
+    } as TextStyle,
+    scrollContent: {
+      paddingHorizontal: 20,
+      paddingTop: 8,
+    },
+    routeCard: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      backgroundColor: V2_COLORS.surface,
+      borderRadius: RADIUS.pill,
+      paddingHorizontal: 14,
+      paddingVertical: 8,
+      alignSelf: 'flex-start',
+      marginBottom: 16,
+      ...BUBBLE_SHADOWS.sm,
+    } as ViewStyle,
+    routeText: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: V2_COLORS.text,
+    } as TextStyle,
+    infoBanner: {
+      flexDirection: 'row',
+      gap: 10,
+      alignItems: 'flex-start',
+      backgroundColor: V2_COLORS.primary + '15',
+      borderRadius: RADIUS.card,
+      padding: 14,
+      marginBottom: 24,
+    } as ViewStyle,
+    infoText: {
+      flex: 1,
+      fontSize: 13,
+      color: V2_COLORS.primary,
+      lineHeight: 18,
+    } as TextStyle,
+    sectionLabel: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: V2_COLORS.text,
+      marginBottom: 12,
+    } as TextStyle,
+    reasonGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 10,
+      marginBottom: 24,
+    } as ViewStyle,
+    reasonCard: {
+      width: 100,
+      backgroundColor: V2_COLORS.surface,
+      borderRadius: RADIUS.card,
+      padding: 12,
+      alignItems: 'center',
+      gap: 6,
+      borderWidth: 2,
+      borderColor: 'transparent',
+      ...BUBBLE_SHADOWS.sm,
+    } as ViewStyle,
+    reasonCardSelected: {
+      borderColor: V2_COLORS.primary,
+      backgroundColor: V2_COLORS.primary + '10',
+    } as ViewStyle,
+    reasonText: {
+      fontSize: 11,
+      color: V2_COLORS.textSoft,
+      textAlign: 'center',
+      fontWeight: '500',
+    } as TextStyle,
+    reasonTextSelected: {
+      color: V2_COLORS.primary,
+      fontWeight: '700',
+    } as TextStyle,
+    textArea: {
+      backgroundColor: V2_COLORS.surface,
+      borderRadius: RADIUS.card,
+      padding: 14,
+      fontSize: 14,
+      color: V2_COLORS.text,
+      minHeight: 120,
+      borderWidth: 1.5,
+      borderColor: V2_COLORS.textMuted + '30',
+      ...BUBBLE_SHADOWS.sm,
+    } as TextStyle,
+    textAreaRTL: {
+      textAlign: 'right',
+    } as TextStyle,
+    charCount: {
+      fontSize: 11,
+      color: V2_COLORS.textSoft,
+      textAlign: 'right',
+      marginTop: 4,
+    } as TextStyle,
+    submitBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 8,
+      borderRadius: RADIUS.pill,
+      paddingVertical: 16,
+      ...BUBBLE_SHADOWS.md,
+    } as ViewStyle,
+    submitBtnText: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: '#fff',
+    } as TextStyle,
+    // Status view
+    statusCard: {
+      backgroundColor: V2_COLORS.surface,
+      borderRadius: RADIUS.card,
+      padding: 24,
+      alignItems: 'center',
+      gap: 12,
+      ...BUBBLE_SHADOWS.md,
+    } as ViewStyle,
+    statusBadge: {
+      width: 72,
+      height: 72,
+      borderRadius: 36,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: 8,
+    } as ViewStyle,
+    statusTitle: {
+      fontSize: 18,
+      fontWeight: '700',
+      color: V2_COLORS.text,
+      textAlign: 'center',
+    } as TextStyle,
+    statusSubtitle: {
+      fontSize: 13,
+      color: V2_COLORS.textSoft,
+      textAlign: 'center',
+      lineHeight: 18,
+    } as TextStyle,
+    statusPill: {
+      paddingHorizontal: 16,
+      paddingVertical: 6,
+      borderRadius: RADIUS.pill,
+      marginTop: 4,
+    } as ViewStyle,
+    statusPillText: {
+      fontSize: 13,
+      fontWeight: '700',
+    } as TextStyle,
+    detailRow: {
+      width: '100%',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingTop: 12,
+      borderTopWidth: 1,
+      borderTopColor: V2_COLORS.textMuted + '30',
+    } as ViewStyle,
+    detailLabel: {
+      fontSize: 13,
+      color: V2_COLORS.textSoft,
+      fontWeight: '500',
+    } as TextStyle,
+    detailValue: {
+      fontSize: 13,
+      color: V2_COLORS.text,
+      fontWeight: '600',
+      maxWidth: '60%',
+      textAlign: 'right',
+    } as TextStyle,
+    // Success state
+    successContainer: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: 32,
+    } as ViewStyle,
+    successContent: {
+      alignItems: 'center',
+      gap: 16,
+    } as ViewStyle,
+    successIcon: {
+      width: 96,
+      height: 96,
+      borderRadius: 48,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: 8,
+      ...BUBBLE_SHADOWS.md,
+    } as ViewStyle,
+    successTitle: {
+      fontSize: 22,
+      fontWeight: '800',
+      color: V2_COLORS.text,
+      textAlign: 'center',
+    } as TextStyle,
+    successSubtitle: {
+      fontSize: 14,
+      color: V2_COLORS.textSoft,
+      textAlign: 'center',
+      lineHeight: 20,
+    } as TextStyle,
+    successBtn: {
+      marginTop: 8,
+      backgroundColor: V2_COLORS.surface,
+      borderRadius: RADIUS.pill,
+      paddingHorizontal: 32,
+      paddingVertical: 14,
+      ...BUBBLE_SHADOWS.sm,
+    } as ViewStyle,
+    successBtnText: {
+      fontSize: 15,
+      fontWeight: '700',
+      color: V2_COLORS.primary,
+    } as TextStyle,
+  })
+);

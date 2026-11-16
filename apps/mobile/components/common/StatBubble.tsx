@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { RADIUS, BUBBLE_SHADOWS, V2_COLORS } from '@/providers/ThemeProvider';
+import { RADIUS, BUBBLE_SHADOWS, V2_COLORS, themed } from '@/providers/ThemeProvider';
 
 type IoniconsName = keyof typeof Ionicons.glyphMap;
 
@@ -23,33 +23,35 @@ export function StatBubble({ value, label, icon, color }: StatBubbleProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: V2_COLORS.surface,
-    borderRadius: RADIUS.card,
-    padding: 16,
-    alignItems: 'center',
-  },
-  iconCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
-  },
-  value: {
-    fontSize: 22,
-    fontWeight: '800',
-    letterSpacing: -0.3,
-  },
-  label: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: V2_COLORS.textSoft,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginTop: 2,
-  },
-});
+const styles = themed(() =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: V2_COLORS.surface,
+      borderRadius: RADIUS.card,
+      padding: 16,
+      alignItems: 'center',
+    },
+    iconCircle: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: 8,
+    },
+    value: {
+      fontSize: 22,
+      fontWeight: '800',
+      letterSpacing: -0.3,
+    },
+    label: {
+      fontSize: 11,
+      fontWeight: '600',
+      color: V2_COLORS.textSoft,
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
+      marginTop: 2,
+    },
+  })
+);

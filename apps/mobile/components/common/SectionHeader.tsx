@@ -1,5 +1,5 @@
 import { View, Text, Pressable, StyleSheet } from 'react-native';
-import { V2_COLORS } from '@/providers/ThemeProvider';
+import { V2_COLORS, themed } from '@/providers/ThemeProvider';
 
 interface SectionHeaderProps {
   title: string;
@@ -20,22 +20,24 @@ export function SectionHeader({ title, actionLabel, onAction }: SectionHeaderPro
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: V2_COLORS.text,
-    letterSpacing: -0.3,
-  },
-  action: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: V2_COLORS.primary,
-  },
-});
+const styles = themed(() =>
+  StyleSheet.create({
+    container: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 16,
+    },
+    title: {
+      fontSize: 18,
+      fontWeight: '700',
+      color: V2_COLORS.text,
+      letterSpacing: -0.3,
+    },
+    action: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: V2_COLORS.primary,
+    },
+  })
+);

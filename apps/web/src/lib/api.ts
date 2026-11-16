@@ -54,10 +54,17 @@ async function refreshAccessToken(): Promise<string | null> {
     refreshToken: tokens.refreshToken,
   });
 
-  const newAccessToken = response.data.data?.accessToken ?? response.data.accessToken;
+  const payload = response.data.data ?? response.data;
+  const newAccessToken = payload?.accessToken;
   if (!newAccessToken) return null;
 
-  const newTokens = { ...tokens, accessToken: newAccessToken };
+  // Refresh tokens rotate; reusing the old one revokes the session (theft
+  // detection), so the rotated token must be stored.
+  const newTokens = {
+    ...tokens,
+    accessToken: newAccessToken,
+    refreshToken: payload.refreshToken ?? tokens.refreshToken,
+  };
   localStorage.setItem(TOKEN_KEY, JSON.stringify(newTokens));
   return newAccessToken;
 }

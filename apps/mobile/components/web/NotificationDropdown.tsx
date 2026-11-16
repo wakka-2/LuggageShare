@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 
-import { V2_COLORS, RADIUS, BUBBLE_SHADOWS } from '@/providers/ThemeProvider';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS, themed } from '@/providers/ThemeProvider';
 import {
   useNotifications,
   useMarkNotificationRead,
@@ -126,142 +126,144 @@ export function NotificationDropdown() {
   );
 }
 
-const styles = StyleSheet.create({
-  wrapper: {
-    position: 'relative',
-  },
-  bellButton: {
-    width: 40,
-    height: 40,
-    borderRadius: RADIUS.pill,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: V2_COLORS.bg,
-    ...({ cursor: 'pointer' } as any),
-  },
-  badge: {
-    position: 'absolute',
-    top: 4,
-    end: 4,
-    minWidth: 16,
-    height: 16,
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 3,
-    backgroundColor: V2_COLORS.secondary,
-  },
-  badgeText: {
-    color: '#FFFFFF',
-    fontSize: 9,
-    fontWeight: '700',
-  },
-  dropdown: {
-    position: 'absolute',
-    top: 48,
-    end: 0,
-    width: 360,
-    maxHeight: 440,
-    borderRadius: RADIUS.card,
-    overflow: 'hidden',
-    backgroundColor: V2_COLORS.surface,
-    ...BUBBLE_SHADOWS.md,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-  },
-  headerText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: V2_COLORS.text,
-  },
-  headerBadge: {
-    minWidth: 22,
-    height: 22,
-    borderRadius: 11,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 6,
-    backgroundColor: V2_COLORS.primary,
-  },
-  headerBadgeText: {
-    color: '#FFFFFF',
-    fontSize: 11,
-    fontWeight: '700',
-  },
-  list: {
-    maxHeight: 320,
-  },
-  emptyState: {
-    paddingVertical: 32,
-    alignItems: 'center',
-    gap: 8,
-  },
-  emptyText: {
-    fontSize: 13,
-    color: V2_COLORS.textMuted,
-  },
-  notifItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: RADIUS.card,
-    marginHorizontal: 8,
-    ...({ cursor: 'pointer' } as any),
-  },
-  notifItemUnread: {
-    backgroundColor: V2_COLORS.primary + '08',
-  },
-  notifContent: {
-    flex: 1,
-    gap: 4,
-  },
-  notifRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  notifTitle: {
-    fontSize: 13,
-    fontWeight: '600',
-    flex: 1,
-    color: V2_COLORS.text,
-  },
-  notifTime: {
-    fontSize: 11,
-    marginStart: 8,
-    color: V2_COLORS.textMuted,
-  },
-  notifBody: {
-    fontSize: 12,
-    lineHeight: 16,
-    color: V2_COLORS.textSoft,
-  },
-  unreadDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginStart: 8,
-    backgroundColor: V2_COLORS.primary,
-  },
-  viewAll: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    borderTopWidth: 1,
-    borderTopColor: V2_COLORS.cardShadow,
-    gap: 4,
-    ...({ cursor: 'pointer' } as any),
-  },
-  viewAllText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: V2_COLORS.primary,
-  },
-});
+const styles = themed(() =>
+  StyleSheet.create({
+    wrapper: {
+      position: 'relative',
+    },
+    bellButton: {
+      width: 40,
+      height: 40,
+      borderRadius: RADIUS.pill,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: V2_COLORS.bg,
+      ...({ cursor: 'pointer' } as any),
+    },
+    badge: {
+      position: 'absolute',
+      top: 4,
+      end: 4,
+      minWidth: 16,
+      height: 16,
+      borderRadius: 8,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: 3,
+      backgroundColor: V2_COLORS.secondary,
+    },
+    badgeText: {
+      color: '#FFFFFF',
+      fontSize: 9,
+      fontWeight: '700',
+    },
+    dropdown: {
+      position: 'absolute',
+      top: 48,
+      end: 0,
+      width: 360,
+      maxHeight: 440,
+      borderRadius: RADIUS.card,
+      overflow: 'hidden',
+      backgroundColor: V2_COLORS.surface,
+      ...BUBBLE_SHADOWS.md,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+      paddingVertical: 14,
+    },
+    headerText: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: V2_COLORS.text,
+    },
+    headerBadge: {
+      minWidth: 22,
+      height: 22,
+      borderRadius: 11,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: 6,
+      backgroundColor: V2_COLORS.primary,
+    },
+    headerBadgeText: {
+      color: '#FFFFFF',
+      fontSize: 11,
+      fontWeight: '700',
+    },
+    list: {
+      maxHeight: 320,
+    },
+    emptyState: {
+      paddingVertical: 32,
+      alignItems: 'center',
+      gap: 8,
+    },
+    emptyText: {
+      fontSize: 13,
+      color: V2_COLORS.textMuted,
+    },
+    notifItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      borderRadius: RADIUS.card,
+      marginHorizontal: 8,
+      ...({ cursor: 'pointer' } as any),
+    },
+    notifItemUnread: {
+      backgroundColor: V2_COLORS.primary + '08',
+    },
+    notifContent: {
+      flex: 1,
+      gap: 4,
+    },
+    notifRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    notifTitle: {
+      fontSize: 13,
+      fontWeight: '600',
+      flex: 1,
+      color: V2_COLORS.text,
+    },
+    notifTime: {
+      fontSize: 11,
+      marginStart: 8,
+      color: V2_COLORS.textMuted,
+    },
+    notifBody: {
+      fontSize: 12,
+      lineHeight: 16,
+      color: V2_COLORS.textSoft,
+    },
+    unreadDot: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      marginStart: 8,
+      backgroundColor: V2_COLORS.primary,
+    },
+    viewAll: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 12,
+      borderTopWidth: 1,
+      borderTopColor: V2_COLORS.cardShadow,
+      gap: 4,
+      ...({ cursor: 'pointer' } as any),
+    },
+    viewAllText: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: V2_COLORS.primary,
+    },
+  })
+);

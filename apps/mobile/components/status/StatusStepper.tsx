@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
-import { V2_COLORS, RADIUS } from '@/providers/ThemeProvider';
+import { V2_COLORS, RADIUS, themed } from '@/providers/ThemeProvider';
 import { useTranslation } from 'react-i18next';
 
 export interface StatusStep {
@@ -129,42 +129,44 @@ export function StatusStepper({ steps, currentStepKey }: StatusStepperProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    paddingVertical: 8,
-  },
-  stepRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-  },
-  dotColumn: {
-    alignItems: 'center',
-    width: 32,
-  },
-  dot: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  connector: {
-    width: 2,
-    height: 28,
-  },
-  labelContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingBottom: 24,
-    flex: 1,
-  },
-  label: {
-    fontSize: 14,
-    flex: 1,
-  },
-  date: {
-    fontSize: 11,
-    color: V2_COLORS.textMuted,
-  },
-});
+const styles = themed(() =>
+  StyleSheet.create({
+    container: {
+      paddingVertical: 8,
+    },
+    stepRow: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+    },
+    dotColumn: {
+      alignItems: 'center',
+      width: 32,
+    },
+    dot: {
+      width: 24,
+      height: 24,
+      borderRadius: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    connector: {
+      width: 2,
+      height: 28,
+    },
+    labelContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      paddingBottom: 24,
+      flex: 1,
+    },
+    label: {
+      fontSize: 14,
+      flex: 1,
+    },
+    date: {
+      fontSize: 11,
+      color: V2_COLORS.textMuted,
+    },
+  })
+);

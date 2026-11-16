@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 
-import { V2_COLORS, RADIUS, BUBBLE_SHADOWS } from '@/providers/ThemeProvider';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS, themed } from '@/providers/ThemeProvider';
 import { useAuth } from '@/hooks/useAuth';
 import { Avatar } from '@/components/common';
 import { webTransition } from './styles';
@@ -139,74 +139,76 @@ export function UserDropdown() {
   );
 }
 
-const styles = StyleSheet.create({
-  wrapper: {
-    position: 'relative',
-  },
-  avatarButton: {
-    borderRadius: RADIUS.pill,
-    padding: 4,
-    ...({ cursor: 'pointer' } as any),
-  },
-  dropdown: {
-    position: 'absolute',
-    top: 48,
-    end: 0,
-    width: 260,
-    borderRadius: RADIUS.card,
-    overflow: 'hidden',
-    paddingVertical: 8,
-    backgroundColor: V2_COLORS.surface,
-    ...BUBBLE_SHADOWS.md,
-  },
-  userInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    gap: 12,
-  },
-  userText: {
-    flex: 1,
-  },
-  userName: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: V2_COLORS.text,
-  },
-  userEmail: {
-    fontSize: 12,
-    marginTop: 2,
-    color: V2_COLORS.textSoft,
-  },
-  divider: {
-    height: 1,
-    marginHorizontal: 12,
-    marginVertical: 4,
-    backgroundColor: V2_COLORS.cardShadow,
-  },
-  menuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    gap: 12,
-    borderRadius: RADIUS.pill,
-    marginHorizontal: 8,
-    ...({ cursor: 'pointer' } as any),
-  },
-  menuIconCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  logoutItem: {
-    marginTop: 4,
-  },
-  menuLabel: {
-    fontSize: 13,
-    fontWeight: '500',
-  },
-});
+const styles = themed(() =>
+  StyleSheet.create({
+    wrapper: {
+      position: 'relative',
+    },
+    avatarButton: {
+      borderRadius: RADIUS.pill,
+      padding: 4,
+      ...({ cursor: 'pointer' } as any),
+    },
+    dropdown: {
+      position: 'absolute',
+      top: 48,
+      end: 0,
+      width: 260,
+      borderRadius: RADIUS.card,
+      overflow: 'hidden',
+      paddingVertical: 8,
+      backgroundColor: V2_COLORS.surface,
+      ...BUBBLE_SHADOWS.md,
+    },
+    userInfo: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      gap: 12,
+    },
+    userText: {
+      flex: 1,
+    },
+    userName: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: V2_COLORS.text,
+    },
+    userEmail: {
+      fontSize: 12,
+      marginTop: 2,
+      color: V2_COLORS.textSoft,
+    },
+    divider: {
+      height: 1,
+      marginHorizontal: 12,
+      marginVertical: 4,
+      backgroundColor: V2_COLORS.cardShadow,
+    },
+    menuItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      paddingVertical: 10,
+      gap: 12,
+      borderRadius: RADIUS.pill,
+      marginHorizontal: 8,
+      ...({ cursor: 'pointer' } as any),
+    },
+    menuIconCircle: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    logoutItem: {
+      marginTop: 4,
+    },
+    menuLabel: {
+      fontSize: 13,
+      fontWeight: '500',
+    },
+  })
+);

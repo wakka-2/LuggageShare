@@ -1,7 +1,8 @@
-import { useEffect } from 'react';
-import { Stack } from 'expo-router';
+import { useEffect, useRef } from 'react';
+import { Stack, usePathname, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { AppState, I18nManager, Platform, type AppStateStatus } from 'react-native';
+import { AppState, I18nManager, Platform, View, type AppStateStatus } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import {
   ThemeProvider as NavigationThemeProvider,
   DarkTheme,
@@ -12,8 +13,8 @@ import * as SplashScreen from 'expo-splash-screen';
 import * as SystemUI from 'expo-system-ui';
 
 import { AuthProvider } from '@/providers/AuthProvider';
-import { ThemeProvider, V2_COLORS } from '@/providers/ThemeProvider';
-import { IS_DARK } from '@/lib/colorScheme';
+import { ThemeProvider, V2_COLORS, themed } from '@/providers/ThemeProvider';
+import { isDarkScheme, useColorSchemeValue } from '@/lib/colorScheme';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import { OfflineBanner } from '@/components/common/OfflineBanner';
 import i18n, { syncRTL } from '../i18n';
@@ -63,11 +64,11 @@ const queryClient = new QueryClient({
 });
 
 // Navigation container colors (screen backgrounds, transitions) follow the
-// launch-time scheme so no white flashes appear between dark screens.
-const navigationTheme = {
-  ...(IS_DARK ? DarkTheme : DefaultTheme),
+// current scheme so no white flashes appear between dark screens.
+const navigationTheme = themed(() => ({
+  ...(isDarkScheme() ? DarkTheme : DefaultTheme),
   colors: {
-    ...(IS_DARK ? DarkTheme : DefaultTheme).colors,
+    ...(isDarkScheme() ? DarkTheme : DefaultTheme).colors,
     primary: V2_COLORS.primary,
     background: V2_COLORS.bg,
     card: V2_COLORS.surface,
@@ -75,13 +76,40 @@ const navigationTheme = {
     border: V2_COLORS.border,
     notification: V2_COLORS.secondary,
   },
-};
+}));
 
 export default function RootLayout() {
+  const scheme = useColorSchemeValue();
+  const { i18n: i18nInstance } = useTranslation();
+  const isRTLLayout = i18nInstance.language === 'ar';
+  // Re-render key: theme and language both switch live without a reload.
+  const appearanceKey = `${scheme}-${isRTLLayout ? 'rtl' : 'ltr'}`;
+  const router = useRouter();
+  const pathname = usePathname();
+  const pathRef = useRef(pathname);
+  pathRef.current = pathname;
+  const appliedKey = useRef(appearanceKey);
+
   useEffect(() => {
     // Root window color behind all screens (keyboard, transitions, overscroll).
     SystemUI.setBackgroundColorAsync(V2_COLORS.bg).catch(() => {});
-  }, []);
+
+    // Theme switch: the navigator below is keyed on the scheme, so every screen
+    // re-renders with the new palette. That resets the stack, so reopen the
+    // screen the user was on (with its tab underneath for the back button).
+    if (appliedKey.current === appearanceKey) return;
+    appliedKey.current = appearanceKey;
+    const path = pathRef.current;
+    requestAnimationFrame(() => {
+      const TAB_PATHS = ['/', '/trips', '/messages', '/profile'];
+      if (path === '/login' || TAB_PATHS.includes(path)) {
+        router.replace(path as any);
+        return;
+      }
+      router.replace(path.startsWith('/profile/') ? ('/profile' as any) : ('/' as any));
+      router.push(path as any);
+    });
+  }, [appearanceKey, router]);
 
   useEffect(() => {
     // Sync RTL direction with the detected language, then reveal UI.
@@ -135,10 +163,17 @@ export default function RootLayout() {
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
           <AuthProvider>
-            <StatusBar style={IS_DARK ? 'light' : 'dark'} />
+            <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
             <OfflineBanner />
             <NavigationThemeProvider value={navigationTheme}>
-              {WebShell ? <WebShell>{stackNavigator}</WebShell> : stackNavigator}
+              <View
+                key={appearanceKey}
+                // Layout direction applied here so switching language flips RTL
+                // immediately; I18nManager.forceRTL only takes effect on next launch.
+                style={{ flex: 1, direction: isRTLLayout ? 'rtl' : 'ltr' }}
+              >
+                {WebShell ? <WebShell>{stackNavigator}</WebShell> : stackNavigator}
+              </View>
             </NavigationThemeProvider>
           </AuthProvider>
         </ThemeProvider>

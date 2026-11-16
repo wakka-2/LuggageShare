@@ -10,7 +10,7 @@ import Animated, {
   withSequence,
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
-import { V2_COLORS, RADIUS } from '@/providers/ThemeProvider';
+import { V2_COLORS, RADIUS, themed } from '@/providers/ThemeProvider';
 
 interface TimelineEvent {
   key: string;
@@ -144,58 +144,60 @@ export function StatusTimeline({ events, currentKey }: StatusTimelineProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    paddingVertical: 4,
-  },
-  eventRow: {
-    flexDirection: 'row',
-    minHeight: 52,
-  },
-  leftColumn: {
-    alignItems: 'center',
-    width: 32,
-  },
-  dot: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  activeDot: {
-    borderWidth: 3,
-  },
-  completedDot: {},
-  connector: {
-    width: 2,
-    flex: 1,
-    minHeight: 24,
-    borderRadius: 1,
-  },
-  content: {
-    flex: 1,
-    paddingStart: 12,
-    paddingBottom: 20,
-  },
-  eventHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  eventLabel: {
-    fontSize: 14,
-  },
-  eventDate: {
-    fontSize: 11,
-    marginTop: 3,
-    marginStart: 24,
-    color: V2_COLORS.textMuted,
-  },
-  eventDesc: {
-    fontSize: 12,
-    marginTop: 2,
-    marginStart: 24,
-    color: V2_COLORS.textSoft,
-  },
-});
+const styles = themed(() =>
+  StyleSheet.create({
+    container: {
+      paddingVertical: 4,
+    },
+    eventRow: {
+      flexDirection: 'row',
+      minHeight: 52,
+    },
+    leftColumn: {
+      alignItems: 'center',
+      width: 32,
+    },
+    dot: {
+      width: 22,
+      height: 22,
+      borderRadius: 11,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    activeDot: {
+      borderWidth: 3,
+    },
+    completedDot: {},
+    connector: {
+      width: 2,
+      flex: 1,
+      minHeight: 24,
+      borderRadius: 1,
+    },
+    content: {
+      flex: 1,
+      paddingStart: 12,
+      paddingBottom: 20,
+    },
+    eventHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+    eventLabel: {
+      fontSize: 14,
+    },
+    eventDate: {
+      fontSize: 11,
+      marginTop: 3,
+      marginStart: 24,
+      color: V2_COLORS.textMuted,
+    },
+    eventDesc: {
+      fontSize: 12,
+      marginTop: 2,
+      marginStart: 24,
+      color: V2_COLORS.textSoft,
+    },
+  })
+);

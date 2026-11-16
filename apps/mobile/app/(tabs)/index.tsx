@@ -54,6 +54,7 @@ import {
   RADIUS,
   BUBBLE_SHADOWS,
   TYPOGRAPHY,
+  themed,
 } from '@/providers/ThemeProvider';
 
 type TabValue = ListingType | 'all';
@@ -440,216 +441,218 @@ export default function HomeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: V2_COLORS.bg,
-  } as ViewStyle,
-  scrollContent: {
-    paddingBottom: 32,
-  } as ViewStyle,
-  scrollContentWide: {
-    paddingBottom: 48,
-  } as ViewStyle,
+const styles = themed(() =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: V2_COLORS.bg,
+    } as ViewStyle,
+    scrollContent: {
+      paddingBottom: 32,
+    } as ViewStyle,
+    scrollContentWide: {
+      paddingBottom: 48,
+    } as ViewStyle,
 
-  // Hero Card
-  heroCardMobile: {
-    marginHorizontal: 16,
-    marginBottom: 16,
-    borderRadius: RADIUS.heroCard,
-    overflow: 'hidden',
-    ...BUBBLE_SHADOWS.lg,
-  } as ViewStyle,
-  heroCardWide: {
-    maxWidth: 1200,
-    alignSelf: 'center',
-    width: '100%',
-    paddingHorizontal: 24,
-    marginBottom: 24,
-    borderRadius: RADIUS.heroCard,
-    overflow: 'hidden',
-  } as ViewStyle,
-  heroGradient: {
-    paddingHorizontal: 24,
-    paddingVertical: 32,
-    position: 'relative',
-    overflow: 'hidden',
-  } as ViewStyle,
-  heroGradientMobile: {
-    paddingHorizontal: 20,
-    paddingVertical: 24,
-    position: 'relative',
-    overflow: 'hidden',
-  } as ViewStyle,
-  heroDecoCircle1: {
-    position: 'absolute',
-    top: -30,
-    right: -20,
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: 'rgba(255,255,255,0.12)',
-  } as ViewStyle,
-  heroDecoCircle2: {
-    position: 'absolute',
-    bottom: -40,
-    left: -20,
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: 'rgba(255,255,255,0.08)',
-  } as ViewStyle,
-  heroLabel: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: 'rgba(255,255,255,0.8)',
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-    marginBottom: 8,
-  } as TextStyle,
-  heroTitle: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    marginBottom: 8,
-    letterSpacing: -0.5,
-  } as TextStyle,
-  heroTitleMobile: {
-    ...TYPOGRAPHY.hero,
-    color: '#FFFFFF',
-    marginBottom: 6,
-  } as TextStyle,
-  heroSubtitle: {
-    fontSize: 15,
-    lineHeight: 22,
-    color: 'rgba(255,255,255,0.85)',
-    maxWidth: 500,
-    marginBottom: 20,
-  } as TextStyle,
-  heroSubtitleMobile: {
-    ...TYPOGRAPHY.caption,
-    color: 'rgba(255,255,255,0.85)',
-    marginBottom: 16,
-  } as TextStyle,
-  heroCTA: {
-    flexDirection: 'row',
-    gap: 10,
-  } as ViewStyle,
+    // Hero Card
+    heroCardMobile: {
+      marginHorizontal: 16,
+      marginBottom: 16,
+      borderRadius: RADIUS.heroCard,
+      overflow: 'hidden',
+      ...BUBBLE_SHADOWS.lg,
+    } as ViewStyle,
+    heroCardWide: {
+      maxWidth: 1200,
+      alignSelf: 'center',
+      width: '100%',
+      paddingHorizontal: 24,
+      marginBottom: 24,
+      borderRadius: RADIUS.heroCard,
+      overflow: 'hidden',
+    } as ViewStyle,
+    heroGradient: {
+      paddingHorizontal: 24,
+      paddingVertical: 32,
+      position: 'relative',
+      overflow: 'hidden',
+    } as ViewStyle,
+    heroGradientMobile: {
+      paddingHorizontal: 20,
+      paddingVertical: 24,
+      position: 'relative',
+      overflow: 'hidden',
+    } as ViewStyle,
+    heroDecoCircle1: {
+      position: 'absolute',
+      top: -30,
+      right: -20,
+      width: 120,
+      height: 120,
+      borderRadius: 60,
+      backgroundColor: 'rgba(255,255,255,0.12)',
+    } as ViewStyle,
+    heroDecoCircle2: {
+      position: 'absolute',
+      bottom: -40,
+      left: -20,
+      width: 100,
+      height: 100,
+      borderRadius: 50,
+      backgroundColor: 'rgba(255,255,255,0.08)',
+    } as ViewStyle,
+    heroLabel: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: 'rgba(255,255,255,0.8)',
+      letterSpacing: 1,
+      textTransform: 'uppercase',
+      marginBottom: 8,
+    } as TextStyle,
+    heroTitle: {
+      fontSize: 32,
+      fontWeight: '800',
+      color: '#FFFFFF',
+      marginBottom: 8,
+      letterSpacing: -0.5,
+    } as TextStyle,
+    heroTitleMobile: {
+      ...TYPOGRAPHY.hero,
+      color: '#FFFFFF',
+      marginBottom: 6,
+    } as TextStyle,
+    heroSubtitle: {
+      fontSize: 15,
+      lineHeight: 22,
+      color: 'rgba(255,255,255,0.85)',
+      maxWidth: 500,
+      marginBottom: 20,
+    } as TextStyle,
+    heroSubtitleMobile: {
+      ...TYPOGRAPHY.caption,
+      color: 'rgba(255,255,255,0.85)',
+      marginBottom: 16,
+    } as TextStyle,
+    heroCTA: {
+      flexDirection: 'row',
+      gap: 10,
+    } as ViewStyle,
 
-  // Search
-  sectionPadded: {
-    paddingHorizontal: 16,
-  } as ViewStyle,
-  searchContainerWide: {
-    maxWidth: 1200,
-    alignSelf: 'center',
-    width: '100%',
-    paddingHorizontal: 24,
-    marginBottom: 20,
-  } as ViewStyle,
+    // Search
+    sectionPadded: {
+      paddingHorizontal: 16,
+    } as ViewStyle,
+    searchContainerWide: {
+      maxWidth: 1200,
+      alignSelf: 'center',
+      width: '100%',
+      paddingHorizontal: 24,
+      marginBottom: 20,
+    } as ViewStyle,
 
-  // Controls row
-  controlsRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    marginBottom: 8,
-  } as ViewStyle,
-  controlsRowWide: {
-    maxWidth: 1200,
-    alignSelf: 'center',
-    width: '100%',
-    paddingHorizontal: 24,
-  } as ViewStyle,
-  tabsWrapper: {
-    flex: 1,
-  } as ViewStyle,
-  toggleWrapper: {
-    marginStart: 16,
-    paddingTop: 4,
-  } as ViewStyle,
+    // Controls row
+    controlsRow: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+      marginBottom: 8,
+    } as ViewStyle,
+    controlsRowWide: {
+      maxWidth: 1200,
+      alignSelf: 'center',
+      width: '100%',
+      paddingHorizontal: 24,
+    } as ViewStyle,
+    tabsWrapper: {
+      flex: 1,
+    } as ViewStyle,
+    toggleWrapper: {
+      marginStart: 16,
+      paddingTop: 4,
+    } as ViewStyle,
 
-  // Results header
-  resultsHeader: {
-    paddingHorizontal: 16,
-    marginBottom: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  } as ViewStyle,
-  resultsHeaderWide: {
-    maxWidth: 1200,
-    alignSelf: 'center',
-    width: '100%',
-    paddingHorizontal: 24,
-  } as ViewStyle,
-  resultsCount: {
-    ...TYPOGRAPHY.caption,
-    color: V2_COLORS.textSoft,
-  } as TextStyle,
+    // Results header
+    resultsHeader: {
+      paddingHorizontal: 16,
+      marginBottom: 16,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    } as ViewStyle,
+    resultsHeaderWide: {
+      maxWidth: 1200,
+      alignSelf: 'center',
+      width: '100%',
+      paddingHorizontal: 24,
+    } as ViewStyle,
+    resultsCount: {
+      ...TYPOGRAPHY.caption,
+      color: V2_COLORS.textSoft,
+    } as TextStyle,
 
-  // Listings container
-  listingsContainer: {
-    paddingHorizontal: 16,
-  } as ViewStyle,
-  listingsContainerWide: {
-    maxWidth: 1200,
-    alignSelf: 'center',
-    width: '100%',
-    paddingHorizontal: 24,
-  } as ViewStyle,
-  listingsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 20,
-  } as ViewStyle,
-  gridItem: {
-    width: '48%',
-    minWidth: 340,
-  } as ViewStyle,
+    // Listings container
+    listingsContainer: {
+      paddingHorizontal: 16,
+    } as ViewStyle,
+    listingsContainerWide: {
+      maxWidth: 1200,
+      alignSelf: 'center',
+      width: '100%',
+      paddingHorizontal: 24,
+    } as ViewStyle,
+    listingsGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 20,
+    } as ViewStyle,
+    gridItem: {
+      width: '48%',
+      minWidth: 340,
+    } as ViewStyle,
 
-  // Empty state
-  emptyState: {
-    width: '100%',
-    minHeight: 350,
-    alignItems: 'center',
-    justifyContent: 'center',
-  } as ViewStyle,
+    // Empty state
+    emptyState: {
+      width: '100%',
+      minHeight: 350,
+      alignItems: 'center',
+      justifyContent: 'center',
+    } as ViewStyle,
 
-  refreshIndicator: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 16,
-  } as ViewStyle,
+    refreshIndicator: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 16,
+    } as ViewStyle,
 
-  // Mobile controls
-  mobileControlsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    marginBottom: 16,
-  } as ViewStyle,
-  mobileListings: {
-    paddingHorizontal: 16,
-  } as ViewStyle,
+    // Mobile controls
+    mobileControlsRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+      marginBottom: 16,
+    } as ViewStyle,
+    mobileListings: {
+      paddingHorizontal: 16,
+    } as ViewStyle,
 
-  // FAB
-  fab: {
-    position: 'absolute',
-    bottom: 24,
-    end: 20,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    overflow: 'hidden',
-    ...BUBBLE_SHADOWS.glow,
-  } as ViewStyle,
-  fabGradient: {
-    width: 56,
-    height: 56,
-    alignItems: 'center',
-    justifyContent: 'center',
-  } as ViewStyle,
-});
+    // FAB
+    fab: {
+      position: 'absolute',
+      bottom: 24,
+      end: 20,
+      width: 56,
+      height: 56,
+      borderRadius: 28,
+      overflow: 'hidden',
+      ...BUBBLE_SHADOWS.glow,
+    } as ViewStyle,
+    fabGradient: {
+      width: 56,
+      height: 56,
+      alignItems: 'center',
+      justifyContent: 'center',
+    } as ViewStyle,
+  })
+);

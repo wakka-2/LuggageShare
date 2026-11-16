@@ -14,6 +14,7 @@ import {
   ImageStyle,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { cityLabel } from '@/lib/airports';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -26,6 +27,7 @@ import {
   BUBBLE_SHADOWS,
   TYPOGRAPHY,
   GRADIENTS,
+  themed,
 } from '@/providers/ThemeProvider';
 import { useFlight } from '@/hooks/useFlights';
 import { useCreateOffer } from '@/hooks/useOffers';
@@ -154,7 +156,7 @@ export default function MakeOfferScreen() {
           <View style={styles.routeRow}>
             <View style={styles.routePoint}>
               <View style={[styles.routeDot, { backgroundColor: V2_COLORS.accent1 }]} />
-              <Text style={styles.cityName}>{flight.departureCity}</Text>
+              <Text style={styles.cityName}>{cityLabel(flight.departureCity)}</Text>
             </View>
             <View style={styles.routeLine}>
               <View style={styles.dashedLine} />
@@ -163,7 +165,7 @@ export default function MakeOfferScreen() {
             </View>
             <View style={styles.routePoint}>
               <View style={[styles.routeDot, { backgroundColor: V2_COLORS.secondary }]} />
-              <Text style={styles.cityName}>{flight.arrivalCity}</Text>
+              <Text style={styles.cityName}>{cityLabel(flight.arrivalCity)}</Text>
             </View>
           </View>
           <View style={styles.metaRow}>
@@ -342,171 +344,173 @@ export default function MakeOfferScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: V2_COLORS.bg } as ViewStyle,
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center' } as ViewStyle,
-  errorText: { ...TYPOGRAPHY.caption, color: V2_COLORS.textSoft } as TextStyle,
-  scrollContent: { padding: 16, paddingBottom: 32 } as ViewStyle,
+const styles = themed(() =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: V2_COLORS.bg } as ViewStyle,
+    center: { flex: 1, alignItems: 'center', justifyContent: 'center' } as ViewStyle,
+    errorText: { ...TYPOGRAPHY.caption, color: V2_COLORS.textSoft } as TextStyle,
+    scrollContent: { padding: 16, paddingBottom: 32 } as ViewStyle,
 
-  flightCard: {
-    backgroundColor: V2_COLORS.surface,
-    borderRadius: RADIUS.card,
-    padding: 20,
-    marginBottom: 16,
-    ...BUBBLE_SHADOWS.lg,
-  } as ViewStyle,
-  routeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 16,
-  } as ViewStyle,
-  routePoint: { alignItems: 'center', flex: 1 } as ViewStyle,
-  routeDot: { width: 12, height: 12, borderRadius: 6, marginBottom: 6 } as ViewStyle,
-  cityName: { ...TYPOGRAPHY.h2, color: V2_COLORS.text, textAlign: 'center' } as TextStyle,
-  routeLine: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 8,
-    gap: 4,
-  } as ViewStyle,
-  dashedLine: {
-    width: 16,
-    height: 1.5,
-    backgroundColor: V2_COLORS.textMuted,
-    opacity: 0.3,
-  } as ViewStyle,
-  metaRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 } as ViewStyle,
+    flightCard: {
+      backgroundColor: V2_COLORS.surface,
+      borderRadius: RADIUS.card,
+      padding: 20,
+      marginBottom: 16,
+      ...BUBBLE_SHADOWS.lg,
+    } as ViewStyle,
+    routeRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 16,
+    } as ViewStyle,
+    routePoint: { alignItems: 'center', flex: 1 } as ViewStyle,
+    routeDot: { width: 12, height: 12, borderRadius: 6, marginBottom: 6 } as ViewStyle,
+    cityName: { ...TYPOGRAPHY.h2, color: V2_COLORS.text, textAlign: 'center' } as TextStyle,
+    routeLine: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 8,
+      gap: 4,
+    } as ViewStyle,
+    dashedLine: {
+      width: 16,
+      height: 1.5,
+      backgroundColor: V2_COLORS.textMuted,
+      opacity: 0.3,
+    } as ViewStyle,
+    metaRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 } as ViewStyle,
 
-  formCard: {
-    backgroundColor: V2_COLORS.surface,
-    borderRadius: RADIUS.card,
-    padding: 20,
-    marginBottom: 16,
-    ...BUBBLE_SHADOWS.md,
-  } as ViewStyle,
-  formTitle: { ...TYPOGRAPHY.h2, color: V2_COLORS.text, marginBottom: 20 } as TextStyle,
-  inputGroup: { marginBottom: 20 } as ViewStyle,
-  inputLabel: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: V2_COLORS.text,
-    marginBottom: 8,
-  } as TextStyle,
-  inputWithUnit: { flexDirection: 'row', gap: 10, alignItems: 'center' } as ViewStyle,
-  textInput: {
-    backgroundColor: V2_COLORS.bg,
-    borderRadius: RADIUS.input,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 16,
-    color: V2_COLORS.text,
-    borderWidth: 1.5,
-    borderColor: V2_COLORS.cardShadow,
-  } as TextStyle,
-  noteInput: { minHeight: 90, paddingTop: 14 } as TextStyle,
-  unitBadge: {
-    backgroundColor: V2_COLORS.primary + '15',
-    paddingHorizontal: 14,
-    paddingVertical: 14,
-    borderRadius: RADIUS.input,
-  } as ViewStyle,
-  unitText: { fontSize: 14, fontWeight: '700', color: V2_COLORS.primary } as TextStyle,
-  perKgHint: { fontSize: 12, color: V2_COLORS.textMuted, marginTop: 6 } as TextStyle,
+    formCard: {
+      backgroundColor: V2_COLORS.surface,
+      borderRadius: RADIUS.card,
+      padding: 20,
+      marginBottom: 16,
+      ...BUBBLE_SHADOWS.md,
+    } as ViewStyle,
+    formTitle: { ...TYPOGRAPHY.h2, color: V2_COLORS.text, marginBottom: 20 } as TextStyle,
+    inputGroup: { marginBottom: 20 } as ViewStyle,
+    inputLabel: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: V2_COLORS.text,
+      marginBottom: 8,
+    } as TextStyle,
+    inputWithUnit: { flexDirection: 'row', gap: 10, alignItems: 'center' } as ViewStyle,
+    textInput: {
+      backgroundColor: V2_COLORS.bg,
+      borderRadius: RADIUS.input,
+      paddingHorizontal: 16,
+      paddingVertical: 14,
+      fontSize: 16,
+      color: V2_COLORS.text,
+      borderWidth: 1.5,
+      borderColor: V2_COLORS.cardShadow,
+    } as TextStyle,
+    noteInput: { minHeight: 90, paddingTop: 14 } as TextStyle,
+    unitBadge: {
+      backgroundColor: V2_COLORS.primary + '15',
+      paddingHorizontal: 14,
+      paddingVertical: 14,
+      borderRadius: RADIUS.input,
+    } as ViewStyle,
+    unitText: { fontSize: 14, fontWeight: '700', color: V2_COLORS.primary } as TextStyle,
+    perKgHint: { fontSize: 12, color: V2_COLORS.textMuted, marginTop: 6 } as TextStyle,
 
-  photoGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-  } as ViewStyle,
-  photoWrapper: {
-    position: 'relative',
-  } as ViewStyle,
-  photo: {
-    width: 90,
-    height: 90,
-    borderRadius: RADIUS.card,
-  } as ImageStyle,
-  photoRemoveBtn: {
-    position: 'absolute',
-    top: -6,
-    right: -6,
-    backgroundColor: V2_COLORS.surface,
-    borderRadius: 12,
-  } as ViewStyle,
-  photoAddBtn: {
-    width: 90,
-    height: 90,
-    borderRadius: RADIUS.card,
-    borderWidth: 2,
-    borderStyle: 'dashed',
-    borderColor: V2_COLORS.primary + '40',
-    backgroundColor: V2_COLORS.primary + '08',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 4,
-  } as ViewStyle,
-  photoAddText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: V2_COLORS.primary,
-  } as TextStyle,
-  photoHint: {
-    fontSize: 12,
-    color: V2_COLORS.textMuted,
-    marginTop: 8,
-  } as TextStyle,
+    photoGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 12,
+    } as ViewStyle,
+    photoWrapper: {
+      position: 'relative',
+    } as ViewStyle,
+    photo: {
+      width: 90,
+      height: 90,
+      borderRadius: RADIUS.card,
+    } as ImageStyle,
+    photoRemoveBtn: {
+      position: 'absolute',
+      top: -6,
+      right: -6,
+      backgroundColor: V2_COLORS.surface,
+      borderRadius: 12,
+    } as ViewStyle,
+    photoAddBtn: {
+      width: 90,
+      height: 90,
+      borderRadius: RADIUS.card,
+      borderWidth: 2,
+      borderStyle: 'dashed',
+      borderColor: V2_COLORS.primary + '40',
+      backgroundColor: V2_COLORS.primary + '08',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 4,
+    } as ViewStyle,
+    photoAddText: {
+      fontSize: 11,
+      fontWeight: '600',
+      color: V2_COLORS.primary,
+    } as TextStyle,
+    photoHint: {
+      fontSize: 12,
+      color: V2_COLORS.textMuted,
+      marginTop: 8,
+    } as TextStyle,
 
-  presetRow: { flexDirection: 'row', gap: 8, marginTop: 10 } as ViewStyle,
-  presetChip: {
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-    borderRadius: RADIUS.pill,
-    backgroundColor: V2_COLORS.bg,
-    borderWidth: 1.5,
-    borderColor: V2_COLORS.cardShadow,
-  } as ViewStyle,
-  presetChipActive: {
-    backgroundColor: V2_COLORS.primary,
-    borderColor: V2_COLORS.primary,
-  } as ViewStyle,
-  presetChipText: { fontSize: 13, fontWeight: '600', color: V2_COLORS.textSoft } as TextStyle,
-  presetChipTextActive: { color: '#FFFFFF' } as TextStyle,
+    presetRow: { flexDirection: 'row', gap: 8, marginTop: 10 } as ViewStyle,
+    presetChip: {
+      paddingHorizontal: 14,
+      paddingVertical: 7,
+      borderRadius: RADIUS.pill,
+      backgroundColor: V2_COLORS.bg,
+      borderWidth: 1.5,
+      borderColor: V2_COLORS.cardShadow,
+    } as ViewStyle,
+    presetChipActive: {
+      backgroundColor: V2_COLORS.primary,
+      borderColor: V2_COLORS.primary,
+    } as ViewStyle,
+    presetChipText: { fontSize: 13, fontWeight: '600', color: V2_COLORS.textSoft } as TextStyle,
+    presetChipTextActive: { color: '#FFFFFF' } as TextStyle,
 
-  infoCard: {
-    flexDirection: 'row',
-    gap: 10,
-    backgroundColor: V2_COLORS.primary + '0F',
-    borderRadius: RADIUS.card,
-    padding: 14,
-    alignItems: 'flex-start',
-    marginBottom: 16,
-  } as ViewStyle,
-  infoText: { flex: 1, fontSize: 13, lineHeight: 20, color: V2_COLORS.textSoft } as TextStyle,
+    infoCard: {
+      flexDirection: 'row',
+      gap: 10,
+      backgroundColor: V2_COLORS.primary + '0F',
+      borderRadius: RADIUS.card,
+      padding: 14,
+      alignItems: 'flex-start',
+      marginBottom: 16,
+    } as ViewStyle,
+    infoText: { flex: 1, fontSize: 13, lineHeight: 20, color: V2_COLORS.textSoft } as TextStyle,
 
-  footer: {
-    flexDirection: 'row',
-    padding: 16,
-    gap: 12,
-    backgroundColor: V2_COLORS.surface,
-    ...BUBBLE_SHADOWS.lg,
-  } as ViewStyle,
-  cancelBtn: {
-    paddingHorizontal: 20,
-    height: 50,
-    borderRadius: RADIUS.pill,
-    borderWidth: 1.5,
-    borderColor: V2_COLORS.textMuted,
-    alignItems: 'center',
-    justifyContent: 'center',
-  } as ViewStyle,
-  cancelBtnText: { fontSize: 14, fontWeight: '600', color: V2_COLORS.textSoft } as TextStyle,
-  submitBtnWrap: { flex: 1 } as ViewStyle,
-  submitBtn: {
-    height: 50,
-    borderRadius: RADIUS.pill,
-    alignItems: 'center',
-    justifyContent: 'center',
-  } as ViewStyle,
-  submitBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' } as TextStyle,
-});
+    footer: {
+      flexDirection: 'row',
+      padding: 16,
+      gap: 12,
+      backgroundColor: V2_COLORS.surface,
+      ...BUBBLE_SHADOWS.lg,
+    } as ViewStyle,
+    cancelBtn: {
+      paddingHorizontal: 20,
+      height: 50,
+      borderRadius: RADIUS.pill,
+      borderWidth: 1.5,
+      borderColor: V2_COLORS.textMuted,
+      alignItems: 'center',
+      justifyContent: 'center',
+    } as ViewStyle,
+    cancelBtnText: { fontSize: 14, fontWeight: '600', color: V2_COLORS.textSoft } as TextStyle,
+    submitBtnWrap: { flex: 1 } as ViewStyle,
+    submitBtn: {
+      height: 50,
+      borderRadius: RADIUS.pill,
+      alignItems: 'center',
+      justifyContent: 'center',
+    } as ViewStyle,
+    submitBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' } as TextStyle,
+  })
+);

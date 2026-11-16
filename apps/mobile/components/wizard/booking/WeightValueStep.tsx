@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
-import { V2_COLORS, RADIUS, BUBBLE_SHADOWS } from '@/providers/ThemeProvider';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS, themed } from '@/providers/ThemeProvider';
 import { QuestionTitle } from '../QuestionTitle';
 import { AnimatedButton } from '@/components/animations/AnimatedButton';
 import type { StepProps } from '../WizardContainer';
@@ -132,60 +132,62 @@ export function WeightValueStep({ data, updateData, goNext }: StepProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  sizeRow: {
-    flexDirection: 'row',
-    gap: 10,
-    marginBottom: 24,
-  },
-  sizeCard: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 8,
-    borderRadius: RADIUS.card,
-    backgroundColor: V2_COLORS.surface,
-  },
-  sizeCardSelected: {
-    backgroundColor: V2_COLORS.primary + '08',
-    borderWidth: 1.5,
-    borderColor: V2_COLORS.primary,
-  },
-  sizeEmoji: {
-    fontSize: 28,
-    marginBottom: 6,
-  },
-  sizeLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    textAlign: 'center',
-  },
-  sizeRange: {
-    fontSize: 11,
-    marginTop: 2,
-    color: V2_COLORS.textSoft,
-  },
-  section: {
-    marginBottom: 20,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    marginBottom: 8,
-    color: V2_COLORS.textSoft,
-  },
-  input: {
-    height: 48,
-    borderRadius: RADIUS.input,
-    paddingHorizontal: 20,
-    fontSize: 16,
-    backgroundColor: V2_COLORS.surface,
-    color: V2_COLORS.text,
-    ...BUBBLE_SHADOWS.xs,
-  },
-  hint: {
-    fontSize: 12,
-    marginTop: 4,
-    color: V2_COLORS.textMuted,
-  },
-});
+const styles = themed(() =>
+  StyleSheet.create({
+    sizeRow: {
+      flexDirection: 'row',
+      gap: 10,
+      marginBottom: 24,
+    },
+    sizeCard: {
+      flex: 1,
+      alignItems: 'center',
+      paddingVertical: 16,
+      paddingHorizontal: 8,
+      borderRadius: RADIUS.card,
+      backgroundColor: V2_COLORS.surface,
+    },
+    sizeCardSelected: {
+      backgroundColor: V2_COLORS.primary + '08',
+      borderWidth: 1.5,
+      borderColor: V2_COLORS.primary,
+    },
+    sizeEmoji: {
+      fontSize: 28,
+      marginBottom: 6,
+    },
+    sizeLabel: {
+      fontSize: 12,
+      fontWeight: '600',
+      textAlign: 'center',
+    },
+    sizeRange: {
+      fontSize: 11,
+      marginTop: 2,
+      color: V2_COLORS.textSoft,
+    },
+    section: {
+      marginBottom: 20,
+    },
+    label: {
+      fontSize: 14,
+      fontWeight: '600',
+      marginBottom: 8,
+      color: V2_COLORS.textSoft,
+    },
+    input: {
+      height: 48,
+      borderRadius: RADIUS.input,
+      paddingHorizontal: 20,
+      fontSize: 16,
+      backgroundColor: V2_COLORS.surface,
+      color: V2_COLORS.text,
+      ...BUBBLE_SHADOWS.xs,
+    },
+    hint: {
+      fontSize: 12,
+      marginTop: 4,
+      color: V2_COLORS.textMuted,
+    },
+  })
+);

@@ -3,7 +3,7 @@ import { View, TextInput, StyleSheet } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { V2_COLORS, RADIUS, BUBBLE_SHADOWS } from '@/providers/ThemeProvider';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS, themed } from '@/providers/ThemeProvider';
 import { QuestionTitle } from '../QuestionTitle';
 import { AnimatedButton } from '@/components/animations/AnimatedButton';
 import { DatePickerInput } from '@/components/common/DatePickerInput';
@@ -67,31 +67,33 @@ export function DateFlightStep({ data, updateData, goNext }: StepProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  section: {
-    marginBottom: 24,
-  },
-  inputLabel: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginBottom: 8,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: V2_COLORS.textSoft,
-  },
-  input: {
-    height: 48,
-    borderRadius: RADIUS.input,
-    paddingHorizontal: 20,
-    fontSize: 16,
-    backgroundColor: V2_COLORS.surface,
-    color: V2_COLORS.text,
-    ...BUBBLE_SHADOWS.xs,
-  },
-  nextContainer: {
-    marginTop: 8,
-  },
-});
+const styles = themed(() =>
+  StyleSheet.create({
+    section: {
+      marginBottom: 24,
+    },
+    inputLabel: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      marginBottom: 8,
+    },
+    label: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: V2_COLORS.textSoft,
+    },
+    input: {
+      height: 48,
+      borderRadius: RADIUS.input,
+      paddingHorizontal: 20,
+      fontSize: 16,
+      backgroundColor: V2_COLORS.surface,
+      color: V2_COLORS.text,
+      ...BUBBLE_SHADOWS.xs,
+    },
+    nextContainer: {
+      marginTop: 8,
+    },
+  })
+);

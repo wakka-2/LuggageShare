@@ -2,8 +2,8 @@ import { forwardRef, useImperativeHandle, useMemo, useRef } from 'react';
 import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import { WebView, type WebViewMessageEvent } from 'react-native-webview';
 
-import { V2_COLORS } from '@/providers/ThemeProvider';
-import { IS_DARK } from '@/lib/colorScheme';
+import { V2_COLORS, themed } from '@/providers/ThemeProvider';
+import { isDarkScheme } from '@/lib/colorScheme';
 
 export interface LatLng {
   lat: number;
@@ -49,7 +49,7 @@ function buildHtml({
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
   html,body,#map{margin:0;padding:0;height:100%;width:100%;background:${V2_COLORS.surface};}
-  ${IS_DARK ? '.leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(0.9) contrast(0.9);}' : ''}
+  ${isDarkScheme() ? '.leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(0.9) contrast(0.9);}' : ''}
   .leaflet-control-attribution{font-size:9px;}
   .pin{width:26px;height:26px;border-radius:50% 50% 50% 0;background:${pin};transform:rotate(-45deg);
        border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.35);}
@@ -124,7 +124,9 @@ export const LeafletMap = forwardRef<LeafletMapHandle, LeafletMapProps>(function
   );
 });
 
-const styles = StyleSheet.create({
-  container: { overflow: 'hidden', backgroundColor: V2_COLORS.surface },
-  web: { flex: 1, backgroundColor: 'transparent' },
-});
+const styles = themed(() =>
+  StyleSheet.create({
+    container: { overflow: 'hidden', backgroundColor: V2_COLORS.surface },
+    web: { flex: 1, backgroundColor: 'transparent' },
+  })
+);

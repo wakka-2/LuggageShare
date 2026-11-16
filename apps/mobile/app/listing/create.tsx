@@ -136,8 +136,8 @@ export default function CreateListingScreen() {
         onComplete={handleComplete}
         title={t('listing.create')}
         initialData={{
-          price: '25',
-          availableWeight: '5',
+          price: 25,
+          availableWeight: 5,
         }}
       />
 

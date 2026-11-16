@@ -2,7 +2,7 @@ import React from 'react';
 import { View, TextInput, StyleSheet } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
-import { V2_COLORS, RADIUS, BUBBLE_SHADOWS } from '@/providers/ThemeProvider';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS, themed } from '@/providers/ThemeProvider';
 import { QuestionTitle } from '../QuestionTitle';
 import { OptionChips, ChipOption } from '../OptionChips';
 import { AnimatedButton } from '@/components/animations/AnimatedButton';
@@ -83,27 +83,29 @@ export function ItemDetailsStep({ data, updateData, goNext }: StepProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  section: {
-    marginBottom: 20,
-  },
-  input: {
-    height: 48,
-    borderRadius: RADIUS.input,
-    paddingHorizontal: 20,
-    fontSize: 16,
-    backgroundColor: V2_COLORS.surface,
-    color: V2_COLORS.text,
-    ...BUBBLE_SHADOWS.xs,
-  },
-  textArea: {
-    height: 80,
-    borderRadius: RADIUS.card,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    fontSize: 15,
-    backgroundColor: V2_COLORS.surface,
-    color: V2_COLORS.text,
-    ...BUBBLE_SHADOWS.xs,
-  },
-});
+const styles = themed(() =>
+  StyleSheet.create({
+    section: {
+      marginBottom: 20,
+    },
+    input: {
+      height: 48,
+      borderRadius: RADIUS.input,
+      paddingHorizontal: 20,
+      fontSize: 16,
+      backgroundColor: V2_COLORS.surface,
+      color: V2_COLORS.text,
+      ...BUBBLE_SHADOWS.xs,
+    },
+    textArea: {
+      height: 80,
+      borderRadius: RADIUS.card,
+      paddingHorizontal: 20,
+      paddingVertical: 12,
+      fontSize: 15,
+      backgroundColor: V2_COLORS.surface,
+      color: V2_COLORS.text,
+      ...BUBBLE_SHADOWS.xs,
+    },
+  })
+);

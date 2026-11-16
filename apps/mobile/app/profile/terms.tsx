@@ -15,7 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 
-import { V2_COLORS, RADIUS, BUBBLE_SHADOWS, GRADIENTS } from '@/providers/ThemeProvider';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS, GRADIENTS, themed } from '@/providers/ThemeProvider';
 import { BackgroundBlobs } from '@/components/common';
 import { apiClient } from '@/lib/api';
 import { showAlert } from '@/lib/alert';
@@ -110,75 +110,77 @@ export default function TermsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: V2_COLORS.bg } as ViewStyle,
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-  } as ViewStyle,
-  backBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: RADIUS.pill,
-    backgroundColor: V2_COLORS.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...BUBBLE_SHADOWS.xs,
-  } as ViewStyle,
-  headerTitle: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: V2_COLORS.text,
-  } as TextStyle,
-  scrollContent: { padding: 16, paddingBottom: 100 } as ViewStyle,
-  sectionTitle: {
-    fontSize: 22,
-    fontWeight: '700',
-    marginBottom: 16,
-    color: V2_COLORS.text,
-  } as TextStyle,
-  body: {
-    fontSize: 14,
-    lineHeight: 22,
-    marginBottom: 24,
-    color: V2_COLORS.textSoft,
-  } as TextStyle,
-  card: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    padding: 16,
-    borderRadius: RADIUS.card,
-    marginBottom: 12,
-    backgroundColor: V2_COLORS.surface,
-    ...BUBBLE_SHADOWS.sm,
-  } as ViewStyle,
-  cardIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
-  } as ViewStyle,
-  cardText: {
-    flex: 1,
-    fontSize: 14,
-    lineHeight: 20,
-    color: V2_COLORS.text,
-  } as TextStyle,
-  bottomBar: {
-    padding: 16,
-    backgroundColor: V2_COLORS.surface,
-    ...BUBBLE_SHADOWS.md,
-  } as ViewStyle,
-  acceptBtn: {
-    height: 52,
-    borderRadius: RADIUS.pill,
-    alignItems: 'center',
-    justifyContent: 'center',
-  } as ViewStyle,
-  acceptText: { color: '#FFF', fontSize: 16, fontWeight: '700' } as TextStyle,
-});
+const styles = themed(() =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: V2_COLORS.bg } as ViewStyle,
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+      paddingVertical: 10,
+    } as ViewStyle,
+    backBtn: {
+      width: 36,
+      height: 36,
+      borderRadius: RADIUS.pill,
+      backgroundColor: V2_COLORS.surface,
+      alignItems: 'center',
+      justifyContent: 'center',
+      ...BUBBLE_SHADOWS.xs,
+    } as ViewStyle,
+    headerTitle: {
+      fontSize: 17,
+      fontWeight: '700',
+      color: V2_COLORS.text,
+    } as TextStyle,
+    scrollContent: { padding: 16, paddingBottom: 100 } as ViewStyle,
+    sectionTitle: {
+      fontSize: 22,
+      fontWeight: '700',
+      marginBottom: 16,
+      color: V2_COLORS.text,
+    } as TextStyle,
+    body: {
+      fontSize: 14,
+      lineHeight: 22,
+      marginBottom: 24,
+      color: V2_COLORS.textSoft,
+    } as TextStyle,
+    card: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      padding: 16,
+      borderRadius: RADIUS.card,
+      marginBottom: 12,
+      backgroundColor: V2_COLORS.surface,
+      ...BUBBLE_SHADOWS.sm,
+    } as ViewStyle,
+    cardIcon: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      alignItems: 'center',
+      justifyContent: 'center',
+    } as ViewStyle,
+    cardText: {
+      flex: 1,
+      fontSize: 14,
+      lineHeight: 20,
+      color: V2_COLORS.text,
+    } as TextStyle,
+    bottomBar: {
+      padding: 16,
+      backgroundColor: V2_COLORS.surface,
+      ...BUBBLE_SHADOWS.md,
+    } as ViewStyle,
+    acceptBtn: {
+      height: 52,
+      borderRadius: RADIUS.pill,
+      alignItems: 'center',
+      justifyContent: 'center',
+    } as ViewStyle,
+    acceptText: { color: '#FFF', fontSize: 16, fontWeight: '700' } as TextStyle,
+  })
+);

@@ -13,6 +13,8 @@ import {
   Alert,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { routeArrow } from '@/lib/rtl';
+import { cityLabel } from '@/lib/airports';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -26,6 +28,7 @@ import {
   BUBBLE_SHADOWS,
   GRADIENTS,
   TYPOGRAPHY,
+  themed,
 } from '@/providers/ThemeProvider';
 import { useAuth } from '@/hooks/useAuth';
 import { useOffer, useAcceptOffer, useRejectOffer, useWithdrawOffer } from '@/hooks/useOffers';
@@ -257,7 +260,7 @@ export default function OfferChatScreen() {
         <View style={styles.headerCenter}>
           <Text style={styles.headerTitle}>
             {offer
-              ? `${offer.flight.departureCity} → ${offer.flight.arrivalCity}`
+              ? `${cityLabel(offer.flight.departureCity)} ${routeArrow()} ${cityLabel(offer.flight.arrivalCity)}`
               : t('offer.chat')}
           </Text>
           {offer && (
@@ -432,175 +435,181 @@ export default function OfferChatScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: V2_COLORS.bg } as ViewStyle,
-  flex1: { flex: 1 } as ViewStyle,
+const styles = themed(() =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: V2_COLORS.bg } as ViewStyle,
+    flex1: { flex: 1 } as ViewStyle,
 
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-  } as ViewStyle,
-  backBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: RADIUS.pill,
-    backgroundColor: V2_COLORS.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...BUBBLE_SHADOWS.xs,
-  } as ViewStyle,
-  headerCenter: { flex: 1, alignItems: 'center', paddingHorizontal: 8 } as ViewStyle,
-  headerTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: V2_COLORS.text,
-    textAlign: 'center',
-  } as TextStyle,
-  offerSummaryRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginTop: 2,
-  } as ViewStyle,
-  offerSummaryText: { fontSize: 12, color: V2_COLORS.textMuted } as TextStyle,
-  statusBadge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: RADIUS.pill } as ViewStyle,
-  statusBadgeText: { fontSize: 11, fontWeight: '700' } as TextStyle,
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+      paddingVertical: 10,
+    } as ViewStyle,
+    backBtn: {
+      width: 36,
+      height: 36,
+      borderRadius: RADIUS.pill,
+      backgroundColor: V2_COLORS.surface,
+      alignItems: 'center',
+      justifyContent: 'center',
+      ...BUBBLE_SHADOWS.xs,
+    } as ViewStyle,
+    headerCenter: { flex: 1, alignItems: 'center', paddingHorizontal: 8 } as ViewStyle,
+    headerTitle: {
+      fontSize: 15,
+      fontWeight: '700',
+      color: V2_COLORS.text,
+      textAlign: 'center',
+    } as TextStyle,
+    offerSummaryRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      marginTop: 2,
+    } as ViewStyle,
+    offerSummaryText: { fontSize: 12, color: V2_COLORS.textMuted } as TextStyle,
+    statusBadge: {
+      paddingHorizontal: 8,
+      paddingVertical: 2,
+      borderRadius: RADIUS.pill,
+    } as ViewStyle,
+    statusBadgeText: { fontSize: 11, fontWeight: '700' } as TextStyle,
 
-  // Action strip
-  actionStrip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    backgroundColor: V2_COLORS.surface,
-    ...BUBBLE_SHADOWS.sm,
-    flexWrap: 'wrap',
-  } as ViewStyle,
-  acceptBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: RADIUS.pill,
-    backgroundColor: '#56D8B1',
-  } as ViewStyle,
-  acceptBtnText: { fontSize: 13, fontWeight: '700', color: '#FFF' } as TextStyle,
-  rejectBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: RADIUS.pill,
-    borderWidth: 1.5,
-    borderColor: '#FF6B9D',
-  } as ViewStyle,
-  rejectBtnText: { fontSize: 13, fontWeight: '700', color: '#FF6B9D' } as TextStyle,
-  withdrawBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: RADIUS.pill,
-    borderWidth: 1.5,
-    borderColor: V2_COLORS.textMuted,
-  } as ViewStyle,
-  withdrawBtnText: { fontSize: 13, fontWeight: '600', color: V2_COLORS.textSoft } as TextStyle,
-  offerDetailChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: RADIUS.pill,
-    backgroundColor: V2_COLORS.bg,
-  } as ViewStyle,
-  offerDetailText: { fontSize: 12, fontWeight: '600', color: V2_COLORS.text } as TextStyle,
+    // Action strip
+    actionStrip: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      paddingHorizontal: 16,
+      paddingVertical: 10,
+      backgroundColor: V2_COLORS.surface,
+      ...BUBBLE_SHADOWS.sm,
+      flexWrap: 'wrap',
+    } as ViewStyle,
+    acceptBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      paddingHorizontal: 14,
+      paddingVertical: 8,
+      borderRadius: RADIUS.pill,
+      backgroundColor: '#56D8B1',
+    } as ViewStyle,
+    acceptBtnText: { fontSize: 13, fontWeight: '700', color: '#FFF' } as TextStyle,
+    rejectBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      paddingHorizontal: 14,
+      paddingVertical: 8,
+      borderRadius: RADIUS.pill,
+      borderWidth: 1.5,
+      borderColor: '#FF6B9D',
+    } as ViewStyle,
+    rejectBtnText: { fontSize: 13, fontWeight: '700', color: '#FF6B9D' } as TextStyle,
+    withdrawBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      paddingHorizontal: 14,
+      paddingVertical: 8,
+      borderRadius: RADIUS.pill,
+      borderWidth: 1.5,
+      borderColor: V2_COLORS.textMuted,
+    } as ViewStyle,
+    withdrawBtnText: { fontSize: 13, fontWeight: '600', color: V2_COLORS.textSoft } as TextStyle,
+    offerDetailChip: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+      borderRadius: RADIUS.pill,
+      backgroundColor: V2_COLORS.bg,
+    } as ViewStyle,
+    offerDetailText: { fontSize: 12, fontWeight: '600', color: V2_COLORS.text } as TextStyle,
 
-  skeletonChat: { flex: 1, padding: 16, gap: 12 } as ViewStyle,
-  skeletonRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 8 } as ViewStyle,
-  skeletonRowRight: { justifyContent: 'flex-end' } as ViewStyle,
-  skeletonRowLeft: { justifyContent: 'flex-start' } as ViewStyle,
+    skeletonChat: { flex: 1, padding: 16, gap: 12 } as ViewStyle,
+    skeletonRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 8 } as ViewStyle,
+    skeletonRowRight: { justifyContent: 'flex-end' } as ViewStyle,
+    skeletonRowLeft: { justifyContent: 'flex-start' } as ViewStyle,
 
-  messagesList: { padding: 16, paddingBottom: 8 } as ViewStyle,
-  messageRow: {
-    flexDirection: 'row',
-    marginBottom: 12,
-    gap: 8,
-    alignItems: 'flex-end',
-  } as ViewStyle,
-  messageRowMe: { justifyContent: 'flex-end' } as ViewStyle,
-  messageRowOther: { justifyContent: 'flex-start' } as ViewStyle,
-  messageBubble: { maxWidth: '75%', padding: 12, borderRadius: 20 } as ViewStyle,
-  bubbleMe: { borderBottomRightRadius: 6 } as ViewStyle,
-  bubbleOther: {
-    borderBottomLeftRadius: 6,
-    backgroundColor: V2_COLORS.surface,
-    ...BUBBLE_SHADOWS.sm,
-  } as ViewStyle,
-  messageText: { fontSize: 15, lineHeight: 21 } as TextStyle,
-  messageTime: { fontSize: 11, marginTop: 4, textAlign: 'right' } as TextStyle,
+    messagesList: { padding: 16, paddingBottom: 8 } as ViewStyle,
+    messageRow: {
+      flexDirection: 'row',
+      marginBottom: 12,
+      gap: 8,
+      alignItems: 'flex-end',
+    } as ViewStyle,
+    messageRowMe: { justifyContent: 'flex-end' } as ViewStyle,
+    messageRowOther: { justifyContent: 'flex-start' } as ViewStyle,
+    messageBubble: { maxWidth: '75%', padding: 12, borderRadius: 20 } as ViewStyle,
+    bubbleMe: { borderBottomRightRadius: 6 } as ViewStyle,
+    bubbleOther: {
+      borderBottomLeftRadius: 6,
+      backgroundColor: V2_COLORS.surface,
+      ...BUBBLE_SHADOWS.sm,
+    } as ViewStyle,
+    messageText: { fontSize: 15, lineHeight: 21 } as TextStyle,
+    messageTime: { fontSize: 11, marginTop: 4, textAlign: 'right' } as TextStyle,
 
-  emptyChat: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingTop: 80,
-    gap: 12,
-  } as ViewStyle,
-  emptyChatText: { fontSize: 16, color: V2_COLORS.textMuted } as TextStyle,
-  notePreview: {
-    backgroundColor: V2_COLORS.accent2 + '12',
-    borderRadius: RADIUS.card,
-    padding: 14,
-    marginTop: 12,
-    maxWidth: '80%',
-  } as ViewStyle,
-  notePreviewLabel: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: V2_COLORS.accent2,
-    marginBottom: 4,
-  } as TextStyle,
-  notePreviewText: { fontSize: 14, color: V2_COLORS.text, lineHeight: 20 } as TextStyle,
+    emptyChat: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingTop: 80,
+      gap: 12,
+    } as ViewStyle,
+    emptyChatText: { fontSize: 16, color: V2_COLORS.textMuted } as TextStyle,
+    notePreview: {
+      backgroundColor: V2_COLORS.accent2 + '12',
+      borderRadius: RADIUS.card,
+      padding: 14,
+      marginTop: 12,
+      maxWidth: '80%',
+    } as ViewStyle,
+    notePreviewLabel: {
+      fontSize: 11,
+      fontWeight: '700',
+      color: V2_COLORS.accent2,
+      marginBottom: 4,
+    } as TextStyle,
+    notePreviewText: { fontSize: 14, color: V2_COLORS.text, lineHeight: 20 } as TextStyle,
 
-  inputBar: {
-    padding: 12,
-    paddingBottom: 8,
-    backgroundColor: V2_COLORS.surface,
-    ...BUBBLE_SHADOWS.md,
-  } as ViewStyle,
-  inputRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 8 } as ViewStyle,
-  textInput: {
-    flex: 1,
-    minHeight: 40,
-    maxHeight: 100,
-    borderRadius: RADIUS.pill,
-    paddingHorizontal: 18,
-    paddingVertical: 10,
-    fontSize: 15,
-    backgroundColor: V2_COLORS.bg,
-    color: V2_COLORS.text,
-  } as TextStyle,
-  sendBtn: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    alignItems: 'center',
-    justifyContent: 'center',
-  } as ViewStyle,
-  typingIndicator: { paddingHorizontal: 16, paddingBottom: 4 } as ViewStyle,
-  typingText: { fontSize: 12, fontStyle: 'italic', color: V2_COLORS.textMuted } as TextStyle,
-  closedNote: {
-    fontSize: 12,
-    color: V2_COLORS.textMuted,
-    textAlign: 'center',
-    paddingTop: 6,
-  } as TextStyle,
-});
+    inputBar: {
+      padding: 12,
+      paddingBottom: 8,
+      backgroundColor: V2_COLORS.surface,
+      ...BUBBLE_SHADOWS.md,
+    } as ViewStyle,
+    inputRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 8 } as ViewStyle,
+    textInput: {
+      flex: 1,
+      minHeight: 40,
+      maxHeight: 100,
+      borderRadius: RADIUS.pill,
+      paddingHorizontal: 18,
+      paddingVertical: 10,
+      fontSize: 15,
+      backgroundColor: V2_COLORS.bg,
+      color: V2_COLORS.text,
+    } as TextStyle,
+    sendBtn: {
+      width: 42,
+      height: 42,
+      borderRadius: 21,
+      alignItems: 'center',
+      justifyContent: 'center',
+    } as ViewStyle,
+    typingIndicator: { paddingHorizontal: 16, paddingBottom: 4 } as ViewStyle,
+    typingText: { fontSize: 12, fontStyle: 'italic', color: V2_COLORS.textMuted } as TextStyle,
+    closedNote: {
+      fontSize: 12,
+      color: V2_COLORS.textMuted,
+      textAlign: 'center',
+      paddingTop: 6,
+    } as TextStyle,
+  })
+);

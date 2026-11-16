@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import { ScrollView, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
-import { V2_COLORS, RADIUS, BUBBLE_SHADOWS } from '@/providers/ThemeProvider';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS, themed } from '@/providers/ThemeProvider';
 import { useTranslation } from 'react-i18next';
 import { ANIM } from '@/lib/animations';
 
@@ -22,6 +22,7 @@ const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 export function OptionChips({ options, selected, onSelect }: OptionChipsProps) {
   return (
     <ScrollView
+      keyboardShouldPersistTaps="handled"
       horizontal
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={styles.container}
@@ -76,25 +77,27 @@ const Chip = React.memo(function Chip({ option, isSelected, onSelect }: ChipProp
   );
 });
 
-const styles = StyleSheet.create({
-  container: {
-    gap: 8,
-    paddingVertical: 4,
-  },
-  chip: {
-    paddingHorizontal: 18,
-    paddingVertical: 10,
-    borderRadius: RADIUS.pill,
-  },
-  chipDefault: {
-    backgroundColor: V2_COLORS.surface,
-    ...BUBBLE_SHADOWS.xs,
-  },
-  chipSelected: {
-    backgroundColor: V2_COLORS.primary,
-  },
-  chipText: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-});
+const styles = themed(() =>
+  StyleSheet.create({
+    container: {
+      gap: 8,
+      paddingVertical: 4,
+    },
+    chip: {
+      paddingHorizontal: 18,
+      paddingVertical: 10,
+      borderRadius: RADIUS.pill,
+    },
+    chipDefault: {
+      backgroundColor: V2_COLORS.surface,
+      ...BUBBLE_SHADOWS.xs,
+    },
+    chipSelected: {
+      backgroundColor: V2_COLORS.primary,
+    },
+    chipText: {
+      fontSize: 14,
+      fontWeight: '600',
+    },
+  })
+);

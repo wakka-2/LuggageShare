@@ -10,7 +10,8 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { BubbleInput, BubbleButton, BubblePill } from '@/components/common';
-import { V2_COLORS, RADIUS, BUBBLE_SHADOWS } from '@/providers/ThemeProvider';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS, themed } from '@/providers/ThemeProvider';
+import { cityLabel } from '@/lib/airports';
 
 interface SearchBarProps {
   from: string;
@@ -24,10 +25,10 @@ interface SearchBarProps {
 }
 
 const POPULAR_ROUTES = [
-  { from: 'RUH', to: 'DXB', labelKey: 'searchBar.routeRuhDxb' },
-  { from: 'JED', to: 'CAI', labelKey: 'searchBar.routeJedCai' },
-  { from: 'DMM', to: 'BAH', labelKey: 'searchBar.routeDmmBah' },
-  { from: 'RUH', to: 'AMM', labelKey: 'searchBar.routeRuhAmm' },
+  { from: 'Riyadh', to: 'Dubai', labelKey: 'searchBar.routeRuhDxb' },
+  { from: 'Jeddah', to: 'Cairo', labelKey: 'searchBar.routeJedCai' },
+  { from: 'Dammam', to: 'Bahrain', labelKey: 'searchBar.routeDmmBah' },
+  { from: 'Riyadh', to: 'Amman', labelKey: 'searchBar.routeRuhAmm' },
 ];
 
 const QUICK_DATES = [
@@ -104,7 +105,7 @@ export function SearchBar({
       {/* Search Inputs */}
       <View style={[styles.searchRow, isWeb && styles.searchRowWeb]}>
         <BubbleInput
-          value={from}
+          value={cityLabel(from)}
           onChangeText={onFromChange}
           placeholder={t('searchBar.from')}
           dotColor={V2_COLORS.accent1}
@@ -126,7 +127,7 @@ export function SearchBar({
         </TouchableOpacity>
 
         <BubbleInput
-          value={to}
+          value={cityLabel(to)}
           onChangeText={onToChange}
           placeholder={t('searchBar.to')}
           dotColor={V2_COLORS.secondary}
@@ -261,75 +262,77 @@ export function SearchBar({
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    marginBottom: 16,
-  },
-  searchRow: {
-    flexDirection: 'column',
-    gap: 10,
-  },
-  searchRowWeb: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-  },
-  swapButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: V2_COLORS.blob1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    alignSelf: 'center',
-    ...BUBBLE_SHADOWS.xs,
-  },
-  quickOptions: {
-    marginTop: 16,
-    gap: 14,
-  },
-  quickSection: {
-    gap: 8,
-  },
-  quickLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    color: V2_COLORS.textMuted,
-  },
-  quickChips: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  activeFilters: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: 12,
-    paddingTop: 12,
-  },
-  filterTags: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    flex: 1,
-  },
-  filterTag: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: RADIUS.pill,
-    gap: 6,
-  },
-  filterTagText: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  clearAllText: {
-    fontSize: 13,
-    fontWeight: '600',
-  },
-});
+const styles = themed(() =>
+  StyleSheet.create({
+    container: {
+      marginBottom: 16,
+    },
+    searchRow: {
+      flexDirection: 'column',
+      gap: 10,
+    },
+    searchRowWeb: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flexWrap: 'wrap',
+    },
+    swapButton: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      backgroundColor: V2_COLORS.blob1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      alignSelf: 'center',
+      ...BUBBLE_SHADOWS.xs,
+    },
+    quickOptions: {
+      marginTop: 16,
+      gap: 14,
+    },
+    quickSection: {
+      gap: 8,
+    },
+    quickLabel: {
+      fontSize: 12,
+      fontWeight: '600',
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
+      color: V2_COLORS.textMuted,
+    },
+    quickChips: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 8,
+    },
+    activeFilters: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginTop: 12,
+      paddingTop: 12,
+    },
+    filterTags: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 8,
+      flex: 1,
+    },
+    filterTag: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+      borderRadius: RADIUS.pill,
+      gap: 6,
+    },
+    filterTagText: {
+      fontSize: 12,
+      fontWeight: '600',
+    },
+    clearAllText: {
+      fontSize: 13,
+      fontWeight: '600',
+    },
+  })
+);

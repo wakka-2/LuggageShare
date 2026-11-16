@@ -2,7 +2,7 @@ import React, { Component, ErrorInfo, ReactNode } from 'react';
 import i18n from '@/i18n';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import * as Sentry from '@/lib/sentry';
-import { V2_COLORS } from '@/providers/ThemeProvider';
+import { V2_COLORS, themed } from '@/providers/ThemeProvider';
 
 interface Props {
   children: ReactNode;
@@ -54,35 +54,37 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 24,
-    backgroundColor: V2_COLORS.surfaceAlt,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: V2_COLORS.text,
-    marginBottom: 8,
-  },
-  message: {
-    fontSize: 14,
-    color: V2_COLORS.textSoft,
-    textAlign: 'center',
-    marginBottom: 24,
-  },
-  button: {
-    backgroundColor: '#10B981',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
-  },
-  buttonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-});
+const styles = themed(() =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 24,
+      backgroundColor: V2_COLORS.surfaceAlt,
+    },
+    title: {
+      fontSize: 20,
+      fontWeight: '700',
+      color: V2_COLORS.text,
+      marginBottom: 8,
+    },
+    message: {
+      fontSize: 14,
+      color: V2_COLORS.textSoft,
+      textAlign: 'center',
+      marginBottom: 24,
+    },
+    button: {
+      backgroundColor: '#10B981',
+      paddingHorizontal: 24,
+      paddingVertical: 12,
+      borderRadius: 8,
+    },
+    buttonText: {
+      color: '#FFFFFF',
+      fontSize: 16,
+      fontWeight: '600',
+    },
+  })
+);
