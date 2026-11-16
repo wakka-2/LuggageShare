@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useRefreshOnFocus } from '@/hooks/useRefreshOnFocus';
 import {
   View,
   Text,
@@ -12,7 +13,10 @@ import {
   ViewStyle,
   TextStyle,
   ImageStyle,
+  Linking,
 } from 'react-native';
+import { LeafletMap } from '@/components/maps/LeafletMap';
+import { mapsLink } from '@/lib/geocode';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -47,6 +51,7 @@ import { StarRating } from '@/components/common/StarRating';
 import { StatusTimeline, LiveIndicator } from '@/components/status';
 import { VerificationBadge } from '@/components/trust';
 import { SkeletonLoader } from '@/components/animations';
+import { USE_MOCK_FALLBACK } from '@/lib/devFlags';
 
 const STATUS_COLORS: Record<string, string> = {
   pending: '#FFBE5C',
@@ -75,12 +80,15 @@ export default function BookingDetailScreen() {
   const { user } = useAuth();
   const isRTL = i18n.language === 'ar';
 
-  const { data: apiBooking, isLoading } = useBooking(id ?? null);
+  const { data: apiBooking, isLoading, refetch: refetchBooking } = useBooking(id ?? null);
+  useRefreshOnFocus(refetchBooking);
   const { data: existingReview } = useBookingReview(id ?? null);
 
   // Fall back to mock bookings when the API doesn't return data
   const mockMatch =
-    !apiBooking && id && user?.id ? getMockBookings(user.id).find((b) => b.id === id) : undefined;
+    USE_MOCK_FALLBACK && !apiBooking && id && user?.id
+      ? getMockBookings(user.id).find((b) => b.id === id)
+      : undefined;
   const booking = apiBooking ?? mockMatch;
   const acceptBooking = useAcceptBooking();
   const rejectBooking = useRejectBooking();
@@ -141,6 +149,10 @@ export default function BookingDetailScreen() {
   const isSender = user?.id === booking.senderId;
   const statusColor = STATUS_COLORS[booking.status] || V2_COLORS.textMuted;
   const statusKey = BOOKING_STATUS_KEYS[booking.status];
+  const hasPickupPin = booking.pickupLat != null && booking.pickupLng != null;
+  const pickupPoint = hasPickupPin
+    ? { lat: Number(booking.pickupLat), lng: Number(booking.pickupLng) }
+    : null;
   const otherUser = isCarrier ? booking.sender : booking.carrier;
 
   const handleAccept = () => {
@@ -225,7 +237,7 @@ export default function BookingDetailScreen() {
       <BackgroundBlobs variant="subtle" />
       <ScreenHeader title={t('booking.details')} />
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.scrollContent}>
         {/* Status Pill */}
         <Animated.View
           entering={FadeIn.duration(300)}
@@ -308,7 +320,9 @@ export default function BookingDetailScreen() {
         <Animated.View entering={FadeInUp.delay(250).springify()} style={styles.card}>
           <View style={styles.priceRow}>
             <Text style={styles.priceLabel}>{t('booking.weight')}</Text>
-            <Text style={styles.priceValue}>{Number(booking.totalWeight) || 0} kg</Text>
+            <Text style={styles.priceValue}>
+              {Number(booking.totalWeight) || 0} {t('common.kg')}
+            </Text>
           </View>
           <View style={styles.priceDivider} />
           <View style={styles.priceRow}>
@@ -318,6 +332,38 @@ export default function BookingDetailScreen() {
             </Text>
           </View>
         </Animated.View>
+
+        {/* Pickup meeting point */}
+        {(booking.pickupAddress || hasPickupPin) && (
+          <Animated.View entering={FadeInUp.delay(275).springify()} style={styles.card}>
+            <Text style={styles.cardTitle}>{t('booking.pickupPoint')}</Text>
+            {hasPickupPin && (
+              <LeafletMap
+                center={pickupPoint!}
+                zoom={15}
+                marker={pickupPoint}
+                interactive={false}
+                style={styles.pickupMap}
+              />
+            )}
+            {!!booking.pickupAddress && (
+              <View style={styles.pickupRow}>
+                <Ionicons name="location" size={18} color={V2_COLORS.primary} />
+                <Text style={styles.pickupText}>{booking.pickupAddress}</Text>
+              </View>
+            )}
+            {hasPickupPin && (
+              <TouchableOpacity
+                style={styles.pickupBtn}
+                onPress={() => Linking.openURL(mapsLink(pickupPoint!))}
+                accessibilityRole="link"
+              >
+                <Ionicons name="navigate-outline" size={18} color={V2_COLORS.primary} />
+                <Text style={styles.pickupBtnText}>{t('booking.openInMaps')}</Text>
+              </TouchableOpacity>
+            )}
+          </Animated.View>
+        )}
 
         {/* Items with Photos */}
         {booking.items && booking.items.length > 0 && (
@@ -342,13 +388,13 @@ export default function BookingDetailScreen() {
                   <View style={styles.itemMeta}>
                     <MetaChip
                       icon="scale"
-                      label={`${Number(item.weight)} kg`}
+                      label={`${Number(item.weight)} ${t('common.kg')}`}
                       color={V2_COLORS.primary}
                     />
                     {item.value > 0 && (
                       <MetaChip
                         icon="pricetag"
-                        label={`${Number(item.value)} SAR`}
+                        label={`${Number(item.value)} ${t('common.sar')}`}
                         color={V2_COLORS.accent2}
                       />
                     )}
@@ -356,6 +402,7 @@ export default function BookingDetailScreen() {
                 </View>
                 {item.imageUrls && item.imageUrls.length > 0 && (
                   <ScrollView
+                    keyboardShouldPersistTaps="handled"
                     horizontal
                     showsHorizontalScrollIndicator={false}
                     style={styles.itemImageScroll}
@@ -635,24 +682,48 @@ export default function BookingDetailScreen() {
         <View style={styles.actionBar}>
           {isCarrier && (
             <>
-              <TouchableOpacity onPress={handleReject} style={styles.rejectBtn}>
-                <Text style={styles.rejectText}>{t('booking.reject')}</Text>
+              <TouchableOpacity
+                onPress={handleReject}
+                disabled={rejectBooking.isPending || acceptBooking.isPending}
+                style={[styles.rejectBtn, rejectBooking.isPending && { opacity: 0.6 }]}
+              >
+                {rejectBooking.isPending ? (
+                  <ActivityIndicator color={V2_COLORS.secondary} size="small" />
+                ) : (
+                  <Text style={styles.rejectText}>{t('booking.reject')}</Text>
+                )}
               </TouchableOpacity>
-              <TouchableOpacity onPress={handleAccept} style={styles.primaryBtn}>
+              <TouchableOpacity
+                onPress={handleAccept}
+                disabled={acceptBooking.isPending || rejectBooking.isPending}
+                style={[styles.primaryBtn, acceptBooking.isPending && { opacity: 0.8 }]}
+              >
                 <LinearGradient
                   colors={[...GRADIENTS.primary]}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
                   style={styles.primaryBtnGradient}
                 >
-                  <Text style={styles.primaryBtnText}>{t('booking.accept')}</Text>
+                  {acceptBooking.isPending ? (
+                    <ActivityIndicator color="#FFF" size="small" />
+                  ) : (
+                    <Text style={styles.primaryBtnText}>{t('booking.accept')}</Text>
+                  )}
                 </LinearGradient>
               </TouchableOpacity>
             </>
           )}
           {isSender && (
-            <TouchableOpacity onPress={handleCancel} style={styles.cancelBtn}>
-              <Text style={styles.cancelText}>{t('booking.cancelBooking')}</Text>
+            <TouchableOpacity
+              onPress={handleCancel}
+              disabled={cancelBooking.isPending}
+              style={[styles.cancelBtn, cancelBooking.isPending && { opacity: 0.6 }]}
+            >
+              {cancelBooking.isPending ? (
+                <ActivityIndicator color={V2_COLORS.secondary} size="small" />
+              ) : (
+                <Text style={styles.cancelText}>{t('booking.cancelBooking')}</Text>
+              )}
             </TouchableOpacity>
           )}
         </View>
@@ -695,7 +766,7 @@ const styles = StyleSheet.create({
 
   // Cards
   card: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     borderRadius: RADIUS.card,
     padding: 20,
     marginBottom: 16,
@@ -707,6 +778,23 @@ const styles = StyleSheet.create({
     color: V2_COLORS.text,
     marginBottom: 12,
   } as TextStyle,
+
+  // Pickup
+  pickupMap: { height: 160, borderRadius: 12, marginBottom: 12 } as ViewStyle,
+  pickupRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 8 } as ViewStyle,
+  pickupText: { ...TYPOGRAPHY.body, color: V2_COLORS.text, flex: 1 } as TextStyle,
+  pickupBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    marginTop: 12,
+    paddingVertical: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: V2_COLORS.primary,
+  } as ViewStyle,
+  pickupBtnText: { fontSize: 14, fontWeight: '600', color: V2_COLORS.primary } as TextStyle,
 
   // Route
   routeRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 } as ViewStyle,
@@ -821,7 +909,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     padding: 16,
     gap: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     ...BUBBLE_SHADOWS.lg,
   } as ViewStyle,
   primaryBtn: { flex: 2, overflow: 'hidden' as const, borderRadius: RADIUS.pill } as ViewStyle,

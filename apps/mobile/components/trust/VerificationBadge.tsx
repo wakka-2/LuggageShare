@@ -1,4 +1,5 @@
 import React from 'react';
+import i18n from '@/i18n';
 import { View, Text, StyleSheet } from 'react-native';
 import Animated, { ZoomIn } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,10 +18,26 @@ const BADGE_CONFIG: Record<
   BadgeType,
   { icon: keyof typeof Ionicons.glyphMap; defaultLabel: string; color: string }
 > = {
-  verified: { icon: 'shield-checkmark', defaultLabel: 'Verified', color: V2_COLORS.accent3 },
-  id_verified: { icon: 'id-card', defaultLabel: 'ID Verified', color: V2_COLORS.primary },
-  phone_verified: { icon: 'call', defaultLabel: 'Phone Verified', color: V2_COLORS.accent1 },
-  top_carrier: { icon: 'star', defaultLabel: 'Top Carrier', color: V2_COLORS.accent2 },
+  verified: {
+    icon: 'shield-checkmark',
+    defaultLabel: 'verification.badgeVerified',
+    color: V2_COLORS.accent3,
+  },
+  id_verified: {
+    icon: 'id-card',
+    defaultLabel: 'verification.badgeIdVerified',
+    color: V2_COLORS.primary,
+  },
+  phone_verified: {
+    icon: 'call',
+    defaultLabel: 'verification.badgePhoneVerified',
+    color: V2_COLORS.accent1,
+  },
+  top_carrier: {
+    icon: 'star',
+    defaultLabel: 'verification.badgeTopCarrier',
+    color: V2_COLORS.accent2,
+  },
 };
 
 const SIZE_MAP = {
@@ -52,7 +69,7 @@ export function VerificationBadge({
     >
       <Ionicons name={config.icon} size={sizeConfig.icon} color={config.color} />
       <Text style={[styles.label, { color: config.color, fontSize: sizeConfig.text }]}>
-        {label || config.defaultLabel}
+        {label || i18n.t(config.defaultLabel)}
       </Text>
     </View>
   );

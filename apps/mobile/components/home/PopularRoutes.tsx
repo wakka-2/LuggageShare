@@ -124,7 +124,7 @@ const styles = StyleSheet.create({
   },
   routeCard: {
     width: 200,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     padding: 16,
     borderRadius: RADIUS.card,
     ...BUBBLE_SHADOWS.md,

@@ -1,5 +1,6 @@
 import { Listing } from '@/components/listings/types';
 import { ApiListing } from '@/hooks/useListings';
+import type { User } from '@/providers/AuthProvider';
 
 /**
  * Maps an API listing response to the mobile Listing type used by UI components.
@@ -58,4 +59,49 @@ export function mapApiListingToListing(api: ApiListing): Listing {
     createdAt: api.createdAt,
     expiresAt: api.departureDate,
   };
+}
+
+/** Token response returned by every /auth/* sign-in endpoint (after envelope unwrap). */
+export interface ApiAuthResponse {
+  accessToken: string;
+  refreshToken: string;
+  user: {
+    id: string;
+    email: string;
+    name: string | null;
+    avatarUrl: string | null;
+    isVerified?: boolean;
+  };
+}
+
+/**
+ * Maps an API auth response ({ user.name }) to the session shape the
+ * AuthProvider stores ({ user.displayName }).
+ */
+export function mapAuthResponseToSession(api: ApiAuthResponse): {
+  accessToken: string;
+  refreshToken: string;
+  user: User;
+} {
+  return {
+    accessToken: api.accessToken,
+    refreshToken: api.refreshToken,
+    user: {
+      id: api.user.id,
+      email: api.user.email,
+      displayName: api.user.name ?? null,
+      avatarUrl: api.user.avatarUrl ?? null,
+      isNewUser: false,
+      profileComplete: true,
+    },
+  };
+}
+
+/** Extracts a human-readable message from an axios/API error (NestJS returns string or string[]). */
+export function getApiErrorMessage(error: unknown, fallback: string): string {
+  const message = (error as { response?: { data?: { message?: unknown } } })?.response?.data
+    ?.message;
+  if (Array.isArray(message) && message.length > 0) return String(message[0]);
+  if (typeof message === 'string' && message.length > 0) return message;
+  return fallback;
 }

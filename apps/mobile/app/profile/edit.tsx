@@ -137,7 +137,7 @@ export default function EditProfileScreen() {
         <View style={styles.backBtn} />
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.scrollContent}>
         {/* Avatar Section with gradient ring */}
         <Animated.View
           entering={ZoomIn.delay(100).duration(400).springify()}
@@ -297,7 +297,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: RADIUS.pill,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     alignItems: 'center',
     justifyContent: 'center',
     ...BUBBLE_SHADOWS.xs,
@@ -369,7 +369,7 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.input,
     paddingHorizontal: 20,
     fontSize: 16,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     color: V2_COLORS.text,
     ...BUBBLE_SHADOWS.xs,
   } as TextStyle,
@@ -382,7 +382,7 @@ const styles = StyleSheet.create({
     height: 52,
     borderRadius: RADIUS.input,
     paddingHorizontal: 20,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     justifyContent: 'center',
     opacity: 0.6,
     ...BUBBLE_SHADOWS.xs,
@@ -392,7 +392,7 @@ const styles = StyleSheet.create({
 
   bottomBar: {
     padding: 16,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     ...BUBBLE_SHADOWS.md,
   } as ViewStyle,
   saveBtn: {

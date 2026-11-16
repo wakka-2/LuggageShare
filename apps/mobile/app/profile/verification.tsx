@@ -158,7 +158,11 @@ export default function VerificationScreen() {
         <View style={styles.backBtn} />
       </View>
 
-      <ScrollView style={styles.scrollContent} contentContainerStyle={styles.scrollInner}>
+      <ScrollView
+        keyboardShouldPersistTaps="handled"
+        style={styles.scrollContent}
+        contentContainerStyle={styles.scrollInner}
+      >
         {/* Info Card */}
         <Animated.View entering={FadeIn.duration(300)} style={styles.infoCard}>
           <View style={styles.infoIcon}>
@@ -280,7 +284,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: RADIUS.pill,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     alignItems: 'center',
     justifyContent: 'center',
     ...BUBBLE_SHADOWS.xs,
@@ -329,7 +333,7 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingVertical: 16,
     borderRadius: RADIUS.card,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     ...BUBBLE_SHADOWS.sm,
   } as ViewStyle,
   typeCardSelected: {
@@ -355,7 +359,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     fontSize: 16,
     marginBottom: 20,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     color: V2_COLORS.text,
     ...BUBBLE_SHADOWS.xs,
   } as TextStyle,

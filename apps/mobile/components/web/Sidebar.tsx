@@ -125,7 +125,7 @@ const styles = StyleSheet.create({
     zIndex: 100,
     flexDirection: 'column',
     overflow: 'hidden',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     ...BUBBLE_SHADOWS.sm,
   },
   logoArea: {

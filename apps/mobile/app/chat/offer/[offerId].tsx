@@ -263,7 +263,8 @@ export default function OfferChatScreen() {
           {offer && (
             <View style={styles.offerSummaryRow}>
               <Text style={styles.offerSummaryText}>
-                {Number(offer.offeredWeight)} kg · {Number(offer.offeredPrice)} {offer.currency}
+                {Number(offer.offeredWeight)} {t('common.kg')} · {Number(offer.offeredPrice)}{' '}
+                {offer.currency}
               </Text>
               <View
                 style={[
@@ -318,7 +319,9 @@ export default function OfferChatScreen() {
           )}
           <View style={styles.offerDetailChip}>
             <Ionicons name="scale" size={14} color={V2_COLORS.primary} />
-            <Text style={styles.offerDetailText}>{Number(offer.offeredWeight)} kg</Text>
+            <Text style={styles.offerDetailText}>
+              {Number(offer.offeredWeight)} {t('common.kg')}
+            </Text>
           </View>
           <View style={styles.offerDetailChip}>
             <Ionicons name="pricetag" size={14} color={V2_COLORS.accent2} />
@@ -352,6 +355,7 @@ export default function OfferChatScreen() {
           </View>
         ) : (
           <FlatList
+            keyboardShouldPersistTaps="handled"
             ref={flatListRef}
             data={messages || []}
             renderItem={renderMessage}
@@ -443,7 +447,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: RADIUS.pill,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     alignItems: 'center',
     justifyContent: 'center',
     ...BUBBLE_SHADOWS.xs,
@@ -472,7 +476,7 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingHorizontal: 16,
     paddingVertical: 10,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     ...BUBBLE_SHADOWS.sm,
     flexWrap: 'wrap',
   } as ViewStyle,
@@ -537,7 +541,7 @@ const styles = StyleSheet.create({
   bubbleMe: { borderBottomRightRadius: 6 } as ViewStyle,
   bubbleOther: {
     borderBottomLeftRadius: 6,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     ...BUBBLE_SHADOWS.sm,
   } as ViewStyle,
   messageText: { fontSize: 15, lineHeight: 21 } as TextStyle,
@@ -569,7 +573,7 @@ const styles = StyleSheet.create({
   inputBar: {
     padding: 12,
     paddingBottom: 8,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     ...BUBBLE_SHADOWS.md,
   } as ViewStyle,
   inputRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 8 } as ViewStyle,

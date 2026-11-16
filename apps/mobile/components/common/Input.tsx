@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import i18n from '@/i18n';
 import { View, TextInput, Text, StyleSheet, TouchableOpacity, ViewStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -87,7 +88,9 @@ export function Input({
             style={styles.iconRight}
             onPress={() => setShowPassword(!showPassword)}
             accessibilityRole="button"
-            accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
+            accessibilityLabel={
+              showPassword ? i18n.t('common.hidePassword') : i18n.t('common.showPassword')
+            }
           >
             <Ionicons
               name={showPassword ? 'eye-off-outline' : 'eye-outline'}

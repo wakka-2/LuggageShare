@@ -19,7 +19,22 @@
     "verified": "موثق",
     "offline": "أنت غير متصل بالإنترنت",
     "back": "رجوع",
-    "goBack": "العودة"
+    "goBack": "العودة",
+    "kg": "كجم",
+    "perKg": "/كجم",
+    "somethingWentWrong": "حدث خطأ ما",
+    "unexpectedError": "حدث خطأ غير متوقع",
+    "tryAgain": "حاول مرة أخرى",
+    "gridView": "عرض شبكي",
+    "listView": "عرض قائمة",
+    "selectDate": "اختر التاريخ",
+    "showPassword": "إظهار كلمة المرور",
+    "hidePassword": "إخفاء كلمة المرور",
+    "userAvatar": "صورة المستخدم",
+    "reviewsCount": "{{count}} تقييم",
+    "uploadFailed": "فشل رفع الملف",
+    "cameraPermission": "يلزم السماح بالوصول إلى الكاميرا",
+    "photosPermission": "يلزم السماح بالوصول إلى الصور"
   },
   "tabs": {
     "home": "الرئيسية",
@@ -34,7 +49,20 @@
     "termsPrefix": "بالمتابعة، أنت توافق على",
     "termsOfService": "شروط الخدمة",
     "and": "و",
-    "privacyPolicy": "سياسة الخصوصية"
+    "privacyPolicy": "سياسة الخصوصية",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "name": "الاسم الكامل",
+    "signIn": "تسجيل الدخول",
+    "createAccount": "إنشاء حساب",
+    "noAccount": "ليس لديك حساب؟",
+    "haveAccount": "لديك حساب بالفعل؟",
+    "or": "أو",
+    "invalidEmail": "أدخل بريدًا إلكترونيًا صالحًا",
+    "passwordTooShort": "يجب أن تتكون كلمة المرور من 8 أحرف على الأقل",
+    "nameRequired": "أدخل اسمك (حرفان على الأقل)",
+    "invalidCredentials": "البريد الإلكتروني أو كلمة المرور غير صحيحة",
+    "emailTaken": "يوجد حساب مسجل بهذا البريد الإلكتروني بالفعل"
   },
   "home": {
     "greeting": "أهلاً بك",
@@ -71,7 +99,9 @@
     "clearFilters": "مسح الفلاتر",
     "allTab": "الكل",
     "offersTab": "عروض",
-    "requestsTab": "طلبات"
+    "requestsTab": "طلبات",
+    "sendPackage": "أرسل شحنة",
+    "carryPackage": "احمل واربح"
   },
   "status": {
     "pending": "قيد الانتظار",
@@ -112,7 +142,8 @@
     "typeMessage": "اكتب رسالة...",
     "noConversations": "لا توجد محادثات",
     "startConversation": "ابدأ محادثة عبر حجز إعلان",
-    "browseListings": "تصفح الإعلانات"
+    "browseListings": "تصفح الإعلانات",
+    "unreadA11y": "{{count}} غير مقروءة"
   },
   "profile": {
     "title": "الملف الشخصي",
@@ -197,7 +228,43 @@
     "failedCreate": "فشل في إنشاء الإعلان",
     "selectDate": "اختر تاريخ المغادرة",
     "departureDateRequired": "تاريخ المغادرة مطلوب",
-    "carrierReviews": "التقييمات"
+    "carrierReviews": "التقييمات",
+    "wizard": {
+      "route": {
+        "title": "إلى أين تسافر؟",
+        "from": "من",
+        "to": "إلى",
+        "searchCity": "ابحث عن مدينة...",
+        "popular": "المسارات الشائعة:"
+      },
+      "date": {
+        "title": "متى تسافر؟",
+        "flight": "رقم الرحلة (اختياري)"
+      },
+      "weight": {
+        "title": "كم وزنًا يمكنك أن تحمل؟",
+        "quickSelect": "اختيار سريع:",
+        "hint": "متوسط الحمولة: 5-10 كجم"
+      },
+      "pricing": {
+        "title": "حدد سعرك لكل كيلوغرام",
+        "average": "المتوسط: 12-20 ريال/كجم",
+        "estimated": "الإجمالي المتوقع: {{total}} ريال",
+        "forWeight": "(لـ {{weight}} كجم)",
+        "estimatedTotalA11y": "الإجمالي التقديري: {{total}} ر.س"
+      },
+      "preferences": {
+        "title": "ماذا يمكنك أن تحمل؟",
+        "tapAll": "اختر كل ما ينطبق:"
+      },
+      "review": {
+        "title": "راجع رحلتك",
+        "earnings": "الأرباح المتوقعة:",
+        "ifBooked": "(عند اكتمال الحجز)",
+        "available": "{{weight}} كجم متاحة",
+        "pricePerKg": "{{price}} ر.س/كجم"
+      }
+    }
   },
   "booking": {
     "request": "طلب حجز",
@@ -275,7 +342,49 @@
     "addAnotherItem": "إضافة غرض آخر",
     "itemPhotoRequired": "يرجى إضافة صورة واحدة على الأقل لكل غرض",
     "confirmPayment": "تأكيد الدفع",
-    "fileDispute": "تقديم بلاغ نزاع"
+    "fileDispute": "تقديم بلاغ نزاع",
+    "wizard": {
+      "item": {
+        "title": "ماذا ترسل؟",
+        "name": "اسم الغرض",
+        "description": "الوصف (اختياري)"
+      },
+      "weight": {
+        "title": "كم وزن الغرض؟",
+        "exact": "الوزن الدقيق",
+        "value": "القيمة المصرّح بها",
+        "insurance": "(لأغراض التأمين)",
+        "envelope": "ظرف",
+        "smallBox": "صندوق صغير",
+        "mediumBox": "صندوق متوسط"
+      },
+      "photos": {
+        "title": "أضف صورًا للغرض",
+        "hint": "الصور الواضحة تمنح الناقل الثقة"
+      },
+      "pickup": {
+        "title": "أين يستلم الناقل الشحنة؟",
+        "describe": "صف نقطة اللقاء:",
+        "placeholder": "مثال: مطار الملك خالد، الصالة 1، البوابة 3",
+        "tapMap": "اضغط على الخريطة لتحديد نقطة اللقاء",
+        "pinSet": "تم تحديد الموقع. اسحب الدبوس أو اضغط مكانًا آخر للتعديل",
+        "useMyLocation": "استخدم موقعي",
+        "locationDenied": "يلزم السماح بالوصول إلى الموقع لاستخدام موقعك الحالي.",
+        "locationFailed": "تعذر تحديد موقعك. اضغط على الخريطة بدلاً من ذلك."
+      },
+      "review": {
+        "title": "راجع حجزك",
+        "item": "غرضك:",
+        "carrier": "الناقل:",
+        "breakdown": "تفاصيل السعر:",
+        "serviceFee": "رسوم الخدمة",
+        "total": "الإجمالي"
+      }
+    },
+    "weightExceedsAvailable": "الوزن ({{weight}} كجم) يتجاوز المتاح {{available}} كجم",
+    "missingListing": "الإعلان غير موجود",
+    "pickupPoint": "نقطة الاستلام",
+    "openInMaps": "فتح في الخرائط"
   },
   "wallet": {
     "title": "المحفظة",
@@ -345,7 +454,8 @@
     "daysAgo": "منذ {{count}} ي",
     "starting": "يبدأ من",
     "negotiate": "تفاوض",
-    "deals": "صفقة"
+    "deals": "صفقة",
+    "a11y": "{{type}}: من {{from}} إلى {{to}}، {{price}} ر.س، بواسطة {{name}}"
   },
   "categories": {
     "electronics": "إلكترونيات",
@@ -358,7 +468,11 @@
     "food": "طعام",
     "fragile": "قابل للكسر",
     "valuables": "مقتنيات ثمينة",
-    "batteries": "بطاريات"
+    "batteries": "بطاريات",
+    "clothing": "ملابس",
+    "medicine": "أدوية",
+    "other": "أخرى",
+    "foodSnacks": "طعام ووجبات خفيفة"
   },
   "searchBar": {
     "from": "من أين؟",
@@ -373,10 +487,17 @@
     "fromLabel": "من:",
     "toLabel": "إلى:",
     "clearAll": "مسح الكل",
-    "routeRuhDxb": "الرياض \u2192 دبي",
-    "routeJedCai": "جدة \u2192 القاهرة",
-    "routeDmmBah": "الدمام \u2192 البحرين",
-    "routeRuhAmm": "الرياض \u2192 عمان"
+    "routeRuhDxb": "الرياض → دبي",
+    "routeJedCai": "جدة → القاهرة",
+    "routeDmmBah": "الدمام → البحرين",
+    "routeRuhAmm": "الرياض → عمان",
+    "whereAreYouSending": "إلى أين ترسل؟",
+    "clearAllFilters": "مسح جميع الفلاتر",
+    "removeDateFilter": "إزالة فلتر التاريخ",
+    "removeFromFilter": "إزالة فلتر مدينة المغادرة",
+    "removeToFilter": "إزالة فلتر مدينة الوصول",
+    "swapCities": "تبديل مدينتي المغادرة والوصول",
+    "routeRuhJed": "الرياض → جدة"
   },
   "carrier": {
     "earnings": "الأرباح",
@@ -418,7 +539,11 @@
     "fullNamePlaceholder": "كما يظهر في المستند",
     "submitRequest": "تقديم طلب التحقق",
     "submitSuccess": "تم تقديم طلب التحقق بنجاح",
-    "submitFailed": "فشل تقديم طلب التحقق"
+    "submitFailed": "فشل تقديم طلب التحقق",
+    "badgeVerified": "موثّق",
+    "badgeIdVerified": "الهوية موثّقة",
+    "badgePhoneVerified": "الهاتف موثّق",
+    "badgeTopCarrier": "ناقل مميز"
   },
   "settings": {
     "language": "اللغة",
@@ -431,7 +556,13 @@
     "notifications": "الإشعارات",
     "pushNotifications": "إشعارات الدفع",
     "about": "حول",
-    "version": "الإصدار"
+    "version": "الإصدار",
+    "account": "الحساب",
+    "deleteAccount": "حذف الحساب",
+    "deleteAccountTitle": "حذف حسابك؟",
+    "deleteAccountMessage": "سيؤدي ذلك إلى حذف ملفك الشخصي وبياناتك الشخصية نهائيًا، وتسجيل خروجك من جميع الأجهزة، وإلغاء رحلاتك وحجوزاتك وعروضك المفتوحة. سيتم فقدان الرصيد المتبقي. لا يمكن التراجع عن هذا الإجراء.",
+    "deleteAccountConfirm": "حذف",
+    "deleteAccountBlocked": "لديك عمليات توصيل جارية. أكملها أو ألغها قبل حذف حسابك."
   },
   "web": {
     "sidebar": {
@@ -561,7 +692,7 @@
     "note": "ملاحظة للناقل",
     "notePlaceholder": "ماذا ستُرسل؟",
     "withdraw": "سحب العرض",
-    "withdrawConfirm": "سحب هذا العرض؟",
+    "withdrawConfirm": "سحب عرضك؟ يمكنك تقديم عرض جديد لاحقاً.",
     "accept": "قبول",
     "reject": "رفض",
     "status": {
@@ -595,7 +726,6 @@
     "priceRequired": "يرجى إدخال السعر المعروض",
     "submitted": "تم تقديم العرض!",
     "submittedDescription": "تم إرسال عرضك للناقل. سيتم إشعارك عند قبوله.",
-    "submitOffer": "تقديم العرض",
     "bookingCreated": "تم إنشاء الحجز",
     "emptyTitle": "لا توجد عروض بعد",
     "emptyDescription": "تصفح الرحلات وقدّم عرضاً",
@@ -610,14 +740,15 @@
     "rejectedTitle": "تم رفض العرض",
     "withdrawTitle": "سحب العرض",
     "withdrawBtn": "سحب",
-    "withdrawConfirm": "سحب عرضك؟ يمكنك تقديم عرض جديد لاحقاً.",
     "withdrawnTitle": "تم سحب العرض",
     "senderNote": "ملاحظة المُرسِل:",
     "chatClosed": "محادثة العرض مغلقة",
     "itemPhotos": "صور الأغراض (اختياري)",
     "addPhoto": "إضافة",
     "photoHint": "أضف حتى 3 صور لأغراضك لمساعدة الناقل",
-    "photoUploadError": "فشل رفع الصورة، حاول مرة أخرى"
+    "photoUploadError": "فشل رفع الصورة، حاول مرة أخرى",
+    "remainingLabel": "متبقي {{weight}} كجم",
+    "maxWeight": "الحد الأقصى {{max}}"
   },
   "dispute": {
     "title": "بلاغ نزاع",
@@ -627,7 +758,9 @@
       "open": "مفتوح",
       "under_review": "قيد المراجعة",
       "resolved": "محلول",
-      "closed": "مغلق"
+      "closed": "مغلق",
+      "investigating": "قيد التحقيق",
+      "dismissed": "مرفوض"
     },
     "reason": "السبب",
     "description": "الوصف",
@@ -649,5 +782,11 @@
     "successTitle": "تم تقديم البلاغ",
     "successDesc": "تلقينا بلاغك وسيراجعه فريقنا قريباً.",
     "backToTrips": "العودة إلى رحلاتي"
+  },
+  "wizard": {
+    "next": "التالي",
+    "skip": "تخطي",
+    "publish": "نشر الرحلة",
+    "confirm": "تأكيد الحجز"
   }
 }

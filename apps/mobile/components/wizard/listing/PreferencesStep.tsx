@@ -9,12 +9,12 @@ import { AnimatedButton } from '@/components/animations/AnimatedButton';
 import type { StepProps } from '../WizardContainer';
 
 const CATEGORY_OPTIONS: GridOption[] = [
-  { id: 'documents', emoji: '📄', label: 'Documents' },
-  { id: 'clothing', emoji: '👗', label: 'Clothing' },
-  { id: 'electronics', emoji: '📱', label: 'Electronics' },
-  { id: 'gifts', emoji: '🎁', label: 'Gifts' },
-  { id: 'medicine', emoji: '💊', label: 'Medicine' },
-  { id: 'food', emoji: '🍫', label: 'Food/Snacks' },
+  { id: 'documents', emoji: '📄', label: 'categories.documents' },
+  { id: 'clothing', emoji: '👗', label: 'categories.clothing' },
+  { id: 'electronics', emoji: '📱', label: 'categories.electronics' },
+  { id: 'gifts', emoji: '🎁', label: 'categories.gifts' },
+  { id: 'medicine', emoji: '💊', label: 'categories.medicine' },
+  { id: 'food', emoji: '🍫', label: 'categories.foodSnacks' },
 ];
 
 export function PreferencesStep({ data, updateData, goNext }: StepProps) {
@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 12,
     fontSize: 15,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     color: V2_COLORS.text,
     ...BUBBLE_SHADOWS.xs,
   },

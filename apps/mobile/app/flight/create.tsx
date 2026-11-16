@@ -92,14 +92,14 @@ function RouteStep({
             style={[styles.textInput, { flex: 2 }]}
             value={form.arrivalCity}
             onChangeText={(v) => onChange('arrivalCity', v)}
-            placeholder={t('flight.create.cityPlaceholder')}
+            placeholder={t('flight.placeholderFrom')}
             placeholderTextColor={V2_COLORS.textMuted}
           />
           <TextInput
             style={[styles.textInput, { flex: 1 }]}
             value={form.arrivalCode}
             onChangeText={(v) => onChange('arrivalCode', v.toUpperCase())}
-            placeholder="LHR"
+            placeholder="JED"
             placeholderTextColor={V2_COLORS.textMuted}
             maxLength={3}
             autoCapitalize="characters"
@@ -180,7 +180,7 @@ function WeightStep({
             keyboardType="decimal-pad"
           />
           <View style={styles.weightUnit}>
-            <Text style={styles.weightUnitText}>kg</Text>
+            <Text style={styles.weightUnitText}>{t('common.kg')}</Text>
           </View>
         </View>
       </View>
@@ -195,7 +195,7 @@ function WeightStep({
             <Text
               style={[styles.presetChipText, form.totalWeight === p && styles.presetChipTextActive]}
             >
-              {p} kg
+              {t('common.kg')}
             </Text>
           </TouchableOpacity>
         ))}
@@ -232,7 +232,10 @@ function PricingStep({
             keyboardType="decimal-pad"
           />
           <View style={styles.weightUnit}>
-            <Text style={styles.weightUnitText}>{form.currency}/kg</Text>
+            <Text style={styles.weightUnitText}>
+              {form.currency}
+              {t('common.perKg')}
+            </Text>
           </View>
         </View>
       </View>
@@ -294,12 +297,15 @@ function ReviewStep({
         ) : null}
         <View style={styles.reviewRow}>
           <Ionicons name="scale" size={18} color={V2_COLORS.accent1} />
-          <Text style={styles.reviewText}>{form.totalWeight} kg</Text>
+          <Text style={styles.reviewText}>
+            {form.totalWeight} {t('common.kg')}
+          </Text>
         </View>
         <View style={styles.reviewRow}>
           <Ionicons name="pricetag" size={18} color={V2_COLORS.accent2} />
           <Text style={styles.reviewText}>
-            {form.pricePerKg} {form.currency}/kg
+            {form.pricePerKg} {form.currency}
+            {t('common.perKg')}
           </Text>
         </View>
       </View>
@@ -455,7 +461,11 @@ export default function CreateFlightScreen() {
         </Text>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         {stepComponents[step - 1]}
       </ScrollView>
 
@@ -523,7 +533,7 @@ const styles = StyleSheet.create({
   inputHint: { fontSize: 12, color: V2_COLORS.textMuted, marginTop: 6 } as TextStyle,
   inputRow: { flexDirection: 'row', gap: 10 } as ViewStyle,
   textInput: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     borderRadius: RADIUS.input,
     paddingHorizontal: 16,
     paddingVertical: 14,
@@ -561,7 +571,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 9,
     borderRadius: RADIUS.pill,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     ...BUBBLE_SHADOWS.xs,
   } as ViewStyle,
   presetChipActive: { backgroundColor: V2_COLORS.primary } as ViewStyle,
@@ -569,7 +579,7 @@ const styles = StyleSheet.create({
   presetChipTextActive: { color: '#FFFFFF' } as TextStyle,
 
   reviewCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     borderRadius: RADIUS.card,
     padding: 18,
     gap: 12,
@@ -583,7 +593,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     padding: 16,
     gap: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     ...BUBBLE_SHADOWS.lg,
   } as ViewStyle,
   backBtn: {

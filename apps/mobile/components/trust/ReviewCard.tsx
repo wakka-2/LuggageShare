@@ -64,7 +64,7 @@ export function ReviewCard({ review, index = 0 }: ReviewCardProps) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     borderRadius: RADIUS.card,
     padding: 14,
     marginBottom: 10,

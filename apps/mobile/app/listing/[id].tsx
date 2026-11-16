@@ -32,6 +32,7 @@ import { VerificationBadge } from '@/components/trust';
 import { ReviewCard, RatingBars } from '@/components/trust';
 import { SkeletonLoader } from '@/components/animations';
 import { showAlert } from '@/lib/alert';
+import { USE_MOCK_FALLBACK } from '@/lib/devFlags';
 
 export default function ListingDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -44,7 +45,8 @@ export default function ListingDetailScreen() {
   const { data: bookings } = useBookings();
 
   // Fall back to mock data when the API doesn't return a result
-  const mockMatch = !apiListing && id ? MOCK_LISTINGS.find((m) => m.id === id) : undefined;
+  const mockMatch =
+    USE_MOCK_FALLBACK && !apiListing && id ? MOCK_LISTINGS.find((m) => m.id === id) : undefined;
   const listing = apiListing ?? (mockMatch ? adaptMockListing(mockMatch) : undefined);
 
   const { data: carrierReviews } = useUserReviews(listing?.carrierId ?? null);
@@ -161,7 +163,9 @@ export default function ListingDetailScreen() {
             <View style={[styles.statIconCircle, { backgroundColor: V2_COLORS.primary + '15' }]}>
               <Ionicons name="scale-outline" size={22} color={V2_COLORS.primary} />
             </View>
-            <Text style={styles.statValue}>{weight} kg</Text>
+            <Text style={styles.statValue}>
+              {weight} {t('common.kg')}
+            </Text>
             <Text style={styles.statLabel}>{t('listing.available')}</Text>
           </View>
           <View style={styles.statCard}>
@@ -169,7 +173,9 @@ export default function ListingDetailScreen() {
               <Ionicons name="pricetag-outline" size={22} color={V2_COLORS.accent2} />
             </View>
             <Text style={styles.statValue}>
-              {price} {listing.currency || 'SAR'}
+              {price}{' '}
+              {!listing.currency || listing.currency === 'SAR' ? t('common.sar') : listing.currency}
+              {t('common.perKg')}
             </Text>
             <Text style={styles.statLabel}>{t('listing.price')}</Text>
           </View>
@@ -299,7 +305,7 @@ const styles = StyleSheet.create({
 
   // Route Card
   routeCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     borderRadius: RADIUS.card,
     padding: 20,
     marginBottom: 16,
@@ -340,7 +346,7 @@ const styles = StyleSheet.create({
   statsCards: { flexDirection: 'row', gap: 12, marginBottom: 16 } as ViewStyle,
   statCard: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     borderRadius: RADIUS.card,
     padding: 18,
     alignItems: 'center',
@@ -379,7 +385,7 @@ const styles = StyleSheet.create({
 
   // Carrier section
   section: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     borderRadius: RADIUS.card,
     padding: 20,
     marginBottom: 16,
@@ -416,7 +422,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     padding: 16,
     gap: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     ...BUBBLE_SHADOWS.lg,
   } as ViewStyle,
   messageButton: {

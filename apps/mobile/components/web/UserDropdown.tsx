@@ -156,7 +156,7 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.card,
     overflow: 'hidden',
     paddingVertical: 8,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     ...BUBBLE_SHADOWS.md,
   },
   userInfo: {

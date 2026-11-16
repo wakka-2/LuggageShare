@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: -6,
     right: -6,
-    backgroundColor: '#FFF',
+    backgroundColor: V2_COLORS.surface,
     borderRadius: 12,
   },
   addBtn: {

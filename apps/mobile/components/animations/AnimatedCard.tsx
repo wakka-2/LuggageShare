@@ -58,7 +58,7 @@ export function AnimatedCard({ children, onPress, style, delay, index = 0 }: Ani
       style={[
         styles.card,
         {
-          backgroundColor: '#FFFFFF',
+          backgroundColor: V2_COLORS.surface,
           shadowColor: V2_COLORS.primary,
         },
         pressStyle,

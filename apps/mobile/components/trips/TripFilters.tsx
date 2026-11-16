@@ -1,5 +1,13 @@
 import { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, Platform, ScrollView } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  TextInput,
+  Platform,
+  ScrollView,
+} from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeIn, SlideInUp } from 'react-native-reanimated';
@@ -49,8 +57,13 @@ export function TripFilters({ filters, onFiltersChange, resultCount }: TripFilte
     });
   };
 
-  const hasActiveFilters = filters.from || filters.to || filters.date ||
-    filters.minWeight || filters.maxPrice || filters.verifiedOnly;
+  const hasActiveFilters =
+    filters.from ||
+    filters.to ||
+    filters.date ||
+    filters.minWeight ||
+    filters.maxPrice ||
+    filters.verifiedOnly;
 
   return (
     <Animated.View
@@ -108,9 +121,7 @@ export function TripFilters({ filters, onFiltersChange, resultCount }: TripFilte
         </View>
 
         {/* Search Button */}
-        <TouchableOpacity
-          style={[styles.searchButton, { backgroundColor: colors.primary }]}
-        >
+        <TouchableOpacity style={[styles.searchButton, { backgroundColor: colors.primary }]}>
           <Ionicons name="search" size={20} color="#FFFFFF" />
           {isWeb && <Text style={styles.searchButtonText}>{t('home.searchButton')}</Text>}
         </TouchableOpacity>
@@ -122,20 +133,25 @@ export function TripFilters({ filters, onFiltersChange, resultCount }: TripFilte
           <Text style={[styles.popularLabel, { color: colors.textSecondary }]}>
             {t('home.popularRoutes')}:
           </Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          <ScrollView
+            keyboardShouldPersistTaps="handled"
+            horizontal
+            showsHorizontalScrollIndicator={false}
+          >
             <View style={styles.popularRoutes}>
               {POPULAR_ROUTES.map((route, index) => (
                 <TouchableOpacity
                   key={index}
-                  style={[styles.routeChip, { backgroundColor: colors.background, borderColor: colors.border }]}
+                  style={[
+                    styles.routeChip,
+                    { backgroundColor: colors.background, borderColor: colors.border },
+                  ]}
                   onPress={() => {
                     updateFilter('from', route.from);
                     updateFilter('to', route.to);
                   }}
                 >
-                  <Text style={[styles.routeChipText, { color: colors.text }]}>
-                    {route.label}
-                  </Text>
+                  <Text style={[styles.routeChipText, { color: colors.text }]}>{route.label}</Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -161,9 +177,7 @@ export function TripFilters({ filters, onFiltersChange, resultCount }: TripFilte
 
         {hasActiveFilters && (
           <TouchableOpacity onPress={clearFilters}>
-            <Text style={[styles.clearText, { color: colors.error }]}>
-              Clear all
-            </Text>
+            <Text style={[styles.clearText, { color: colors.error }]}>Clear all</Text>
           </TouchableOpacity>
         )}
 
@@ -207,7 +221,10 @@ export function TripFilters({ filters, onFiltersChange, resultCount }: TripFilte
             <TouchableOpacity
               style={[
                 styles.verifiedFilter,
-                { backgroundColor: colors.background, borderColor: filters.verifiedOnly ? colors.primary : colors.border }
+                {
+                  backgroundColor: colors.background,
+                  borderColor: filters.verifiedOnly ? colors.primary : colors.border,
+                },
               ]}
               onPress={() => updateFilter('verifiedOnly', !filters.verifiedOnly)}
             >
@@ -216,7 +233,12 @@ export function TripFilters({ filters, onFiltersChange, resultCount }: TripFilte
                 size={20}
                 color={filters.verifiedOnly ? colors.primary : colors.textSecondary}
               />
-              <Text style={[styles.verifiedText, { color: filters.verifiedOnly ? colors.primary : colors.textSecondary }]}>
+              <Text
+                style={[
+                  styles.verifiedText,
+                  { color: filters.verifiedOnly ? colors.primary : colors.textSecondary },
+                ]}
+              >
                 Verified only
               </Text>
             </TouchableOpacity>

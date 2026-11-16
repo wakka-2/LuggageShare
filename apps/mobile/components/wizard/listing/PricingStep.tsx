@@ -31,7 +31,7 @@ export function PricingStep({ data, updateData, goNext }: StepProps) {
 
       {/* Big price display */}
       <Animated.View entering={FadeInUp.delay(150).springify()} style={styles.priceDisplay}>
-        <Text style={styles.currency}>SAR</Text>
+        <Text style={styles.currency}>{t('common.sar')}</Text>
         <TextInput
           style={styles.priceInput}
           value={String(price)}
@@ -43,7 +43,7 @@ export function PricingStep({ data, updateData, goNext }: StepProps) {
           keyboardType="numeric"
           textAlign="center"
         />
-        <Text style={styles.perKg}>/ kg</Text>
+        <Text style={styles.perKg}>{t('common.perKg')}</Text>
       </Animated.View>
 
       {/* +/- buttons */}
@@ -76,12 +76,14 @@ export function PricingStep({ data, updateData, goNext }: StepProps) {
         <Text style={styles.estimateLabel}>
           💡{' '}
           {t('listing.wizard.pricing.estimated', {
-            defaultValue: `Estimated total: SAR ${estimatedTotal}`,
+            defaultValue: t('listing.wizard.pricing.estimatedTotalA11y', { total: estimatedTotal }),
             total: estimatedTotal,
           })}
         </Text>
-        <Text style={styles.estimateValue}>SAR {estimatedTotal.toFixed(0)}</Text>
-        <Text style={styles.estimateNote}>(for {weight} kg)</Text>
+        <Text style={styles.estimateValue}>
+          {estimatedTotal.toFixed(0)} {t('common.sar')}
+        </Text>
+        <Text style={styles.estimateNote}>{t('listing.wizard.pricing.forWeight', { weight })}</Text>
       </Animated.View>
 
       {/* Next */}
@@ -134,7 +136,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     alignItems: 'center',
     justifyContent: 'center',
     ...BUBBLE_SHADOWS.xs,

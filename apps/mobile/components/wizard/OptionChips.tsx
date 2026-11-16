@@ -2,11 +2,13 @@ import React, { useCallback } from 'react';
 import { ScrollView, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { V2_COLORS, RADIUS, BUBBLE_SHADOWS } from '@/providers/ThemeProvider';
+import { useTranslation } from 'react-i18next';
 import { ANIM } from '@/lib/animations';
 
 export interface ChipOption {
   id: string;
   label: string;
+  emoji?: string;
 }
 
 interface OptionChipsProps {
@@ -43,6 +45,7 @@ interface ChipProps {
 }
 
 const Chip = React.memo(function Chip({ option, isSelected, onSelect }: ChipProps) {
+  const { t } = useTranslation();
   const scale = useSharedValue(1);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -66,7 +69,8 @@ const Chip = React.memo(function Chip({ option, isSelected, onSelect }: ChipProp
       style={[styles.chip, isSelected ? styles.chipSelected : styles.chipDefault, animatedStyle]}
     >
       <Text style={[styles.chipText, { color: isSelected ? '#FFFFFF' : V2_COLORS.textSoft }]}>
-        {option.label}
+        {option.emoji ? `${option.emoji} ` : ''}
+        {t(option.label)}
       </Text>
     </AnimatedTouchable>
   );
@@ -83,7 +87,7 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.pill,
   },
   chipDefault: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     ...BUBBLE_SHADOWS.xs,
   },
   chipSelected: {

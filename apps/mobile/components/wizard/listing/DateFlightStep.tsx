@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.input,
     paddingHorizontal: 20,
     fontSize: 16,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     color: V2_COLORS.text,
     ...BUBBLE_SHADOWS.xs,
   },

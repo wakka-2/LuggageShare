@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { RADIUS, BUBBLE_SHADOWS } from '@/providers/ThemeProvider';
+import { RADIUS, BUBBLE_SHADOWS, V2_COLORS } from '@/providers/ThemeProvider';
 
 type IoniconsName = keyof typeof Ionicons.glyphMap;
 
@@ -26,7 +26,7 @@ export function StatBubble({ value, label, icon, color }: StatBubbleProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     borderRadius: RADIUS.card,
     padding: 16,
     alignItems: 'center',
@@ -47,7 +47,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 11,
     fontWeight: '600',
-    color: '#6E6B8A',
+    color: V2_COLORS.textSoft,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     marginTop: 2,

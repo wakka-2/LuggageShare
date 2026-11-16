@@ -9,12 +9,12 @@ import { AnimatedButton } from '@/components/animations/AnimatedButton';
 import type { StepProps } from '../WizardContainer';
 
 const CATEGORIES: ChipOption[] = [
-  { id: 'electronics', label: '📱 Electronics' },
-  { id: 'clothing', label: '👗 Clothing' },
-  { id: 'documents', label: '📄 Documents' },
-  { id: 'gifts', label: '🎁 Gifts' },
-  { id: 'medicine', label: '💊 Medicine' },
-  { id: 'other', label: 'Other' },
+  { id: 'electronics', label: 'categories.electronics', emoji: '📱' },
+  { id: 'clothing', label: 'categories.clothing', emoji: '👗' },
+  { id: 'documents', label: 'categories.documents', emoji: '📄' },
+  { id: 'gifts', label: 'categories.gifts', emoji: '🎁' },
+  { id: 'medicine', label: 'categories.medicine', emoji: '💊' },
+  { id: 'other', label: 'categories.other' },
 ];
 
 export function ItemDetailsStep({ data, updateData, goNext }: StepProps) {
@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.input,
     paddingHorizontal: 20,
     fontSize: 16,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     color: V2_COLORS.text,
     ...BUBBLE_SHADOWS.xs,
   },
@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 12,
     fontSize: 15,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     color: V2_COLORS.text,
     ...BUBBLE_SHADOWS.xs,
   },

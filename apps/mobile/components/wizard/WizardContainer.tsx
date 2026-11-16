@@ -162,7 +162,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: RADIUS.pill,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     alignItems: 'center',
     justifyContent: 'center',
     ...BUBBLE_SHADOWS.xs,

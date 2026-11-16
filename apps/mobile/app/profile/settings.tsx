@@ -8,6 +8,7 @@ import {
   Switch,
   ViewStyle,
   TextStyle,
+  ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -15,22 +16,85 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import Constants from 'expo-constants';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { V2_COLORS, RADIUS, BUBBLE_SHADOWS } from '@/providers/ThemeProvider';
 import { BackgroundBlobs } from '@/components/common';
 import { changeLanguage } from '@/i18n';
+import { useAuth } from '@/hooks/useAuth';
+import { useProfile, useUpdateSettings } from '@/hooks/useProfile';
+import { apiClient } from '@/lib/api';
+import { showAlert } from '@/lib/alert';
+import { getApiErrorMessage } from '@/lib/mappers';
+import { openLegalPage } from '@/lib/links';
+import { THEME_PREFERENCE, setThemePreference, type ThemePreference } from '@/lib/colorScheme';
+
+const THEME_OPTIONS: {
+  value: ThemePreference;
+  labelKey: string;
+  icon: keyof typeof Ionicons.glyphMap;
+}[] = [
+  { value: 'system', labelKey: 'settings.followsSystem', icon: 'phone-portrait-outline' },
+  { value: 'light', labelKey: 'settings.lightMode', icon: 'sunny-outline' },
+  { value: 'dark', labelKey: 'settings.darkMode', icon: 'moon-outline' },
+];
 
 export default function SettingsScreen() {
   const { t, i18n } = useTranslation();
   const router = useRouter();
   const isRTL = i18n.language === 'ar';
-  const [pushEnabled, setPushEnabled] = useState(true);
+  const { data: profile } = useProfile();
+  const updateSettings = useUpdateSettings();
+  // Optimistic local value while saving; otherwise reflect the saved preference.
+  const [pendingPush, setPendingPush] = useState<boolean | null>(null);
+  const pushEnabled = pendingPush ?? profile?.settings?.notifications ?? true;
+  const setPushEnabled = (value: boolean) => {
+    setPendingPush(value);
+    updateSettings.mutate(
+      { notifications: value },
+      {
+        onError: (err) =>
+          showAlert(t('common.errorTitle'), getApiErrorMessage(err, t('common.error'))),
+        onSettled: () => setPendingPush(null),
+      }
+    );
+  };
+  const [isDeleting, setIsDeleting] = useState(false);
+  const { signOut } = useAuth();
+  const queryClient = useQueryClient();
 
   const toggleLanguage = () => {
     changeLanguage(isRTL ? 'en' : 'ar');
   };
 
   const appVersion = Constants.expoConfig?.version ?? '1.0.0';
+
+  const deleteAccount = async () => {
+    setIsDeleting(true);
+    try {
+      await apiClient.delete('/users/me');
+      queryClient.clear();
+      await signOut();
+      router.replace('/(auth)/login');
+    } catch (err) {
+      const status = (err as { response?: { status?: number } })?.response?.status;
+      showAlert(
+        t('common.errorTitle'),
+        status === 409
+          ? t('settings.deleteAccountBlocked')
+          : getApiErrorMessage(err, t('common.error'))
+      );
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const confirmDeleteAccount = () => {
+    showAlert(t('settings.deleteAccountTitle'), t('settings.deleteAccountMessage'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      { text: t('settings.deleteAccountConfirm'), style: 'destructive', onPress: deleteAccount },
+    ]);
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -72,14 +136,33 @@ export default function SettingsScreen() {
         {/* Appearance */}
         <Animated.View entering={FadeInUp.delay(100).duration(300)} style={styles.section}>
           <Text style={styles.sectionTitle}>{t('settings.appearance')}</Text>
-          <View style={styles.row}>
-            <View style={styles.rowLeft}>
-              <View style={[styles.iconCircle, { backgroundColor: V2_COLORS.accent2 + '15' }]}>
-                <Ionicons name="sunny-outline" size={18} color={V2_COLORS.accent2} />
-              </View>
-              <Text style={styles.rowLabel}>{t('settings.lightMode')}</Text>
-            </View>
-            <Text style={styles.rowValue}>{t('settings.followsSystem')}</Text>
+          <View style={styles.themeOptions} accessibilityRole="radiogroup">
+            {THEME_OPTIONS.map((option) => {
+              const selected = THEME_PREFERENCE === option.value;
+              return (
+                <TouchableOpacity
+                  key={option.value}
+                  style={[styles.themeOption, selected && styles.themeOptionSelected]}
+                  onPress={() => {
+                    if (!selected) setThemePreference(option.value);
+                  }}
+                  accessibilityRole="radio"
+                  accessibilityState={{ selected }}
+                >
+                  <Ionicons
+                    name={option.icon}
+                    size={20}
+                    color={selected ? V2_COLORS.onPrimary : V2_COLORS.textSoft}
+                  />
+                  <Text
+                    style={[styles.themeOptionText, selected && styles.themeOptionTextSelected]}
+                    numberOfLines={1}
+                  >
+                    {t(option.labelKey)}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
         </Animated.View>
 
@@ -123,6 +206,15 @@ export default function SettingsScreen() {
             </View>
             <Ionicons name="chevron-forward" size={18} color={V2_COLORS.textMuted} />
           </TouchableOpacity>
+          <TouchableOpacity style={styles.row} onPress={() => openLegalPage('privacy')}>
+            <View style={styles.rowLeft}>
+              <View style={[styles.iconCircle, { backgroundColor: V2_COLORS.accent1 + '15' }]}>
+                <Ionicons name="shield-checkmark-outline" size={18} color={V2_COLORS.accent1} />
+              </View>
+              <Text style={styles.rowLabel}>{t('auth.privacyPolicy')}</Text>
+            </View>
+            <Ionicons name="open-outline" size={18} color={V2_COLORS.textMuted} />
+          </TouchableOpacity>
           <TouchableOpacity style={styles.row} onPress={() => router.push('/profile/help')}>
             <View style={styles.rowLeft}>
               <View style={[styles.iconCircle, { backgroundColor: V2_COLORS.accent2 + '15' }]}>
@@ -131,6 +223,31 @@ export default function SettingsScreen() {
               <Text style={styles.rowLabel}>{t('profile.help')}</Text>
             </View>
             <Ionicons name="chevron-forward" size={18} color={V2_COLORS.textMuted} />
+          </TouchableOpacity>
+        </Animated.View>
+
+        {/* Account */}
+        <Animated.View entering={FadeInUp.delay(250).duration(300)} style={styles.section}>
+          <Text style={styles.sectionTitle}>{t('settings.account')}</Text>
+          <TouchableOpacity
+            style={styles.row}
+            onPress={confirmDeleteAccount}
+            disabled={isDeleting}
+            accessibilityRole="button"
+          >
+            <View style={styles.rowLeft}>
+              <View style={[styles.iconCircle, { backgroundColor: V2_COLORS.secondary + '15' }]}>
+                <Ionicons name="trash-outline" size={18} color={V2_COLORS.secondary} />
+              </View>
+              <Text style={[styles.rowLabel, { color: V2_COLORS.secondary }]}>
+                {t('settings.deleteAccount')}
+              </Text>
+            </View>
+            {isDeleting ? (
+              <ActivityIndicator size="small" color={V2_COLORS.secondary} />
+            ) : (
+              <Ionicons name="chevron-forward" size={18} color={V2_COLORS.textMuted} />
+            )}
           </TouchableOpacity>
         </Animated.View>
 
@@ -157,7 +274,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: RADIUS.pill,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     alignItems: 'center',
     justifyContent: 'center',
     ...BUBBLE_SHADOWS.xs,
@@ -171,7 +288,7 @@ const styles = StyleSheet.create({
   section: {
     borderRadius: RADIUS.card,
     padding: 16,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     ...BUBBLE_SHADOWS.sm,
   } as ViewStyle,
   sectionTitle: {
@@ -200,4 +317,32 @@ const styles = StyleSheet.create({
   rowValue: { fontSize: 14, color: V2_COLORS.textMuted } as TextStyle,
   footer: { alignItems: 'center', gap: 8, paddingVertical: 24 } as ViewStyle,
   footerText: { fontSize: 13, color: V2_COLORS.textMuted + '80' } as TextStyle,
+  themeOptions: {
+    flexDirection: 'row',
+    gap: 8,
+  } as ViewStyle,
+  themeOption: {
+    flex: 1,
+    minWidth: 0,
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 12,
+    paddingHorizontal: 6,
+    borderRadius: RADIUS.card,
+    backgroundColor: V2_COLORS.surface,
+    borderWidth: 1,
+    borderColor: V2_COLORS.border,
+  } as ViewStyle,
+  themeOptionSelected: {
+    backgroundColor: V2_COLORS.primary,
+    borderColor: V2_COLORS.primary,
+  } as ViewStyle,
+  themeOptionText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: V2_COLORS.textSoft,
+  } as TextStyle,
+  themeOptionTextSelected: {
+    color: V2_COLORS.onPrimary,
+  } as TextStyle,
 });

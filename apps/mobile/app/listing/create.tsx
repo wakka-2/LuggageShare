@@ -72,18 +72,28 @@ export default function CreateListingScreen() {
 
       setIsSubmitting(true);
       try {
-        // Build preferences from selected categories
+        // ListingPreferencesDto: the full category list plus the legacy boolean
+        // flags that existing listing/search code reads.
+        const categories: string[] = data.acceptedCategories ?? [];
         const preferences: Record<string, unknown> = {};
-        if (data.acceptedCategories?.length) {
-          preferences.acceptedCategories = data.acceptedCategories;
-        }
+        if (categories.length) preferences.acceptedCategories = categories;
+        if (categories.includes('documents')) preferences.acceptsDocuments = true;
+        if (categories.includes('clothing')) preferences.acceptsClothing = true;
+        if (categories.includes('electronics')) preferences.acceptsElectronics = true;
+
+        // Store the chosen calendar day as UTC midnight (same as the web app),
+        // not the moment the picker was tapped.
+        const pad = (n: number) => String(n).padStart(2, '0');
+        const dayIso = `${departureDate.getFullYear()}-${pad(departureDate.getMonth() + 1)}-${pad(
+          departureDate.getDate()
+        )}T00:00:00.000Z`;
 
         await createListing.mutateAsync({
           departureCity: data.departureCity,
           departureCode: data.departureCode || undefined,
           arrivalCity: data.arrivalCity,
           arrivalCode: data.arrivalCode || undefined,
-          departureDate: departureDate.toISOString(),
+          departureDate: dayIso,
           flightNumber: data.flightNumber || undefined,
           availableWeight: parseFloat(data.availableWeight),
           price: parseFloat(data.price),
@@ -106,16 +116,21 @@ export default function CreateListingScreen() {
     router.back();
   }, [router]);
 
-  if (isSubmitting) {
-    return (
-      <View style={[styles.loading, { backgroundColor: colors.background }]}>
-        <ActivityIndicator size="large" color={colors.primary} />
-      </View>
-    );
-  }
-
+  // Keep the wizard mounted while submitting (overlay the spinner) so a failed
+  // request doesn't unmount it and wipe everything the user entered.
   return (
     <>
+      {isSubmitting && (
+        <View
+          style={[
+            StyleSheet.absoluteFill,
+            styles.loading,
+            { backgroundColor: colors.background + 'CC', zIndex: 10 },
+          ]}
+        >
+          <ActivityIndicator size="large" color={colors.primary} />
+        </View>
+      )}
       <WizardContainer
         steps={LISTING_STEPS}
         onComplete={handleComplete}

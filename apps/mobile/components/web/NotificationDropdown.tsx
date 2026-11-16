@@ -164,7 +164,7 @@ const styles = StyleSheet.create({
     maxHeight: 440,
     borderRadius: RADIUS.card,
     overflow: 'hidden',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     ...BUBBLE_SHADOWS.md,
   },
   header: {

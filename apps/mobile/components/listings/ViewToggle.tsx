@@ -1,4 +1,5 @@
 import { View, TouchableOpacity, StyleSheet, I18nManager } from 'react-native';
+import i18n from '@/i18n';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { useAnimatedStyle, withSpring, useSharedValue } from 'react-native-reanimated';
 
@@ -41,7 +42,7 @@ export function ViewToggle({ value, onChange }: ViewToggleProps) {
         onPress={() => handleToggle('grid')}
         activeOpacity={0.7}
         accessibilityRole="button"
-        accessibilityLabel="Grid view"
+        accessibilityLabel={i18n.t('common.gridView')}
         accessibilityState={{ selected: isGrid }}
       >
         <Ionicons name="grid-outline" size={18} color={isGrid ? '#FFFFFF' : V2_COLORS.textMuted} />
@@ -53,7 +54,7 @@ export function ViewToggle({ value, onChange }: ViewToggleProps) {
         onPress={() => handleToggle('list')}
         activeOpacity={0.7}
         accessibilityRole="button"
-        accessibilityLabel="List view"
+        accessibilityLabel={i18n.t('common.listView')}
         accessibilityState={{ selected: !isGrid }}
       >
         <Ionicons name="list-outline" size={18} color={!isGrid ? '#FFFFFF' : V2_COLORS.textMuted} />
@@ -65,7 +66,7 @@ export function ViewToggle({ value, onChange }: ViewToggleProps) {
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     borderRadius: RADIUS.pill,
     padding: 3,
     position: 'relative',

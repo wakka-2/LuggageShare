@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import i18n from '@/i18n';
 import { View, Text, StyleSheet } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -66,7 +67,7 @@ export function RatingBars({ distribution, average, total }: RatingBarsProps) {
             />
           ))}
         </View>
-        <Text style={styles.totalLabel}>{total} reviews</Text>
+        <Text style={styles.totalLabel}>{i18n.t('common.reviewsCount', { count: total })}</Text>
       </Animated.View>
 
       {/* Bars */}

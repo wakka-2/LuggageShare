@@ -19,7 +19,22 @@
     "verified": "Verified",
     "offline": "You are offline",
     "back": "Back",
-    "goBack": "Go Back"
+    "goBack": "Go Back",
+    "kg": "kg",
+    "perKg": "/kg",
+    "somethingWentWrong": "Something went wrong",
+    "unexpectedError": "An unexpected error occurred",
+    "tryAgain": "Try again",
+    "gridView": "Grid view",
+    "listView": "List view",
+    "selectDate": "Select date",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "userAvatar": "User avatar",
+    "reviewsCount": "{{count}} reviews",
+    "uploadFailed": "Upload failed",
+    "cameraPermission": "Camera permission is required",
+    "photosPermission": "Photo library permission is required"
   },
   "tabs": {
     "home": "Home",
@@ -34,7 +49,20 @@
     "termsPrefix": "By continuing, you agree to our",
     "termsOfService": "Terms of Service",
     "and": "and",
-    "privacyPolicy": "Privacy Policy"
+    "privacyPolicy": "Privacy Policy",
+    "email": "Email",
+    "password": "Password",
+    "name": "Full name",
+    "signIn": "Sign in",
+    "createAccount": "Create account",
+    "noAccount": "Don't have an account?",
+    "haveAccount": "Already have an account?",
+    "or": "or",
+    "invalidEmail": "Enter a valid email address",
+    "passwordTooShort": "Password must be at least 8 characters",
+    "nameRequired": "Enter your name (at least 2 characters)",
+    "invalidCredentials": "Invalid email or password",
+    "emailTaken": "An account with this email already exists"
   },
   "home": {
     "greeting": "Welcome",
@@ -71,7 +99,9 @@
     "clearFilters": "Clear filters",
     "allTab": "All",
     "offersTab": "Offers",
-    "requestsTab": "Requests"
+    "requestsTab": "Requests",
+    "sendPackage": "Send a package",
+    "carryPackage": "Carry & earn"
   },
   "status": {
     "pending": "Pending",
@@ -112,7 +142,8 @@
     "typeMessage": "Type a message...",
     "noConversations": "No conversations yet",
     "startConversation": "Start a conversation by booking a listing",
-    "browseListings": "Browse Listings"
+    "browseListings": "Browse Listings",
+    "unreadA11y": "{{count}} unread"
   },
   "profile": {
     "title": "Profile",
@@ -197,7 +228,43 @@
     "failedCreate": "Failed to create listing",
     "selectDate": "Select departure date",
     "departureDateRequired": "Departure date is required",
-    "carrierReviews": "Reviews"
+    "carrierReviews": "Reviews",
+    "wizard": {
+      "route": {
+        "title": "Where are you traveling?",
+        "from": "From",
+        "to": "To",
+        "searchCity": "Search city...",
+        "popular": "Popular Routes:"
+      },
+      "date": {
+        "title": "When are you traveling?",
+        "flight": "Flight number (optional)"
+      },
+      "weight": {
+        "title": "How much weight can you carry?",
+        "quickSelect": "Quick select:",
+        "hint": "Average carry: 5-10kg"
+      },
+      "pricing": {
+        "title": "Set your price per kilogram",
+        "average": "Average: SAR 12-20/kg",
+        "estimated": "Estimated total: SAR {{total}}",
+        "forWeight": "(for {{weight}} kg)",
+        "estimatedTotalA11y": "Estimated total: {{total}} SAR"
+      },
+      "preferences": {
+        "title": "What can you carry?",
+        "tapAll": "Tap all that apply:"
+      },
+      "review": {
+        "title": "Review your listing",
+        "earnings": "Estimated earnings:",
+        "ifBooked": "(if fully booked)",
+        "available": "{{weight}} kg available",
+        "pricePerKg": "{{price}} SAR/kg"
+      }
+    }
   },
   "booking": {
     "request": "Request Booking",
@@ -275,7 +342,49 @@
     "addAnotherItem": "Add another item",
     "itemPhotoRequired": "Please add at least one photo for each item",
     "confirmPayment": "Confirm Payment",
-    "fileDispute": "File a Dispute"
+    "fileDispute": "File a Dispute",
+    "wizard": {
+      "item": {
+        "title": "What are you sending?",
+        "name": "Item name",
+        "description": "Description (optional)"
+      },
+      "weight": {
+        "title": "How heavy is your item?",
+        "exact": "Exact weight",
+        "value": "Declared value",
+        "insurance": "(for insurance purposes)",
+        "envelope": "Envelope",
+        "smallBox": "Small box",
+        "mediumBox": "Medium box"
+      },
+      "photos": {
+        "title": "Add photos of your item",
+        "hint": "Clear photos help carriers feel confident"
+      },
+      "pickup": {
+        "title": "Where should the carrier pick up?",
+        "describe": "Describe meeting point:",
+        "placeholder": "e.g. King Khalid Airport, Terminal 1, Gate 3",
+        "tapMap": "Tap the map to drop a pin at the meeting point",
+        "pinSet": "Pin set. Drag it or tap elsewhere to adjust",
+        "useMyLocation": "Use my location",
+        "locationDenied": "Location permission is needed to use your current location.",
+        "locationFailed": "Could not get your location. Tap the map instead."
+      },
+      "review": {
+        "title": "Review your booking",
+        "item": "Your item:",
+        "carrier": "Carrier:",
+        "breakdown": "Price breakdown:",
+        "serviceFee": "Service fee",
+        "total": "Total"
+      }
+    },
+    "weightExceedsAvailable": "Weight ({{weight}} kg) exceeds the available {{available}} kg",
+    "missingListing": "Listing not found",
+    "pickupPoint": "Pickup point",
+    "openInMaps": "Open in Maps"
   },
   "wallet": {
     "title": "Wallet",
@@ -345,7 +454,8 @@
     "daysAgo": "{{count}}d ago",
     "starting": "Starting",
     "negotiate": "Negotiate",
-    "deals": "deals"
+    "deals": "deals",
+    "a11y": "{{type}}: {{from}} to {{to}}, {{price}} SAR, by {{name}}"
   },
   "categories": {
     "electronics": "Electronics",
@@ -358,7 +468,11 @@
     "food": "Food",
     "fragile": "Fragile",
     "valuables": "Valuables",
-    "batteries": "Batteries"
+    "batteries": "Batteries",
+    "clothing": "Clothing",
+    "medicine": "Medicine",
+    "other": "Other",
+    "foodSnacks": "Food/Snacks"
   },
   "searchBar": {
     "from": "From",
@@ -373,10 +487,17 @@
     "fromLabel": "From:",
     "toLabel": "To:",
     "clearAll": "Clear all",
-    "routeRuhDxb": "Riyadh \u2192 Dubai",
-    "routeJedCai": "Jeddah \u2192 Cairo",
-    "routeDmmBah": "Dammam \u2192 Bahrain",
-    "routeRuhAmm": "Riyadh \u2192 Amman"
+    "routeRuhDxb": "Riyadh → Dubai",
+    "routeJedCai": "Jeddah → Cairo",
+    "routeDmmBah": "Dammam → Bahrain",
+    "routeRuhAmm": "Riyadh → Amman",
+    "whereAreYouSending": "Where are you sending?",
+    "clearAllFilters": "Clear all filters",
+    "removeDateFilter": "Remove date filter",
+    "removeFromFilter": "Remove departure city filter",
+    "removeToFilter": "Remove arrival city filter",
+    "swapCities": "Swap departure and arrival cities",
+    "routeRuhJed": "Riyadh → Jeddah"
   },
   "carrier": {
     "earnings": "Earnings",
@@ -418,7 +539,11 @@
     "fullNamePlaceholder": "As it appears on document",
     "submitRequest": "Submit Verification Request",
     "submitSuccess": "Verification request submitted successfully",
-    "submitFailed": "Failed to submit verification request"
+    "submitFailed": "Failed to submit verification request",
+    "badgeVerified": "Verified",
+    "badgeIdVerified": "ID verified",
+    "badgePhoneVerified": "Phone verified",
+    "badgeTopCarrier": "Top carrier"
   },
   "settings": {
     "language": "Language",
@@ -431,7 +556,13 @@
     "notifications": "Notifications",
     "pushNotifications": "Push Notifications",
     "about": "About",
-    "version": "Version"
+    "version": "Version",
+    "account": "Account",
+    "deleteAccount": "Delete account",
+    "deleteAccountTitle": "Delete your account?",
+    "deleteAccountMessage": "This permanently removes your profile and personal data, signs you out everywhere, and cancels your open trips, bookings and offers. Remaining credits are forfeited. This cannot be undone.",
+    "deleteAccountConfirm": "Delete",
+    "deleteAccountBlocked": "You have deliveries in progress. Complete or cancel them before deleting your account."
   },
   "web": {
     "sidebar": {
@@ -561,7 +692,7 @@
     "note": "Note for carrier",
     "notePlaceholder": "What are you sending?",
     "withdraw": "Withdraw Offer",
-    "withdrawConfirm": "Withdraw this offer?",
+    "withdrawConfirm": "Withdraw your offer? You can submit a new one later.",
     "accept": "Accept",
     "reject": "Decline",
     "status": {
@@ -595,7 +726,6 @@
     "priceRequired": "Please enter your offered price",
     "submitted": "Offer Submitted!",
     "submittedDescription": "Your offer has been sent to the carrier. You'll be notified when it's accepted.",
-    "submitOffer": "Submit Offer",
     "bookingCreated": "Booking created",
     "emptyTitle": "No offers yet",
     "emptyDescription": "Browse flights and make an offer",
@@ -610,14 +740,15 @@
     "rejectedTitle": "Offer Declined",
     "withdrawTitle": "Withdraw Offer",
     "withdrawBtn": "Withdraw",
-    "withdrawConfirm": "Withdraw your offer? You can submit a new one later.",
     "withdrawnTitle": "Offer Withdrawn",
     "senderNote": "Sender's note:",
     "chatClosed": "This offer chat is closed",
     "itemPhotos": "Item Photos (optional)",
     "addPhoto": "Add",
     "photoHint": "Add up to 3 photos of your items to help the carrier",
-    "photoUploadError": "Photo upload failed, please try again"
+    "photoUploadError": "Photo upload failed, please try again",
+    "remainingLabel": "{{weight}} kg remaining",
+    "maxWeight": "max {{max}}"
   },
   "dispute": {
     "title": "File a Dispute",
@@ -627,7 +758,9 @@
       "open": "Open",
       "under_review": "Under Review",
       "resolved": "Resolved",
-      "closed": "Closed"
+      "closed": "Closed",
+      "investigating": "Under investigation",
+      "dismissed": "Dismissed"
     },
     "reason": "Reason",
     "description": "Description",
@@ -649,5 +782,11 @@
     "successTitle": "Dispute Filed",
     "successDesc": "We received your dispute and our team will review it shortly.",
     "backToTrips": "Back to My Trips"
+  },
+  "wizard": {
+    "next": "Next",
+    "skip": "Skip",
+    "publish": "Publish Listing",
+    "confirm": "Confirm Booking"
   }
 }

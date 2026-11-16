@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
   },
   container: {
     flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     borderRadius: RADIUS.pill,
     padding: 4,
     ...BUBBLE_SHADOWS.sm,

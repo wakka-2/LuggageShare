@@ -1,6 +1,8 @@
 import { View, Image, Text, StyleSheet } from 'react-native';
+import i18n from '@/i18n';
 
 import { useTheme } from '@/hooks/useTheme';
+import { V2_COLORS } from '@/providers/ThemeProvider';
 
 interface AvatarProps {
   source?: string | null;
@@ -53,9 +55,7 @@ export function Avatar({
   return (
     <View
       style={styles.container}
-      accessibilityLabel={
-        name ? `${name}'s avatar${isVerifiedUser ? ', verified' : ''}` : 'User avatar'
-      }
+      accessibilityLabel={name || i18n.t('common.userAvatar')}
       accessibilityRole="image"
     >
       {imageSource ? (
@@ -69,7 +69,7 @@ export function Avatar({
               borderRadius: dimension / 2,
             },
           ]}
-          accessibilityLabel={name ? `${name}'s photo` : 'User photo'}
+          accessibilityLabel={name || i18n.t('common.userAvatar')}
         />
       ) : (
         <View
@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#FFFFFF',
+    borderColor: V2_COLORS.surface,
   },
   verifiedIcon: {
     color: '#FFFFFF',

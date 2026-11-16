@@ -1,3 +1,4 @@
+import { useRefreshOnFocus } from '@/hooks/useRefreshOnFocus';
 import {
   View,
   Text,
@@ -51,6 +52,7 @@ export default function ProfileScreen() {
   const isRTL = i18n.language === 'ar';
 
   const { data: profile, isLoading, refetch } = useProfile();
+  useRefreshOnFocus(refetch);
   const { data: reviews } = useUserReviews(profile?.id ?? null);
 
   const menuItems = [
@@ -329,7 +331,7 @@ const styles = StyleSheet.create({
   userCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     padding: 20,
     marginHorizontal: 16,
     borderRadius: RADIUS.card,
@@ -374,7 +376,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     paddingVertical: 14,
     paddingHorizontal: 16,
     borderRadius: RADIUS.card,

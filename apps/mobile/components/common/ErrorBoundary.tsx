@@ -1,6 +1,8 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
+import i18n from '@/i18n';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import * as Sentry from '@/lib/sentry';
+import { V2_COLORS } from '@/providers/ThemeProvider';
 
 interface Props {
   children: ReactNode;
@@ -39,12 +41,10 @@ export class ErrorBoundary extends Component<Props, State> {
 
       return (
         <View style={styles.container}>
-          <Text style={styles.title}>Something went wrong</Text>
-          <Text style={styles.message}>
-            {this.state.error?.message || 'An unexpected error occurred'}
-          </Text>
+          <Text style={styles.title}>{i18n.t('common.somethingWentWrong')}</Text>
+          <Text style={styles.message}>{i18n.t('common.unexpectedError')}</Text>
           <TouchableOpacity style={styles.button} onPress={this.handleReset}>
-            <Text style={styles.buttonText}>Try Again</Text>
+            <Text style={styles.buttonText}>{i18n.t('common.tryAgain')}</Text>
           </TouchableOpacity>
         </View>
       );
@@ -60,17 +60,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: V2_COLORS.surfaceAlt,
   },
   title: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#1F2937',
+    color: V2_COLORS.text,
     marginBottom: 8,
   },
   message: {
     fontSize: 14,
-    color: '#6B7280',
+    color: V2_COLORS.textSoft,
     textAlign: 'center',
     marginBottom: 24,
   },

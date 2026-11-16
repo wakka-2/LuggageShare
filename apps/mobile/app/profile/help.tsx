@@ -105,7 +105,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: RADIUS.pill,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     alignItems: 'center',
     justifyContent: 'center',
     ...BUBBLE_SHADOWS.xs,
@@ -127,7 +127,7 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.card,
     padding: 16,
     marginBottom: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     ...BUBBLE_SHADOWS.sm,
   } as ViewStyle,
   faqQuestion: {
@@ -147,7 +147,7 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.card,
     padding: 16,
     gap: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     ...BUBBLE_SHADOWS.sm,
   } as ViewStyle,
   contactIcon: {

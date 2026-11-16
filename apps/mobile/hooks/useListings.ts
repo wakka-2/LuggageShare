@@ -76,6 +76,18 @@ export function useListing(id: string | null) {
   });
 }
 
+/** The signed-in carrier's own listings (GET /listings/me). Lives under ['listings'] so creating one refreshes it. */
+export function useMyListings() {
+  return useQuery<ApiListing[]>({
+    queryKey: ['listings', 'me'],
+    queryFn: async () => {
+      const { data } = await apiClient.get('/listings/me');
+      // paginated: { data: ApiListing[], meta } after the client unwraps the envelope
+      return Array.isArray(data) ? data : (data?.data ?? []);
+    },
+  });
+}
+
 export function useCreateListing() {
   const queryClient = useQueryClient();
 

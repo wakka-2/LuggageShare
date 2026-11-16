@@ -1,4 +1,5 @@
 import React, { useCallback } from 'react';
+import { useRefreshOnFocus } from '@/hooks/useRefreshOnFocus';
 import {
   View,
   Text,
@@ -62,6 +63,7 @@ export default function NotificationsScreen() {
   const isRTL = i18n.language === 'ar';
 
   const { data: notifications, isLoading, refetch } = useNotifications();
+  useRefreshOnFocus(refetch);
   const markRead = useMarkNotificationRead();
   const markAllRead = useMarkAllNotificationsRead();
 
@@ -208,7 +210,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: RADIUS.pill,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     alignItems: 'center',
     justifyContent: 'center',
     ...BUBBLE_SHADOWS.xs,
@@ -226,12 +228,15 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     padding: 14,
     gap: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     borderRadius: RADIUS.card,
     ...BUBBLE_SHADOWS.sm,
   } as ViewStyle,
+  // Keep the surface opaque: a near-transparent background makes Android draw the
+  // elevation shadow as a detached box and the unread card all but disappears.
   notifItemUnread: {
-    backgroundColor: V2_COLORS.primary + '08',
+    borderWidth: 1,
+    borderColor: V2_COLORS.primary + '66',
   } as ViewStyle,
   iconCircle: {
     width: 44,
@@ -280,7 +285,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     gap: 12,
     padding: 14,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     borderRadius: RADIUS.card,
   } as ViewStyle,
   emptyState: {

@@ -10,10 +10,10 @@ import { AnimatedButton } from '@/components/animations/AnimatedButton';
 import type { StepProps } from '../WizardContainer';
 
 const POPULAR_ROUTES: ChipOption[] = [
-  { id: 'ruh-jed', label: 'Riyadh → Jeddah' },
-  { id: 'ruh-dxb', label: 'RUH → DXB' },
-  { id: 'jed-cai', label: 'Jeddah → Cairo' },
-  { id: 'ruh-amm', label: 'RUH → AMM' },
+  { id: 'ruh-jed', label: 'searchBar.routeRuhJed' },
+  { id: 'ruh-dxb', label: 'searchBar.routeRuhDxb' },
+  { id: 'jed-cai', label: 'searchBar.routeJedCai' },
+  { id: 'ruh-amm', label: 'searchBar.routeRuhAmm' },
 ];
 
 const ROUTE_MAP: Record<string, { from: string; fromCode: string; to: string; toCode: string }> = {
@@ -152,7 +152,7 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.input,
     paddingHorizontal: 20,
     fontSize: 16,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     color: V2_COLORS.text,
     marginBottom: 8,
     ...BUBBLE_SHADOWS.xs,
@@ -164,7 +164,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     fontSize: 14,
     fontWeight: '700',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     color: V2_COLORS.text,
     letterSpacing: 1,
     ...BUBBLE_SHADOWS.xs,

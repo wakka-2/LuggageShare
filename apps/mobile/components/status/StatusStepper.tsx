@@ -18,11 +18,11 @@ interface StatusStepperProps {
 }
 
 const BOOKING_STEPS: StatusStep[] = [
-  { key: 'pending', label: 'Pending', icon: 'time-outline' },
-  { key: 'accepted', label: 'Accepted', icon: 'checkmark-circle-outline' },
-  { key: 'picked_up', label: 'Picked Up', icon: 'hand-left-outline' },
-  { key: 'in_transit', label: 'In Transit', icon: 'airplane-outline' },
-  { key: 'delivered', label: 'Delivered', icon: 'checkmark-done-outline' },
+  { key: 'pending', label: 'trips.statusPending', icon: 'time-outline' },
+  { key: 'accepted', label: 'trips.statusAccepted', icon: 'checkmark-circle-outline' },
+  { key: 'picked_up', label: 'trips.statusPickedUp', icon: 'hand-left-outline' },
+  { key: 'in_transit', label: 'trips.statusInTransit', icon: 'airplane-outline' },
+  { key: 'delivered', label: 'trips.statusDelivered', icon: 'checkmark-done-outline' },
 ];
 
 export function getDefaultBookingSteps(): StatusStep[] {
@@ -116,7 +116,7 @@ export function StatusStepper({ steps, currentStepKey }: StatusStepperProps) {
                   },
                 ]}
               >
-                {step.label}
+                {t(step.label)}
               </Text>
               {step.completedAt && (
                 <Text style={styles.date}>{new Date(step.completedAt).toLocaleDateString()}</Text>

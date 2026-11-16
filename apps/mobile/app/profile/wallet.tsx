@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { useRefreshOnFocus } from '@/hooks/useRefreshOnFocus';
 import {
   View,
   Text,
@@ -59,6 +60,7 @@ export default function WalletScreen() {
     isLoading: historyLoading,
     refetch: refetchHistory,
   } = useTransactionHistory();
+  useRefreshOnFocus(refetchBalance, refetchHistory);
   const withdrawalMutation = useWithdrawal();
 
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
@@ -199,6 +201,7 @@ export default function WalletScreen() {
         </View>
       ) : (
         <FlatList
+          keyboardShouldPersistTaps="handled"
           data={history || []}
           renderItem={renderTransaction}
           keyExtractor={(item) => item.id}
@@ -353,7 +356,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: RADIUS.pill,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     alignItems: 'center',
     justifyContent: 'center',
     ...BUBBLE_SHADOWS.xs,
@@ -418,7 +421,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 14,
     gap: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     borderRadius: RADIUS.card,
     ...BUBBLE_SHADOWS.sm,
   } as ViewStyle,
@@ -467,7 +470,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     alignItems: 'center',
     justifyContent: 'center',
     ...BUBBLE_SHADOWS.xs,
@@ -483,7 +486,7 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.input,
     paddingHorizontal: 20,
     fontSize: 16,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     color: V2_COLORS.text,
     marginBottom: 16,
     ...BUBBLE_SHADOWS.xs,

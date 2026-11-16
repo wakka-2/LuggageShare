@@ -183,7 +183,9 @@ export default function FlightDetailScreen() {
             <View style={[styles.statIconCircle, { backgroundColor: V2_COLORS.primary + '15' }]}>
               <Ionicons name="scale-outline" size={22} color={V2_COLORS.primary} />
             </View>
-            <Text style={styles.statValue}>{remaining} kg</Text>
+            <Text style={styles.statValue}>
+              {remaining} {t('common.kg')}
+            </Text>
             <Text style={styles.statLabel}>{t('flight.remaining')}</Text>
             {/* Capacity bar */}
             <View style={styles.capacityBar}>
@@ -198,7 +200,7 @@ export default function FlightDetailScreen() {
               />
             </View>
             <Text style={styles.capacityLabel}>
-              {total} kg {t('flight.total')}
+              {total} {t('common.kg')} {t('flight.total')}
             </Text>
           </View>
 
@@ -208,7 +210,10 @@ export default function FlightDetailScreen() {
               <Ionicons name="pricetag-outline" size={22} color={V2_COLORS.accent2} />
             </View>
             <Text style={styles.statValue}>{pricePerKg}</Text>
-            <Text style={styles.statLabel}>{flight.currency || 'SAR'} / kg</Text>
+            <Text style={styles.statLabel}>
+              {flight.currency || t('common.sar')}
+              {t('common.perKg')}
+            </Text>
           </View>
         </Animated.View>
 
@@ -295,7 +300,9 @@ export default function FlightDetailScreen() {
                       </View>
                     </View>
                     <View style={styles.offerPriceCol}>
-                      <Text style={styles.offerWeight}>{Number(offer.offeredWeight)} kg</Text>
+                      <Text style={styles.offerWeight}>
+                        {Number(offer.offeredWeight)} {t('common.kg')}
+                      </Text>
                       <Text style={styles.offerPrice}>
                         {Number(offer.offeredPrice)} {offer.currency}
                       </Text>
@@ -414,7 +421,7 @@ const styles = StyleSheet.create({
 
   // Route Card
   routeCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     borderRadius: RADIUS.card,
     padding: 20,
     marginBottom: 16,
@@ -467,7 +474,7 @@ const styles = StyleSheet.create({
   statsCards: { flexDirection: 'row', gap: 12, marginBottom: 16 } as ViewStyle,
   statCard: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     borderRadius: RADIUS.card,
     padding: 18,
     alignItems: 'center',
@@ -516,7 +523,7 @@ const styles = StyleSheet.create({
 
   // Poster section
   section: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     borderRadius: RADIUS.card,
     padding: 20,
     marginBottom: 16,
@@ -548,7 +555,7 @@ const styles = StyleSheet.create({
   // Offers section
   offersSection: { marginBottom: 16 } as ViewStyle,
   offerCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     borderRadius: RADIUS.card,
     padding: 16,
     marginBottom: 10,
@@ -612,7 +619,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     padding: 16,
     gap: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     ...BUBBLE_SHADOWS.lg,
   } as ViewStyle,
   secondaryBtn: {

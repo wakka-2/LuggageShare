@@ -81,7 +81,13 @@ export const ListingCard = React.memo(function ListingCard({
   const destDotColor = V2_COLORS.secondary;
   const typeLabel = isOffer ? t('listingCard.offer') : t('listingCard.request');
 
-  const accessibilityLabel = `${typeLabel}: ${listing.from.code} to ${listing.to.code}, ${listing.pricing.small} SAR, by ${listing.user.name}`;
+  const accessibilityLabel = t('listingCard.a11y', {
+    type: typeLabel,
+    from: listing.from.code,
+    to: listing.to.code,
+    price: listing.pricing.small,
+    name: listing.user.name,
+  });
 
   // List View Layout - V2 Compact
   if (viewMode === 'list') {
@@ -208,7 +214,7 @@ export const ListingCard = React.memo(function ListingCard({
         {(listing.availableWeight || listing.neededWeight) && (
           <MetaChip
             icon="scale"
-            label={`${listing.availableWeight || listing.neededWeight} kg`}
+            label={`${listing.availableWeight || listing.neededWeight} ${t('common.kg')}`}
             color={V2_COLORS.accent1}
           />
         )}
@@ -252,7 +258,7 @@ export const ListingCard = React.memo(function ListingCard({
 const styles = StyleSheet.create({
   // Grid View Styles — V2 Bubble Card
   gridContainer: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     borderRadius: RADIUS.card,
     padding: 18,
     marginBottom: 16,
@@ -391,7 +397,7 @@ const styles = StyleSheet.create({
   // List View Styles — V2
   listContainer: {
     flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     borderRadius: RADIUS.card,
     overflow: 'hidden',
     marginBottom: 10,

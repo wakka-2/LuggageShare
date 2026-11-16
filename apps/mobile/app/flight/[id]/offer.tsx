@@ -144,7 +144,11 @@ export default function MakeOfferScreen() {
     <SafeAreaView style={styles.container}>
       <ScreenHeader title={t('offer.makeOffer')} />
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Flight summary card */}
         <Animated.View entering={FadeInDown.duration(350)} style={styles.flightCard}>
           <View style={styles.routeRow}>
@@ -174,12 +178,12 @@ export default function MakeOfferScreen() {
             />
             <MetaChip
               icon="scale"
-              label={`${remaining} kg ${t('flight.remaining')}`}
+              label={t('offer.remainingLabel', { weight: remaining })}
               color={V2_COLORS.accent1}
             />
             <MetaChip
               icon="pricetag"
-              label={`${pricePerKg} ${flight.currency}/kg`}
+              label={`${pricePerKg} ${flight.currency}${t('common.perKg')}`}
               color={V2_COLORS.accent2}
             />
           </View>
@@ -197,13 +201,13 @@ export default function MakeOfferScreen() {
                 style={[styles.textInput, { flex: 1 }]}
                 value={weight}
                 onChangeText={handleWeightChange}
-                placeholder={`max ${remaining}`}
+                placeholder={t('offer.maxWeight', { max: remaining })}
                 placeholderTextColor={V2_COLORS.textMuted}
                 keyboardType="decimal-pad"
                 textAlign={isRTL ? 'right' : 'left'}
               />
               <View style={styles.unitBadge}>
-                <Text style={styles.unitText}>kg</Text>
+                <Text style={styles.unitText}>{t('common.kg')}</Text>
               </View>
             </View>
             {weightPresets.length > 0 && (
@@ -217,7 +221,7 @@ export default function MakeOfferScreen() {
                     <Text
                       style={[styles.presetChipText, weight === p && styles.presetChipTextActive]}
                     >
-                      {p} kg
+                      {t('common.kg')}
                     </Text>
                   </TouchableOpacity>
                 ))}
@@ -248,7 +252,8 @@ export default function MakeOfferScreen() {
               parseFloat(weight) > 0 &&
               !isNaN(parseFloat(price)) && (
                 <Text style={styles.perKgHint}>
-                  ≈ {(parseFloat(price) / parseFloat(weight)).toFixed(1)} {flight.currency}/kg
+                  ≈ {(parseFloat(price) / parseFloat(weight)).toFixed(1)} {flight.currency}
+                  {t('common.perKg')}
                 </Text>
               )}
           </View>
@@ -344,7 +349,7 @@ const styles = StyleSheet.create({
   scrollContent: { padding: 16, paddingBottom: 32 } as ViewStyle,
 
   flightCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     borderRadius: RADIUS.card,
     padding: 20,
     marginBottom: 16,
@@ -374,7 +379,7 @@ const styles = StyleSheet.create({
   metaRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 } as ViewStyle,
 
   formCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     borderRadius: RADIUS.card,
     padding: 20,
     marginBottom: 16,
@@ -426,7 +431,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: -6,
     right: -6,
-    backgroundColor: '#FFF',
+    backgroundColor: V2_COLORS.surface,
     borderRadius: 12,
   } as ViewStyle,
   photoAddBtn: {
@@ -483,7 +488,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     padding: 16,
     gap: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     ...BUBBLE_SHADOWS.lg,
   } as ViewStyle,
   cancelBtn: {

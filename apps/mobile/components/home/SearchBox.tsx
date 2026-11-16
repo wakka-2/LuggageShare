@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 
 import { useTheme } from '@/hooks/useTheme';
+import { V2_COLORS } from '@/providers/ThemeProvider';
 
 export function SearchBox() {
   const { t } = useTranslation();
@@ -117,7 +118,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: V2_COLORS.surfaceAlt,
     justifyContent: 'center',
     alignItems: 'center',
   },

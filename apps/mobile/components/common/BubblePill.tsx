@@ -82,7 +82,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
   },
   inactive: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     borderColor: 'rgba(124,106,255,0.08)',
   },
   icon: {

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import i18n from '@/i18n';
 import { Platform } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { apiClient } from '@/lib/api';
@@ -23,13 +24,13 @@ export function useImageUpload() {
       if (source === 'camera') {
         const { status } = await ImagePicker.requestCameraPermissionsAsync();
         if (status !== 'granted') {
-          setError('Camera permission is required');
+          setError(i18n.t('common.cameraPermission'));
           return null;
         }
       } else {
         const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (status !== 'granted') {
-          setError('Photo library permission is required');
+          setError(i18n.t('common.photosPermission'));
           return null;
         }
       }
@@ -86,7 +87,7 @@ export function useImageUpload() {
       setUploadedUrl(url);
       return url;
     } catch (err: any) {
-      const msg = err?.response?.data?.error?.message || err?.message || 'Upload failed';
+      const msg = err?.response?.data?.error?.message || i18n.t('common.uploadFailed');
       setError(msg);
       return null;
     } finally {

@@ -20,6 +20,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 import { V2_COLORS, RADIUS, BUBBLE_SHADOWS, GRADIENTS } from '@/providers/ThemeProvider';
 import { useMessages, useSendMessage, useMarkAsRead } from '@/hooks/useMessages';
+import { useBooking } from '@/hooks/useBookings';
 import { useAuth } from '@/hooks/useAuth';
 import { useSocket } from '@/hooks/useSocket';
 import { Avatar } from '@/components/common';
@@ -35,6 +36,13 @@ export default function ChatScreen() {
 
   const [messageText, setMessageText] = useState('');
   const { data: messages, isLoading } = useMessages(bookingId ?? null);
+  const { data: chatBooking } = useBooking(bookingId ?? null);
+  const otherParty =
+    chatBooking && user
+      ? chatBooking.senderId === user.id
+        ? chatBooking.carrier
+        : chatBooking.sender
+      : undefined;
   const sendMessage = useSendMessage();
   const markAsRead = useMarkAsRead();
   const { isConnected, sendMessage: socketSend, sendTyping, isOtherTyping } = useSocket(bookingId);
@@ -57,7 +65,13 @@ export default function ChatScreen() {
     setMessageText('');
 
     try {
-      await sendMessage.mutateAsync({ bookingId, content: text });
+      await sendMessage.mutateAsync({
+        bookingId,
+        content: text,
+        sender: user
+          ? { id: user.id, name: user.displayName ?? '', avatarUrl: user.avatarUrl }
+          : undefined,
+      });
     } catch {
       setMessageText(text);
     }
@@ -111,7 +125,9 @@ export default function ChatScreen() {
             color={V2_COLORS.text}
           />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>{t('chat.title')}</Text>
+        <Text style={styles.headerTitle} numberOfLines={1}>
+          {otherParty?.name || t('chat.title')}
+        </Text>
         <View style={styles.backBtn} />
       </View>
 
@@ -138,6 +154,7 @@ export default function ChatScreen() {
           </View>
         ) : (
           <FlatList
+            keyboardShouldPersistTaps="handled"
             ref={flatListRef}
             data={messages || []}
             renderItem={renderMessage}
@@ -225,7 +242,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: RADIUS.pill,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     alignItems: 'center',
     justifyContent: 'center',
     ...BUBBLE_SHADOWS.xs,
@@ -251,7 +268,7 @@ const styles = StyleSheet.create({
   } as ViewStyle,
   bubbleOther: {
     borderBottomLeftRadius: 6,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     ...BUBBLE_SHADOWS.sm,
   } as ViewStyle,
   messageText: { fontSize: 15, lineHeight: 21 } as TextStyle,
@@ -269,7 +286,7 @@ const styles = StyleSheet.create({
   inputBar: {
     padding: 12,
     paddingBottom: 8,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     ...BUBBLE_SHADOWS.md,
   } as ViewStyle,
   inputRow: {

@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: RADIUS.pill,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     alignItems: 'center',
     justifyContent: 'center',
     ...BUBBLE_SHADOWS.xs,
@@ -153,7 +153,7 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: RADIUS.card,
     marginBottom: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     ...BUBBLE_SHADOWS.sm,
   } as ViewStyle,
   cardIcon: {
@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
   } as TextStyle,
   bottomBar: {
     padding: 16,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     ...BUBBLE_SHADOWS.md,
   } as ViewStyle,
   acceptBtn: {

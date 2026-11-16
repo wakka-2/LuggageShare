@@ -9,16 +9,20 @@ import { AnimatedButton } from '@/components/animations/AnimatedButton';
 import type { StepProps } from '../WizardContainer';
 
 const WEIGHT_OPTIONS: ChipOption[] = [
-  { id: '2', label: '2 kg' },
-  { id: '5', label: '5 kg' },
-  { id: '10', label: '10 kg' },
-  { id: '15', label: '15 kg' },
-  { id: '20', label: '20 kg' },
-  { id: '23', label: '23 kg' },
+  { id: '2', label: '2' },
+  { id: '5', label: '5' },
+  { id: '10', label: '10' },
+  { id: '15', label: '15' },
+  { id: '20', label: '20' },
+  { id: '23', label: '23' },
 ];
 
 export function WeightStep({ data, updateData, goNext }: StepProps) {
   const { t } = useTranslation();
+  const weightOptions = WEIGHT_OPTIONS.map((o) => ({
+    ...o,
+    label: `${o.label} ${t('common.kg')}`,
+  }));
 
   const weight = data.availableWeight ? String(data.availableWeight) : null;
   const canAdvance = !!weight && parseFloat(weight) > 0;
@@ -42,7 +46,7 @@ export function WeightStep({ data, updateData, goNext }: StepProps) {
         <Text style={{ fontSize: suitcaseSize }}>🧳</Text>
         {canAdvance && (
           <Animated.Text entering={FadeIn.duration(200)} style={styles.weightDisplay}>
-            {weightNum.toFixed(1)} kg
+            {weightNum.toFixed(1)} {t('common.kg')}
           </Animated.Text>
         )}
       </Animated.View>
@@ -52,7 +56,7 @@ export function WeightStep({ data, updateData, goNext }: StepProps) {
         <Text style={styles.sectionLabel}>
           {t('listing.wizard.weight.quickSelect', { defaultValue: 'Quick select:' })}
         </Text>
-        <OptionChips options={WEIGHT_OPTIONS} selected={weight} onSelect={handleSelect} />
+        <OptionChips options={weightOptions} selected={weight} onSelect={handleSelect} />
       </Animated.View>
 
       {/* Hint */}

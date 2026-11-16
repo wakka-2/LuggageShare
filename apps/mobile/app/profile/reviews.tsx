@@ -168,7 +168,7 @@ const styles = StyleSheet.create({
   } as TextStyle,
   // Summary card
   summaryCard: {
-    backgroundColor: '#fff',
+    backgroundColor: V2_COLORS.surface,
     borderRadius: RADIUS.card,
     padding: 20,
     marginBottom: 16,

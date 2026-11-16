@@ -16,8 +16,9 @@ export function ReviewBookStep({ data, goNext }: StepProps) {
   const weight = parseFloat(data.weight) || 0;
   const listingPrice = data.listingPrice || 0;
   const subtotal = weight * listingPrice;
-  const serviceFee = Math.round(subtotal * 0.1 * 100) / 100;
-  const total = subtotal + serviceFee;
+  // Senders pay exactly weight × price. The platform fee (15%) is charged to the
+  // carrier on delivery (see API bookings.service), so it is not added here.
+  const total = subtotal;
 
   return (
     <View>
@@ -59,7 +60,9 @@ export function ReviewBookStep({ data, goNext }: StepProps) {
           <View style={[styles.iconCircle, { backgroundColor: V2_COLORS.accent2 + '15' }]}>
             <Ionicons name="scale" size={16} color={V2_COLORS.accent2} />
           </View>
-          <Text style={styles.itemText}>{weight} kg</Text>
+          <Text style={styles.itemText}>
+            {weight} {t('common.kg')}
+          </Text>
         </View>
         {data.pickupLocation && (
           <View style={styles.itemRow}>
@@ -80,22 +83,18 @@ export function ReviewBookStep({ data, goNext }: StepProps) {
         </Text>
         <View style={styles.priceRow}>
           <Text style={styles.priceLabel}>
-            {weight} kg × SAR {listingPrice}
+            {weight} {t('common.kg')} × {listingPrice} {t('common.sar')}
           </Text>
           <Text style={styles.priceValue}>{subtotal.toFixed(2)}</Text>
-        </View>
-        <View style={styles.priceRow}>
-          <Text style={styles.priceLabel}>
-            {t('booking.wizard.review.serviceFee', { defaultValue: 'Service fee' })}
-          </Text>
-          <Text style={styles.priceValue}>{serviceFee.toFixed(2)}</Text>
         </View>
         <View style={styles.divider} />
         <View style={styles.priceRow}>
           <Text style={styles.totalLabel}>
             {t('booking.wizard.review.total', { defaultValue: 'Total' })}
           </Text>
-          <Text style={styles.totalValue}>SAR {total.toFixed(2)}</Text>
+          <Text style={styles.totalValue}>
+            {total.toFixed(2)} {t('common.sar')}
+          </Text>
         </View>
       </Animated.View>
 
@@ -117,7 +116,7 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.card,
     padding: 16,
     marginBottom: 16,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     ...BUBBLE_SHADOWS.sm,
   },
   cardLabel: {

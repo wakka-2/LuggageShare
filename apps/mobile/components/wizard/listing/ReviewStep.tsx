@@ -44,10 +44,22 @@ export function ReviewStep({ data, goNext, goBack }: StepProps) {
         {data.flightNumber && (
           <SummaryRow icon="airplane-outline" label={data.flightNumber} delay={300} />
         )}
-        <SummaryRow icon="scale" label={`${weight} kg available`} delay={350} />
-        <SummaryRow icon="cash" label={`SAR ${price}/kg`} delay={400} />
+        <SummaryRow
+          icon="scale"
+          label={t('listing.wizard.review.available', { weight })}
+          delay={350}
+        />
+        <SummaryRow
+          icon="cash"
+          label={t('listing.wizard.review.pricePerKg', { price })}
+          delay={400}
+        />
         {categories.length > 0 && (
-          <SummaryRow icon="cube" label={categories.join(', ')} delay={450} />
+          <SummaryRow
+            icon="cube"
+            label={categories.map((c) => t(`categories.${c}`)).join(isRTL ? '، ' : ', ')}
+            delay={450}
+          />
         )}
         {data.notes && <SummaryRow icon="document-text" label={data.notes} delay={500} />}
       </Animated.View>
@@ -57,7 +69,9 @@ export function ReviewStep({ data, goNext, goBack }: StepProps) {
         <Text style={styles.earningsLabel}>
           {t('listing.wizard.review.earnings', { defaultValue: 'Estimated earnings:' })}
         </Text>
-        <Text style={styles.earningsValue}>SAR {estimatedTotal.toFixed(2)}</Text>
+        <Text style={styles.earningsValue}>
+          {estimatedTotal.toFixed(2)} {t('common.sar')}
+        </Text>
         <Text style={styles.earningsNote}>
           {t('listing.wizard.review.ifBooked', { defaultValue: '(if fully booked)' })}
         </Text>
@@ -95,7 +109,7 @@ const styles = StyleSheet.create({
     padding: 20,
     marginBottom: 20,
     gap: 14,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     ...BUBBLE_SHADOWS.sm,
   },
   row: {

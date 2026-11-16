@@ -14,7 +14,7 @@ interface ScreenHeaderProps {
 }
 
 export function ScreenHeader({ title, onBack, right }: ScreenHeaderProps) {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const router = useRouter();
   const goBack = () => {
     if (router.canGoBack()) {
@@ -32,7 +32,7 @@ export function ScreenHeader({ title, onBack, right }: ScreenHeaderProps) {
         style={styles.headerBtn}
         hitSlop={8}
         accessibilityRole="button"
-        accessibilityLabel="Go back"
+        accessibilityLabel={t('common.back')}
       >
         <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={22} color={V2_COLORS.text} />
       </Pressable>
@@ -58,7 +58,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: RADIUS.pill,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     ...BUBBLE_SHADOWS.xs,
     ...({ cursor: 'pointer' } as any),
   } as ViewStyle,

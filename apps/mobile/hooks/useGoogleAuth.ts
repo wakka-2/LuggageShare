@@ -6,6 +6,7 @@ import { Platform } from 'react-native';
 
 import { useAuth } from './useAuth';
 import { apiClient } from '@/lib/api';
+import { mapAuthResponseToSession, type ApiAuthResponse } from '@/lib/mappers';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -28,11 +29,18 @@ export function useGoogleAuth() {
   const { signIn } = useAuth();
 
   // Always call the hook (Rules of Hooks).
-  // On web, expo-auth-session throws if webClientId is falsy, so pass a placeholder.
-  const safeConfig =
-    Platform.OS === 'web' && !googleConfig.webClientId
-      ? { ...googleConfig, webClientId: 'not-configured' }
-      : googleConfig;
+  // expo-auth-session throws during render if the current platform's client ID
+  // is falsy (webClientId on web, iosClientId on iOS, androidClientId on Android),
+  // which would crash the login screen. Pass a placeholder; isConfigured blocks
+  // any real sign-in attempt and the login screen hides the Google button.
+  const platformKey = Platform.select({
+    ios: 'iosClientId',
+    android: 'androidClientId',
+    default: 'webClientId',
+  }) as keyof typeof googleConfig;
+  const safeConfig = googleConfig[platformKey]
+    ? googleConfig
+    : { ...googleConfig, [platformKey]: 'not-configured' };
   const [request, , promptAsync] = Google.useAuthRequest(safeConfig);
 
   async function signInWithGoogle() {
@@ -65,12 +73,12 @@ export function useGoogleAuth() {
         // Verify the Google OAuth2 access token with the backend.
         // Endpoint + contract match the API (POST /auth/google { accessToken })
         // and the web client; the API calls Google's userinfo endpoint to verify.
-        const authResponse = await apiClient.post('/auth/google', {
+        const { data } = await apiClient.post<ApiAuthResponse>('/auth/google', {
           accessToken: result.authentication.accessToken,
         });
 
         // mobile apiClient already unwraps the { data } envelope once.
-        await signIn(authResponse.data);
+        await signIn(mapAuthResponseToSession(data));
       }
     } catch (error) {
       console.error('Google sign in error:', error);

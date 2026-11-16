@@ -49,7 +49,7 @@ export function IconButton({
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -65,6 +65,6 @@ const styles = StyleSheet.create({
     height: 8,
     borderRadius: 4,
     borderWidth: 1.5,
-    borderColor: '#FFFFFF',
+    borderColor: V2_COLORS.surface,
   },
 });

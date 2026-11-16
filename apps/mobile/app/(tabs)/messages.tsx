@@ -1,4 +1,5 @@
 import React from 'react';
+import { useRefreshOnFocus } from '@/hooks/useRefreshOnFocus';
 import {
   View,
   Text,
@@ -38,6 +39,7 @@ const ConversationItem = React.memo(function ConversationItem({
   isRTL: boolean;
   onPress: () => void;
 }) {
+  const { t } = useTranslation();
   const lastMessageDate = conversation.lastMessage?.createdAt
     ? new Date(conversation.lastMessage.createdAt)
     : null;
@@ -48,7 +50,10 @@ const ConversationItem = React.memo(function ConversationItem({
       })
     : '';
 
-  const unreadLabel = conversation.unreadCount > 0 ? `, ${conversation.unreadCount} unread` : '';
+  const unreadLabel =
+    conversation.unreadCount > 0
+      ? `, ${t('messages.unreadA11y', { count: conversation.unreadCount })}`
+      : '';
   const lastMsg = conversation.lastMessage?.content ? `, ${conversation.lastMessage.content}` : '';
 
   return (
@@ -100,6 +105,7 @@ export default function MessagesScreen() {
   const isRTL = i18n.language === 'ar';
 
   const { data: conversations, isLoading, refetch } = useConversations();
+  useRefreshOnFocus(refetch);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -199,7 +205,7 @@ const styles = StyleSheet.create({
   skeletonConv: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     padding: 14,
     borderRadius: RADIUS.card,
     marginBottom: 10,
@@ -211,7 +217,7 @@ const styles = StyleSheet.create({
   conversationItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     padding: 14,
     borderRadius: RADIUS.card,
     marginBottom: 10,

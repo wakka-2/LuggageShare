@@ -104,6 +104,7 @@ export default function DisputeScreen() {
         </View>
 
         <ScrollView
+          keyboardShouldPersistTaps="handled"
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
@@ -179,7 +180,11 @@ export default function DisputeScreen() {
         <View style={{ width: 38 }} />
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Route info */}
         {(from || to) && (
           <Animated.View entering={FadeInDown.delay(50)} style={styles.routeCard}>
@@ -291,7 +296,7 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     alignItems: 'center',
     justifyContent: 'center',
     ...BUBBLE_SHADOWS.sm,
@@ -309,7 +314,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     borderRadius: RADIUS.pill,
     paddingHorizontal: 14,
     paddingVertical: 8,
@@ -351,7 +356,7 @@ const styles = StyleSheet.create({
   } as ViewStyle,
   reasonCard: {
     width: 100,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     borderRadius: RADIUS.card,
     padding: 12,
     alignItems: 'center',
@@ -375,7 +380,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   } as TextStyle,
   textArea: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     borderRadius: RADIUS.card,
     padding: 14,
     fontSize: 14,
@@ -410,7 +415,7 @@ const styles = StyleSheet.create({
   } as TextStyle,
   // Status view
   statusCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     borderRadius: RADIUS.card,
     padding: 24,
     alignItems: 'center',
@@ -502,7 +507,7 @@ const styles = StyleSheet.create({
   } as TextStyle,
   successBtn: {
     marginTop: 8,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     borderRadius: RADIUS.pill,
     paddingHorizontal: 32,
     paddingVertical: 14,

@@ -1,7 +1,9 @@
 import { useState } from 'react';
+import i18n from '@/i18n';
 import { View, Text, TouchableOpacity, Platform, StyleSheet } from 'react-native';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { V2_COLORS, RADIUS, BUBBLE_SHADOWS } from '@/providers/ThemeProvider';
+import { IS_DARK } from '@/lib/colorScheme';
 
 interface DatePickerInputProps {
   value: Date | null;
@@ -18,10 +20,10 @@ interface DatePickerInputProps {
 export function DatePickerInput({
   value,
   onChange,
-  placeholder = 'Select date',
+  placeholder,
   minimumDate,
   textColor = V2_COLORS.text,
-  backgroundColor = '#FFFFFF',
+  backgroundColor = V2_COLORS.surface,
   placeholderColor = V2_COLORS.textMuted,
   textAlign = 'left',
 }: DatePickerInputProps) {
@@ -50,7 +52,7 @@ export function DatePickerInput({
             value ? { color: textColor } : { color: placeholderColor },
           ]}
         >
-          {value ? formatDate(value) : placeholder}
+          {value ? formatDate(value) : (placeholder ?? i18n.t('common.selectDate'))}
         </Text>
       </TouchableOpacity>
 
@@ -59,6 +61,7 @@ export function DatePickerInput({
           value={value || new Date()}
           mode="date"
           display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+          themeVariant={IS_DARK ? 'dark' : 'light'}
           onChange={handleChange}
           minimumDate={minimumDate}
         />

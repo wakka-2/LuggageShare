@@ -30,9 +30,8 @@ export function GlassCard({ children, style, intensity = 'medium', noPadding }: 
           {
             backgroundColor: colors.glassBg,
             borderColor: colors.glassBorder,
-            // @ts-ignore — web-only CSS properties
             backdropFilter: `blur(${blurAmount}px)`,
-            // @ts-ignore — web-only CSS properties
+            // @ts-expect-error — web-only CSS properties
             WebkitBackdropFilter: `blur(${blurAmount}px)`,
           },
           style,

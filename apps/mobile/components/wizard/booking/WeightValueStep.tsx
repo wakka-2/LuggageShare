@@ -8,9 +8,27 @@ import { AnimatedButton } from '@/components/animations/AnimatedButton';
 import type { StepProps } from '../WizardContainer';
 
 const SIZE_OPTIONS = [
-  { id: 'envelope', emoji: '📨', label: 'Envelope', range: '< 1kg', defaultWeight: 0.5 },
-  { id: 'small', emoji: '📦', label: 'Small Box', range: '1-3kg', defaultWeight: 2 },
-  { id: 'medium', emoji: '📦📦', label: 'Medium Box', range: '3-7kg', defaultWeight: 5 },
+  {
+    id: 'envelope',
+    emoji: '📨',
+    label: 'booking.wizard.weight.envelope',
+    range: '< 1kg',
+    defaultWeight: 0.5,
+  },
+  {
+    id: 'small',
+    emoji: '📦',
+    label: 'booking.wizard.weight.smallBox',
+    range: '1-3kg',
+    defaultWeight: 2,
+  },
+  {
+    id: 'medium',
+    emoji: '📦📦',
+    label: 'booking.wizard.weight.mediumBox',
+    range: '3-7kg',
+    defaultWeight: 5,
+  },
 ];
 
 export function WeightValueStep({ data, updateData, goNext }: StepProps) {
@@ -56,7 +74,7 @@ export function WeightValueStep({ data, updateData, goNext }: StepProps) {
                   { color: isSelected ? V2_COLORS.primary : V2_COLORS.text },
                 ]}
               >
-                {opt.label}
+                {t(opt.label)}
               </Text>
               <Text style={styles.sizeRange}>{opt.range}</Text>
             </TouchableOpacity>
@@ -126,7 +144,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 8,
     borderRadius: RADIUS.card,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
   },
   sizeCardSelected: {
     backgroundColor: V2_COLORS.primary + '08',
@@ -161,7 +179,7 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.input,
     paddingHorizontal: 20,
     fontSize: 16,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: V2_COLORS.surface,
     color: V2_COLORS.text,
     ...BUBBLE_SHADOWS.xs,
   },

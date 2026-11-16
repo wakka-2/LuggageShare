@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback } from 'react';
+import { useRefreshOnFocus } from '@/hooks/useRefreshOnFocus';
 import {
   View,
   Text,
@@ -33,13 +34,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { useListings } from '@/hooks/useListings';
 import { mapApiListingToListing } from '@/lib/mappers';
 import { HomeHeader } from '@/components/home';
-import {
-  EmptyState,
-  BackgroundBlobs,
-  StatBubble,
-  SectionHeader,
-  BubbleButton,
-} from '@/components/common';
+import { EmptyState, BackgroundBlobs, SectionHeader, BubbleButton } from '@/components/common';
 import {
   ListingCard,
   ViewToggle,
@@ -52,6 +47,7 @@ import {
 import { useUnreadCount } from '@/hooks/useNotifications';
 import { SkeletonCard, StaggeredItem } from '@/components/animations';
 import { FloatingIcons, WaveDivider, SparkleGroup, OrbCluster } from '@/components/decorations';
+import { USE_MOCK_FALLBACK } from '@/lib/devFlags';
 import {
   V2_COLORS,
   GRADIENTS,
@@ -90,6 +86,7 @@ export default function HomeScreen() {
     to: searchTo || undefined,
     date: searchDate || undefined,
   });
+  useRefreshOnFocus(refetch);
 
   // Airplane spin for pull-to-refresh
   const airplaneRotation = useSharedValue(0);
@@ -114,7 +111,10 @@ export default function HomeScreen() {
     if (apiListings && apiListings.length > 0) {
       return apiListings.map(mapApiListingToListing);
     }
-    if (isError || (!isLoading && (!apiListings || apiListings.length === 0))) {
+    if (
+      USE_MOCK_FALLBACK &&
+      (isError || (!isLoading && (!apiListings || apiListings.length === 0)))
+    ) {
       return MOCK_LISTINGS;
     }
     return [];
@@ -180,7 +180,7 @@ export default function HomeScreen() {
               <Text style={styles.heroLabel}>{t('home.welcomeTo')}</Text>
               <Text style={styles.heroTitle}>
                 {t('home.appName')}
-                <Text style={{ color: '#FFE5ED' }}>Share</Text>
+                {i18n.language !== 'ar' && <Text style={{ color: '#FFE5ED' }}>Share</Text>}
               </Text>
               <Text style={styles.heroSubtitle}>{t('home.heroDescription')}</Text>
               <View style={styles.heroCTA}>
@@ -195,28 +195,6 @@ export default function HomeScreen() {
                 />
               </View>
             </LinearGradient>
-          </Animated.View>
-
-          {/* Stats Row */}
-          <Animated.View entering={FadeInUp.delay(200).duration(400)} style={styles.statsRowWide}>
-            <StatBubble
-              value="2.5K+"
-              label={t('home.travelers')}
-              icon="people"
-              color={V2_COLORS.primary}
-            />
-            <StatBubble
-              value="15K+"
-              label={t('home.deliveries')}
-              icon="airplane"
-              color={V2_COLORS.accent1}
-            />
-            <StatBubble
-              value="4.8"
-              label={t('home.rating')}
-              icon="star"
-              color={V2_COLORS.accent2}
-            />
           </Animated.View>
 
           {/* Search Bar */}
@@ -366,23 +344,6 @@ export default function HomeScreen() {
               />
             </View>
           </LinearGradient>
-        </Animated.View>
-
-        {/* Stats Row */}
-        <Animated.View entering={FadeInUp.delay(100).duration(400)} style={styles.statsRow}>
-          <StatBubble
-            value="2.5K+"
-            label={t('home.travelers')}
-            icon="people"
-            color={V2_COLORS.primary}
-          />
-          <StatBubble
-            value="15K+"
-            label={t('home.deliveries')}
-            icon="airplane"
-            color={V2_COLORS.accent1}
-          />
-          <StatBubble value="4.8" label={t('home.rating')} icon="star" color={V2_COLORS.accent2} />
         </Animated.View>
 
         {/* Wave Divider */}
@@ -573,23 +534,6 @@ const styles = StyleSheet.create({
   heroCTA: {
     flexDirection: 'row',
     gap: 10,
-  } as ViewStyle,
-
-  // Stats
-  statsRow: {
-    flexDirection: 'row',
-    gap: 10,
-    paddingHorizontal: 16,
-    marginBottom: 20,
-  } as ViewStyle,
-  statsRowWide: {
-    flexDirection: 'row',
-    gap: 16,
-    maxWidth: 1200,
-    alignSelf: 'center',
-    width: '100%',
-    paddingHorizontal: 24,
-    marginBottom: 24,
   } as ViewStyle,
 
   // Search

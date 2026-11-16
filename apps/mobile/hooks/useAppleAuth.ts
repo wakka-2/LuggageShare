@@ -5,6 +5,7 @@ import { Platform } from 'react-native';
 
 import { useAuth } from './useAuth';
 import { apiClient } from '@/lib/api';
+import { mapAuthResponseToSession, type ApiAuthResponse } from '@/lib/mappers';
 
 export function useAppleAuth() {
   const [isLoading, setIsLoading] = useState(false);
@@ -50,19 +51,24 @@ export function useAppleAuth() {
         nonce,
       });
 
-      if (credential.identityToken) {
-        // Send token to backend for verification
-        const authResponse = await apiClient.post('/auth/social', {
-          provider: 'apple',
-          idToken: credential.identityToken,
-          nonce,
-          user: {
-            email: credential.email,
-            fullName: credential.fullName,
-          },
+      if (credential.identityToken && credential.authorizationCode) {
+        // Contract: POST /auth/apple (AppleAuthDto). fullName is only sent by
+        // Apple on the first sign-in, so forward it when present.
+        const { data } = await apiClient.post<ApiAuthResponse>('/auth/apple', {
+          identityToken: credential.identityToken,
+          authorizationCode: credential.authorizationCode,
+          ...(credential.fullName?.givenName
+            ? {
+                fullName: {
+                  givenName: credential.fullName.givenName,
+                  familyName: credential.fullName.familyName ?? undefined,
+                },
+              }
+            : {}),
         });
 
-        await signIn(authResponse.data.data);
+        // apiClient already unwraps the { data } envelope once.
+        await signIn(mapAuthResponseToSession(data));
       }
     } catch (error: any) {
       if (error.code === 'ERR_CANCELED') {

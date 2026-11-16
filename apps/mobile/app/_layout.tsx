@@ -1,12 +1,19 @@
 import { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { I18nManager, Platform, useColorScheme } from 'react-native';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { AppState, I18nManager, Platform, type AppStateStatus } from 'react-native';
+import {
+  ThemeProvider as NavigationThemeProvider,
+  DarkTheme,
+  DefaultTheme,
+} from '@react-navigation/native';
+import { QueryClient, QueryClientProvider, focusManager } from '@tanstack/react-query';
 import * as SplashScreen from 'expo-splash-screen';
+import * as SystemUI from 'expo-system-ui';
 
 import { AuthProvider } from '@/providers/AuthProvider';
-import { ThemeProvider } from '@/providers/ThemeProvider';
+import { ThemeProvider, V2_COLORS } from '@/providers/ThemeProvider';
+import { IS_DARK } from '@/lib/colorScheme';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import { OfflineBanner } from '@/components/common/OfflineBanner';
 import i18n, { syncRTL } from '../i18n';
@@ -28,10 +35,23 @@ SplashScreen.preventAutoHideAsync();
 // Enable RTL for Arabic support
 I18nManager.allowRTL(true);
 
+// React Query only knows about browser focus. On native, treat "app came back to
+// the foreground" as focus so stale bookings/messages refetch when the user
+// returns to the app.
+if (Platform.OS !== 'web') {
+  focusManager.setEventListener((handleFocus) => {
+    const sub = AppState.addEventListener('change', (state: AppStateStatus) =>
+      handleFocus(state === 'active')
+    );
+    return () => sub.remove();
+  });
+}
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
+      // Short: booking status and chat change on the other user's device.
+      staleTime: 1000 * 30,
       gcTime: 1000 * 60 * 30, // 30 minutes
       retry: 2,
       networkMode: 'offlineFirst',
@@ -42,8 +62,26 @@ const queryClient = new QueryClient({
   },
 });
 
+// Navigation container colors (screen backgrounds, transitions) follow the
+// launch-time scheme so no white flashes appear between dark screens.
+const navigationTheme = {
+  ...(IS_DARK ? DarkTheme : DefaultTheme),
+  colors: {
+    ...(IS_DARK ? DarkTheme : DefaultTheme).colors,
+    primary: V2_COLORS.primary,
+    background: V2_COLORS.bg,
+    card: V2_COLORS.surface,
+    text: V2_COLORS.text,
+    border: V2_COLORS.border,
+    notification: V2_COLORS.secondary,
+  },
+};
+
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
+  useEffect(() => {
+    // Root window color behind all screens (keyboard, transitions, overscroll).
+    SystemUI.setBackgroundColorAsync(V2_COLORS.bg).catch(() => {});
+  }, []);
 
   useEffect(() => {
     // Sync RTL direction with the detected language, then reveal UI.
@@ -51,7 +89,9 @@ export default function RootLayout() {
     // some devices/new-arch configs — splash must always hide regardless.
     try {
       syncRTL();
-    } catch {}
+    } catch {
+      // Non-fatal: layout direction is re-synced on next launch.
+    }
     SplashScreen.hideAsync();
   }, []);
 
@@ -60,6 +100,7 @@ export default function RootLayout() {
       screenOptions={{
         headerShown: false,
         animation: 'slide_from_right',
+        contentStyle: { backgroundColor: V2_COLORS.bg },
       }}
     >
       <Stack.Screen name="(auth)" options={{ headerShown: false }} />
@@ -94,9 +135,11 @@ export default function RootLayout() {
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
           <AuthProvider>
-            <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
+            <StatusBar style={IS_DARK ? 'light' : 'dark'} />
             <OfflineBanner />
-            {WebShell ? <WebShell>{stackNavigator}</WebShell> : stackNavigator}
+            <NavigationThemeProvider value={navigationTheme}>
+              {WebShell ? <WebShell>{stackNavigator}</WebShell> : stackNavigator}
+            </NavigationThemeProvider>
           </AuthProvider>
         </ThemeProvider>
       </QueryClientProvider>
