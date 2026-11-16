@@ -52,7 +52,7 @@ export default function MakeOfferScreen() {
   const imageUpload = useImageUpload();
 
   const remaining = flight ? Number(flight.remainingWeight) : 0;
-  const pricePerKg = flight ? Number(flight.pricePerKg) : 0;
+  const pricePerKg = flight ? Number(flight.suggestedPrice) : 0;
 
   // Auto-suggest price when weight changes
   const handleWeightChange = (v: string) => {
@@ -223,7 +223,7 @@ export default function MakeOfferScreen() {
                     <Text
                       style={[styles.presetChipText, weight === p && styles.presetChipTextActive]}
                     >
-                      {t('common.kg')}
+                      {p} {t('common.kg')}
                     </Text>
                   </TouchableOpacity>
                 ))}

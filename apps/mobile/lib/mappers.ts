@@ -99,8 +99,11 @@ export function mapAuthResponseToSession(api: ApiAuthResponse): {
 
 /** Extracts a human-readable message from an axios/API error (NestJS returns string or string[]). */
 export function getApiErrorMessage(error: unknown, fallback: string): string {
-  const message = (error as { response?: { data?: { message?: unknown } } })?.response?.data
-    ?.message;
+  const data = (error as { response?: { data?: any } })?.response?.data;
+  // This API wraps errors as { error: { message, details: [{ message }] } }.
+  const detail = data?.error?.details?.[0]?.message;
+  if (typeof detail === 'string' && detail) return detail;
+  const message = data?.error?.message ?? data?.message;
   if (Array.isArray(message) && message.length > 0) return String(message[0]);
   if (typeof message === 'string' && message.length > 0) return message;
   return fallback;

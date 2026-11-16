@@ -32,6 +32,7 @@ import { useCreateFlight } from '@/hooks/useFlights';
 import { ScreenHeader } from '@/components/common/ScreenHeader';
 import { CityPickerField } from '@/components/common/CityPickerField';
 import { DatePickerInput } from '@/components/common/DatePickerInput';
+import { getApiErrorMessage } from '@/lib/mappers';
 import i18n from '@/i18n';
 
 /** "YYYY-MM-DD" <-> local Date (no timezone shift). */
@@ -187,7 +188,7 @@ function WeightStep({
             <Text
               style={[styles.presetChipText, form.totalWeight === p && styles.presetChipTextActive]}
             >
-              {t('common.kg')}
+              {p} {t('common.kg')}
             </Text>
           </TouchableOpacity>
         ))}
@@ -400,15 +401,14 @@ export default function CreateFlightScreen() {
         arrivalCode: form.arrivalCode.trim() || undefined,
         departureDate: new Date(form.departureDate).toISOString(),
         flightNumber: form.flightNumber.trim() || undefined,
-        totalWeight: parseFloat(form.totalWeight),
-        pricePerKg: parseFloat(form.pricePerKg),
+        availableWeight: parseFloat(form.totalWeight),
+        suggestedPrice: parseFloat(form.pricePerKg) || undefined,
         currency: form.currency,
         notes: form.notes.trim() || undefined,
       });
       setSuccess(true);
     } catch (e: any) {
-      const msg = e?.response?.data?.message || t('common.error');
-      Alert.alert(t('common.errorTitle'), msg);
+      Alert.alert(t('common.errorTitle'), getApiErrorMessage(e, t('common.error')));
     }
   };
 

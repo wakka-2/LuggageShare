@@ -67,16 +67,15 @@ export function WeightStep({ data, updateData, goNext }: StepProps) {
       </Animated.View>
 
       {/* Next */}
-      {canAdvance && (
-        <Animated.View entering={FadeInUp.delay(100).springify()} style={styles.nextContainer}>
-          <AnimatedButton
-            title={t('wizard.next', { defaultValue: 'Next' })}
-            onPress={goNext}
-            size="lg"
-            fullWidth
-          />
-        </Animated.View>
-      )}
+      <View style={styles.nextContainer}>
+        <AnimatedButton
+          disabled={!canAdvance}
+          title={t('wizard.next', { defaultValue: 'Next' })}
+          onPress={goNext}
+          size="lg"
+          fullWidth
+        />
+      </View>
     </View>
   );
 }

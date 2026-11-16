@@ -69,16 +69,15 @@ export function ItemDetailsStep({ data, updateData, goNext }: StepProps) {
       </Animated.View>
 
       {/* Next */}
-      {canAdvance && (
-        <Animated.View entering={FadeInUp.delay(100).springify()}>
-          <AnimatedButton
-            title={t('wizard.next', { defaultValue: 'Next' })}
-            onPress={goNext}
-            size="lg"
-            fullWidth
-          />
-        </Animated.View>
-      )}
+      <View>
+        <AnimatedButton
+          disabled={!canAdvance}
+          title={t('wizard.next', { defaultValue: 'Next' })}
+          onPress={goNext}
+          size="lg"
+          fullWidth
+        />
+      </View>
     </View>
   );
 }

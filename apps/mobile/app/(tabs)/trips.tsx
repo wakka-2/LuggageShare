@@ -238,12 +238,12 @@ const FlightCard = React.memo(function FlightCard({
         />
         <MetaChip
           icon="scale"
-          label={Number(flight.remainingWeight) + '/' + Number(flight.totalWeight) + ' kg'}
+          label={`${Number(flight.remainingWeight)}/${Number(flight.availableWeight)} ${t('common.kg')}`}
           color={V2_COLORS.accent1}
         />
         <MetaChip
           icon="pricetag"
-          label={Number(flight.pricePerKg) + ' ' + flight.currency + '/kg'}
+          label={`${Number(flight.suggestedPrice) || 0} ${flight.currency}${t('common.perKg')}`}
           color={V2_COLORS.accent2}
         />
         {flight._count?.offers ? (

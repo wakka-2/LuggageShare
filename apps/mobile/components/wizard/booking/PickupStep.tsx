@@ -140,11 +140,15 @@ export function PickupStep({ data, updateData, goNext }: StepProps) {
         />
       </Animated.View>
 
-      {canAdvance && (
-        <Animated.View entering={FadeInUp.delay(100).springify()}>
-          <AnimatedButton title={t('wizard.next')} onPress={goNext} size="lg" fullWidth />
-        </Animated.View>
-      )}
+      <View>
+        <AnimatedButton
+          disabled={!canAdvance}
+          title={t('wizard.next')}
+          onPress={goNext}
+          size="lg"
+          fullWidth
+        />
+      </View>
     </View>
   );
 }

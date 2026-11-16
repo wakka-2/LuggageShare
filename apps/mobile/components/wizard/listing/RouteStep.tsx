@@ -102,11 +102,15 @@ export function RouteStep({ data, updateData, goNext }: StepProps) {
         />
       </Animated.View>
 
-      {canAdvance && (
-        <Animated.View entering={FadeInUp.delay(100).springify()} style={styles.nextContainer}>
-          <AnimatedButton title={t('wizard.next')} onPress={goNext} size="lg" fullWidth />
-        </Animated.View>
-      )}
+      <View style={styles.nextContainer}>
+        <AnimatedButton
+          disabled={!canAdvance}
+          title={t('wizard.next')}
+          onPress={goNext}
+          size="lg"
+          fullWidth
+        />
+      </View>
     </View>
   );
 }

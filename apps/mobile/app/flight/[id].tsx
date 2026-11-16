@@ -93,8 +93,8 @@ export default function FlightDetailScreen() {
 
   const isOwner = user?.id === flight.posterId;
   const remaining = Number(flight.remainingWeight) || 0;
-  const total = Number(flight.totalWeight) || 0;
-  const pricePerKg = Number(flight.pricePerKg) || 0;
+  const total = Number(flight.availableWeight) || 0;
+  const pricePerKg = Number(flight.suggestedPrice) || 0;
   const departureDate = new Date(flight.departureDate);
   const capacityPercent = total > 0 ? Math.round(((total - remaining) / total) * 100) : 0;
 
