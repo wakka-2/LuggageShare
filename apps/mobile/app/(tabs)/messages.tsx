@@ -1,4 +1,5 @@
 import React from 'react';
+import { useRefreshOnFocus } from '@/hooks/useRefreshOnFocus';
 import {
   View,
   Text,
@@ -22,6 +23,7 @@ import {
   BUBBLE_SHADOWS,
   TYPOGRAPHY,
   GRADIENTS,
+  themed,
 } from '@/providers/ThemeProvider';
 import { useConversations, ApiConversation } from '@/hooks/useMessages';
 import { EmptyState, Avatar, BackgroundBlobs } from '@/components/common';
@@ -38,6 +40,7 @@ const ConversationItem = React.memo(function ConversationItem({
   isRTL: boolean;
   onPress: () => void;
 }) {
+  const { t } = useTranslation();
   const lastMessageDate = conversation.lastMessage?.createdAt
     ? new Date(conversation.lastMessage.createdAt)
     : null;
@@ -48,7 +51,10 @@ const ConversationItem = React.memo(function ConversationItem({
       })
     : '';
 
-  const unreadLabel = conversation.unreadCount > 0 ? `, ${conversation.unreadCount} unread` : '';
+  const unreadLabel =
+    conversation.unreadCount > 0
+      ? `, ${t('messages.unreadA11y', { count: conversation.unreadCount })}`
+      : '';
   const lastMsg = conversation.lastMessage?.content ? `, ${conversation.lastMessage.content}` : '';
 
   return (
@@ -100,6 +106,7 @@ export default function MessagesScreen() {
   const isRTL = i18n.language === 'ar';
 
   const { data: conversations, isLoading, refetch } = useConversations();
+  useRefreshOnFocus(refetch);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -181,75 +188,77 @@ export default function MessagesScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: V2_COLORS.bg } as ViewStyle,
-  header: { padding: 16, paddingBottom: 12 } as ViewStyle,
-  headerRow: { flexDirection: 'row', alignItems: 'center' } as ViewStyle,
-  title: { ...TYPOGRAPHY.h1, color: V2_COLORS.text } as TextStyle,
-  headerAccent: {
-    height: 3,
-    borderRadius: 2,
-    overflow: 'hidden',
-    marginTop: 8,
-    width: 60,
-  } as ViewStyle,
-  headerAccentGradient: { flex: 1 } as ViewStyle,
-  scrollContent: { padding: 16, paddingBottom: 32 } as ViewStyle,
-  loading: { paddingVertical: 8 } as ViewStyle,
-  skeletonConv: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    padding: 14,
-    borderRadius: RADIUS.card,
-    marginBottom: 10,
-    gap: 12,
-    ...BUBBLE_SHADOWS.sm,
-  } as ViewStyle,
-  emptyState: { marginTop: 40 } as ViewStyle,
+const styles = themed(() =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: V2_COLORS.bg } as ViewStyle,
+    header: { padding: 16, paddingBottom: 12 } as ViewStyle,
+    headerRow: { flexDirection: 'row', alignItems: 'center' } as ViewStyle,
+    title: { ...TYPOGRAPHY.h1, color: V2_COLORS.text } as TextStyle,
+    headerAccent: {
+      height: 3,
+      borderRadius: 2,
+      overflow: 'hidden',
+      marginTop: 8,
+      width: 60,
+    } as ViewStyle,
+    headerAccentGradient: { flex: 1 } as ViewStyle,
+    scrollContent: { padding: 16, paddingBottom: 32 } as ViewStyle,
+    loading: { paddingVertical: 8 } as ViewStyle,
+    skeletonConv: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: V2_COLORS.surface,
+      padding: 14,
+      borderRadius: RADIUS.card,
+      marginBottom: 10,
+      gap: 12,
+      ...BUBBLE_SHADOWS.sm,
+    } as ViewStyle,
+    emptyState: { marginTop: 40 } as ViewStyle,
 
-  conversationItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    padding: 14,
-    borderRadius: RADIUS.card,
-    marginBottom: 10,
-    gap: 12,
-    ...BUBBLE_SHADOWS.sm,
-  } as ViewStyle,
-  conversationContent: { flex: 1 } as ViewStyle,
-  conversationHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 3,
-  } as ViewStyle,
-  conversationName: {
-    ...TYPOGRAPHY.caption,
-    fontWeight: '700',
-    color: V2_COLORS.text,
-    flex: 1,
-  } as TextStyle,
-  conversationTime: { fontSize: 11, color: V2_COLORS.textMuted, marginStart: 8 } as TextStyle,
-  routePill: {
-    backgroundColor: V2_COLORS.accent3 + '15',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: RADIUS.pill,
-    alignSelf: 'flex-start',
-    marginBottom: 4,
-  } as ViewStyle,
-  conversationRoute: { fontSize: 11, fontWeight: '600', color: V2_COLORS.accent3 } as TextStyle,
-  conversationMessage: { fontSize: 13, color: V2_COLORS.textSoft } as TextStyle,
-  unreadBadge: {
-    minWidth: 22,
-    height: 22,
-    borderRadius: RADIUS.pill,
-    paddingHorizontal: 6,
-    backgroundColor: V2_COLORS.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  } as ViewStyle,
-  unreadText: { color: '#FFF', fontSize: 11, fontWeight: '700' } as TextStyle,
-});
+    conversationItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: V2_COLORS.surface,
+      padding: 14,
+      borderRadius: RADIUS.card,
+      marginBottom: 10,
+      gap: 12,
+      ...BUBBLE_SHADOWS.sm,
+    } as ViewStyle,
+    conversationContent: { flex: 1 } as ViewStyle,
+    conversationHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 3,
+    } as ViewStyle,
+    conversationName: {
+      ...TYPOGRAPHY.caption,
+      fontWeight: '700',
+      color: V2_COLORS.text,
+      flex: 1,
+    } as TextStyle,
+    conversationTime: { fontSize: 11, color: V2_COLORS.textMuted, marginStart: 8 } as TextStyle,
+    routePill: {
+      backgroundColor: V2_COLORS.accent3 + '15',
+      paddingHorizontal: 8,
+      paddingVertical: 2,
+      borderRadius: RADIUS.pill,
+      alignSelf: 'flex-start',
+      marginBottom: 4,
+    } as ViewStyle,
+    conversationRoute: { fontSize: 11, fontWeight: '600', color: V2_COLORS.accent3 } as TextStyle,
+    conversationMessage: { fontSize: 13, color: V2_COLORS.textSoft } as TextStyle,
+    unreadBadge: {
+      minWidth: 22,
+      height: 22,
+      borderRadius: RADIUS.pill,
+      paddingHorizontal: 6,
+      backgroundColor: V2_COLORS.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+    } as ViewStyle,
+    unreadText: { color: '#FFF', fontSize: 11, fontWeight: '700' } as TextStyle,
+  })
+);

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "996868464140",
+    "project_id": "luggageshare-app",
+    "storage_bucket": "luggageshare-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:996868464140:android:7c5d8353ab6408be4cd829",
+        "android_client_info": {
+          "package_name": "com.luggageshare.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDxolDwVj3GtTtIYR7gHcEWbIqJAd_muMk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

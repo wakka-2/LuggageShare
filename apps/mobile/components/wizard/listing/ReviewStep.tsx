@@ -1,9 +1,10 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { routeArrow } from '@/lib/rtl';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { V2_COLORS, RADIUS, BUBBLE_SHADOWS } from '@/providers/ThemeProvider';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS, themed } from '@/providers/ThemeProvider';
 import { QuestionTitle } from '../QuestionTitle';
 import { AnimatedButton } from '@/components/animations/AnimatedButton';
 import type { StepProps } from '../WizardContainer';
@@ -37,17 +38,29 @@ export function ReviewStep({ data, goNext, goBack }: StepProps) {
       <Animated.View entering={FadeInUp.delay(150).springify()} style={styles.summaryCard}>
         <SummaryRow
           icon="airplane"
-          label={`${data.departureCity || '—'} → ${data.arrivalCity || '—'}`}
+          label={`${data.departureCity || '—'} ${routeArrow()} ${data.arrivalCity || '—'}`}
           delay={200}
         />
         <SummaryRow icon="calendar" label={formatDate(data.departureDate)} delay={250} />
         {data.flightNumber && (
           <SummaryRow icon="airplane-outline" label={data.flightNumber} delay={300} />
         )}
-        <SummaryRow icon="scale" label={`${weight} kg available`} delay={350} />
-        <SummaryRow icon="cash" label={`SAR ${price}/kg`} delay={400} />
+        <SummaryRow
+          icon="scale"
+          label={t('listing.wizard.review.available', { weight })}
+          delay={350}
+        />
+        <SummaryRow
+          icon="cash"
+          label={t('listing.wizard.review.pricePerKg', { price })}
+          delay={400}
+        />
         {categories.length > 0 && (
-          <SummaryRow icon="cube" label={categories.join(', ')} delay={450} />
+          <SummaryRow
+            icon="cube"
+            label={categories.map((c) => t(`categories.${c}`)).join(isRTL ? '، ' : ', ')}
+            delay={450}
+          />
         )}
         {data.notes && <SummaryRow icon="document-text" label={data.notes} delay={500} />}
       </Animated.View>
@@ -57,7 +70,9 @@ export function ReviewStep({ data, goNext, goBack }: StepProps) {
         <Text style={styles.earningsLabel}>
           {t('listing.wizard.review.earnings', { defaultValue: 'Estimated earnings:' })}
         </Text>
-        <Text style={styles.earningsValue}>SAR {estimatedTotal.toFixed(2)}</Text>
+        <Text style={styles.earningsValue}>
+          {estimatedTotal.toFixed(2)} {t('common.sar')}
+        </Text>
         <Text style={styles.earningsNote}>
           {t('listing.wizard.review.ifBooked', { defaultValue: '(if fully booked)' })}
         </Text>
@@ -89,53 +104,55 @@ function SummaryRow({ icon, label, delay }: { icon: string; label: string; delay
   );
 }
 
-const styles = StyleSheet.create({
-  summaryCard: {
-    borderRadius: RADIUS.card,
-    padding: 20,
-    marginBottom: 20,
-    gap: 14,
-    backgroundColor: '#FFFFFF',
-    ...BUBBLE_SHADOWS.sm,
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  rowIconCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: V2_COLORS.primary + '15',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  rowText: {
-    fontSize: 15,
-    flex: 1,
-    color: V2_COLORS.text,
-  },
-  earningsCard: {
-    borderRadius: RADIUS.card,
-    padding: 20,
-    alignItems: 'center',
-    marginBottom: 24,
-    backgroundColor: V2_COLORS.primary + '08',
-  },
-  earningsLabel: {
-    fontSize: 14,
-    marginBottom: 4,
-    color: V2_COLORS.textSoft,
-  },
-  earningsValue: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: V2_COLORS.primary,
-  },
-  earningsNote: {
-    fontSize: 13,
-    marginTop: 4,
-    color: V2_COLORS.textMuted,
-  },
-});
+const styles = themed(() =>
+  StyleSheet.create({
+    summaryCard: {
+      borderRadius: RADIUS.card,
+      padding: 20,
+      marginBottom: 20,
+      gap: 14,
+      backgroundColor: V2_COLORS.surface,
+      ...BUBBLE_SHADOWS.sm,
+    },
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+    },
+    rowIconCircle: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: V2_COLORS.primary + '15',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    rowText: {
+      fontSize: 15,
+      flex: 1,
+      color: V2_COLORS.text,
+    },
+    earningsCard: {
+      borderRadius: RADIUS.card,
+      padding: 20,
+      alignItems: 'center',
+      marginBottom: 24,
+      backgroundColor: V2_COLORS.primary + '08',
+    },
+    earningsLabel: {
+      fontSize: 14,
+      marginBottom: 4,
+      color: V2_COLORS.textSoft,
+    },
+    earningsValue: {
+      fontSize: 32,
+      fontWeight: '700',
+      color: V2_COLORS.primary,
+    },
+    earningsNote: {
+      fontSize: 13,
+      marginTop: 4,
+      color: V2_COLORS.textMuted,
+    },
+  })
+);

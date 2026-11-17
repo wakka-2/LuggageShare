@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import i18n from '@/i18n';
 import { View, Text, StyleSheet } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -8,7 +9,7 @@ import Animated, {
   FadeIn,
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
-import { V2_COLORS, RADIUS } from '@/providers/ThemeProvider';
+import { V2_COLORS, RADIUS, themed } from '@/providers/ThemeProvider';
 
 interface RatingBarsProps {
   distribution: number[]; // [count5, count4, count3, count2, count1]
@@ -66,7 +67,7 @@ export function RatingBars({ distribution, average, total }: RatingBarsProps) {
             />
           ))}
         </View>
-        <Text style={styles.totalLabel}>{total} reviews</Text>
+        <Text style={styles.totalLabel}>{i18n.t('common.reviewsCount', { count: total })}</Text>
       </Animated.View>
 
       {/* Bars */}
@@ -79,62 +80,64 @@ export function RatingBars({ distribution, average, total }: RatingBarsProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    gap: 16,
-  },
-  summary: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    minWidth: 70,
-  },
-  avgNumber: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: V2_COLORS.text,
-  },
-  starsRow: {
-    flexDirection: 'row',
-    gap: 2,
-    marginTop: 4,
-  },
-  totalLabel: {
-    fontSize: 12,
-    marginTop: 4,
-    color: V2_COLORS.textMuted,
-  },
-  bars: {
-    flex: 1,
-    gap: 4,
-  },
-  barRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  starLabel: {
-    fontSize: 12,
-    width: 12,
-    textAlign: 'right',
-    color: V2_COLORS.textSoft,
-  },
-  barTrack: {
-    flex: 1,
-    height: 6,
-    borderRadius: 3,
-    overflow: 'hidden',
-    backgroundColor: V2_COLORS.cardShadow,
-  },
-  barFill: {
-    height: '100%',
-    borderRadius: 3,
-    backgroundColor: V2_COLORS.accent2,
-  },
-  countLabel: {
-    fontSize: 11,
-    width: 24,
-    textAlign: 'right',
-    color: V2_COLORS.textMuted,
-  },
-});
+const styles = themed(() =>
+  StyleSheet.create({
+    container: {
+      flexDirection: 'row',
+      gap: 16,
+    },
+    summary: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      minWidth: 70,
+    },
+    avgNumber: {
+      fontSize: 32,
+      fontWeight: '700',
+      color: V2_COLORS.text,
+    },
+    starsRow: {
+      flexDirection: 'row',
+      gap: 2,
+      marginTop: 4,
+    },
+    totalLabel: {
+      fontSize: 12,
+      marginTop: 4,
+      color: V2_COLORS.textMuted,
+    },
+    bars: {
+      flex: 1,
+      gap: 4,
+    },
+    barRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+    },
+    starLabel: {
+      fontSize: 12,
+      width: 12,
+      textAlign: 'right',
+      color: V2_COLORS.textSoft,
+    },
+    barTrack: {
+      flex: 1,
+      height: 6,
+      borderRadius: 3,
+      overflow: 'hidden',
+      backgroundColor: V2_COLORS.cardShadow,
+    },
+    barFill: {
+      height: '100%',
+      borderRadius: 3,
+      backgroundColor: V2_COLORS.accent2,
+    },
+    countLabel: {
+      fontSize: 11,
+      width: 24,
+      textAlign: 'right',
+      color: V2_COLORS.textMuted,
+    },
+  })
+);

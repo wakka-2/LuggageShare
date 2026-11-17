@@ -87,9 +87,33 @@ export class NotificationsService {
     userId: string,
     title: string,
     body: string,
-    data?: Record<string, any>
+    data?: Record<string, any>,
+    options: { persist?: boolean } = {}
   ) {
-    // Get user's push tokens
+    // Record the in-app notification by default — users without a push token
+    // (push disabled, permission denied, FCM not configured) still see it in
+    // the notifications list. Chat messages pass persist:false: the Messages
+    // tab already tracks unread messages, so they would only flood the list.
+    if (options.persist !== false) {
+      await this.prisma.notification.create({
+        data: {
+          userId,
+          title,
+          body,
+          data: data || {},
+        },
+      });
+    }
+
+    // Respect the user's push preference (Settings → Push notifications).
+    const settings = await this.prisma.userSettings.findUnique({
+      where: { userId },
+      select: { notifications: true },
+    });
+    if (settings?.notifications === false) {
+      return;
+    }
+
     const pushTokens = await this.prisma.pushToken.findMany({
       where: { userId },
     });
@@ -97,16 +121,6 @@ export class NotificationsService {
     if (pushTokens.length === 0) {
       return;
     }
-
-    // Create notification record
-    await this.prisma.notification.create({
-      data: {
-        userId,
-        title,
-        body,
-        data: data || {},
-      },
-    });
 
     // explicit any — no generated Prisma types in CI
     const webTokens = pushTokens.filter((pt: any) => pt.platform === 'web');

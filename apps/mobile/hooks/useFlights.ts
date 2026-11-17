@@ -10,9 +10,9 @@ export interface ApiFlight {
   arrivalCode: string | null;
   departureDate: string;
   flightNumber: string | null;
-  totalWeight: number;
+  availableWeight: number;
   remainingWeight: number;
-  pricePerKg: number;
+  suggestedPrice: number | null;
   currency: string;
   notes: string | null;
   status: 'active' | 'full' | 'cancelled' | 'departed';
@@ -47,8 +47,9 @@ export interface CreateFlightParams {
   arrivalCode?: string;
   departureDate: string;
   flightNumber?: string;
-  totalWeight: number;
-  pricePerKg: number;
+  /** Field names must match the API DTO (it rejects unknown properties). */
+  availableWeight: number;
+  suggestedPrice?: number;
   currency?: string;
   notes?: string;
 }

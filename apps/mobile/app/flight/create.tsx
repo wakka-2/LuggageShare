@@ -12,6 +12,8 @@ import {
   Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { dirIcon, routeArrow } from '@/lib/rtl';
+import { cityLabel } from '@/lib/airports';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -24,9 +26,24 @@ import {
   BUBBLE_SHADOWS,
   TYPOGRAPHY,
   GRADIENTS,
+  themed,
 } from '@/providers/ThemeProvider';
 import { useCreateFlight } from '@/hooks/useFlights';
 import { ScreenHeader } from '@/components/common/ScreenHeader';
+import { CityPickerField } from '@/components/common/CityPickerField';
+import { DatePickerInput } from '@/components/common/DatePickerInput';
+import { getApiErrorMessage } from '@/lib/mappers';
+import i18n from '@/i18n';
+
+/** "YYYY-MM-DD" <-> local Date (no timezone shift). */
+function parseLocalDate(v: string): Date | null {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v);
+  return m ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])) : null;
+}
+function toLocalDateString(d: Date): string {
+  const p = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+}
 
 const TOTAL_STEPS = 5;
 
@@ -57,27 +74,17 @@ function RouteStep({
       <Text style={styles.stepTitle}>{t('flight.create.routeTitle')}</Text>
       <Text style={styles.stepSubtitle}>{t('flight.create.routeSubtitle')}</Text>
 
-      <View style={styles.inputGroup}>
-        <Text style={styles.inputLabel}>{t('flight.create.from')} *</Text>
-        <View style={styles.inputRow}>
-          <TextInput
-            style={[styles.textInput, { flex: 2 }]}
-            value={form.departureCity}
-            onChangeText={(v) => onChange('departureCity', v)}
-            placeholder={t('flight.create.cityPlaceholder')}
-            placeholderTextColor={V2_COLORS.textMuted}
-          />
-          <TextInput
-            style={[styles.textInput, { flex: 1 }]}
-            value={form.departureCode}
-            onChangeText={(v) => onChange('departureCode', v.toUpperCase())}
-            placeholder="RUH"
-            placeholderTextColor={V2_COLORS.textMuted}
-            maxLength={3}
-            autoCapitalize="characters"
-          />
-        </View>
-      </View>
+      <CityPickerField
+        label={t('flight.create.from')}
+        dotColor={V2_COLORS.accent1}
+        city={form.departureCity}
+        code={form.departureCode}
+        placeholder={t('cityPicker.selectDeparture')}
+        onSelect={({ city, code }) => {
+          onChange('departureCity', city);
+          onChange('departureCode', code);
+        }}
+      />
 
       <View style={styles.routeArrow}>
         <View style={styles.routeArrowLine} />
@@ -85,27 +92,17 @@ function RouteStep({
         <View style={styles.routeArrowLine} />
       </View>
 
-      <View style={styles.inputGroup}>
-        <Text style={styles.inputLabel}>{t('flight.create.to')} *</Text>
-        <View style={styles.inputRow}>
-          <TextInput
-            style={[styles.textInput, { flex: 2 }]}
-            value={form.arrivalCity}
-            onChangeText={(v) => onChange('arrivalCity', v)}
-            placeholder={t('flight.create.cityPlaceholder')}
-            placeholderTextColor={V2_COLORS.textMuted}
-          />
-          <TextInput
-            style={[styles.textInput, { flex: 1 }]}
-            value={form.arrivalCode}
-            onChangeText={(v) => onChange('arrivalCode', v.toUpperCase())}
-            placeholder="LHR"
-            placeholderTextColor={V2_COLORS.textMuted}
-            maxLength={3}
-            autoCapitalize="characters"
-          />
-        </View>
-      </View>
+      <CityPickerField
+        label={t('flight.create.to')}
+        dotColor={V2_COLORS.secondary}
+        city={form.arrivalCity}
+        code={form.arrivalCode}
+        placeholder={t('cityPicker.selectArrival')}
+        onSelect={({ city, code }) => {
+          onChange('arrivalCity', city);
+          onChange('arrivalCode', code);
+        }}
+      />
     </Animated.View>
   );
 }
@@ -126,15 +123,11 @@ function DateStep({
 
       <View style={styles.inputGroup}>
         <Text style={styles.inputLabel}>{t('flight.create.date')} *</Text>
-        <TextInput
-          style={styles.textInput}
-          value={form.departureDate}
-          onChangeText={(v) => onChange('departureDate', v)}
-          placeholder="YYYY-MM-DD"
-          placeholderTextColor={V2_COLORS.textMuted}
-          keyboardType={Platform.OS === 'ios' ? 'numbers-and-punctuation' : 'default'}
+        <DatePickerInput
+          value={parseLocalDate(form.departureDate)}
+          onChange={(d) => onChange('departureDate', toLocalDateString(d))}
+          minimumDate={new Date()}
         />
-        <Text style={styles.inputHint}>{t('flight.create.dateHint')}</Text>
       </View>
 
       <View style={styles.inputGroup}>
@@ -180,7 +173,7 @@ function WeightStep({
             keyboardType="decimal-pad"
           />
           <View style={styles.weightUnit}>
-            <Text style={styles.weightUnitText}>kg</Text>
+            <Text style={styles.weightUnitText}>{t('common.kg')}</Text>
           </View>
         </View>
       </View>
@@ -195,7 +188,7 @@ function WeightStep({
             <Text
               style={[styles.presetChipText, form.totalWeight === p && styles.presetChipTextActive]}
             >
-              {p} kg
+              {p} {t('common.kg')}
             </Text>
           </TouchableOpacity>
         ))}
@@ -232,7 +225,10 @@ function PricingStep({
             keyboardType="decimal-pad"
           />
           <View style={styles.weightUnit}>
-            <Text style={styles.weightUnitText}>{form.currency}/kg</Text>
+            <Text style={styles.weightUnitText}>
+              {form.currency}
+              {t('common.perKg')}
+            </Text>
           </View>
         </View>
       </View>
@@ -278,13 +274,19 @@ function ReviewStep({
         <View style={styles.reviewRow}>
           <Ionicons name="airplane" size={18} color={V2_COLORS.primary} />
           <Text style={styles.reviewText}>
-            {form.departureCity} {form.departureCode ? `(${form.departureCode})` : ''} →{' '}
-            {form.arrivalCity} {form.arrivalCode ? `(${form.arrivalCode})` : ''}
+            {cityLabel(form.departureCity)} {form.departureCode ? `(${form.departureCode})` : ''}{' '}
+            {routeArrow()} {cityLabel(form.arrivalCity)}{' '}
+            {form.arrivalCode ? `(${form.arrivalCode})` : ''}
           </Text>
         </View>
         <View style={styles.reviewRow}>
           <Ionicons name="calendar" size={18} color={V2_COLORS.accent3} />
-          <Text style={styles.reviewText}>{form.departureDate}</Text>
+          <Text style={styles.reviewText}>
+            {parseLocalDate(form.departureDate)?.toLocaleDateString(
+              i18n.language === 'ar' ? 'ar-SA-u-ca-gregory-nu-latn' : 'en-GB',
+              { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' }
+            )}
+          </Text>
         </View>
         {form.flightNumber ? (
           <View style={styles.reviewRow}>
@@ -294,12 +296,15 @@ function ReviewStep({
         ) : null}
         <View style={styles.reviewRow}>
           <Ionicons name="scale" size={18} color={V2_COLORS.accent1} />
-          <Text style={styles.reviewText}>{form.totalWeight} kg</Text>
+          <Text style={styles.reviewText}>
+            {form.totalWeight} {t('common.kg')}
+          </Text>
         </View>
         <View style={styles.reviewRow}>
           <Ionicons name="pricetag" size={18} color={V2_COLORS.accent2} />
           <Text style={styles.reviewText}>
-            {form.pricePerKg} {form.currency}/kg
+            {form.pricePerKg} {form.currency}
+            {t('common.perKg')}
           </Text>
         </View>
       </View>
@@ -396,15 +401,14 @@ export default function CreateFlightScreen() {
         arrivalCode: form.arrivalCode.trim() || undefined,
         departureDate: new Date(form.departureDate).toISOString(),
         flightNumber: form.flightNumber.trim() || undefined,
-        totalWeight: parseFloat(form.totalWeight),
-        pricePerKg: parseFloat(form.pricePerKg),
+        availableWeight: parseFloat(form.totalWeight),
+        suggestedPrice: parseFloat(form.pricePerKg) || undefined,
         currency: form.currency,
         notes: form.notes.trim() || undefined,
       });
       setSuccess(true);
     } catch (e: any) {
-      const msg = e?.response?.data?.message || t('common.error');
-      Alert.alert(t('common.errorTitle'), msg);
+      Alert.alert(t('common.errorTitle'), getApiErrorMessage(e, t('common.error')));
     }
   };
 
@@ -455,14 +459,18 @@ export default function CreateFlightScreen() {
         </Text>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         {stepComponents[step - 1]}
       </ScrollView>
 
       <Animated.View entering={FadeInUp.duration(300)} style={styles.footer}>
         {step > 1 && (
           <TouchableOpacity onPress={() => setStep((s) => s - 1)} style={styles.backBtn}>
-            <Ionicons name="arrow-back" size={20} color={V2_COLORS.primary} />
+            <Ionicons name={dirIcon('arrow-back')} size={20} color={V2_COLORS.primary} />
             <Text style={styles.backBtnText}>{t('common.cancel')}</Text>
           </TouchableOpacity>
         )}
@@ -484,7 +492,9 @@ export default function CreateFlightScreen() {
                   : t('flight.create.post')
                 : t('flight.create.next')}
             </Text>
-            {step < TOTAL_STEPS && <Ionicons name="arrow-forward" size={18} color="#FFF" />}
+            {step < TOTAL_STEPS && (
+              <Ionicons name={dirIcon('arrow-forward')} size={18} color="#FFF" />
+            )}
           </LinearGradient>
         </TouchableOpacity>
       </Animated.View>
@@ -492,143 +502,145 @@ export default function CreateFlightScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: V2_COLORS.bg } as ViewStyle,
-  scrollContent: { padding: 20, paddingBottom: 32 } as ViewStyle,
+const styles = themed(() =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: V2_COLORS.bg } as ViewStyle,
+    scrollContent: { padding: 20, paddingBottom: 32 } as ViewStyle,
 
-  progressBar: {
-    height: 3,
-    backgroundColor: V2_COLORS.cardShadow,
-    marginHorizontal: 0,
-  } as ViewStyle,
-  progressFill: {
-    height: '100%',
-    backgroundColor: V2_COLORS.primary,
-    borderRadius: 2,
-  } as ViewStyle,
-  stepIndicator: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 4 } as ViewStyle,
-  stepIndicatorText: { fontSize: 12, color: V2_COLORS.textMuted, fontWeight: '600' } as TextStyle,
+    progressBar: {
+      height: 3,
+      backgroundColor: V2_COLORS.cardShadow,
+      marginHorizontal: 0,
+    } as ViewStyle,
+    progressFill: {
+      height: '100%',
+      backgroundColor: V2_COLORS.primary,
+      borderRadius: 2,
+    } as ViewStyle,
+    stepIndicator: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 4 } as ViewStyle,
+    stepIndicatorText: { fontSize: 12, color: V2_COLORS.textMuted, fontWeight: '600' } as TextStyle,
 
-  stepContent: { gap: 8 } as ViewStyle,
-  stepTitle: { ...TYPOGRAPHY.h1, color: V2_COLORS.text, marginBottom: 4 } as TextStyle,
-  stepSubtitle: { ...TYPOGRAPHY.body, color: V2_COLORS.textSoft, marginBottom: 20 } as TextStyle,
+    stepContent: { gap: 8 } as ViewStyle,
+    stepTitle: { ...TYPOGRAPHY.h1, color: V2_COLORS.text, marginBottom: 4 } as TextStyle,
+    stepSubtitle: { ...TYPOGRAPHY.body, color: V2_COLORS.textSoft, marginBottom: 20 } as TextStyle,
 
-  inputGroup: { marginBottom: 20 } as ViewStyle,
-  inputLabel: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: V2_COLORS.text,
-    marginBottom: 8,
-  } as TextStyle,
-  inputHint: { fontSize: 12, color: V2_COLORS.textMuted, marginTop: 6 } as TextStyle,
-  inputRow: { flexDirection: 'row', gap: 10 } as ViewStyle,
-  textInput: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: RADIUS.input,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 15,
-    color: V2_COLORS.text,
-    ...BUBBLE_SHADOWS.sm,
-  } as TextStyle,
-  notesInput: { minHeight: 90, paddingTop: 14 } as TextStyle,
+    inputGroup: { marginBottom: 20 } as ViewStyle,
+    inputLabel: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: V2_COLORS.text,
+      marginBottom: 8,
+    } as TextStyle,
+    inputHint: { fontSize: 12, color: V2_COLORS.textMuted, marginTop: 6 } as TextStyle,
+    inputRow: { flexDirection: 'row', gap: 10 } as ViewStyle,
+    textInput: {
+      backgroundColor: V2_COLORS.surface,
+      borderRadius: RADIUS.input,
+      paddingHorizontal: 16,
+      paddingVertical: 14,
+      fontSize: 15,
+      color: V2_COLORS.text,
+      ...BUBBLE_SHADOWS.sm,
+    } as TextStyle,
+    notesInput: { minHeight: 90, paddingTop: 14 } as TextStyle,
 
-  routeArrow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginVertical: 8,
-  } as ViewStyle,
-  routeArrowLine: {
-    flex: 1,
-    height: 1.5,
-    backgroundColor: V2_COLORS.textMuted,
-    opacity: 0.3,
-  } as ViewStyle,
+    routeArrow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      marginVertical: 8,
+    } as ViewStyle,
+    routeArrowLine: {
+      flex: 1,
+      height: 1.5,
+      backgroundColor: V2_COLORS.textMuted,
+      opacity: 0.3,
+    } as ViewStyle,
 
-  weightInputRow: { flexDirection: 'row', gap: 10, alignItems: 'center' } as ViewStyle,
-  weightInput: { flex: 1 } as TextStyle,
-  weightUnit: {
-    backgroundColor: V2_COLORS.primary + '15',
-    paddingHorizontal: 14,
-    paddingVertical: 14,
-    borderRadius: RADIUS.input,
-  } as ViewStyle,
-  weightUnitText: { fontSize: 14, fontWeight: '700', color: V2_COLORS.primary } as TextStyle,
+    weightInputRow: { flexDirection: 'row', gap: 10, alignItems: 'center' } as ViewStyle,
+    weightInput: { flex: 1 } as TextStyle,
+    weightUnit: {
+      backgroundColor: V2_COLORS.primary + '15',
+      paddingHorizontal: 14,
+      paddingVertical: 14,
+      borderRadius: RADIUS.input,
+    } as ViewStyle,
+    weightUnitText: { fontSize: 14, fontWeight: '700', color: V2_COLORS.primary } as TextStyle,
 
-  presetRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 } as ViewStyle,
-  presetChip: {
-    paddingHorizontal: 16,
-    paddingVertical: 9,
-    borderRadius: RADIUS.pill,
-    backgroundColor: '#FFFFFF',
-    ...BUBBLE_SHADOWS.xs,
-  } as ViewStyle,
-  presetChipActive: { backgroundColor: V2_COLORS.primary } as ViewStyle,
-  presetChipText: { fontSize: 13, fontWeight: '600', color: V2_COLORS.textSoft } as TextStyle,
-  presetChipTextActive: { color: '#FFFFFF' } as TextStyle,
+    presetRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 } as ViewStyle,
+    presetChip: {
+      paddingHorizontal: 16,
+      paddingVertical: 9,
+      borderRadius: RADIUS.pill,
+      backgroundColor: V2_COLORS.surface,
+      ...BUBBLE_SHADOWS.xs,
+    } as ViewStyle,
+    presetChipActive: { backgroundColor: V2_COLORS.primary } as ViewStyle,
+    presetChipText: { fontSize: 13, fontWeight: '600', color: V2_COLORS.textSoft } as TextStyle,
+    presetChipTextActive: { color: '#FFFFFF' } as TextStyle,
 
-  reviewCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: RADIUS.card,
-    padding: 18,
-    gap: 12,
-    marginBottom: 20,
-    ...BUBBLE_SHADOWS.md,
-  } as ViewStyle,
-  reviewRow: { flexDirection: 'row', alignItems: 'center', gap: 10 } as ViewStyle,
-  reviewText: { fontSize: 15, color: V2_COLORS.text, flex: 1 } as TextStyle,
+    reviewCard: {
+      backgroundColor: V2_COLORS.surface,
+      borderRadius: RADIUS.card,
+      padding: 18,
+      gap: 12,
+      marginBottom: 20,
+      ...BUBBLE_SHADOWS.md,
+    } as ViewStyle,
+    reviewRow: { flexDirection: 'row', alignItems: 'center', gap: 10 } as ViewStyle,
+    reviewText: { fontSize: 15, color: V2_COLORS.text, flex: 1 } as TextStyle,
 
-  footer: {
-    flexDirection: 'row',
-    padding: 16,
-    gap: 12,
-    backgroundColor: '#FFFFFF',
-    ...BUBBLE_SHADOWS.lg,
-  } as ViewStyle,
-  backBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 4,
-    paddingHorizontal: 16,
-    height: 50,
-    borderRadius: RADIUS.pill,
-    borderWidth: 1.5,
-    borderColor: V2_COLORS.primary,
-  } as ViewStyle,
-  backBtnText: { fontSize: 14, fontWeight: '600', color: V2_COLORS.primary } as TextStyle,
-  nextBtnWrap: { flex: 1 } as ViewStyle,
-  primaryBtn: {
-    height: 50,
-    borderRadius: RADIUS.pill,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexDirection: 'row',
-    gap: 8,
-  } as ViewStyle,
-  primaryBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' } as TextStyle,
+    footer: {
+      flexDirection: 'row',
+      padding: 16,
+      gap: 12,
+      backgroundColor: V2_COLORS.surface,
+      ...BUBBLE_SHADOWS.lg,
+    } as ViewStyle,
+    backBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 4,
+      paddingHorizontal: 16,
+      height: 50,
+      borderRadius: RADIUS.pill,
+      borderWidth: 1.5,
+      borderColor: V2_COLORS.primary,
+    } as ViewStyle,
+    backBtnText: { fontSize: 14, fontWeight: '600', color: V2_COLORS.primary } as TextStyle,
+    nextBtnWrap: { flex: 1 } as ViewStyle,
+    primaryBtn: {
+      height: 50,
+      borderRadius: RADIUS.pill,
+      alignItems: 'center',
+      justifyContent: 'center',
+      flexDirection: 'row',
+      gap: 8,
+    } as ViewStyle,
+    primaryBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' } as TextStyle,
 
-  successContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 32,
-    gap: 16,
-  } as ViewStyle,
-  successIcon: { marginBottom: 8 } as ViewStyle,
-  successTitle: { ...TYPOGRAPHY.h1, color: V2_COLORS.text, textAlign: 'center' } as TextStyle,
-  successSubtitle: {
-    ...TYPOGRAPHY.body,
-    color: V2_COLORS.textSoft,
-    textAlign: 'center',
-    lineHeight: 24,
-  } as TextStyle,
-  successBtn: { width: '100%', marginTop: 16 } as ViewStyle,
-  successSecondaryBtn: { paddingVertical: 12 } as ViewStyle,
-  successSecondaryBtnText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: V2_COLORS.primary,
-  } as TextStyle,
-});
+    successContainer: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: 32,
+      gap: 16,
+    } as ViewStyle,
+    successIcon: { marginBottom: 8 } as ViewStyle,
+    successTitle: { ...TYPOGRAPHY.h1, color: V2_COLORS.text, textAlign: 'center' } as TextStyle,
+    successSubtitle: {
+      ...TYPOGRAPHY.body,
+      color: V2_COLORS.textSoft,
+      textAlign: 'center',
+      lineHeight: 24,
+    } as TextStyle,
+    successBtn: { width: '100%', marginTop: 16 } as ViewStyle,
+    successSecondaryBtn: { paddingVertical: 12 } as ViewStyle,
+    successSecondaryBtnText: {
+      fontSize: 15,
+      fontWeight: '600',
+      color: V2_COLORS.primary,
+    } as TextStyle,
+  })
+);

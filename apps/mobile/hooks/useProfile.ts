@@ -13,6 +13,7 @@ export interface UserProfile {
   provider: string;
   createdAt: string;
   updatedAt: string;
+  settings?: UserSettings | null;
   stats: {
     totalTrips: number;
     totalDeliveries: number;
@@ -20,6 +21,12 @@ export interface UserProfile {
     averageRating: number;
     totalReviews: number;
   };
+}
+
+export interface UserSettings {
+  language: 'ar' | 'en';
+  currency: string;
+  notifications: boolean;
 }
 
 export interface UpdateProfilePayload {
@@ -59,6 +66,21 @@ export function useUpdateProfile() {
     mutationFn: async (payload: UpdateProfilePayload) => {
       const { data } = await apiClient.put('/users/me', payload);
       return data.data ?? data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
+    },
+  });
+}
+
+/** PUT /users/me/settings — persists preferences such as push notifications. */
+export function useUpdateSettings() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (payload: Partial<Pick<UserSettings, 'notifications' | 'language'>>) => {
+      const { data } = await apiClient.put('/users/me/settings', payload);
+      return data as UserSettings;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['profile'] });

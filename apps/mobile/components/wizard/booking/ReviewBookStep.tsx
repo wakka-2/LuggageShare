@@ -1,9 +1,11 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { routeArrow } from '@/lib/rtl';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { V2_COLORS, RADIUS, BUBBLE_SHADOWS } from '@/providers/ThemeProvider';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS, themed } from '@/providers/ThemeProvider';
+import { cityLabel } from '@/lib/airports';
 import { QuestionTitle } from '../QuestionTitle';
 import { AnimatedButton } from '@/components/animations/AnimatedButton';
 import { Avatar } from '@/components/common';
@@ -16,8 +18,9 @@ export function ReviewBookStep({ data, goNext }: StepProps) {
   const weight = parseFloat(data.weight) || 0;
   const listingPrice = data.listingPrice || 0;
   const subtotal = weight * listingPrice;
-  const serviceFee = Math.round(subtotal * 0.1 * 100) / 100;
-  const total = subtotal + serviceFee;
+  // Senders pay exactly weight × price. The platform fee (15%) is charged to the
+  // carrier on delivery (see API bookings.service), so it is not added here.
+  const total = subtotal;
 
   return (
     <View>
@@ -37,7 +40,7 @@ export function ReviewBookStep({ data, goNext }: StepProps) {
             <View>
               <Text style={styles.carrierName}>{data.carrierName}</Text>
               <Text style={styles.routeText}>
-                ✈️ {data.departureCity} → {data.arrivalCity}
+                ✈️ {cityLabel(data.departureCity)} {routeArrow()} {cityLabel(data.arrivalCity)}
               </Text>
             </View>
           </View>
@@ -59,7 +62,9 @@ export function ReviewBookStep({ data, goNext }: StepProps) {
           <View style={[styles.iconCircle, { backgroundColor: V2_COLORS.accent2 + '15' }]}>
             <Ionicons name="scale" size={16} color={V2_COLORS.accent2} />
           </View>
-          <Text style={styles.itemText}>{weight} kg</Text>
+          <Text style={styles.itemText}>
+            {weight} {t('common.kg')}
+          </Text>
         </View>
         {data.pickupLocation && (
           <View style={styles.itemRow}>
@@ -80,22 +85,18 @@ export function ReviewBookStep({ data, goNext }: StepProps) {
         </Text>
         <View style={styles.priceRow}>
           <Text style={styles.priceLabel}>
-            {weight} kg × SAR {listingPrice}
+            {weight} {t('common.kg')} × {listingPrice} {t('common.sar')}
           </Text>
           <Text style={styles.priceValue}>{subtotal.toFixed(2)}</Text>
-        </View>
-        <View style={styles.priceRow}>
-          <Text style={styles.priceLabel}>
-            {t('booking.wizard.review.serviceFee', { defaultValue: 'Service fee' })}
-          </Text>
-          <Text style={styles.priceValue}>{serviceFee.toFixed(2)}</Text>
         </View>
         <View style={styles.divider} />
         <View style={styles.priceRow}>
           <Text style={styles.totalLabel}>
             {t('booking.wizard.review.total', { defaultValue: 'Total' })}
           </Text>
-          <Text style={styles.totalValue}>SAR {total.toFixed(2)}</Text>
+          <Text style={styles.totalValue}>
+            {total.toFixed(2)} {t('common.sar')}
+          </Text>
         </View>
       </Animated.View>
 
@@ -112,81 +113,83 @@ export function ReviewBookStep({ data, goNext }: StepProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    borderRadius: RADIUS.card,
-    padding: 16,
-    marginBottom: 16,
-    backgroundColor: '#FFFFFF',
-    ...BUBBLE_SHADOWS.sm,
-  },
-  cardLabel: {
-    fontSize: 13,
-    fontWeight: '600',
-    marginBottom: 10,
-    color: V2_COLORS.textSoft,
-  },
-  carrierRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  carrierName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: V2_COLORS.text,
-  },
-  routeText: {
-    fontSize: 13,
-    marginTop: 2,
-    color: V2_COLORS.textSoft,
-  },
-  iconCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: V2_COLORS.primary + '15',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  itemRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    marginBottom: 8,
-  },
-  itemText: {
-    fontSize: 15,
-    flex: 1,
-    color: V2_COLORS.text,
-  },
-  priceRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-  },
-  priceLabel: {
-    fontSize: 14,
-    color: V2_COLORS.textSoft,
-  },
-  priceValue: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: V2_COLORS.text,
-  },
-  divider: {
-    height: 1,
-    marginVertical: 8,
-    backgroundColor: V2_COLORS.cardShadow,
-  },
-  totalLabel: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: V2_COLORS.text,
-  },
-  totalValue: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: V2_COLORS.primary,
-  },
-});
+const styles = themed(() =>
+  StyleSheet.create({
+    card: {
+      borderRadius: RADIUS.card,
+      padding: 16,
+      marginBottom: 16,
+      backgroundColor: V2_COLORS.surface,
+      ...BUBBLE_SHADOWS.sm,
+    },
+    cardLabel: {
+      fontSize: 13,
+      fontWeight: '600',
+      marginBottom: 10,
+      color: V2_COLORS.textSoft,
+    },
+    carrierRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+    },
+    carrierName: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: V2_COLORS.text,
+    },
+    routeText: {
+      fontSize: 13,
+      marginTop: 2,
+      color: V2_COLORS.textSoft,
+    },
+    iconCircle: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: V2_COLORS.primary + '15',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    itemRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      marginBottom: 8,
+    },
+    itemText: {
+      fontSize: 15,
+      flex: 1,
+      color: V2_COLORS.text,
+    },
+    priceRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginBottom: 8,
+    },
+    priceLabel: {
+      fontSize: 14,
+      color: V2_COLORS.textSoft,
+    },
+    priceValue: {
+      fontSize: 14,
+      fontWeight: '500',
+      color: V2_COLORS.text,
+    },
+    divider: {
+      height: 1,
+      marginVertical: 8,
+      backgroundColor: V2_COLORS.cardShadow,
+    },
+    totalLabel: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: V2_COLORS.text,
+    },
+    totalValue: {
+      fontSize: 20,
+      fontWeight: '700',
+      color: V2_COLORS.primary,
+    },
+  })
+);

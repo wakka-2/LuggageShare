@@ -3,17 +3,20 @@ import { View, Text, TextInput, StyleSheet, TouchableOpacity } from 'react-nativ
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { V2_COLORS, RADIUS, BUBBLE_SHADOWS } from '@/providers/ThemeProvider';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS, themed } from '@/providers/ThemeProvider';
 import { QuestionTitle } from '../QuestionTitle';
 import { AnimatedButton } from '@/components/animations/AnimatedButton';
+import { ValueSlider } from '@/components/common/ValueSlider';
 import type { StepProps } from '../WizardContainer';
 
 export function PricingStep({ data, updateData, goNext }: StepProps) {
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === 'ar';
 
-  const price = data.price ?? 15;
-  const weight = data.availableWeight ?? 5;
+  // Coerce: wizard data may hold strings (initialData, text input); string + number
+  // concatenates, which made the -/+ buttons produce NaN.
+  const price = Number(data.price ?? 15) || 0;
+  const weight = Number(data.availableWeight ?? 5) || 0;
   const estimatedTotal = price * weight;
   const canAdvance = price > 0;
 
@@ -31,7 +34,7 @@ export function PricingStep({ data, updateData, goNext }: StepProps) {
 
       {/* Big price display */}
       <Animated.View entering={FadeInUp.delay(150).springify()} style={styles.priceDisplay}>
-        <Text style={styles.currency}>SAR</Text>
+        <Text style={styles.currency}>{t('common.sar')}</Text>
         <TextInput
           style={styles.priceInput}
           value={String(price)}
@@ -43,18 +46,32 @@ export function PricingStep({ data, updateData, goNext }: StepProps) {
           keyboardType="numeric"
           textAlign="center"
         />
-        <Text style={styles.perKg}>/ kg</Text>
+        <Text style={styles.perKg}>{t('common.perKg')}</Text>
       </Animated.View>
 
       {/* +/- buttons */}
       <Animated.View entering={FadeInUp.delay(200).springify()} style={styles.adjustRow}>
-        <TouchableOpacity style={styles.adjustBtn} onPress={() => adjustPrice(-1)}>
+        <TouchableOpacity
+          style={styles.adjustBtn}
+          onPress={() => adjustPrice(-1)}
+          accessibilityRole="button"
+          accessibilityLabel="-1"
+        >
           <Ionicons name="remove" size={20} color={V2_COLORS.text} />
         </TouchableOpacity>
-        <View style={styles.sliderTrack}>
-          <View style={[styles.sliderFill, { width: `${Math.min(price, 50) * 2}%` }]} />
-        </View>
-        <TouchableOpacity style={styles.adjustBtn} onPress={() => adjustPrice(1)}>
+        <ValueSlider
+          value={price}
+          min={1}
+          max={100}
+          onChange={(v) => updateData({ price: v })}
+          accessibilityLabel={t('listing.wizard.pricing.title')}
+        />
+        <TouchableOpacity
+          style={styles.adjustBtn}
+          onPress={() => adjustPrice(1)}
+          accessibilityRole="button"
+          accessibilityLabel="+1"
+        >
           <Ionicons name="add" size={20} color={V2_COLORS.text} />
         </TouchableOpacity>
       </Animated.View>
@@ -76,111 +93,114 @@ export function PricingStep({ data, updateData, goNext }: StepProps) {
         <Text style={styles.estimateLabel}>
           💡{' '}
           {t('listing.wizard.pricing.estimated', {
-            defaultValue: `Estimated total: SAR ${estimatedTotal}`,
+            defaultValue: t('listing.wizard.pricing.estimatedTotalA11y', { total: estimatedTotal }),
             total: estimatedTotal,
           })}
         </Text>
-        <Text style={styles.estimateValue}>SAR {estimatedTotal.toFixed(0)}</Text>
-        <Text style={styles.estimateNote}>(for {weight} kg)</Text>
+        <Text style={styles.estimateValue}>
+          {estimatedTotal.toFixed(0)} {t('common.sar')}
+        </Text>
+        <Text style={styles.estimateNote}>{t('listing.wizard.pricing.forWeight', { weight })}</Text>
       </Animated.View>
 
       {/* Next */}
-      {canAdvance && (
-        <Animated.View entering={FadeInUp.delay(100).springify()} style={styles.nextContainer}>
-          <AnimatedButton
-            title={t('wizard.next', { defaultValue: 'Next' })}
-            onPress={goNext}
-            size="lg"
-            fullWidth
-          />
-        </Animated.View>
-      )}
+      <View style={styles.nextContainer}>
+        <AnimatedButton
+          disabled={!canAdvance}
+          title={t('wizard.next', { defaultValue: 'Next' })}
+          onPress={goNext}
+          size="lg"
+          fullWidth
+        />
+      </View>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  priceDisplay: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    justifyContent: 'center',
-    marginBottom: 24,
-    gap: 8,
-  },
-  currency: {
-    fontSize: 18,
-    fontWeight: '500',
-    color: V2_COLORS.textSoft,
-  },
-  priceInput: {
-    fontSize: 48,
-    fontWeight: '700',
-    minWidth: 80,
-    textAlign: 'center',
-    color: V2_COLORS.text,
-  },
-  perKg: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: V2_COLORS.textSoft,
-  },
-  adjustRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginBottom: 24,
-  },
-  adjustBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...BUBBLE_SHADOWS.xs,
-  },
-  sliderTrack: {
-    flex: 1,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: V2_COLORS.cardShadow,
-    overflow: 'hidden',
-  },
-  sliderFill: {
-    height: '100%',
-    borderRadius: 3,
-    backgroundColor: V2_COLORS.primary,
-  },
-  infoRow: {
-    marginBottom: 16,
-  },
-  infoText: {
-    fontSize: 14,
-    color: V2_COLORS.textSoft,
-  },
-  estimateCard: {
-    borderRadius: RADIUS.card,
-    padding: 20,
-    alignItems: 'center',
-    marginBottom: 24,
-    backgroundColor: V2_COLORS.primary + '08',
-  },
-  estimateLabel: {
-    fontSize: 13,
-    marginBottom: 4,
-    color: V2_COLORS.textSoft,
-  },
-  estimateValue: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: V2_COLORS.primary,
-  },
-  estimateNote: {
-    fontSize: 13,
-    marginTop: 2,
-    color: V2_COLORS.textMuted,
-  },
-  nextContainer: {
-    marginTop: 8,
-  },
-});
+const styles = themed(() =>
+  StyleSheet.create({
+    priceDisplay: {
+      flexDirection: 'row',
+      alignItems: 'baseline',
+      justifyContent: 'center',
+      marginBottom: 24,
+      gap: 8,
+    },
+    currency: {
+      fontSize: 18,
+      fontWeight: '500',
+      color: V2_COLORS.textSoft,
+    },
+    priceInput: {
+      fontSize: 48,
+      fontWeight: '700',
+      minWidth: 80,
+      textAlign: 'center',
+      color: V2_COLORS.text,
+    },
+    perKg: {
+      fontSize: 16,
+      fontWeight: '500',
+      color: V2_COLORS.textSoft,
+    },
+    adjustRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      marginBottom: 24,
+    },
+    adjustBtn: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: V2_COLORS.surface,
+      alignItems: 'center',
+      justifyContent: 'center',
+      ...BUBBLE_SHADOWS.xs,
+    },
+    sliderTrack: {
+      flex: 1,
+      height: 6,
+      borderRadius: 3,
+      backgroundColor: V2_COLORS.cardShadow,
+      overflow: 'hidden',
+    },
+    sliderFill: {
+      height: '100%',
+      borderRadius: 3,
+      backgroundColor: V2_COLORS.primary,
+    },
+    infoRow: {
+      marginBottom: 16,
+    },
+    infoText: {
+      fontSize: 14,
+      color: V2_COLORS.textSoft,
+    },
+    estimateCard: {
+      borderRadius: RADIUS.card,
+      padding: 20,
+      alignItems: 'center',
+      marginBottom: 24,
+      backgroundColor: V2_COLORS.primary + '08',
+    },
+    estimateLabel: {
+      fontSize: 13,
+      marginBottom: 4,
+      color: V2_COLORS.textSoft,
+    },
+    estimateValue: {
+      fontSize: 28,
+      fontWeight: '700',
+      color: V2_COLORS.primary,
+    },
+    estimateNote: {
+      fontSize: 13,
+      marginTop: 2,
+      color: V2_COLORS.textMuted,
+    },
+    nextContainer: {
+      marginTop: 8,
+    },
+  })
+);

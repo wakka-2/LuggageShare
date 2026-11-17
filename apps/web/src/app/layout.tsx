@@ -1,8 +1,10 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter, Tajawal } from 'next/font/google';
+import { GoogleAnalytics } from '@next/third-parties/google';
 import './globals.css';
 import { Providers } from '@/components/Providers';
 import { BottomTabBar } from '@/components/layout/BottomTabBar';
+import { GA_ID } from '@/lib/analytics';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -60,6 +62,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <BottomTabBar />
         </Providers>
       </body>
+      {/* Pageviews and route changes are tracked automatically. Omitted when
+          NEXT_PUBLIC_GA_ID is unset, so dev and previews send nothing. */}
+      {GA_ID && <GoogleAnalytics gaId={GA_ID} />}
     </html>
   );
 }

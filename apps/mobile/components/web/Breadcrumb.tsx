@@ -3,7 +3,7 @@ import { usePathname, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 
-import { V2_COLORS, RADIUS } from '@/providers/ThemeProvider';
+import { V2_COLORS, RADIUS, themed } from '@/providers/ThemeProvider';
 
 const ROUTE_LABELS: Record<string, string> = {
   '(tabs)': 'web.breadcrumb.home',
@@ -89,39 +89,41 @@ export function Breadcrumb() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-  },
-  crumbRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  separator: {
-    marginHorizontal: 6,
-  },
-  crumbButton: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: RADIUS.pill,
-    ...({ cursor: 'pointer' } as any),
-  },
-  clickableLabel: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: V2_COLORS.primary,
-  },
-  activeCrumb: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: RADIUS.pill,
-    backgroundColor: V2_COLORS.primary + '10',
-  },
-  activeLabel: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: V2_COLORS.text,
-  },
-});
+const styles = themed(() =>
+  StyleSheet.create({
+    container: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flexWrap: 'wrap',
+    },
+    crumbRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    separator: {
+      marginHorizontal: 6,
+    },
+    crumbButton: {
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+      borderRadius: RADIUS.pill,
+      ...({ cursor: 'pointer' } as any),
+    },
+    clickableLabel: {
+      fontSize: 13,
+      fontWeight: '500',
+      color: V2_COLORS.primary,
+    },
+    activeCrumb: {
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+      borderRadius: RADIUS.pill,
+      backgroundColor: V2_COLORS.primary + '10',
+    },
+    activeLabel: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: V2_COLORS.text,
+    },
+  })
+);

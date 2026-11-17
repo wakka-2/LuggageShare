@@ -1,11 +1,18 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  ConflictException,
+} from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import * as crypto from 'crypto';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UpdateSettingsDto } from './dto/update-settings.dto';
 import { VerificationRequestDto } from './dto/verification-request.dto';
 import { WALLET, LEDGER_TYPE } from '../../common/constants/wallet.constants';
+import { DELETED_PROVIDER, ACTIVE_DELIVERY_STATUSES } from '../../common/constants/user.constants';
 
 @Injectable()
 export class UsersService {
@@ -29,7 +36,7 @@ export class UsersService {
   }
 
   /**
-   * Create a user with starter credits, a unique invite code, and — if they
+   * Create a user with a unique invite code and — if they
    * registered with someone's invite code — a referral reward for the inviter.
    * All writes are atomic so a partial signup can never grant/skip credits.
    */
@@ -67,20 +74,12 @@ export class UsersService {
         },
       });
 
-      // Starter credits for every new user.
-      if (WALLET.SIGNUP_BONUS > 0) {
-        await tx.balanceHistory.create({
-          data: {
-            userId: user.id,
-            amount: WALLET.SIGNUP_BONUS,
-            type: LEDGER_TYPE.SIGNUP_BONUS,
-            description: 'Welcome credits',
-          },
-        });
-      }
+      // No starter credits at signup: the complimentary welcome gift is granted
+      // later, only if a platform fee ever leaves the user owing money
+      // (see BookingsService.markDelivered).
 
       // Referral reward — BOTH sides get it: the inviter for referring, and the
-      // new user for joining with a valid code (on top of their signup bonus).
+      // new user for joining with a valid code.
       if (referredById && WALLET.REFERRAL_BONUS > 0) {
         await tx.balanceHistory.createMany({
           data: [
@@ -128,6 +127,78 @@ export class UsersService {
     });
   }
 
+  /**
+   * Delete the caller's account (App Store 5.1.1(v) / Play account-deletion policy).
+   *
+   * The user row is anonymized rather than removed: bookings, messages, reviews
+   * and the credit ledger reference it and belong to the other party too.
+   * Everything identifying is erased, every session is revoked, and open
+   * marketplace activity is withdrawn. Blocked while a delivery is in progress.
+   */
+  async deleteAccount(id: string) {
+    await this.findById(id);
+
+    return this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+      const activeDeliveries = await tx.booking.count({
+        where: {
+          OR: [{ senderId: id }, { carrierId: id }],
+          status: { in: [...ACTIVE_DELIVERY_STATUSES] },
+        },
+      });
+      if (activeDeliveries > 0) {
+        throw new ConflictException(
+          'You have deliveries in progress. Complete or cancel them before deleting your account.'
+        );
+      }
+
+      const now = new Date();
+      await tx.booking.updateMany({
+        where: { OR: [{ senderId: id }, { carrierId: id }], status: 'pending' },
+        data: { status: 'cancelled', cancelledBy: id, cancelledAt: now },
+      });
+      await tx.offer.updateMany({
+        where: { senderId: id, status: 'pending' },
+        data: { status: 'withdrawn' },
+      });
+      await tx.listing.updateMany({
+        where: { carrierId: id, status: 'active' },
+        data: { status: 'cancelled' },
+      });
+      await tx.flight.updateMany({
+        where: { posterId: id, status: { in: ['active', 'full'] } },
+        data: { status: 'cancelled' },
+      });
+
+      await tx.refreshToken.deleteMany({ where: { userId: id } });
+      await tx.pushToken.deleteMany({ where: { userId: id } });
+      await tx.notification.deleteMany({ where: { userId: id } });
+      await tx.userSettings.deleteMany({ where: { userId: id } });
+
+      await tx.user.update({
+        where: { id },
+        data: {
+          email: `deleted-${id}@deleted.invalid`,
+          name: 'Deleted user',
+          avatarUrl: null,
+          phone: null,
+          bio: null,
+          city: null,
+          iban: null,
+          bankName: null,
+          googleId: null,
+          appleId: null,
+          passwordHash: null,
+          inviteCode: null,
+          tosAcceptedAt: null,
+          isVerified: false,
+          provider: DELETED_PROVIDER,
+        },
+      });
+
+      return { deleted: true };
+    });
+  }
+
   async update(id: string, updateUserDto: UpdateUserDto) {
     const user = await this.findById(id);
 
@@ -140,12 +211,18 @@ export class UsersService {
     });
   }
 
-  async updateSettings(id: string, settings: Record<string, any>) {
+  async updateSettings(id: string, settings: UpdateSettingsDto) {
     const user = await this.findById(id);
+    // Explicit field mapping — only whitelisted preferences are writable.
+    const data: Prisma.UserSettingsUpdateInput = {};
+    if (settings.notifications !== undefined) data.notifications = settings.notifications;
+    if (settings.language !== undefined) data.language = settings.language;
 
-    return this.prisma.userSettings.update({
+    return this.prisma.userSettings.upsert({
       where: { userId: user.id },
-      data: settings,
+      update: data,
+      create: { userId: user.id, ...(data as Prisma.UserSettingsCreateWithoutUserInput) },
+      select: { language: true, currency: true, notifications: true },
     });
   }
 

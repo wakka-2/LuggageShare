@@ -2,7 +2,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 
-import { V2_COLORS, RADIUS, BUBBLE_SHADOWS } from '@/providers/ThemeProvider';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS, themed } from '@/providers/ThemeProvider';
 
 type UserRole = 'sender' | 'carrier';
 
@@ -57,31 +57,33 @@ export function RoleSwitcher({ activeRole, onRoleChange }: RoleSwitcherProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    marginHorizontal: 16,
-    marginTop: 8,
-    backgroundColor: '#FFFFFF',
-    borderRadius: RADIUS.pill,
-    padding: 4,
-    ...BUBBLE_SHADOWS.sm,
-  },
-  roleButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 10,
-    borderRadius: RADIUS.pill,
-  },
-  roleActive: {
-    backgroundColor: V2_COLORS.primary,
-    ...BUBBLE_SHADOWS.xs,
-  },
-  roleText: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-});
+const styles = themed(() =>
+  StyleSheet.create({
+    container: {
+      flexDirection: 'row',
+      marginHorizontal: 16,
+      marginTop: 8,
+      backgroundColor: V2_COLORS.surface,
+      borderRadius: RADIUS.pill,
+      padding: 4,
+      ...BUBBLE_SHADOWS.sm,
+    },
+    roleButton: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 8,
+      paddingVertical: 10,
+      borderRadius: RADIUS.pill,
+    },
+    roleActive: {
+      backgroundColor: V2_COLORS.primary,
+      ...BUBBLE_SHADOWS.xs,
+    },
+    roleText: {
+      fontSize: 14,
+      fontWeight: '600',
+    },
+  })
+);

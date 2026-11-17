@@ -1,11 +1,13 @@
 import { Platform, useWindowDimensions } from 'react-native';
-import { Tabs, Slot } from 'expo-router';
+import { Tabs, Slot, Redirect } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 
+import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@/hooks/useTheme';
 import { useConversations } from '@/hooks/useMessages';
 import { useUnreadCount } from '@/hooks/useNotifications';
+import { V2_COLORS } from '@/providers/ThemeProvider';
 
 const WEB_DESKTOP_BREAKPOINT = 768;
 
@@ -25,8 +27,16 @@ export default function TabLayout() {
   const { width } = useWindowDimensions();
   const { data: conversations } = useConversations();
   const notificationCount = useUnreadCount();
+  const { user, isLoading: isAuthLoading } = useAuth();
 
   const unreadMessages = conversations?.reduce((sum, c) => sum + (c.unreadCount || 0), 0) ?? 0;
+
+  // Auth guard: never mount the tab screens until the session is known.
+  // Mounting Home (12 Reanimated `entering` animations) and then redirecting to
+  // login a frame later unmounts views whose layout animations are still queued,
+  // which crashes Reanimated 3.16 natively (null config in startLayoutAnimation).
+  if (isAuthLoading) return null;
+  if (!user) return <Redirect href="/(auth)/login" />;
 
   // On wide web screens the sidebar handles navigation — render child route only
   if (Platform.OS === 'web' && width >= WEB_DESKTOP_BREAKPOINT) {
@@ -36,10 +46,10 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: '#7C6AFF',
-        tabBarInactiveTintColor: '#A8A5C0',
+        tabBarActiveTintColor: V2_COLORS.primary,
+        tabBarInactiveTintColor: V2_COLORS.textMuted,
         tabBarStyle: {
-          backgroundColor: '#FFFFFF',
+          backgroundColor: V2_COLORS.surface,
           borderTopWidth: 0,
           paddingBottom: 8,
           paddingTop: 8,

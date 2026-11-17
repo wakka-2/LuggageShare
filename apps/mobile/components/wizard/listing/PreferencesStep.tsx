@@ -2,19 +2,19 @@ import React from 'react';
 import { View, TextInput, Text, StyleSheet } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
-import { V2_COLORS, RADIUS, BUBBLE_SHADOWS } from '@/providers/ThemeProvider';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS, themed } from '@/providers/ThemeProvider';
 import { QuestionTitle } from '../QuestionTitle';
 import { OptionGrid, GridOption } from '../OptionGrid';
 import { AnimatedButton } from '@/components/animations/AnimatedButton';
 import type { StepProps } from '../WizardContainer';
 
 const CATEGORY_OPTIONS: GridOption[] = [
-  { id: 'documents', emoji: '📄', label: 'Documents' },
-  { id: 'clothing', emoji: '👗', label: 'Clothing' },
-  { id: 'electronics', emoji: '📱', label: 'Electronics' },
-  { id: 'gifts', emoji: '🎁', label: 'Gifts' },
-  { id: 'medicine', emoji: '💊', label: 'Medicine' },
-  { id: 'food', emoji: '🍫', label: 'Food/Snacks' },
+  { id: 'documents', emoji: '📄', label: 'categories.documents' },
+  { id: 'clothing', emoji: '👗', label: 'categories.clothing' },
+  { id: 'electronics', emoji: '📱', label: 'categories.electronics' },
+  { id: 'gifts', emoji: '🎁', label: 'categories.gifts' },
+  { id: 'medicine', emoji: '💊', label: 'categories.medicine' },
+  { id: 'food', emoji: '🍫', label: 'categories.foodSnacks' },
 ];
 
 export function PreferencesStep({ data, updateData, goNext }: StepProps) {
@@ -85,29 +85,31 @@ export function PreferencesStep({ data, updateData, goNext }: StepProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  section: {
-    marginBottom: 24,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    marginBottom: 8,
-    color: V2_COLORS.textSoft,
-  },
-  notesInput: {
-    height: 80,
-    borderRadius: RADIUS.card,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    fontSize: 15,
-    backgroundColor: '#FFFFFF',
-    color: V2_COLORS.text,
-    ...BUBBLE_SHADOWS.xs,
-  },
-  actions: {
-    alignItems: 'center',
-    gap: 8,
-    marginTop: 8,
-  },
-});
+const styles = themed(() =>
+  StyleSheet.create({
+    section: {
+      marginBottom: 24,
+    },
+    label: {
+      fontSize: 14,
+      fontWeight: '600',
+      marginBottom: 8,
+      color: V2_COLORS.textSoft,
+    },
+    notesInput: {
+      height: 80,
+      borderRadius: RADIUS.card,
+      paddingHorizontal: 20,
+      paddingVertical: 12,
+      fontSize: 15,
+      backgroundColor: V2_COLORS.surface,
+      color: V2_COLORS.text,
+      ...BUBBLE_SHADOWS.xs,
+    },
+    actions: {
+      alignItems: 'center',
+      gap: 8,
+      marginTop: 8,
+    },
+  })
+);

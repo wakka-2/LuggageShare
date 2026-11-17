@@ -1,4 +1,6 @@
 import React, { useState, useMemo } from 'react';
+import { useRefreshOnFocus } from '@/hooks/useRefreshOnFocus';
+import { cityLabel } from '@/lib/airports';
 import {
   View,
   Text,
@@ -27,6 +29,7 @@ import {
   BUBBLE_SHADOWS,
   TYPOGRAPHY,
   GRADIENTS,
+  themed,
 } from '@/providers/ThemeProvider';
 import { useBookings, getMockBookings, ApiBooking } from '@/hooks/useBookings';
 import { useMyFlights, ApiFlight } from '@/hooks/useFlights';
@@ -35,6 +38,10 @@ import { useAuth } from '@/hooks/useAuth';
 import { EmptyState, Avatar, BackgroundBlobs, MetaChip } from '@/components/common';
 import { LiveIndicator, MiniStepper } from '@/components/status';
 import { SkeletonLoader } from '@/components/animations';
+import { USE_MOCK_FALLBACK } from '@/lib/devFlags';
+import { useMyListings } from '@/hooks/useListings';
+import { mapApiListingToListing } from '@/lib/mappers';
+import { ListingCard } from '@/components/listings';
 import {
   FloatingIcons,
   WaveDivider,
@@ -83,12 +90,16 @@ const BookingCard = React.memo(function BookingCard({
   booking,
   isRTL,
   onPress,
+  currentUserId,
 }: {
   booking: ApiBooking;
   isRTL: boolean;
   onPress: () => void;
+  currentUserId?: string;
 }) {
   const { t } = useTranslation();
+  // Show the other party: carriers see the sender, senders see the carrier.
+  const otherParty = booking.carrierId === currentUserId ? booking.sender : booking.carrier;
   const statusColor = BOOKING_STATUS_COLORS[booking.status] || V2_COLORS.textMuted;
   const date = new Date((booking.listing as any)?.departureDate ?? booking.createdAt);
   const statusKey = BOOKING_STATUS_KEYS[booking.status];
@@ -167,8 +178,8 @@ const BookingCard = React.memo(function BookingCard({
         />
       </View>
       <View style={styles.userFooter}>
-        <Avatar name={booking.carrier.name} avatarUrl={booking.carrier.avatarUrl} size={32} />
-        <Text style={styles.userName}>{booking.carrier.name}</Text>
+        <Avatar name={otherParty?.name} avatarUrl={otherParty?.avatarUrl} size={32} />
+        <Text style={styles.userName}>{otherParty?.name}</Text>
       </View>
     </AnimatedTouchable>
   );
@@ -205,9 +216,9 @@ const FlightCard = React.memo(function FlightCard({
       <GradientAccentStrip gradient="mint" position="left" />
       <View style={styles.routeRow}>
         <View style={[styles.routeDot, { backgroundColor: V2_COLORS.accent1 }]} />
-        <Text style={styles.cityText}>{flight.departureCity}</Text>
+        <Text style={styles.cityText}>{cityLabel(flight.departureCity)}</Text>
         <Ionicons name="airplane" size={14} color={V2_COLORS.textMuted} />
-        <Text style={styles.cityText}>{flight.arrivalCity}</Text>
+        <Text style={styles.cityText}>{cityLabel(flight.arrivalCity)}</Text>
         <View style={[styles.routeDot, { backgroundColor: V2_COLORS.secondary }]} />
       </View>
       <View style={[styles.statusBadge, { backgroundColor: statusColor + '15' }]}>
@@ -227,12 +238,12 @@ const FlightCard = React.memo(function FlightCard({
         />
         <MetaChip
           icon="scale"
-          label={Number(flight.remainingWeight) + '/' + Number(flight.totalWeight) + ' kg'}
+          label={`${Number(flight.remainingWeight)}/${Number(flight.availableWeight)} ${t('common.kg')}`}
           color={V2_COLORS.accent1}
         />
         <MetaChip
           icon="pricetag"
-          label={Number(flight.pricePerKg) + ' ' + flight.currency + '/kg'}
+          label={`${Number(flight.suggestedPrice) || 0} ${flight.currency}${t('common.perKg')}`}
           color={V2_COLORS.accent2}
         />
         {flight._count?.offers ? (
@@ -276,9 +287,9 @@ const OfferCard = React.memo(function OfferCard({
       <GradientAccentStrip gradient="warm" position="left" />
       <View style={styles.routeRow}>
         <View style={[styles.routeDot, { backgroundColor: V2_COLORS.accent1 }]} />
-        <Text style={styles.cityText}>{offer.flight.departureCity}</Text>
+        <Text style={styles.cityText}>{cityLabel(offer.flight.departureCity)}</Text>
         <Ionicons name="airplane" size={14} color={V2_COLORS.textMuted} />
-        <Text style={styles.cityText}>{offer.flight.arrivalCity}</Text>
+        <Text style={styles.cityText}>{cityLabel(offer.flight.arrivalCity)}</Text>
         <View style={[styles.routeDot, { backgroundColor: V2_COLORS.secondary }]} />
       </View>
       <View style={[styles.statusBadge, { backgroundColor: statusColor + '15' }]}>
@@ -317,10 +328,25 @@ export default function TripsScreen() {
 
   const { data: apiBookings, isLoading: bookingsLoading, refetch: refetchBookings } = useBookings();
   const { data: myFlights, isLoading: flightsLoading, refetch: refetchFlights } = useMyFlights();
+  const {
+    data: myListings,
+    isLoading: listingsLoading,
+    refetch: refetchListings,
+  } = useMyListings();
   const { data: myOffersData, isLoading: offersLoading, refetch: refetchOffers } = useMyOffers();
+  useRefreshOnFocus(refetchBookings, refetchFlights, refetchListings, refetchOffers);
 
-  const bookings = apiBookings?.length ? apiBookings : user?.id ? getMockBookings(user.id) : [];
+  const bookings = apiBookings?.length
+    ? apiBookings
+    : USE_MOCK_FALLBACK && user?.id
+      ? getMockBookings(user.id)
+      : [];
   const flights = myFlights ?? [];
+  // Trips posted with the '+' wizard are listings; show them alongside flights.
+  const myTrips = useMemo(
+    () => (myListings ?? []).filter((l) => l.status === 'active').map(mapApiListingToListing),
+    [myListings]
+  );
   const offers = myOffersData?.data ?? [];
 
   const filteredBookings = useMemo(() => {
@@ -335,13 +361,15 @@ export default function TripsScreen() {
 
   const isLoading =
     (mainTab === 'bookings' && bookingsLoading) ||
-    (mainTab === 'flights' && flightsLoading) ||
+    (mainTab === 'flights' && flightsLoading && listingsLoading) ||
     (mainTab === 'offers' && offersLoading);
 
   const onRefresh = () => {
     if (mainTab === 'bookings') refetchBookings();
-    else if (mainTab === 'flights') refetchFlights();
-    else refetchOffers();
+    else if (mainTab === 'flights') {
+      refetchFlights();
+      refetchListings();
+    } else refetchOffers();
   };
 
   const bookingFilters: { key: FilterTab; labelKey: string }[] = [
@@ -400,7 +428,12 @@ export default function TripsScreen() {
                 size={15}
                 color={isActive ? '#FFF' : V2_COLORS.textSoft}
               />
-              <Text style={[styles.mainTabText, isActive && styles.mainTabTextActive]}>
+              <Text
+                style={[styles.mainTabText, isActive && styles.mainTabTextActive]}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.85}
+              >
                 {tab.label}
               </Text>
             </TouchableOpacity>
@@ -487,6 +520,7 @@ export default function TripsScreen() {
                 <BookingCard
                   booking={booking}
                   isRTL={isRTL}
+                  currentUserId={user?.id}
                   onPress={() => router.push(('/booking/' + booking.id) as any)}
                 />
               </Animated.View>
@@ -495,7 +529,7 @@ export default function TripsScreen() {
 
         {!isLoading &&
           mainTab === 'flights' &&
-          (flights.length === 0 ? (
+          (flights.length === 0 && myTrips.length === 0 ? (
             <EmptyState
               lottieAnimation="search"
               title={t('flight.emptyTitle')}
@@ -505,15 +539,29 @@ export default function TripsScreen() {
               style={styles.emptyState}
             />
           ) : (
-            flights.map((flight, index) => (
-              <Animated.View key={flight.id} entering={FadeInDown.delay(index * 50).duration(300)}>
-                <FlightCard
-                  flight={flight}
-                  isRTL={isRTL}
-                  onPress={() => router.push(('/flight/' + flight.id) as any)}
+            <>
+              {myTrips.map((listing, index) => (
+                <ListingCard
+                  key={listing.id}
+                  listing={listing}
+                  index={index}
+                  viewMode="list"
+                  onPress={() => router.push(`/listing/${listing.id}`)}
                 />
-              </Animated.View>
-            ))
+              ))}
+              {flights.map((flight, index) => (
+                <Animated.View
+                  key={flight.id}
+                  entering={FadeInDown.delay(index * 50).duration(300)}
+                >
+                  <FlightCard
+                    flight={flight}
+                    isRTL={isRTL}
+                    onPress={() => router.push(('/flight/' + flight.id) as any)}
+                  />
+                </Animated.View>
+              ))}
+            </>
           ))}
 
         {!isLoading &&
@@ -543,99 +591,117 @@ export default function TripsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: V2_COLORS.bg } as ViewStyle,
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 16,
-    paddingBottom: 8,
-  } as ViewStyle,
-  title: { ...TYPOGRAPHY.h1, color: V2_COLORS.text } as TextStyle,
-  postFlightBtn: { borderRadius: RADIUS.pill, overflow: 'hidden' } as ViewStyle,
-  postFlightGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 14,
-    paddingVertical: 9,
-    borderRadius: RADIUS.pill,
-  } as ViewStyle,
-  postFlightText: { fontSize: 13, fontWeight: '700', color: '#FFF' } as TextStyle,
-  mainTabBar: {
-    flexDirection: 'row',
-    paddingHorizontal: 16,
-    paddingBottom: 10,
-    gap: 8,
-  } as ViewStyle,
-  mainTabBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: RADIUS.pill,
-    backgroundColor: '#FFFFFF',
-    ...BUBBLE_SHADOWS.xs,
-  } as ViewStyle,
-  mainTabBtnActive: { backgroundColor: V2_COLORS.primary } as ViewStyle,
-  mainTabText: { fontSize: 13, fontWeight: '600', color: V2_COLORS.textSoft } as TextStyle,
-  mainTabTextActive: { color: '#FFFFFF' } as TextStyle,
-  filterBar: { maxHeight: 52 } as ViewStyle,
-  filterBarContent: { paddingHorizontal: 16, paddingVertical: 8, gap: 8 } as ViewStyle,
-  filterChip: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: RADIUS.pill,
-    backgroundColor: '#FFFFFF',
-    ...BUBBLE_SHADOWS.xs,
-  } as ViewStyle,
-  filterChipActive: { backgroundColor: V2_COLORS.primary } as ViewStyle,
-  filterChipText: { fontSize: 13, fontWeight: '600', color: V2_COLORS.textSoft } as TextStyle,
-  filterChipTextActive: { color: '#FFFFFF' } as TextStyle,
-  scrollContent: { padding: 16, paddingBottom: 32 } as ViewStyle,
-  loading: { paddingVertical: 16 } as ViewStyle,
-  skeletonCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: RADIUS.card,
-    padding: 18,
-    marginBottom: 12,
-    ...BUBBLE_SHADOWS.sm,
-  } as ViewStyle,
-  emptyState: { marginTop: 40 } as ViewStyle,
-  card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: RADIUS.card,
-    padding: 18,
-    marginBottom: 12,
-    ...BUBBLE_SHADOWS.lg,
-  } as ViewStyle,
-  routeRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 } as ViewStyle,
-  routeDot: { width: 10, height: 10, borderRadius: 5 } as ViewStyle,
-  cityText: { ...TYPOGRAPHY.h3, color: V2_COLORS.text } as TextStyle,
-  statusBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-    borderRadius: RADIUS.pill,
-    gap: 6,
-    marginBottom: 10,
-  } as ViewStyle,
-  statusDot: { width: 7, height: 7, borderRadius: 4 } as ViewStyle,
-  statusText: { fontSize: 12, fontWeight: '700' } as TextStyle,
-  metaRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 14 } as ViewStyle,
-  userFooter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    paddingTop: 14,
-    borderTopWidth: 1,
-    borderTopColor: V2_COLORS.cardShadow,
-  } as ViewStyle,
-  userName: { fontSize: 14, fontWeight: '600', color: V2_COLORS.text } as TextStyle,
-  bookingLinkRow: { flexDirection: 'row', alignItems: 'center', gap: 6 } as ViewStyle,
-  bookingLinkText: { fontSize: 12, color: '#56D8B1', fontWeight: '600' } as TextStyle,
-});
+const styles = themed(() =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: V2_COLORS.bg } as ViewStyle,
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      padding: 16,
+      paddingBottom: 8,
+    } as ViewStyle,
+    title: { ...TYPOGRAPHY.h1, color: V2_COLORS.text } as TextStyle,
+    postFlightBtn: { borderRadius: RADIUS.pill, overflow: 'hidden' } as ViewStyle,
+    postFlightGradient: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      paddingHorizontal: 14,
+      paddingVertical: 9,
+      borderRadius: RADIUS.pill,
+    } as ViewStyle,
+    postFlightText: { fontSize: 13, fontWeight: '700', color: '#FFF' } as TextStyle,
+    mainTabBar: {
+      flexDirection: 'row',
+      paddingHorizontal: 16,
+      paddingBottom: 10,
+      gap: 8,
+    } as ViewStyle,
+    // Equal-width segments so the row never overflows (long Arabic labels) and
+    // the active pill does not change size when switching.
+    mainTabBtn: {
+      flex: 1,
+      minWidth: 0,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 5,
+      paddingHorizontal: 8,
+      paddingVertical: 9,
+      minHeight: 40,
+      borderRadius: RADIUS.pill,
+      backgroundColor: V2_COLORS.surface,
+      ...BUBBLE_SHADOWS.xs,
+    } as ViewStyle,
+    mainTabBtnActive: { backgroundColor: V2_COLORS.primary } as ViewStyle,
+    mainTabText: {
+      flexShrink: 1,
+      fontSize: 13,
+      fontWeight: '600',
+      color: V2_COLORS.textSoft,
+    } as TextStyle,
+    mainTabTextActive: { color: '#FFFFFF' } as TextStyle,
+    filterBar: { flexGrow: 0, flexShrink: 0 } as ViewStyle,
+    filterBarContent: {
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+      gap: 8,
+      alignItems: 'center',
+    } as ViewStyle,
+    filterChip: {
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+      borderRadius: RADIUS.pill,
+      backgroundColor: V2_COLORS.surface,
+      ...BUBBLE_SHADOWS.xs,
+    } as ViewStyle,
+    filterChipActive: { backgroundColor: V2_COLORS.primary } as ViewStyle,
+    filterChipText: { fontSize: 13, fontWeight: '600', color: V2_COLORS.textSoft } as TextStyle,
+    filterChipTextActive: { color: '#FFFFFF' } as TextStyle,
+    scrollContent: { padding: 16, paddingBottom: 32 } as ViewStyle,
+    loading: { paddingVertical: 16 } as ViewStyle,
+    skeletonCard: {
+      backgroundColor: V2_COLORS.surface,
+      borderRadius: RADIUS.card,
+      padding: 18,
+      marginBottom: 12,
+      ...BUBBLE_SHADOWS.sm,
+    } as ViewStyle,
+    emptyState: { marginTop: 40 } as ViewStyle,
+    card: {
+      backgroundColor: V2_COLORS.surface,
+      borderRadius: RADIUS.card,
+      padding: 18,
+      marginBottom: 12,
+      ...BUBBLE_SHADOWS.lg,
+    } as ViewStyle,
+    routeRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 } as ViewStyle,
+    routeDot: { width: 10, height: 10, borderRadius: 5 } as ViewStyle,
+    cityText: { ...TYPOGRAPHY.h3, color: V2_COLORS.text } as TextStyle,
+    statusBadge: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      alignSelf: 'flex-start',
+      paddingHorizontal: 12,
+      paddingVertical: 5,
+      borderRadius: RADIUS.pill,
+      gap: 6,
+      marginBottom: 10,
+    } as ViewStyle,
+    statusDot: { width: 7, height: 7, borderRadius: 4 } as ViewStyle,
+    statusText: { fontSize: 12, fontWeight: '700' } as TextStyle,
+    metaRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 14 } as ViewStyle,
+    userFooter: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      paddingTop: 14,
+      borderTopWidth: 1,
+      borderTopColor: V2_COLORS.cardShadow,
+    } as ViewStyle,
+    userName: { fontSize: 14, fontWeight: '600', color: V2_COLORS.text } as TextStyle,
+    bookingLinkRow: { flexDirection: 'row', alignItems: 'center', gap: 6 } as ViewStyle,
+    bookingLinkText: { fontSize: 12, color: '#56D8B1', fontWeight: '600' } as TextStyle,
+  })
+);

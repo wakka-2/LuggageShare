@@ -46,10 +46,18 @@ async function refreshAccessToken(): Promise<string | null> {
     refreshToken: tokens.refreshToken,
   });
 
-  const newAccessToken = response.data.data?.accessToken ?? response.data.accessToken;
+  const payload = response.data.data ?? response.data;
+  const newAccessToken = payload?.accessToken;
   if (!newAccessToken) return null;
 
-  const newTokens = { ...tokens, accessToken: newAccessToken };
+  // The API rotates refresh tokens and treats reuse of an old one as theft
+  // (revoking the whole session). Persist the new refresh token, or the second
+  // refresh (~2h after sign-in) logs the user out.
+  const newTokens = {
+    ...tokens,
+    accessToken: newAccessToken,
+    refreshToken: payload.refreshToken ?? tokens.refreshToken,
+  };
   await tokenStorage.setItem('auth_tokens', JSON.stringify(newTokens));
   return newAccessToken;
 }

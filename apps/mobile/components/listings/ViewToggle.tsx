@@ -1,8 +1,9 @@
-import { View, TouchableOpacity, StyleSheet, I18nManager } from 'react-native';
+import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import i18n from '@/i18n';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { useAnimatedStyle, withSpring, useSharedValue } from 'react-native-reanimated';
 
-import { V2_COLORS, RADIUS, BUBBLE_SHADOWS } from '@/providers/ThemeProvider';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS, themed } from '@/providers/ThemeProvider';
 import { ViewMode } from './types';
 
 interface ViewToggleProps {
@@ -25,7 +26,7 @@ export function ViewToggle({ value, onChange }: ViewToggleProps) {
     onChange(mode);
   };
 
-  const rtlMultiplier = I18nManager.isRTL ? -1 : 1;
+  const rtlMultiplier = i18n.language === 'ar' ? -1 : 1;
   const indicatorStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: indicatorPosition.value * 40 * rtlMultiplier }],
   }));
@@ -41,7 +42,7 @@ export function ViewToggle({ value, onChange }: ViewToggleProps) {
         onPress={() => handleToggle('grid')}
         activeOpacity={0.7}
         accessibilityRole="button"
-        accessibilityLabel="Grid view"
+        accessibilityLabel={i18n.t('common.gridView')}
         accessibilityState={{ selected: isGrid }}
       >
         <Ionicons name="grid-outline" size={18} color={isGrid ? '#FFFFFF' : V2_COLORS.textMuted} />
@@ -53,7 +54,7 @@ export function ViewToggle({ value, onChange }: ViewToggleProps) {
         onPress={() => handleToggle('list')}
         activeOpacity={0.7}
         accessibilityRole="button"
-        accessibilityLabel="List view"
+        accessibilityLabel={i18n.t('common.listView')}
         accessibilityState={{ selected: !isGrid }}
       >
         <Ionicons name="list-outline" size={18} color={!isGrid ? '#FFFFFF' : V2_COLORS.textMuted} />
@@ -62,29 +63,31 @@ export function ViewToggle({ value, onChange }: ViewToggleProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
-    borderRadius: RADIUS.pill,
-    padding: 3,
-    position: 'relative',
-    ...BUBBLE_SHADOWS.xs,
-  },
-  indicator: {
-    position: 'absolute',
-    top: 3,
-    start: 3,
-    width: 36,
-    height: 32,
-    borderRadius: RADIUS.pill,
-    backgroundColor: V2_COLORS.primary,
-  },
-  button: {
-    width: 36,
-    height: 32,
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 1,
-  },
-});
+const styles = themed(() =>
+  StyleSheet.create({
+    container: {
+      flexDirection: 'row',
+      backgroundColor: V2_COLORS.surface,
+      borderRadius: RADIUS.pill,
+      padding: 3,
+      position: 'relative',
+      ...BUBBLE_SHADOWS.xs,
+    },
+    indicator: {
+      position: 'absolute',
+      top: 3,
+      start: 3,
+      width: 36,
+      height: 32,
+      borderRadius: RADIUS.pill,
+      backgroundColor: V2_COLORS.primary,
+    },
+    button: {
+      width: 36,
+      height: 32,
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 1,
+    },
+  })
+);

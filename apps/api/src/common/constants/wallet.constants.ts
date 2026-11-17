@@ -12,7 +12,11 @@
 export const WALLET = {
   CURRENCY: 'SAR',
 
-  /** Credits granted to every new user on signup. */
+  /**
+   * One-time complimentary gift (SAR). NOT granted at signup: it is granted the
+   * first time a charge leaves a user owing the platform (balance < 0), as a
+   * goodwill gift that covers their first fee.
+   */
   SIGNUP_BONUS: Number(process.env.WALLET_SIGNUP_BONUS ?? 10),
 
   /** Credits granted to the inviter for each user who registers with their code. */

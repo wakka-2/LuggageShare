@@ -2,15 +2,33 @@ import React from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
-import { V2_COLORS, RADIUS, BUBBLE_SHADOWS } from '@/providers/ThemeProvider';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS, themed } from '@/providers/ThemeProvider';
 import { QuestionTitle } from '../QuestionTitle';
 import { AnimatedButton } from '@/components/animations/AnimatedButton';
 import type { StepProps } from '../WizardContainer';
 
 const SIZE_OPTIONS = [
-  { id: 'envelope', emoji: '📨', label: 'Envelope', range: '< 1kg', defaultWeight: 0.5 },
-  { id: 'small', emoji: '📦', label: 'Small Box', range: '1-3kg', defaultWeight: 2 },
-  { id: 'medium', emoji: '📦📦', label: 'Medium Box', range: '3-7kg', defaultWeight: 5 },
+  {
+    id: 'envelope',
+    emoji: '📨',
+    label: 'booking.wizard.weight.envelope',
+    range: '< 1kg',
+    defaultWeight: 0.5,
+  },
+  {
+    id: 'small',
+    emoji: '📦',
+    label: 'booking.wizard.weight.smallBox',
+    range: '1-3kg',
+    defaultWeight: 2,
+  },
+  {
+    id: 'medium',
+    emoji: '📦📦',
+    label: 'booking.wizard.weight.mediumBox',
+    range: '3-7kg',
+    defaultWeight: 5,
+  },
 ];
 
 export function WeightValueStep({ data, updateData, goNext }: StepProps) {
@@ -56,7 +74,7 @@ export function WeightValueStep({ data, updateData, goNext }: StepProps) {
                   { color: isSelected ? V2_COLORS.primary : V2_COLORS.text },
                 ]}
               >
-                {opt.label}
+                {t(opt.label)}
               </Text>
               <Text style={styles.sizeRange}>{opt.range}</Text>
             </TouchableOpacity>
@@ -100,74 +118,75 @@ export function WeightValueStep({ data, updateData, goNext }: StepProps) {
       </Animated.View>
 
       {/* Next */}
-      {canAdvance && (
-        <Animated.View entering={FadeInUp.delay(100).springify()}>
-          <AnimatedButton
-            title={t('wizard.next', { defaultValue: 'Next' })}
-            onPress={goNext}
-            size="lg"
-            fullWidth
-          />
-        </Animated.View>
-      )}
+      <View>
+        <AnimatedButton
+          disabled={!canAdvance}
+          title={t('wizard.next', { defaultValue: 'Next' })}
+          onPress={goNext}
+          size="lg"
+          fullWidth
+        />
+      </View>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  sizeRow: {
-    flexDirection: 'row',
-    gap: 10,
-    marginBottom: 24,
-  },
-  sizeCard: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 8,
-    borderRadius: RADIUS.card,
-    backgroundColor: '#FFFFFF',
-  },
-  sizeCardSelected: {
-    backgroundColor: V2_COLORS.primary + '08',
-    borderWidth: 1.5,
-    borderColor: V2_COLORS.primary,
-  },
-  sizeEmoji: {
-    fontSize: 28,
-    marginBottom: 6,
-  },
-  sizeLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    textAlign: 'center',
-  },
-  sizeRange: {
-    fontSize: 11,
-    marginTop: 2,
-    color: V2_COLORS.textSoft,
-  },
-  section: {
-    marginBottom: 20,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    marginBottom: 8,
-    color: V2_COLORS.textSoft,
-  },
-  input: {
-    height: 48,
-    borderRadius: RADIUS.input,
-    paddingHorizontal: 20,
-    fontSize: 16,
-    backgroundColor: '#FFFFFF',
-    color: V2_COLORS.text,
-    ...BUBBLE_SHADOWS.xs,
-  },
-  hint: {
-    fontSize: 12,
-    marginTop: 4,
-    color: V2_COLORS.textMuted,
-  },
-});
+const styles = themed(() =>
+  StyleSheet.create({
+    sizeRow: {
+      flexDirection: 'row',
+      gap: 10,
+      marginBottom: 24,
+    },
+    sizeCard: {
+      flex: 1,
+      alignItems: 'center',
+      paddingVertical: 16,
+      paddingHorizontal: 8,
+      borderRadius: RADIUS.card,
+      backgroundColor: V2_COLORS.surface,
+    },
+    sizeCardSelected: {
+      backgroundColor: V2_COLORS.primary + '08',
+      borderWidth: 1.5,
+      borderColor: V2_COLORS.primary,
+    },
+    sizeEmoji: {
+      fontSize: 28,
+      marginBottom: 6,
+    },
+    sizeLabel: {
+      fontSize: 12,
+      fontWeight: '600',
+      textAlign: 'center',
+    },
+    sizeRange: {
+      fontSize: 11,
+      marginTop: 2,
+      color: V2_COLORS.textSoft,
+    },
+    section: {
+      marginBottom: 20,
+    },
+    label: {
+      fontSize: 14,
+      fontWeight: '600',
+      marginBottom: 8,
+      color: V2_COLORS.textSoft,
+    },
+    input: {
+      height: 48,
+      borderRadius: RADIUS.input,
+      paddingHorizontal: 20,
+      fontSize: 16,
+      backgroundColor: V2_COLORS.surface,
+      color: V2_COLORS.text,
+      ...BUBBLE_SHADOWS.xs,
+    },
+    hint: {
+      fontSize: 12,
+      marginTop: 4,
+      color: V2_COLORS.textMuted,
+    },
+  })
+);

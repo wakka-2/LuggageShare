@@ -2,19 +2,19 @@ import React from 'react';
 import { View, TextInput, StyleSheet } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
-import { V2_COLORS, RADIUS, BUBBLE_SHADOWS } from '@/providers/ThemeProvider';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS, themed } from '@/providers/ThemeProvider';
 import { QuestionTitle } from '../QuestionTitle';
 import { OptionChips, ChipOption } from '../OptionChips';
 import { AnimatedButton } from '@/components/animations/AnimatedButton';
 import type { StepProps } from '../WizardContainer';
 
 const CATEGORIES: ChipOption[] = [
-  { id: 'electronics', label: '📱 Electronics' },
-  { id: 'clothing', label: '👗 Clothing' },
-  { id: 'documents', label: '📄 Documents' },
-  { id: 'gifts', label: '🎁 Gifts' },
-  { id: 'medicine', label: '💊 Medicine' },
-  { id: 'other', label: 'Other' },
+  { id: 'electronics', label: 'categories.electronics', emoji: '📱' },
+  { id: 'clothing', label: 'categories.clothing', emoji: '👗' },
+  { id: 'documents', label: 'categories.documents', emoji: '📄' },
+  { id: 'gifts', label: 'categories.gifts', emoji: '🎁' },
+  { id: 'medicine', label: 'categories.medicine', emoji: '💊' },
+  { id: 'other', label: 'categories.other' },
 ];
 
 export function ItemDetailsStep({ data, updateData, goNext }: StepProps) {
@@ -69,41 +69,42 @@ export function ItemDetailsStep({ data, updateData, goNext }: StepProps) {
       </Animated.View>
 
       {/* Next */}
-      {canAdvance && (
-        <Animated.View entering={FadeInUp.delay(100).springify()}>
-          <AnimatedButton
-            title={t('wizard.next', { defaultValue: 'Next' })}
-            onPress={goNext}
-            size="lg"
-            fullWidth
-          />
-        </Animated.View>
-      )}
+      <View>
+        <AnimatedButton
+          disabled={!canAdvance}
+          title={t('wizard.next', { defaultValue: 'Next' })}
+          onPress={goNext}
+          size="lg"
+          fullWidth
+        />
+      </View>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  section: {
-    marginBottom: 20,
-  },
-  input: {
-    height: 48,
-    borderRadius: RADIUS.input,
-    paddingHorizontal: 20,
-    fontSize: 16,
-    backgroundColor: '#FFFFFF',
-    color: V2_COLORS.text,
-    ...BUBBLE_SHADOWS.xs,
-  },
-  textArea: {
-    height: 80,
-    borderRadius: RADIUS.card,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    fontSize: 15,
-    backgroundColor: '#FFFFFF',
-    color: V2_COLORS.text,
-    ...BUBBLE_SHADOWS.xs,
-  },
-});
+const styles = themed(() =>
+  StyleSheet.create({
+    section: {
+      marginBottom: 20,
+    },
+    input: {
+      height: 48,
+      borderRadius: RADIUS.input,
+      paddingHorizontal: 20,
+      fontSize: 16,
+      backgroundColor: V2_COLORS.surface,
+      color: V2_COLORS.text,
+      ...BUBBLE_SHADOWS.xs,
+    },
+    textArea: {
+      height: 80,
+      borderRadius: RADIUS.card,
+      paddingHorizontal: 20,
+      paddingVertical: 12,
+      fontSize: 15,
+      backgroundColor: V2_COLORS.surface,
+      color: V2_COLORS.text,
+      ...BUBBLE_SHADOWS.xs,
+    },
+  })
+);

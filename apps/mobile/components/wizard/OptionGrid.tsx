@@ -7,7 +7,8 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
-import { V2_COLORS, RADIUS, BUBBLE_SHADOWS } from '@/providers/ThemeProvider';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS, themed } from '@/providers/ThemeProvider';
+import { useTranslation } from 'react-i18next';
 import { ANIM, createStaggerDelay } from '@/lib/animations';
 
 export interface GridOption {
@@ -57,6 +58,7 @@ const OptionGridItem = React.memo(function OptionGridItem({
   index,
   columns,
 }: OptionGridItemProps) {
+  const { t } = useTranslation();
   const scale = useSharedValue(1);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -84,7 +86,7 @@ const OptionGridItem = React.memo(function OptionGridItem({
         styles.item,
         {
           width: widthPercent as any,
-          backgroundColor: isSelected ? V2_COLORS.primary + '08' : '#FFFFFF',
+          backgroundColor: isSelected ? V2_COLORS.primary + '08' : V2_COLORS.surface,
           borderWidth: isSelected ? 1.5 : 0,
           borderColor: isSelected ? V2_COLORS.primary : 'transparent',
         },
@@ -97,7 +99,7 @@ const OptionGridItem = React.memo(function OptionGridItem({
         style={[styles.itemLabel, { color: isSelected ? V2_COLORS.primary : V2_COLORS.text }]}
         numberOfLines={1}
       >
-        {option.label}
+        {t(option.label)}
       </Text>
       {isSelected && (
         <View style={styles.checkBadge}>
@@ -108,37 +110,39 @@ const OptionGridItem = React.memo(function OptionGridItem({
   );
 });
 
-const styles = StyleSheet.create({
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
-  item: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 20,
-    paddingHorizontal: 12,
-    borderRadius: RADIUS.card,
-    position: 'relative',
-  },
-  itemEmoji: {
-    fontSize: 28,
-    marginBottom: 8,
-  },
-  itemLabel: {
-    fontSize: 13,
-    fontWeight: '600',
-    textAlign: 'center',
-  },
-  checkBadge: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: V2_COLORS.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+const styles = themed(() =>
+  StyleSheet.create({
+    grid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+    },
+    item: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 20,
+      paddingHorizontal: 12,
+      borderRadius: RADIUS.card,
+      position: 'relative',
+    },
+    itemEmoji: {
+      fontSize: 28,
+      marginBottom: 8,
+    },
+    itemLabel: {
+      fontSize: 13,
+      fontWeight: '600',
+      textAlign: 'center',
+    },
+    checkBadge: {
+      position: 'absolute',
+      top: 8,
+      right: 8,
+      width: 20,
+      height: 20,
+      borderRadius: 10,
+      backgroundColor: V2_COLORS.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+  })
+);

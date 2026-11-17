@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Image, ActivityIndicator } fr
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { V2_COLORS, RADIUS, BUBBLE_SHADOWS } from '@/providers/ThemeProvider';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS, themed } from '@/providers/ThemeProvider';
 import { QuestionTitle } from '../QuestionTitle';
 import { AnimatedButton } from '@/components/animations/AnimatedButton';
 import { useImageUpload } from '@/hooks/useImageUpload';
@@ -93,54 +93,56 @@ export function PhotosStep({ data, updateData, goNext }: StepProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-    marginBottom: 20,
-  },
-  photoWrapper: {
-    position: 'relative',
-  },
-  photo: {
-    width: 100,
-    height: 100,
-    borderRadius: RADIUS.card,
-  },
-  removeBtn: {
-    position: 'absolute',
-    top: -6,
-    right: -6,
-    backgroundColor: '#FFF',
-    borderRadius: 12,
-  },
-  addBtn: {
-    width: 100,
-    height: 100,
-    borderRadius: RADIUS.card,
-    borderWidth: 2,
-    borderStyle: 'dashed',
-    borderColor: V2_COLORS.primary + '40',
-    backgroundColor: V2_COLORS.primary + '08',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 4,
-  },
-  addText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: V2_COLORS.primary,
-  },
-  hint: {
-    marginBottom: 24,
-  },
-  hintText: {
-    fontSize: 14,
-    color: V2_COLORS.textMuted,
-  },
-  actions: {
-    alignItems: 'center',
-    gap: 8,
-  },
-});
+const styles = themed(() =>
+  StyleSheet.create({
+    grid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 12,
+      marginBottom: 20,
+    },
+    photoWrapper: {
+      position: 'relative',
+    },
+    photo: {
+      width: 100,
+      height: 100,
+      borderRadius: RADIUS.card,
+    },
+    removeBtn: {
+      position: 'absolute',
+      top: -6,
+      right: -6,
+      backgroundColor: V2_COLORS.surface,
+      borderRadius: 12,
+    },
+    addBtn: {
+      width: 100,
+      height: 100,
+      borderRadius: RADIUS.card,
+      borderWidth: 2,
+      borderStyle: 'dashed',
+      borderColor: V2_COLORS.primary + '40',
+      backgroundColor: V2_COLORS.primary + '08',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 4,
+    },
+    addText: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: V2_COLORS.primary,
+    },
+    hint: {
+      marginBottom: 24,
+    },
+    hintText: {
+      fontSize: 14,
+      color: V2_COLORS.textMuted,
+    },
+    actions: {
+      alignItems: 'center',
+      gap: 8,
+    },
+  })
+);

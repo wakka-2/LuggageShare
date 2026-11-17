@@ -1,4 +1,9 @@
-import { Easing, I18nManager } from 'react-native';
+import i18n from '@/i18n';
+// Must be Reanimated's Easing: these presets are passed to Reanimated's
+// withTiming/withSpring, which run on the UI thread and need worklet easings.
+// React Native's Easing functions are not worklets and crash release builds
+// ("undefined is not a function" in the animation's onStart).
+import { Easing } from 'react-native-reanimated';
 
 /**
  * Shared animation presets for LuggageShare.
@@ -42,6 +47,6 @@ export function createStaggerDelay(index: number, baseDelay = 80, maxDelay = 600
  * @param isRTL - Whether the current layout is RTL
  */
 export function rtlSlideMultiplier(isRTL?: boolean): number {
-  const rtl = isRTL ?? I18nManager.isRTL;
+  const rtl = isRTL ?? i18n.language === 'ar';
   return rtl ? -1 : 1;
 }

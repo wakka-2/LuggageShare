@@ -18,32 +18,35 @@ import Animated, { FadeIn, FadeInUp, ZoomIn } from 'react-native-reanimated';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
 
-import { V2_COLORS, RADIUS, BUBBLE_SHADOWS, GRADIENTS } from '@/providers/ThemeProvider';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS, GRADIENTS, themed } from '@/providers/ThemeProvider';
 import { BackgroundBlobs } from '@/components/common';
 import { apiClient } from '@/lib/api';
 import { showAlert } from '@/lib/alert';
 import { SkeletonLoader } from '@/components/animations';
 
-const DOCUMENT_TYPES = [
-  {
-    key: 'national_id',
-    icon: 'card-outline',
-    labelKey: 'verification.nationalId',
-    color: V2_COLORS.primary,
-  },
-  {
-    key: 'passport',
-    icon: 'document-outline',
-    labelKey: 'verification.passport',
-    color: V2_COLORS.accent3,
-  },
-  {
-    key: 'driving_license',
-    icon: 'car-outline',
-    labelKey: 'verification.drivingLicense',
-    color: V2_COLORS.accent2,
-  },
-] as const;
+const DOCUMENT_TYPES = themed(
+  () =>
+    [
+      {
+        key: 'national_id',
+        icon: 'card-outline',
+        labelKey: 'verification.nationalId',
+        color: V2_COLORS.primary,
+      },
+      {
+        key: 'passport',
+        icon: 'document-outline',
+        labelKey: 'verification.passport',
+        color: V2_COLORS.accent3,
+      },
+      {
+        key: 'driving_license',
+        icon: 'car-outline',
+        labelKey: 'verification.drivingLicense',
+        color: V2_COLORS.accent2,
+      },
+    ] as const
+);
 
 export default function VerificationScreen() {
   const { t, i18n } = useTranslation();
@@ -158,7 +161,11 @@ export default function VerificationScreen() {
         <View style={styles.backBtn} />
       </View>
 
-      <ScrollView style={styles.scrollContent} contentContainerStyle={styles.scrollInner}>
+      <ScrollView
+        keyboardShouldPersistTaps="handled"
+        style={styles.scrollContent}
+        contentContainerStyle={styles.scrollInner}
+      >
         {/* Info Card */}
         <Animated.View entering={FadeIn.duration(300)} style={styles.infoCard}>
           <View style={styles.infoIcon}>
@@ -267,132 +274,134 @@ export default function VerificationScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: V2_COLORS.bg } as ViewStyle,
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-  } as ViewStyle,
-  backBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: RADIUS.pill,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...BUBBLE_SHADOWS.xs,
-  } as ViewStyle,
-  headerTitle: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: V2_COLORS.text,
-  } as TextStyle,
-  scrollContent: { flex: 1 } as ViewStyle,
-  scrollInner: { padding: 16, paddingBottom: 40 } as ViewStyle,
-  infoCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    padding: 16,
-    borderRadius: RADIUS.card,
-    marginBottom: 24,
-    backgroundColor: V2_COLORS.primary + '10',
-  } as ViewStyle,
-  infoIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: V2_COLORS.primary + '15',
-    alignItems: 'center',
-    justifyContent: 'center',
-  } as ViewStyle,
-  infoText: {
-    flex: 1,
-    fontSize: 14,
-    lineHeight: 20,
-    color: V2_COLORS.text,
-  } as TextStyle,
-  fieldLabel: {
-    fontSize: 15,
-    fontWeight: '600',
-    marginBottom: 10,
-    color: V2_COLORS.text,
-  } as TextStyle,
-  typeGrid: { flexDirection: 'row', gap: 10, marginBottom: 24 } as ViewStyle,
-  typeCard: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 16,
-    borderRadius: RADIUS.card,
-    backgroundColor: '#FFFFFF',
-    ...BUBBLE_SHADOWS.sm,
-  } as ViewStyle,
-  typeCardSelected: {
-    backgroundColor: V2_COLORS.primary + '08',
-    borderWidth: 2,
-    borderColor: V2_COLORS.primary,
-  } as ViewStyle,
-  typeIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
-  } as ViewStyle,
-  typeLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    textAlign: 'center',
-  } as TextStyle,
-  input: {
-    height: 48,
-    borderRadius: RADIUS.input,
-    paddingHorizontal: 20,
-    fontSize: 16,
-    marginBottom: 20,
-    backgroundColor: '#FFFFFF',
-    color: V2_COLORS.text,
-    ...BUBBLE_SHADOWS.xs,
-  } as TextStyle,
-  submitBtn: {
-    height: 52,
-    borderRadius: RADIUS.pill,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 8,
-  } as ViewStyle,
-  submitText: { color: '#FFF', fontSize: 16, fontWeight: '700' } as TextStyle,
-  verifiedContent: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 32,
-  } as ViewStyle,
-  verifiedIcon: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 24,
-    backgroundColor: V2_COLORS.accent1 + '15',
-  } as ViewStyle,
-  verifiedTitle: {
-    fontSize: 22,
-    fontWeight: '700',
-    marginBottom: 12,
-    textAlign: 'center',
-    color: V2_COLORS.text,
-  } as TextStyle,
-  verifiedDesc: {
-    fontSize: 15,
-    lineHeight: 22,
-    textAlign: 'center',
-    color: V2_COLORS.textSoft,
-  } as TextStyle,
-});
+const styles = themed(() =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: V2_COLORS.bg } as ViewStyle,
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+      paddingVertical: 10,
+    } as ViewStyle,
+    backBtn: {
+      width: 36,
+      height: 36,
+      borderRadius: RADIUS.pill,
+      backgroundColor: V2_COLORS.surface,
+      alignItems: 'center',
+      justifyContent: 'center',
+      ...BUBBLE_SHADOWS.xs,
+    } as ViewStyle,
+    headerTitle: {
+      fontSize: 17,
+      fontWeight: '700',
+      color: V2_COLORS.text,
+    } as TextStyle,
+    scrollContent: { flex: 1 } as ViewStyle,
+    scrollInner: { padding: 16, paddingBottom: 40 } as ViewStyle,
+    infoCard: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      padding: 16,
+      borderRadius: RADIUS.card,
+      marginBottom: 24,
+      backgroundColor: V2_COLORS.primary + '10',
+    } as ViewStyle,
+    infoIcon: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      backgroundColor: V2_COLORS.primary + '15',
+      alignItems: 'center',
+      justifyContent: 'center',
+    } as ViewStyle,
+    infoText: {
+      flex: 1,
+      fontSize: 14,
+      lineHeight: 20,
+      color: V2_COLORS.text,
+    } as TextStyle,
+    fieldLabel: {
+      fontSize: 15,
+      fontWeight: '600',
+      marginBottom: 10,
+      color: V2_COLORS.text,
+    } as TextStyle,
+    typeGrid: { flexDirection: 'row', gap: 10, marginBottom: 24 } as ViewStyle,
+    typeCard: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 8,
+      paddingVertical: 16,
+      borderRadius: RADIUS.card,
+      backgroundColor: V2_COLORS.surface,
+      ...BUBBLE_SHADOWS.sm,
+    } as ViewStyle,
+    typeCardSelected: {
+      backgroundColor: V2_COLORS.primary + '08',
+      borderWidth: 2,
+      borderColor: V2_COLORS.primary,
+    } as ViewStyle,
+    typeIcon: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      alignItems: 'center',
+      justifyContent: 'center',
+    } as ViewStyle,
+    typeLabel: {
+      fontSize: 12,
+      fontWeight: '600',
+      textAlign: 'center',
+    } as TextStyle,
+    input: {
+      height: 48,
+      borderRadius: RADIUS.input,
+      paddingHorizontal: 20,
+      fontSize: 16,
+      marginBottom: 20,
+      backgroundColor: V2_COLORS.surface,
+      color: V2_COLORS.text,
+      ...BUBBLE_SHADOWS.xs,
+    } as TextStyle,
+    submitBtn: {
+      height: 52,
+      borderRadius: RADIUS.pill,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginTop: 8,
+    } as ViewStyle,
+    submitText: { color: '#FFF', fontSize: 16, fontWeight: '700' } as TextStyle,
+    verifiedContent: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: 32,
+    } as ViewStyle,
+    verifiedIcon: {
+      width: 120,
+      height: 120,
+      borderRadius: 60,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: 24,
+      backgroundColor: V2_COLORS.accent1 + '15',
+    } as ViewStyle,
+    verifiedTitle: {
+      fontSize: 22,
+      fontWeight: '700',
+      marginBottom: 12,
+      textAlign: 'center',
+      color: V2_COLORS.text,
+    } as TextStyle,
+    verifiedDesc: {
+      fontSize: 15,
+      lineHeight: 22,
+      textAlign: 'center',
+      color: V2_COLORS.textSoft,
+    } as TextStyle,
+  })
+);

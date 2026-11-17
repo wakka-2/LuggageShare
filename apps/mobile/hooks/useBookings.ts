@@ -3,6 +3,9 @@ import { apiClient } from '@/lib/api';
 
 export interface ApiBooking {
   id: string;
+  pickupAddress?: string | null;
+  pickupLat?: number | null;
+  pickupLng?: number | null;
   listingId: string;
   senderId: string;
   carrierId: string;
@@ -68,6 +71,9 @@ interface CreateBookingParams {
   listingId: string;
   totalWeight: number;
   items?: BookingItemParam[];
+  pickupAddress?: string;
+  pickupLat?: number;
+  pickupLng?: number;
 }
 
 /**
@@ -299,9 +305,11 @@ export function useAcceptBooking() {
       const { data } = await apiClient.put(`/bookings/${id}/accept`);
       return data;
     },
-    onSuccess: (_data, id) => {
+    // Await the detail refetch so isPending stays true until the screen shows the new
+    // status — otherwise the button re-enables seconds before the UI changes.
+    onSuccess: async (_data, id) => {
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
-      queryClient.invalidateQueries({ queryKey: ['booking', id] });
+      await queryClient.invalidateQueries({ queryKey: ['booking', id] });
     },
   });
 }
@@ -314,9 +322,11 @@ export function useRejectBooking() {
       const { data } = await apiClient.put(`/bookings/${id}/reject`);
       return data;
     },
-    onSuccess: (_data, id) => {
+    // Await the detail refetch so isPending stays true until the screen shows the new
+    // status — otherwise the button re-enables seconds before the UI changes.
+    onSuccess: async (_data, id) => {
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
-      queryClient.invalidateQueries({ queryKey: ['booking', id] });
+      await queryClient.invalidateQueries({ queryKey: ['booking', id] });
     },
   });
 }
@@ -329,9 +339,11 @@ export function useMarkPickedUp() {
       const { data } = await apiClient.put(`/bookings/${id}/pickup`);
       return data;
     },
-    onSuccess: (_data, id) => {
+    // Await the detail refetch so isPending stays true until the screen shows the new
+    // status — otherwise the button re-enables seconds before the UI changes.
+    onSuccess: async (_data, id) => {
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
-      queryClient.invalidateQueries({ queryKey: ['booking', id] });
+      await queryClient.invalidateQueries({ queryKey: ['booking', id] });
     },
   });
 }
@@ -344,9 +356,11 @@ export function useMarkInTransit() {
       const { data } = await apiClient.put(`/bookings/${id}/in-transit`);
       return data;
     },
-    onSuccess: (_data, id) => {
+    // Await the detail refetch so isPending stays true until the screen shows the new
+    // status — otherwise the button re-enables seconds before the UI changes.
+    onSuccess: async (_data, id) => {
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
-      queryClient.invalidateQueries({ queryKey: ['booking', id] });
+      await queryClient.invalidateQueries({ queryKey: ['booking', id] });
     },
   });
 }
@@ -359,9 +373,11 @@ export function useMarkDelivered() {
       const { data } = await apiClient.put(`/bookings/${id}/deliver`);
       return data;
     },
-    onSuccess: (_data, id) => {
+    // Await the detail refetch so isPending stays true until the screen shows the new
+    // status — otherwise the button re-enables seconds before the UI changes.
+    onSuccess: async (_data, id) => {
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
-      queryClient.invalidateQueries({ queryKey: ['booking', id] });
+      await queryClient.invalidateQueries({ queryKey: ['booking', id] });
     },
   });
 }
@@ -374,9 +390,11 @@ export function useCancelBooking() {
       const { data } = await apiClient.put(`/bookings/${id}/cancel`);
       return data;
     },
-    onSuccess: (_data, id) => {
+    // Await the detail refetch so isPending stays true until the screen shows the new
+    // status — otherwise the button re-enables seconds before the UI changes.
+    onSuccess: async (_data, id) => {
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
-      queryClient.invalidateQueries({ queryKey: ['booking', id] });
+      await queryClient.invalidateQueries({ queryKey: ['booking', id] });
     },
   });
 }
@@ -389,9 +407,11 @@ export function useConfirmPayment() {
       const { data } = await apiClient.put(`/bookings/${id}/confirm-payment`);
       return data;
     },
-    onSuccess: (_data, id) => {
+    // Await the detail refetch so isPending stays true until the screen shows the new
+    // status — otherwise the button re-enables seconds before the UI changes.
+    onSuccess: async (_data, id) => {
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
-      queryClient.invalidateQueries({ queryKey: ['booking', id] });
+      await queryClient.invalidateQueries({ queryKey: ['booking', id] });
     },
   });
 }
@@ -412,9 +432,9 @@ export function useSubmitPaymentProof() {
       });
       return data.data ?? data;
     },
-    onSuccess: (_, { bookingId }) => {
+    onSuccess: async (_, { bookingId }) => {
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
-      queryClient.invalidateQueries({ queryKey: ['booking', bookingId] });
+      await queryClient.invalidateQueries({ queryKey: ['booking', bookingId] });
     },
   });
 }

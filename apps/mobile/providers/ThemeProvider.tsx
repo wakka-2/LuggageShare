@@ -1,5 +1,6 @@
 import { createContext, useContext, ReactNode } from 'react';
-import { useColorScheme, Platform } from 'react-native';
+import { Platform } from 'react-native';
+import { isDarkScheme, subscribeColorScheme, useColorSchemeValue } from '@/lib/colorScheme';
 
 export interface ThemeColors {
   primary: string;
@@ -90,17 +91,18 @@ const darkColors: ThemeColors = {
   primaryMid: '#A89EFF',
   primaryLight: '#B0AAFF',
   secondary: '#FF8BB5',
-  background: '#0D0D1A',
-  bg: '#0D0D1A',
-  surface: 'rgba(25,25,50,0.80)',
-  surfaceSolid: '#1A1A2E',
-  card: '#1A1A2E',
-  white: '#1A1A2E',
-  text: '#F0F0FF',
-  textSecondary: '#B0B0D0',
-  textSoft: '#B0B0D0',
-  textTertiary: '#7B7B9E',
-  textMuted: '#4A4A68',
+  background: '#120F22',
+  bg: '#120F22',
+  surface: '#1E1B33',
+  surfaceSolid: '#1E1B33',
+  card: '#1E1B33',
+  // 'white' is used for text/icons on primary buttons — it must stay white.
+  white: '#FFFFFF',
+  text: '#F0EEFF',
+  textSecondary: '#B9B5D6',
+  textSoft: '#B9B5D6',
+  textTertiary: '#8E8AAD',
+  textMuted: '#8E8AAD',
   border: 'rgba(139,131,255,0.12)',
   borderSubtle: 'rgba(139,131,255,0.06)',
   success: '#34EAAA',
@@ -110,16 +112,16 @@ const darkColors: ThemeColors = {
   accent1: '#34EAAA',
   accent2: '#FFD073',
   accent3: '#56D0E8',
-  blob1: '#EDE7FF',
-  blob2: '#FFE5ED',
-  blob3: '#E0F7EE',
-  blob4: '#FFF3D6',
-  cardShadow: 'rgba(139,131,255,0.15)',
+  blob1: '#241E45',
+  blob2: '#2E1A2B',
+  blob3: '#142A27',
+  blob4: '#2C2416',
+  cardShadow: 'rgba(0,0,0,0.35)',
   // V1 compat (deprecated)
   glassBg: 'rgba(13,13,26,0.75)',
   glassBorder: 'rgba(139,131,255,0.15)',
   glassHighlight: 'rgba(255,255,255,0.05)',
-  tabBarBg: '#0D0D1A',
+  tabBarBg: '#1E1B33',
 };
 
 interface ThemeContextType {
@@ -131,8 +133,7 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | null>(null);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const isDark = useColorSchemeValue() === 'dark';
 
   const theme: Theme = {
     dark: isDark,
@@ -260,8 +261,37 @@ export const GRADIENTS = {
 
 // ─── V2 Accent Colors (direct access) ──────────────────
 
-export const V2_COLORS = {
+export interface V2Palette {
+  bg: string;
+  /** Cards, inputs, sheets — replaces hard-coded #FFFFFF backgrounds. */
+  surface: string;
+  /** Subtle secondary surface (chips, skeletons, inset rows). */
+  surfaceAlt: string;
+  border: string;
+  primary: string;
+  primaryMid: string;
+  primaryLight: string;
+  secondary: string;
+  accent1: string;
+  accent2: string;
+  accent3: string;
+  /** Text/icons on primary/gradient fills. */
+  onPrimary: string;
+  text: string;
+  textSoft: string;
+  textMuted: string;
+  blob1: string;
+  blob2: string;
+  blob3: string;
+  blob4: string;
+  cardShadow: string;
+}
+
+const V2_LIGHT: V2Palette = {
   bg: '#F8F5FF',
+  surface: '#FFFFFF',
+  surfaceAlt: '#F3F0FA',
+  border: 'rgba(124,106,255,0.12)',
   primary: '#7C6AFF',
   primaryMid: '#9D8FFF',
   primaryLight: '#B4ABFF',
@@ -269,6 +299,7 @@ export const V2_COLORS = {
   accent1: '#56D8B1',
   accent2: '#FFBE5C',
   accent3: '#5CB8FF',
+  onPrimary: '#FFFFFF',
   text: '#2D2B55',
   textSoft: '#6E6B8A',
   textMuted: '#A8A5C0',
@@ -277,7 +308,71 @@ export const V2_COLORS = {
   blob3: '#E0F7EE',
   blob4: '#FFF3D6',
   cardShadow: 'rgba(124,106,255,0.12)',
-} as const;
+};
+
+const V2_DARK: V2Palette = {
+  bg: '#120F22',
+  surface: '#1E1B33',
+  surfaceAlt: '#272342',
+  border: 'rgba(157,143,255,0.18)',
+  primary: '#8B7DFF',
+  primaryMid: '#A397FF',
+  primaryLight: '#5B4FC4',
+  secondary: '#FF7FAA',
+  accent1: '#4FD1A8',
+  accent2: '#FFC56E',
+  accent3: '#6BC0FF',
+  onPrimary: '#FFFFFF',
+  text: '#F0EEFF',
+  textSoft: '#B9B5D6',
+  textMuted: '#8E8AAD',
+  blob1: '#241E45',
+  blob2: '#2E1A2B',
+  blob3: '#142A27',
+  blob4: '#2C2416',
+  cardShadow: 'rgba(0,0,0,0.35)',
+};
+
+/**
+ * Active V2 palette. A single mutable object, updated in place when the color
+ * scheme changes, so `V2_COLORS.x` read during render is always current.
+ */
+export const V2_COLORS: V2Palette = { ...(isDarkScheme() ? V2_DARK : V2_LIGHT) };
+
+let themeVersion = 0;
+
+// Registered at module load, so it runs before any React subscriber re-renders.
+subscribeColorScheme(() => {
+  Object.assign(V2_COLORS, isDarkScheme() ? V2_DARK : V2_LIGHT);
+  themeVersion++;
+});
+
+/**
+ * Lazily build a theme-dependent module-level value (StyleSheet, color map) and
+ * rebuild it after a color-scheme change. Access goes through a Proxy, so
+ * `styles.card` keeps working unchanged at every call site.
+ */
+export function themed<T extends object>(factory: () => T): T {
+  let cache: T | undefined;
+  let builtFor = -1;
+  const current = (): any => {
+    if (cache === undefined || builtFor !== themeVersion) {
+      cache = factory();
+      builtFor = themeVersion;
+    }
+    return cache;
+  };
+  return new Proxy({} as T, {
+    get: (_t, prop) => current()[prop],
+    has: (_t, prop) => prop in current(),
+    ownKeys: () => Reflect.ownKeys(current()),
+    getOwnPropertyDescriptor: (_t, prop) => {
+      const desc = Object.getOwnPropertyDescriptor(current(), prop);
+      if (desc) desc.configurable = true;
+      return desc;
+    },
+  });
+}
 
 // ─── V1 Deprecated Exports (backward compat) ───────────
 

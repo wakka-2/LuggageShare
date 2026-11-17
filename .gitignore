@@ -70,3 +70,11 @@ ios/
 tmp/
 temp/
 .vercel
+
+# Store credentials (never commit)
+apps/mobile/play-service-account.json
+*.p8
+*.p12
+*.mobileprovision
+*.keystore
+*.jks

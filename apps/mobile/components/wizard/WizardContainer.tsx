@@ -12,7 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { V2_COLORS, RADIUS, BUBBLE_SHADOWS } from '@/providers/ThemeProvider';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS, themed } from '@/providers/ThemeProvider';
 import { BackgroundBlobs } from '@/components/common/BackgroundBlobs';
 import { WizardProgress } from './WizardProgress';
 import { WizardStep } from './WizardStep';
@@ -143,37 +143,39 @@ export function WizardContainer({
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: V2_COLORS.bg,
-  },
-  flex: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  headerButton: {
-    width: 36,
-    height: 36,
-    borderRadius: RADIUS.pill,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...BUBBLE_SHADOWS.xs,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: V2_COLORS.text,
-  },
-  scrollContent: {
-    padding: 24,
-    paddingBottom: 40,
-  },
-});
+const styles = themed(() =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: V2_COLORS.bg,
+    },
+    flex: {
+      flex: 1,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+    },
+    headerButton: {
+      width: 36,
+      height: 36,
+      borderRadius: RADIUS.pill,
+      backgroundColor: V2_COLORS.surface,
+      alignItems: 'center',
+      justifyContent: 'center',
+      ...BUBBLE_SHADOWS.xs,
+    },
+    headerTitle: {
+      fontSize: 18,
+      fontWeight: '700',
+      color: V2_COLORS.text,
+    },
+    scrollContent: {
+      padding: 24,
+      paddingBottom: 40,
+    },
+  })
+);

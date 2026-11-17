@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
-import { V2_COLORS, RADIUS } from '@/providers/ThemeProvider';
+import { V2_COLORS, RADIUS, themed } from '@/providers/ThemeProvider';
 import { useTranslation } from 'react-i18next';
 
 export interface StatusStep {
@@ -18,11 +18,11 @@ interface StatusStepperProps {
 }
 
 const BOOKING_STEPS: StatusStep[] = [
-  { key: 'pending', label: 'Pending', icon: 'time-outline' },
-  { key: 'accepted', label: 'Accepted', icon: 'checkmark-circle-outline' },
-  { key: 'picked_up', label: 'Picked Up', icon: 'hand-left-outline' },
-  { key: 'in_transit', label: 'In Transit', icon: 'airplane-outline' },
-  { key: 'delivered', label: 'Delivered', icon: 'checkmark-done-outline' },
+  { key: 'pending', label: 'trips.statusPending', icon: 'time-outline' },
+  { key: 'accepted', label: 'trips.statusAccepted', icon: 'checkmark-circle-outline' },
+  { key: 'picked_up', label: 'trips.statusPickedUp', icon: 'hand-left-outline' },
+  { key: 'in_transit', label: 'trips.statusInTransit', icon: 'airplane-outline' },
+  { key: 'delivered', label: 'trips.statusDelivered', icon: 'checkmark-done-outline' },
 ];
 
 export function getDefaultBookingSteps(): StatusStep[] {
@@ -116,7 +116,7 @@ export function StatusStepper({ steps, currentStepKey }: StatusStepperProps) {
                   },
                 ]}
               >
-                {step.label}
+                {t(step.label)}
               </Text>
               {step.completedAt && (
                 <Text style={styles.date}>{new Date(step.completedAt).toLocaleDateString()}</Text>
@@ -129,42 +129,44 @@ export function StatusStepper({ steps, currentStepKey }: StatusStepperProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    paddingVertical: 8,
-  },
-  stepRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-  },
-  dotColumn: {
-    alignItems: 'center',
-    width: 32,
-  },
-  dot: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  connector: {
-    width: 2,
-    height: 28,
-  },
-  labelContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingBottom: 24,
-    flex: 1,
-  },
-  label: {
-    fontSize: 14,
-    flex: 1,
-  },
-  date: {
-    fontSize: 11,
-    color: V2_COLORS.textMuted,
-  },
-});
+const styles = themed(() =>
+  StyleSheet.create({
+    container: {
+      paddingVertical: 8,
+    },
+    stepRow: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+    },
+    dotColumn: {
+      alignItems: 'center',
+      width: 32,
+    },
+    dot: {
+      width: 24,
+      height: 24,
+      borderRadius: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    connector: {
+      width: 2,
+      height: 28,
+    },
+    labelContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      paddingBottom: 24,
+      flex: 1,
+    },
+    label: {
+      fontSize: 14,
+      flex: 1,
+    },
+    date: {
+      fontSize: 11,
+      color: V2_COLORS.textMuted,
+    },
+  })
+);

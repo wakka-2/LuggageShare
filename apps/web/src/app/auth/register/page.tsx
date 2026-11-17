@@ -9,6 +9,7 @@ import { Footer } from '@/components/layout/Footer';
 import { useAuth } from '@/providers/AuthProvider';
 import { useLanguage } from '@/providers/LanguageProvider';
 import apiClient from '@/lib/api';
+import { track } from '@/lib/analytics';
 
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '';
 
@@ -115,6 +116,7 @@ export default function RegisterPage() {
         password,
         inviteCode: inviteCode.trim() || undefined,
       });
+      track('sign_up', { method: 'email' });
       handleAuthSuccess(res.data);
     } catch (err: any) {
       const status = err?.response?.status;

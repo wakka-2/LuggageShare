@@ -1,4 +1,5 @@
 import React, { useCallback } from 'react';
+import { useRefreshOnFocus } from '@/hooks/useRefreshOnFocus';
 import {
   View,
   Text,
@@ -15,7 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 
-import { V2_COLORS, RADIUS, BUBBLE_SHADOWS } from '@/providers/ThemeProvider';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS, themed } from '@/providers/ThemeProvider';
 import {
   useNotifications,
   useMarkNotificationRead,
@@ -26,7 +27,7 @@ import { SkeletonLoader } from '@/components/animations';
 import { BackgroundBlobs } from '@/components/common';
 
 const NOTIFICATION_ICONS: Record<string, { icon: keyof typeof Ionicons.glyphMap; color: string }> =
-  {
+  themed(() => ({
     booking_created: { icon: 'calendar-outline', color: V2_COLORS.primary },
     booking_accepted: { icon: 'checkmark-circle-outline', color: V2_COLORS.accent1 },
     booking_rejected: { icon: 'close-circle-outline', color: V2_COLORS.secondary },
@@ -34,7 +35,7 @@ const NOTIFICATION_ICONS: Record<string, { icon: keyof typeof Ionicons.glyphMap;
     message_received: { icon: 'chatbubble-outline', color: V2_COLORS.accent3 },
     review_received: { icon: 'star-outline', color: V2_COLORS.accent2 },
     payment_received: { icon: 'wallet-outline', color: V2_COLORS.accent1 },
-  };
+  }));
 
 function getTimeAgo(
   dateStr: string,
@@ -62,6 +63,7 @@ export default function NotificationsScreen() {
   const isRTL = i18n.language === 'ar';
 
   const { data: notifications, isLoading, refetch } = useNotifications();
+  useRefreshOnFocus(refetch);
   const markRead = useMarkNotificationRead();
   const markAllRead = useMarkAllNotificationsRead();
 
@@ -195,110 +197,115 @@ export default function NotificationsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: V2_COLORS.bg } as ViewStyle,
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-  } as ViewStyle,
-  backBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: RADIUS.pill,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...BUBBLE_SHADOWS.xs,
-  } as ViewStyle,
-  headerTitle: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: V2_COLORS.text,
-  } as TextStyle,
+const styles = themed(() =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: V2_COLORS.bg } as ViewStyle,
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+      paddingVertical: 10,
+    } as ViewStyle,
+    backBtn: {
+      width: 36,
+      height: 36,
+      borderRadius: RADIUS.pill,
+      backgroundColor: V2_COLORS.surface,
+      alignItems: 'center',
+      justifyContent: 'center',
+      ...BUBBLE_SHADOWS.xs,
+    } as ViewStyle,
+    headerTitle: {
+      fontSize: 17,
+      fontWeight: '700',
+      color: V2_COLORS.text,
+    } as TextStyle,
 
-  listContent: { padding: 16, gap: 10 } as ViewStyle,
+    listContent: { padding: 16, gap: 10 } as ViewStyle,
 
-  notifItem: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    padding: 14,
-    gap: 12,
-    backgroundColor: '#FFFFFF',
-    borderRadius: RADIUS.card,
-    ...BUBBLE_SHADOWS.sm,
-  } as ViewStyle,
-  notifItemUnread: {
-    backgroundColor: V2_COLORS.primary + '08',
-  } as ViewStyle,
-  iconCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
-  } as ViewStyle,
-  notifContent: { flex: 1 } as ViewStyle,
-  notifTitle: {
-    fontSize: 15,
-    fontWeight: '500',
-    color: V2_COLORS.text,
-    marginBottom: 2,
-  } as TextStyle,
-  notifTitleUnread: { fontWeight: '700' } as TextStyle,
-  notifBody: {
-    fontSize: 13,
-    lineHeight: 19,
-    color: V2_COLORS.textSoft,
-    marginBottom: 6,
-  } as TextStyle,
-  timePill: {
-    alignSelf: 'flex-start',
-    backgroundColor: V2_COLORS.cardShadow,
-    borderRadius: RADIUS.pill,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-  } as ViewStyle,
-  notifTime: {
-    fontSize: 11,
-    fontWeight: '500',
-    color: V2_COLORS.textMuted,
-  } as TextStyle,
-  unreadDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: V2_COLORS.primary,
-    marginTop: 6,
-  } as ViewStyle,
+    notifItem: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      padding: 14,
+      gap: 12,
+      backgroundColor: V2_COLORS.surface,
+      borderRadius: RADIUS.card,
+      ...BUBBLE_SHADOWS.sm,
+    } as ViewStyle,
+    // Keep the surface opaque: a near-transparent background makes Android draw the
+    // elevation shadow as a detached box and the unread card all but disappears.
+    notifItemUnread: {
+      borderWidth: 1,
+      borderColor: V2_COLORS.primary + '66',
+    } as ViewStyle,
+    iconCircle: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      alignItems: 'center',
+      justifyContent: 'center',
+    } as ViewStyle,
+    notifContent: { flex: 1 } as ViewStyle,
+    notifTitle: {
+      fontSize: 15,
+      fontWeight: '500',
+      color: V2_COLORS.text,
+      marginBottom: 2,
+    } as TextStyle,
+    notifTitleUnread: { fontWeight: '700' } as TextStyle,
+    notifBody: {
+      fontSize: 13,
+      lineHeight: 19,
+      color: V2_COLORS.textSoft,
+      marginBottom: 6,
+    } as TextStyle,
+    timePill: {
+      alignSelf: 'flex-start',
+      backgroundColor: V2_COLORS.cardShadow,
+      borderRadius: RADIUS.pill,
+      paddingHorizontal: 8,
+      paddingVertical: 2,
+    } as ViewStyle,
+    notifTime: {
+      fontSize: 11,
+      fontWeight: '500',
+      color: V2_COLORS.textMuted,
+    } as TextStyle,
+    unreadDot: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: V2_COLORS.primary,
+      marginTop: 6,
+    } as ViewStyle,
 
-  skeletonList: { padding: 16, gap: 10 } as ViewStyle,
-  skeletonItem: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 12,
-    padding: 14,
-    backgroundColor: '#FFFFFF',
-    borderRadius: RADIUS.card,
-  } as ViewStyle,
-  emptyState: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingTop: 120,
-    gap: 12,
-  } as ViewStyle,
-  emptyTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: V2_COLORS.text,
-  } as TextStyle,
-  emptyDesc: {
-    fontSize: 14,
-    textAlign: 'center',
-    paddingHorizontal: 40,
-    color: V2_COLORS.textMuted,
-  } as TextStyle,
-});
+    skeletonList: { padding: 16, gap: 10 } as ViewStyle,
+    skeletonItem: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      gap: 12,
+      padding: 14,
+      backgroundColor: V2_COLORS.surface,
+      borderRadius: RADIUS.card,
+    } as ViewStyle,
+    emptyState: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingTop: 120,
+      gap: 12,
+    } as ViewStyle,
+    emptyTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: V2_COLORS.text,
+    } as TextStyle,
+    emptyDesc: {
+      fontSize: 14,
+      textAlign: 'center',
+      paddingHorizontal: 40,
+      color: V2_COLORS.textMuted,
+    } as TextStyle,
+  })
+);

@@ -1,11 +1,13 @@
 {
   "cli": {
-    "version": ">= 12.0.0"
+    "version": ">= 12.0.0",
+    "appVersionSource": "remote"
   },
   "build": {
     "development": {
       "developmentClient": true,
       "distribution": "internal",
+      "channel": "development",
       "ios": {
         "simulator": true
       },
@@ -15,6 +17,7 @@
     },
     "preview": {
       "distribution": "internal",
+      "channel": "preview",
       "ios": {
         "simulator": false
       },
@@ -22,25 +25,24 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://luggageshareapi-production.up.railway.app"
+        "EXPO_PUBLIC_API_URL": "https://luggageshare-api.vercel.app"
       }
     },
     "production": {
       "autoIncrement": true,
+      "channel": "production",
+      "android": {
+        "buildType": "app-bundle"
+      },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://api.luggageshare.com"
+        "EXPO_PUBLIC_API_URL": "https://luggageshare-api.vercel.app"
       }
     }
   },
   "submit": {
     "production": {
-      "ios": {
-        "appleId": "placeholder@email.com",
-        "ascAppId": "placeholder",
-        "appleTeamId": "placeholder"
-      },
       "android": {
-        "serviceAccountKeyPath": "./google-services.json",
+        "serviceAccountKeyPath": "./play-service-account.json",
         "track": "internal"
       }
     }

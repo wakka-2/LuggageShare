@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { View, Text, TouchableOpacity, Platform, StyleSheet } from 'react-native';
-import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
-import { V2_COLORS, RADIUS, BUBBLE_SHADOWS } from '@/providers/ThemeProvider';
+import i18n from '@/i18n';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS, themed } from '@/providers/ThemeProvider';
+import { CalendarModal } from './CalendarModal';
 
 interface DatePickerInputProps {
   value: Date | null;
@@ -18,26 +19,25 @@ interface DatePickerInputProps {
 export function DatePickerInput({
   value,
   onChange,
-  placeholder = 'Select date',
+  placeholder,
   minimumDate,
   textColor = V2_COLORS.text,
-  backgroundColor = '#FFFFFF',
+  backgroundColor = V2_COLORS.surface,
   placeholderColor = V2_COLORS.textMuted,
-  textAlign = 'left',
+  textAlign,
 }: DatePickerInputProps) {
   const [show, setShow] = useState(false);
 
-  const handleChange = (_event: DateTimePickerEvent, selectedDate?: Date) => {
-    if (Platform.OS === 'android') {
-      setShow(false);
-    }
-    if (selectedDate) {
-      onChange(selectedDate);
-    }
-  };
-
   const formatDate = (date: Date) => {
-    return date.toLocaleDateString('en-CA'); // YYYY-MM-DD format
+    // Readable, localized date. Arabic uses the Gregorian calendar and Western
+    // digits to match the rest of the app (ar-SA defaults to Hijri).
+    const locale = i18n.language === 'ar' ? 'ar-SA-u-ca-gregory-nu-latn' : 'en-GB';
+    return date.toLocaleDateString(locale, {
+      weekday: 'short',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
   };
 
   return (
@@ -46,36 +46,36 @@ export function DatePickerInput({
         <Text
           style={[
             styles.inputText,
-            { textAlign },
+            { textAlign: textAlign ?? (i18n.language === 'ar' ? 'right' : 'left') },
             value ? { color: textColor } : { color: placeholderColor },
           ]}
         >
-          {value ? formatDate(value) : placeholder}
+          {value ? formatDate(value) : (placeholder ?? i18n.t('common.selectDate'))}
         </Text>
       </TouchableOpacity>
 
-      {show && (
-        <DateTimePicker
-          value={value || new Date()}
-          mode="date"
-          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-          onChange={handleChange}
-          minimumDate={minimumDate}
-        />
-      )}
+      <CalendarModal
+        visible={show}
+        value={value}
+        minimumDate={minimumDate}
+        onSelect={onChange}
+        onClose={() => setShow(false)}
+      />
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  input: {
-    height: 48,
-    borderRadius: RADIUS.input,
-    paddingHorizontal: 20,
-    justifyContent: 'center',
-    ...BUBBLE_SHADOWS.xs,
-  },
-  inputText: {
-    fontSize: 16,
-  },
-});
+const styles = themed(() =>
+  StyleSheet.create({
+    input: {
+      height: 48,
+      borderRadius: RADIUS.input,
+      paddingHorizontal: 20,
+      justifyContent: 'center',
+      ...BUBBLE_SHADOWS.xs,
+    },
+    inputText: {
+      fontSize: 16,
+    },
+  })
+);

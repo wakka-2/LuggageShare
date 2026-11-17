@@ -39,9 +39,10 @@ function expandCitySearch(term: string): string[] {
   const matches: string[] = [term];
 
   for (const [arabic, aliases] of Object.entries(CITY_ALIASES)) {
-    // English input → add Arabic equivalent
+    // English name or airport code → add the Arabic name and every English alias
+    // (searching "RUH" must also find listings stored as "Riyadh").
     if (aliases.some((a) => a.startsWith(lower) || lower.startsWith(a))) {
-      matches.push(arabic);
+      matches.push(arabic, ...aliases);
     }
     // Arabic input → add English equivalents
     if (arabic.includes(term)) {
@@ -52,17 +53,18 @@ function expandCitySearch(term: string): string[] {
   return [...new Set(matches)];
 }
 
-/** Build an OR filter for a city field with bilingual support */
-function cityFilter(field: string, term: string) {
+/** Build an OR filter for a city field with bilingual support and airport codes */
+function cityFilter(field: 'departureCity' | 'arrivalCity', term: string) {
   const variants = expandCitySearch(term);
-  if (variants.length === 1) {
-    return { [field]: { contains: term, mode: 'insensitive' as const } };
+  const codeField = field === 'departureCity' ? 'departureCode' : 'arrivalCode';
+  const or: any[] = variants.map((v) => ({
+    [field]: { contains: v, mode: 'insensitive' as const },
+  }));
+  // A 3-letter term may be an IATA code (listings created with the city picker).
+  if (/^[a-z]{3}$/i.test(term.trim())) {
+    or.push({ [codeField]: { equals: term.trim().toUpperCase() } });
   }
-  return {
-    OR: variants.map((v) => ({
-      [field]: { contains: v, mode: 'insensitive' as const },
-    })),
-  };
+  return or.length === 1 ? or[0] : { OR: or };
 }
 
 @Injectable()
@@ -208,6 +210,8 @@ export class ListingsService {
         status: 'active',
         departureCity: createListingDto.departureCity,
         arrivalCity: createListingDto.arrivalCity,
+        departureCode: createListingDto.departureCode?.trim().toUpperCase() || null,
+        arrivalCode: createListingDto.arrivalCode?.trim().toUpperCase() || null,
         departureDate: new Date(createListingDto.departureDate),
         flightNumber: createListingDto.flightNumber,
         availableWeight: createListingDto.availableWeight,
@@ -231,6 +235,8 @@ export class ListingsService {
     const allowedFields = [
       'departureCity',
       'arrivalCity',
+      'departureCode',
+      'arrivalCode',
       'departureDate',
       'flightNumber',
       'availableWeight',

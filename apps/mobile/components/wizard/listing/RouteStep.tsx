@@ -1,185 +1,147 @@
 import React from 'react';
-import { View, TextInput, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { V2_COLORS, RADIUS, BUBBLE_SHADOWS } from '@/providers/ThemeProvider';
+import { V2_COLORS, BUBBLE_SHADOWS, themed } from '@/providers/ThemeProvider';
 import { QuestionTitle } from '../QuestionTitle';
 import { OptionChips, ChipOption } from '../OptionChips';
 import { AnimatedButton } from '@/components/animations/AnimatedButton';
+import { CityPickerField } from '@/components/common/CityPickerField';
 import type { StepProps } from '../WizardContainer';
 
 const POPULAR_ROUTES: ChipOption[] = [
-  { id: 'ruh-jed', label: 'Riyadh → Jeddah' },
-  { id: 'ruh-dxb', label: 'RUH → DXB' },
-  { id: 'jed-cai', label: 'Jeddah → Cairo' },
-  { id: 'ruh-amm', label: 'RUH → AMM' },
+  { id: 'RUH-JED', label: 'searchBar.routeRuhJed' },
+  { id: 'RUH-DXB', label: 'searchBar.routeRuhDxb' },
+  { id: 'JED-CAI', label: 'searchBar.routeJedCai' },
+  { id: 'RUH-AMM', label: 'searchBar.routeRuhAmm' },
 ];
 
 const ROUTE_MAP: Record<string, { from: string; fromCode: string; to: string; toCode: string }> = {
-  'ruh-jed': { from: 'Riyadh', fromCode: 'RUH', to: 'Jeddah', toCode: 'JED' },
-  'ruh-dxb': { from: 'Riyadh', fromCode: 'RUH', to: 'Dubai', toCode: 'DXB' },
-  'jed-cai': { from: 'Jeddah', fromCode: 'JED', to: 'Cairo', toCode: 'CAI' },
-  'ruh-amm': { from: 'Riyadh', fromCode: 'RUH', to: 'Amman', toCode: 'AMM' },
+  'RUH-JED': { from: 'Riyadh', fromCode: 'RUH', to: 'Jeddah', toCode: 'JED' },
+  'RUH-DXB': { from: 'Riyadh', fromCode: 'RUH', to: 'Dubai', toCode: 'DXB' },
+  'JED-CAI': { from: 'Jeddah', fromCode: 'JED', to: 'Cairo', toCode: 'CAI' },
+  'RUH-AMM': { from: 'Riyadh', fromCode: 'RUH', to: 'Amman', toCode: 'AMM' },
 };
 
 export function RouteStep({ data, updateData, goNext }: StepProps) {
-  const { t, i18n } = useTranslation();
-  const isRTL = i18n.language === 'ar';
+  const { t } = useTranslation();
 
-  const canAdvance = !!data.departureCity?.trim() && !!data.arrivalCity?.trim();
+  const sameCity =
+    !!data.departureCity &&
+    data.departureCity.trim().toLowerCase() === data.arrivalCity?.trim().toLowerCase();
+  const canAdvance = !!data.departureCity?.trim() && !!data.arrivalCity?.trim() && !sameCity;
+  const selectedRoute =
+    data.departureCode && data.arrivalCode ? `${data.departureCode}-${data.arrivalCode}` : null;
 
   const handlePopularRoute = (id: string) => {
     const route = ROUTE_MAP[id];
-    if (route) {
-      updateData({
-        departureCity: route.from,
-        departureCode: route.fromCode,
-        arrivalCity: route.to,
-        arrivalCode: route.toCode,
-      });
-    }
+    if (!route) return;
+    updateData({
+      departureCity: route.from,
+      departureCode: route.fromCode,
+      arrivalCity: route.to,
+      arrivalCode: route.toCode,
+    });
   };
+
+  const swap = () =>
+    updateData({
+      departureCity: data.arrivalCity,
+      departureCode: data.arrivalCode,
+      arrivalCity: data.departureCity,
+      arrivalCode: data.departureCode,
+    });
 
   return (
     <View>
-      <QuestionTitle
-        emoji="✈️"
-        title={t('listing.wizard.route.title', { defaultValue: 'Where are you traveling?' })}
-      />
+      <QuestionTitle emoji="✈️" title={t('listing.wizard.route.title')} />
 
-      {/* From */}
-      <Animated.View entering={FadeInUp.delay(150).springify()} style={styles.inputGroup}>
-        <View style={styles.inputLabel}>
-          <View style={[styles.dot, { backgroundColor: V2_COLORS.accent1 }]} />
-          <Animated.Text style={styles.label}>
-            {t('listing.wizard.route.from', { defaultValue: 'From' })}
-          </Animated.Text>
-        </View>
-        <TextInput
-          style={styles.input}
-          value={data.departureCity || ''}
-          onChangeText={(v) => updateData({ departureCity: v })}
-          placeholder={t('listing.wizard.route.searchCity', { defaultValue: 'Search city...' })}
-          placeholderTextColor={V2_COLORS.textMuted}
-          textAlign={isRTL ? 'right' : 'left'}
+      <Animated.View entering={FadeInUp.delay(150).springify()}>
+        <CityPickerField
+          label={t('listing.wizard.route.from')}
+          dotColor={V2_COLORS.accent1}
+          city={data.departureCity}
+          code={data.departureCode}
+          placeholder={t('cityPicker.selectDeparture')}
+          onSelect={({ city, code }) => updateData({ departureCity: city, departureCode: code })}
         />
-        <TextInput
-          style={styles.codeInput}
-          value={data.departureCode || ''}
-          onChangeText={(v) => updateData({ departureCode: v.toUpperCase() })}
-          placeholder="RUH"
-          placeholderTextColor={V2_COLORS.textMuted}
-          maxLength={4}
-          autoCapitalize="characters"
-          textAlign="center"
-        />
-      </Animated.View>
 
-      {/* To */}
-      <Animated.View entering={FadeInUp.delay(200).springify()} style={styles.inputGroup}>
-        <View style={styles.inputLabel}>
-          <View style={[styles.dot, { backgroundColor: V2_COLORS.secondary }]} />
-          <Animated.Text style={styles.label}>
-            {t('listing.wizard.route.to', { defaultValue: 'To' })}
-          </Animated.Text>
+        <View style={styles.swapRow}>
+          <View style={styles.swapLine} />
+          <TouchableOpacity
+            style={styles.swapBtn}
+            onPress={swap}
+            disabled={!data.departureCity && !data.arrivalCity}
+            accessibilityRole="button"
+            accessibilityLabel={t('searchBar.swapCities')}
+          >
+            <Ionicons name="swap-vertical" size={20} color={V2_COLORS.primary} />
+          </TouchableOpacity>
+          <View style={styles.swapLine} />
         </View>
-        <TextInput
-          style={styles.input}
-          value={data.arrivalCity || ''}
-          onChangeText={(v) => updateData({ arrivalCity: v })}
-          placeholder={t('listing.wizard.route.searchCity', { defaultValue: 'Search city...' })}
-          placeholderTextColor={V2_COLORS.textMuted}
-          textAlign={isRTL ? 'right' : 'left'}
+
+        <CityPickerField
+          label={t('listing.wizard.route.to')}
+          dotColor={V2_COLORS.secondary}
+          city={data.arrivalCity}
+          code={data.arrivalCode}
+          placeholder={t('cityPicker.selectArrival')}
+          onSelect={({ city, code }) => updateData({ arrivalCity: city, arrivalCode: code })}
         />
-        <TextInput
-          style={styles.codeInput}
-          value={data.arrivalCode || ''}
-          onChangeText={(v) => updateData({ arrivalCode: v.toUpperCase() })}
-          placeholder="JED"
-          placeholderTextColor={V2_COLORS.textMuted}
-          maxLength={4}
-          autoCapitalize="characters"
-          textAlign="center"
-        />
+        {sameCity && <Text style={styles.error}>{t('cityPicker.sameCity')}</Text>}
       </Animated.View>
 
       {/* Popular Routes */}
       <Animated.View entering={FadeInUp.delay(300).springify()} style={styles.popular}>
-        <Animated.Text style={styles.popularLabel}>
-          {t('listing.wizard.route.popular', { defaultValue: 'Popular Routes:' })}
-        </Animated.Text>
-        <OptionChips options={POPULAR_ROUTES} selected={null} onSelect={handlePopularRoute} />
+        <Text style={styles.popularLabel}>{t('listing.wizard.route.popular')}</Text>
+        <OptionChips
+          options={POPULAR_ROUTES}
+          selected={selectedRoute}
+          onSelect={handlePopularRoute}
+        />
       </Animated.View>
 
-      {/* Next */}
-      {canAdvance && (
-        <Animated.View entering={FadeInUp.delay(100).springify()} style={styles.nextContainer}>
-          <AnimatedButton
-            title={t('wizard.next', { defaultValue: 'Next' })}
-            onPress={goNext}
-            size="lg"
-            fullWidth
-          />
-        </Animated.View>
-      )}
+      <View style={styles.nextContainer}>
+        <AnimatedButton
+          disabled={!canAdvance}
+          title={t('wizard.next')}
+          onPress={goNext}
+          size="lg"
+          fullWidth
+        />
+      </View>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  inputGroup: {
-    marginBottom: 20,
-  },
-  inputLabel: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 8,
-  },
-  dot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: V2_COLORS.textSoft,
-  },
-  input: {
-    height: 48,
-    borderRadius: RADIUS.input,
-    paddingHorizontal: 20,
-    fontSize: 16,
-    backgroundColor: '#FFFFFF',
-    color: V2_COLORS.text,
-    marginBottom: 8,
-    ...BUBBLE_SHADOWS.xs,
-  },
-  codeInput: {
-    height: 40,
-    width: 80,
-    borderRadius: RADIUS.input,
-    paddingHorizontal: 8,
-    fontSize: 14,
-    fontWeight: '700',
-    backgroundColor: '#FFFFFF',
-    color: V2_COLORS.text,
-    letterSpacing: 1,
-    ...BUBBLE_SHADOWS.xs,
-  },
-  popular: {
-    marginTop: 8,
-    marginBottom: 24,
-  },
-  popularLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: V2_COLORS.textSoft,
-    marginBottom: 8,
-  },
-  nextContainer: {
-    marginTop: 8,
-  },
-});
+const styles = themed(() =>
+  StyleSheet.create({
+    swapRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      marginVertical: 2,
+    },
+    swapLine: { flex: 1, height: 1, backgroundColor: V2_COLORS.border },
+    swapBtn: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: V2_COLORS.surface,
+      ...BUBBLE_SHADOWS.xs,
+    },
+    error: { color: V2_COLORS.secondary, fontSize: 13, marginTop: 4 },
+    popular: { marginTop: 20, marginBottom: 24 },
+    popularLabel: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: V2_COLORS.textSoft,
+      marginBottom: 10,
+      textAlign: 'left',
+    },
+    nextContainer: { marginTop: 8 },
+  })
+);

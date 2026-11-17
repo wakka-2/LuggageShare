@@ -58,16 +58,45 @@ export class AuthService {
     return this.generateTokens(user);
   }
 
+  /**
+   * OAuth client IDs whose Google tokens we accept (web, iOS, Android).
+   * Each env var may hold a comma-separated list. Empty = audience check skipped,
+   * which is only acceptable in local development.
+   */
+  private googleClientIds(): string[] {
+    return ['GOOGLE_CLIENT_ID', 'GOOGLE_IOS_CLIENT_ID', 'GOOGLE_ANDROID_CLIENT_ID']
+      .flatMap((key) => (this.configService.get<string>(key) ?? '').split(','))
+      .map((id) => id.trim())
+      .filter(Boolean);
+  }
+
   async googleAuth(dto: GoogleAuthDto) {
     try {
-      // Verify the access token and fetch the user's profile in one call.
-      // useGoogleLogin (implicit flow) returns an opaque access_token — we verify
-      // it via Google's userinfo endpoint (tokeninfo?id_token= only works for JWT ID tokens).
-      const response = await axios.get('https://www.googleapis.com/oauth2/v3/userinfo', {
+      // 1) Verify the opaque access token was issued to one of OUR OAuth clients.
+      //    userinfo alone accepts a token minted for ANY app, so a token from an
+      //    unrelated Google sign-in could be replayed here (token substitution).
+      const { data: tokenInfo } = await axios.get('https://oauth2.googleapis.com/tokeninfo', {
+        params: { access_token: dto.accessToken },
+      });
+      const allowedClients = this.googleClientIds();
+      if (
+        allowedClients.length > 0 &&
+        !allowedClients.includes(tokenInfo.aud) &&
+        !allowedClients.includes(tokenInfo.azp)
+      ) {
+        throw new UnauthorizedException('Google token audience mismatch');
+      }
+
+      // 2) Fetch the profile (tokeninfo has no name/picture) and make sure it
+      //    belongs to the same Google account the token was verified for.
+      const { data: profile } = await axios.get('https://www.googleapis.com/oauth2/v3/userinfo', {
         headers: { Authorization: `Bearer ${dto.accessToken}` },
       });
+      if (tokenInfo.sub && profile.sub !== tokenInfo.sub) {
+        throw new UnauthorizedException('Invalid Google token');
+      }
 
-      const { email, name, picture, sub: googleId } = response.data;
+      const { email, name, picture, sub: googleId } = profile;
 
       if (!email) {
         throw new UnauthorizedException('Google account has no email');

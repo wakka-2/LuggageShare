@@ -3,7 +3,7 @@ import { usePathname, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 
-import { V2_COLORS, RADIUS, BUBBLE_SHADOWS } from '@/providers/ThemeProvider';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS, themed } from '@/providers/ThemeProvider';
 import { SIDEBAR_WIDTH, SIDEBAR_COLLAPSED_WIDTH, webTransition } from './styles';
 
 interface NavItem {
@@ -116,82 +116,84 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    height: '100%' as any,
-    position: 'fixed' as any,
-    top: 0,
-    start: 0,
-    zIndex: 100,
-    flexDirection: 'column',
-    overflow: 'hidden',
-    backgroundColor: '#FFFFFF',
-    ...BUBBLE_SHADOWS.sm,
-  },
-  logoArea: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    height: 64,
-  },
-  logoText: {
-    fontSize: 18,
-    fontWeight: '800',
-    letterSpacing: -0.3,
-    color: V2_COLORS.primary,
-  },
-  toggleButton: {
-    width: 36,
-    height: 36,
-    borderRadius: RADIUS.pill,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: V2_COLORS.bg,
-    ...({ cursor: 'pointer' } as any),
-  },
-  navList: {
-    flex: 1,
-    paddingHorizontal: 12,
-    paddingTop: 8,
-    gap: 4,
-  },
-  navItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderRadius: RADIUS.pill,
-    gap: 12,
-    ...({ cursor: 'pointer' } as any),
-  },
-  navItemCollapsed: {
-    justifyContent: 'center',
-    paddingHorizontal: 0,
-  },
-  navItemActive: {
-    backgroundColor: V2_COLORS.primary,
-    ...BUBBLE_SHADOWS.sm,
-  },
-  navLabel: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  navLabelActive: {
-    fontWeight: '600',
-  },
-  bottomSection: {
-    paddingHorizontal: 16,
-    paddingBottom: 16,
-    gap: 8,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: V2_COLORS.cardShadow,
-  },
-  versionText: {
-    fontSize: 11,
-    textAlign: 'center',
-    color: V2_COLORS.textMuted,
-  },
-});
+const styles = themed(() =>
+  StyleSheet.create({
+    container: {
+      height: '100%' as any,
+      position: 'fixed' as any,
+      top: 0,
+      start: 0,
+      zIndex: 100,
+      flexDirection: 'column',
+      overflow: 'hidden',
+      backgroundColor: V2_COLORS.surface,
+      ...BUBBLE_SHADOWS.sm,
+    },
+    logoArea: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+      height: 64,
+    },
+    logoText: {
+      fontSize: 18,
+      fontWeight: '800',
+      letterSpacing: -0.3,
+      color: V2_COLORS.primary,
+    },
+    toggleButton: {
+      width: 36,
+      height: 36,
+      borderRadius: RADIUS.pill,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: V2_COLORS.bg,
+      ...({ cursor: 'pointer' } as any),
+    },
+    navList: {
+      flex: 1,
+      paddingHorizontal: 12,
+      paddingTop: 8,
+      gap: 4,
+    },
+    navItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 10,
+      paddingHorizontal: 12,
+      borderRadius: RADIUS.pill,
+      gap: 12,
+      ...({ cursor: 'pointer' } as any),
+    },
+    navItemCollapsed: {
+      justifyContent: 'center',
+      paddingHorizontal: 0,
+    },
+    navItemActive: {
+      backgroundColor: V2_COLORS.primary,
+      ...BUBBLE_SHADOWS.sm,
+    },
+    navLabel: {
+      fontSize: 14,
+      fontWeight: '500',
+    },
+    navLabelActive: {
+      fontWeight: '600',
+    },
+    bottomSection: {
+      paddingHorizontal: 16,
+      paddingBottom: 16,
+      gap: 8,
+    },
+    divider: {
+      height: 1,
+      backgroundColor: V2_COLORS.cardShadow,
+    },
+    versionText: {
+      fontSize: 11,
+      textAlign: 'center',
+      color: V2_COLORS.textMuted,
+    },
+  })
+);

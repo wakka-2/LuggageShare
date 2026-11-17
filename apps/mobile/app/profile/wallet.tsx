@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { useRefreshOnFocus } from '@/hooks/useRefreshOnFocus';
 import {
   View,
   Text,
@@ -19,7 +20,7 @@ import { useRouter } from 'expo-router';
 import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 
-import { V2_COLORS, RADIUS, BUBBLE_SHADOWS, GRADIENTS } from '@/providers/ThemeProvider';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS, GRADIENTS, themed } from '@/providers/ThemeProvider';
 import { SkeletonLoader } from '@/components/animations';
 import { BackgroundBlobs } from '@/components/common';
 import { showAlert } from '@/lib/alert';
@@ -33,11 +34,21 @@ import {
 const TYPE_CONFIG: Record<
   string,
   { icon: keyof typeof Ionicons.glyphMap; color: string; labelKey: string }
-> = {
+> = themed(() => ({
   commission: {
     icon: 'trending-up-outline',
     color: V2_COLORS.accent1,
     labelKey: 'wallet.commission',
+  },
+  signup_bonus: {
+    icon: 'gift-outline',
+    color: V2_COLORS.accent3,
+    labelKey: 'wallet.welcomeGift',
+  },
+  referral_bonus: {
+    icon: 'people-outline',
+    color: V2_COLORS.accent3,
+    labelKey: 'wallet.referralBonus',
   },
   top_up: { icon: 'add-circle-outline', color: V2_COLORS.accent3, labelKey: 'wallet.topUpType' },
   refund: { icon: 'refresh-outline', color: V2_COLORS.accent2, labelKey: 'wallet.refund' },
@@ -46,7 +57,7 @@ const TYPE_CONFIG: Record<
     color: V2_COLORS.secondary,
     labelKey: 'wallet.withdrawal',
   },
-};
+}));
 
 export default function WalletScreen() {
   const { t, i18n } = useTranslation();
@@ -59,6 +70,7 @@ export default function WalletScreen() {
     isLoading: historyLoading,
     refetch: refetchHistory,
   } = useTransactionHistory();
+  useRefreshOnFocus(refetchBalance, refetchHistory);
   const withdrawalMutation = useWithdrawal();
 
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
@@ -199,6 +211,7 @@ export default function WalletScreen() {
         </View>
       ) : (
         <FlatList
+          keyboardShouldPersistTaps="handled"
           data={history || []}
           renderItem={renderTransaction}
           keyExtractor={(item) => item.id}
@@ -332,168 +345,170 @@ export default function WalletScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: V2_COLORS.bg } as ViewStyle,
-  skeletonContainer: { flex: 1 } as ViewStyle,
-  skeletonTx: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-  } as ViewStyle,
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-  } as ViewStyle,
-  backBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: RADIUS.pill,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...BUBBLE_SHADOWS.xs,
-  } as ViewStyle,
-  headerTitle: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: V2_COLORS.text,
-  } as TextStyle,
+const styles = themed(() =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: V2_COLORS.bg } as ViewStyle,
+    skeletonContainer: { flex: 1 } as ViewStyle,
+    skeletonTx: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      paddingHorizontal: 16,
+      paddingVertical: 14,
+    } as ViewStyle,
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+      paddingVertical: 10,
+    } as ViewStyle,
+    backBtn: {
+      width: 36,
+      height: 36,
+      borderRadius: RADIUS.pill,
+      backgroundColor: V2_COLORS.surface,
+      alignItems: 'center',
+      justifyContent: 'center',
+      ...BUBBLE_SHADOWS.xs,
+    } as ViewStyle,
+    headerTitle: {
+      fontSize: 17,
+      fontWeight: '700',
+      color: V2_COLORS.text,
+    } as TextStyle,
 
-  listContent: { padding: 16, gap: 10 } as ViewStyle,
+    listContent: { padding: 16, gap: 10 } as ViewStyle,
 
-  balanceCard: {
-    borderRadius: RADIUS.heroCard,
-    padding: 28,
-    alignItems: 'center',
-    overflow: 'hidden',
-    marginBottom: 8,
-  } as ViewStyle,
-  decoCircle: {
-    position: 'absolute',
-    borderRadius: 999,
-    backgroundColor: 'rgba(255,255,255,0.1)',
-  } as ViewStyle,
-  decoCircle1: {
-    width: 120,
-    height: 120,
-    top: -30,
-    right: -20,
-  } as ViewStyle,
-  decoCircle2: {
-    width: 80,
-    height: 80,
-    bottom: -20,
-    left: -10,
-  } as ViewStyle,
-  balanceLabel: {
-    color: 'rgba(255,255,255,0.7)',
-    fontSize: 14,
-    fontWeight: '500',
-    marginBottom: 8,
-  } as TextStyle,
-  balanceValue: { color: '#FFF', fontSize: 36, fontWeight: '700' } as TextStyle,
-  balanceCurrency: { fontSize: 18, fontWeight: '500' } as TextStyle,
-  withdrawBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginTop: 16,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: RADIUS.pill,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-  } as ViewStyle,
-  withdrawBtnText: { color: '#FFF', fontSize: 14, fontWeight: '600' } as TextStyle,
+    balanceCard: {
+      borderRadius: RADIUS.heroCard,
+      padding: 28,
+      alignItems: 'center',
+      overflow: 'hidden',
+      marginBottom: 8,
+    } as ViewStyle,
+    decoCircle: {
+      position: 'absolute',
+      borderRadius: 999,
+      backgroundColor: 'rgba(255,255,255,0.1)',
+    } as ViewStyle,
+    decoCircle1: {
+      width: 120,
+      height: 120,
+      top: -30,
+      right: -20,
+    } as ViewStyle,
+    decoCircle2: {
+      width: 80,
+      height: 80,
+      bottom: -20,
+      left: -10,
+    } as ViewStyle,
+    balanceLabel: {
+      color: 'rgba(255,255,255,0.7)',
+      fontSize: 14,
+      fontWeight: '500',
+      marginBottom: 8,
+    } as TextStyle,
+    balanceValue: { color: '#FFF', fontSize: 36, fontWeight: '700' } as TextStyle,
+    balanceCurrency: { fontSize: 18, fontWeight: '500' } as TextStyle,
+    withdrawBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      marginTop: 16,
+      paddingHorizontal: 20,
+      paddingVertical: 10,
+      borderRadius: RADIUS.pill,
+      backgroundColor: 'rgba(255,255,255,0.2)',
+    } as ViewStyle,
+    withdrawBtnText: { color: '#FFF', fontSize: 14, fontWeight: '600' } as TextStyle,
 
-  historyHeader: { paddingTop: 8, paddingBottom: 4 } as ViewStyle,
-  historyTitle: { fontSize: 18, fontWeight: '700', color: V2_COLORS.text } as TextStyle,
+    historyHeader: { paddingTop: 8, paddingBottom: 4 } as ViewStyle,
+    historyTitle: { fontSize: 18, fontWeight: '700', color: V2_COLORS.text } as TextStyle,
 
-  txItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 14,
-    gap: 12,
-    backgroundColor: '#FFFFFF',
-    borderRadius: RADIUS.card,
-    ...BUBBLE_SHADOWS.sm,
-  } as ViewStyle,
-  txIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
-  } as ViewStyle,
-  txContent: { flex: 1 } as ViewStyle,
-  txType: { fontSize: 15, fontWeight: '600', color: V2_COLORS.text } as TextStyle,
-  txDesc: { fontSize: 13, marginTop: 2, color: V2_COLORS.textSoft } as TextStyle,
-  txDate: { fontSize: 12, marginTop: 2, color: V2_COLORS.textMuted } as TextStyle,
-  txAmount: { fontSize: 16, fontWeight: '700' } as TextStyle,
+    txItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      padding: 14,
+      gap: 12,
+      backgroundColor: V2_COLORS.surface,
+      borderRadius: RADIUS.card,
+      ...BUBBLE_SHADOWS.sm,
+    } as ViewStyle,
+    txIcon: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      alignItems: 'center',
+      justifyContent: 'center',
+    } as ViewStyle,
+    txContent: { flex: 1 } as ViewStyle,
+    txType: { fontSize: 15, fontWeight: '600', color: V2_COLORS.text } as TextStyle,
+    txDesc: { fontSize: 13, marginTop: 2, color: V2_COLORS.textSoft } as TextStyle,
+    txDate: { fontSize: 12, marginTop: 2, color: V2_COLORS.textMuted } as TextStyle,
+    txAmount: { fontSize: 16, fontWeight: '700' } as TextStyle,
 
-  emptyState: { alignItems: 'center', paddingTop: 60, gap: 12 } as ViewStyle,
-  emptyTitle: { fontSize: 16, fontWeight: '600', color: V2_COLORS.text } as TextStyle,
-  emptyDesc: {
-    fontSize: 14,
-    textAlign: 'center',
-    paddingHorizontal: 40,
-    color: V2_COLORS.textMuted,
-  } as TextStyle,
+    emptyState: { alignItems: 'center', paddingTop: 60, gap: 12 } as ViewStyle,
+    emptyTitle: { fontSize: 16, fontWeight: '600', color: V2_COLORS.text } as TextStyle,
+    emptyDesc: {
+      fontSize: 14,
+      textAlign: 'center',
+      paddingHorizontal: 40,
+      color: V2_COLORS.textMuted,
+    } as TextStyle,
 
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    justifyContent: 'flex-end',
-  } as ViewStyle,
-  modalContent: {
-    borderTopLeftRadius: RADIUS.heroCard,
-    borderTopRightRadius: RADIUS.heroCard,
-    padding: 24,
-    paddingBottom: 40,
-    backgroundColor: V2_COLORS.bg,
-  } as ViewStyle,
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-  } as ViewStyle,
-  modalTitle: { fontSize: 20, fontWeight: '700', color: V2_COLORS.text } as TextStyle,
-  modalClose: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...BUBBLE_SHADOWS.xs,
-  } as ViewStyle,
-  fieldLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: V2_COLORS.text,
-    marginBottom: 6,
-  } as TextStyle,
-  modalInput: {
-    height: 48,
-    borderRadius: RADIUS.input,
-    paddingHorizontal: 20,
-    fontSize: 16,
-    backgroundColor: '#FFFFFF',
-    color: V2_COLORS.text,
-    marginBottom: 16,
-    ...BUBBLE_SHADOWS.xs,
-  } as TextStyle,
-  submitWithdrawBtn: {
-    height: 52,
-    borderRadius: RADIUS.pill,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 8,
-  } as ViewStyle,
-  submitWithdrawText: { color: '#FFF', fontSize: 16, fontWeight: '700' } as TextStyle,
-});
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0,0,0,0.4)',
+      justifyContent: 'flex-end',
+    } as ViewStyle,
+    modalContent: {
+      borderTopLeftRadius: RADIUS.heroCard,
+      borderTopRightRadius: RADIUS.heroCard,
+      padding: 24,
+      paddingBottom: 40,
+      backgroundColor: V2_COLORS.bg,
+    } as ViewStyle,
+    modalHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 20,
+    } as ViewStyle,
+    modalTitle: { fontSize: 20, fontWeight: '700', color: V2_COLORS.text } as TextStyle,
+    modalClose: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: V2_COLORS.surface,
+      alignItems: 'center',
+      justifyContent: 'center',
+      ...BUBBLE_SHADOWS.xs,
+    } as ViewStyle,
+    fieldLabel: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: V2_COLORS.text,
+      marginBottom: 6,
+    } as TextStyle,
+    modalInput: {
+      height: 48,
+      borderRadius: RADIUS.input,
+      paddingHorizontal: 20,
+      fontSize: 16,
+      backgroundColor: V2_COLORS.surface,
+      color: V2_COLORS.text,
+      marginBottom: 16,
+      ...BUBBLE_SHADOWS.xs,
+    } as TextStyle,
+    submitWithdrawBtn: {
+      height: 52,
+      borderRadius: RADIUS.pill,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginTop: 8,
+    } as ViewStyle,
+    submitWithdrawText: { color: '#FFF', fontSize: 16, fontWeight: '700' } as TextStyle,
+  })
+);

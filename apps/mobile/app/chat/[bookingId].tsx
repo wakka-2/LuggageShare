@@ -18,8 +18,9 @@ import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeIn, FadeInUp, SlideInDown } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 
-import { V2_COLORS, RADIUS, BUBBLE_SHADOWS, GRADIENTS } from '@/providers/ThemeProvider';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS, GRADIENTS, themed } from '@/providers/ThemeProvider';
 import { useMessages, useSendMessage, useMarkAsRead } from '@/hooks/useMessages';
+import { useBooking } from '@/hooks/useBookings';
 import { useAuth } from '@/hooks/useAuth';
 import { useSocket } from '@/hooks/useSocket';
 import { Avatar } from '@/components/common';
@@ -35,6 +36,13 @@ export default function ChatScreen() {
 
   const [messageText, setMessageText] = useState('');
   const { data: messages, isLoading } = useMessages(bookingId ?? null);
+  const { data: chatBooking } = useBooking(bookingId ?? null);
+  const otherParty =
+    chatBooking && user
+      ? chatBooking.senderId === user.id
+        ? chatBooking.carrier
+        : chatBooking.sender
+      : undefined;
   const sendMessage = useSendMessage();
   const markAsRead = useMarkAsRead();
   const { isConnected, sendMessage: socketSend, sendTyping, isOtherTyping } = useSocket(bookingId);
@@ -57,7 +65,13 @@ export default function ChatScreen() {
     setMessageText('');
 
     try {
-      await sendMessage.mutateAsync({ bookingId, content: text });
+      await sendMessage.mutateAsync({
+        bookingId,
+        content: text,
+        sender: user
+          ? { id: user.id, name: user.displayName ?? '', avatarUrl: user.avatarUrl }
+          : undefined,
+      });
     } catch {
       setMessageText(text);
     }
@@ -111,7 +125,9 @@ export default function ChatScreen() {
             color={V2_COLORS.text}
           />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>{t('chat.title')}</Text>
+        <Text style={styles.headerTitle} numberOfLines={1}>
+          {otherParty?.name || t('chat.title')}
+        </Text>
         <View style={styles.backBtn} />
       </View>
 
@@ -138,6 +154,7 @@ export default function ChatScreen() {
           </View>
         ) : (
           <FlatList
+            keyboardShouldPersistTaps="handled"
             ref={flatListRef}
             data={messages || []}
             renderItem={renderMessage}
@@ -207,94 +224,96 @@ export default function ChatScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: V2_COLORS.bg } as ViewStyle,
-  flex1: { flex: 1 } as ViewStyle,
-  skeletonChat: { flex: 1, padding: 16, gap: 12 } as ViewStyle,
-  skeletonRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 8 } as ViewStyle,
-  skeletonRowRight: { justifyContent: 'flex-end' } as ViewStyle,
-  skeletonRowLeft: { justifyContent: 'flex-start' } as ViewStyle,
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-  } as ViewStyle,
-  backBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: RADIUS.pill,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...BUBBLE_SHADOWS.xs,
-  } as ViewStyle,
-  headerTitle: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: V2_COLORS.text,
-  } as TextStyle,
+const styles = themed(() =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: V2_COLORS.bg } as ViewStyle,
+    flex1: { flex: 1 } as ViewStyle,
+    skeletonChat: { flex: 1, padding: 16, gap: 12 } as ViewStyle,
+    skeletonRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 8 } as ViewStyle,
+    skeletonRowRight: { justifyContent: 'flex-end' } as ViewStyle,
+    skeletonRowLeft: { justifyContent: 'flex-start' } as ViewStyle,
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+      paddingVertical: 10,
+    } as ViewStyle,
+    backBtn: {
+      width: 36,
+      height: 36,
+      borderRadius: RADIUS.pill,
+      backgroundColor: V2_COLORS.surface,
+      alignItems: 'center',
+      justifyContent: 'center',
+      ...BUBBLE_SHADOWS.xs,
+    } as ViewStyle,
+    headerTitle: {
+      fontSize: 17,
+      fontWeight: '700',
+      color: V2_COLORS.text,
+    } as TextStyle,
 
-  messagesList: { padding: 16, paddingBottom: 8 } as ViewStyle,
-  messageRow: {
-    flexDirection: 'row',
-    marginBottom: 12,
-    gap: 8,
-    alignItems: 'flex-end',
-  } as ViewStyle,
-  messageRowMe: { justifyContent: 'flex-end' } as ViewStyle,
-  messageRowOther: { justifyContent: 'flex-start' } as ViewStyle,
-  messageBubble: { maxWidth: '75%', padding: 12, borderRadius: 20 } as ViewStyle,
-  bubbleMe: {
-    borderBottomRightRadius: 6,
-  } as ViewStyle,
-  bubbleOther: {
-    borderBottomLeftRadius: 6,
-    backgroundColor: '#FFFFFF',
-    ...BUBBLE_SHADOWS.sm,
-  } as ViewStyle,
-  messageText: { fontSize: 15, lineHeight: 21 } as TextStyle,
-  messageTime: { fontSize: 11, marginTop: 4, textAlign: 'right' } as TextStyle,
+    messagesList: { padding: 16, paddingBottom: 8 } as ViewStyle,
+    messageRow: {
+      flexDirection: 'row',
+      marginBottom: 12,
+      gap: 8,
+      alignItems: 'flex-end',
+    } as ViewStyle,
+    messageRowMe: { justifyContent: 'flex-end' } as ViewStyle,
+    messageRowOther: { justifyContent: 'flex-start' } as ViewStyle,
+    messageBubble: { maxWidth: '75%', padding: 12, borderRadius: 20 } as ViewStyle,
+    bubbleMe: {
+      borderBottomRightRadius: 6,
+    } as ViewStyle,
+    bubbleOther: {
+      borderBottomLeftRadius: 6,
+      backgroundColor: V2_COLORS.surface,
+      ...BUBBLE_SHADOWS.sm,
+    } as ViewStyle,
+    messageText: { fontSize: 15, lineHeight: 21 } as TextStyle,
+    messageTime: { fontSize: 11, marginTop: 4, textAlign: 'right' } as TextStyle,
 
-  emptyChat: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingTop: 100,
-    gap: 12,
-  } as ViewStyle,
-  emptyChatText: { fontSize: 16, color: V2_COLORS.textMuted } as TextStyle,
+    emptyChat: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingTop: 100,
+      gap: 12,
+    } as ViewStyle,
+    emptyChatText: { fontSize: 16, color: V2_COLORS.textMuted } as TextStyle,
 
-  inputBar: {
-    padding: 12,
-    paddingBottom: 8,
-    backgroundColor: '#FFFFFF',
-    ...BUBBLE_SHADOWS.md,
-  } as ViewStyle,
-  inputRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: 8,
-  } as ViewStyle,
-  textInput: {
-    flex: 1,
-    minHeight: 40,
-    maxHeight: 100,
-    borderRadius: RADIUS.pill,
-    paddingHorizontal: 18,
-    paddingVertical: 10,
-    fontSize: 15,
-    backgroundColor: V2_COLORS.bg,
-    color: V2_COLORS.text,
-  } as TextStyle,
-  sendBtn: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    alignItems: 'center',
-    justifyContent: 'center',
-  } as ViewStyle,
-  typingIndicator: { paddingHorizontal: 16, paddingBottom: 4 } as ViewStyle,
-  typingText: { fontSize: 12, fontStyle: 'italic', color: V2_COLORS.textMuted } as TextStyle,
-});
+    inputBar: {
+      padding: 12,
+      paddingBottom: 8,
+      backgroundColor: V2_COLORS.surface,
+      ...BUBBLE_SHADOWS.md,
+    } as ViewStyle,
+    inputRow: {
+      flexDirection: 'row',
+      alignItems: 'flex-end',
+      gap: 8,
+    } as ViewStyle,
+    textInput: {
+      flex: 1,
+      minHeight: 40,
+      maxHeight: 100,
+      borderRadius: RADIUS.pill,
+      paddingHorizontal: 18,
+      paddingVertical: 10,
+      fontSize: 15,
+      backgroundColor: V2_COLORS.bg,
+      color: V2_COLORS.text,
+    } as TextStyle,
+    sendBtn: {
+      width: 42,
+      height: 42,
+      borderRadius: 21,
+      alignItems: 'center',
+      justifyContent: 'center',
+    } as ViewStyle,
+    typingIndicator: { paddingHorizontal: 16, paddingBottom: 4 } as ViewStyle,
+    typingText: { fontSize: 12, fontStyle: 'italic', color: V2_COLORS.textMuted } as TextStyle,
+  })
+);

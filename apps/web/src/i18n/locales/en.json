@@ -322,7 +322,6 @@
     "cancelConfirmMessage": "Are you sure you want to cancel this booking? This action cannot be undone.",
     "rejectConfirmMessage": "Are you sure you want to reject this booking?",
     "yesReject": "Yes, Reject",
-    "itemValue": "Value",
     "fileDispute": "File a Dispute"
   },
   "wallet": {
@@ -417,10 +416,10 @@
     "fromLabel": "From:",
     "toLabel": "To:",
     "clearAll": "Clear all",
-    "routeRuhDxb": "Riyadh \u2192 Dubai",
-    "routeJedCai": "Jeddah \u2192 Cairo",
-    "routeDmmBah": "Dammam \u2192 Bahrain",
-    "routeRuhAmm": "Riyadh \u2192 Amman",
+    "routeRuhDxb": "Riyadh → Dubai",
+    "routeJedCai": "Jeddah → Cairo",
+    "routeDmmBah": "Dammam → Bahrain",
+    "routeRuhAmm": "Riyadh → Amman",
     "result": "result",
     "swapCities": "Swap cities"
   },
@@ -477,7 +476,13 @@
     "notifications": "Notifications",
     "pushNotifications": "Push Notifications",
     "about": "About",
-    "version": "Version"
+    "version": "Version",
+    "account": "Account",
+    "deleteAccount": "Delete account",
+    "deleteAccountTitle": "Delete your account?",
+    "deleteAccountMessage": "This permanently removes your profile and personal data, signs you out everywhere, and cancels your open trips, bookings and offers. Remaining credits are forfeited. This cannot be undone.",
+    "deleteAccountConfirm": "Delete",
+    "deleteAccountBlocked": "You have deliveries in progress. Complete or cancel them before deleting your account."
   },
   "web": {
     "sidebar": {
@@ -948,7 +953,6 @@
     "termsTermination": "We reserve the right to suspend or terminate accounts that violate these terms or engage in fraudulent behavior.",
     "termsChanges": "We may update these terms from time to time. Continued use of the platform constitutes acceptance of the updated terms.",
     "termsContact": "If you have questions about these terms, contact us at help@luggageshare.com",
-
     "privacyTitle": "Privacy Policy",
     "privacyLastUpdated": "Last updated: March 2026",
     "privacyIntro": "Your privacy matters to us. This policy explains how we collect, use, and protect your personal data.",
@@ -960,7 +964,6 @@
     "privacyCookies": "We use essential cookies for authentication and preferences. No third-party tracking cookies are used.",
     "privacyRetention": "We retain your data for as long as your account is active. After account deletion, data is removed within 30 days.",
     "privacyContact": "For privacy questions, contact us at privacy@luggageshare.com",
-
     "contactTitle": "Contact & Support",
     "contactIntro": "Submit a support ticket and we'll get back to you within 24 hours.",
     "contactEmail": "Email",
@@ -973,7 +976,6 @@
     "contactHoursValue": "Sunday – Thursday, 9:00 AM – 6:00 PM (Arabia Standard Time)",
     "contactOffice": "Office",
     "contactOfficeValue": "Riyadh, Saudi Arabia",
-
     "ticketName": "Your Name",
     "ticketNamePlaceholder": "Enter your name",
     "ticketEmail": "Email Address",
@@ -1003,14 +1005,12 @@
     "ticketCreated": "Created",
     "ticketViewTickets": "View My Tickets",
     "ticketOrEmail": "Or email us directly at",
-
     "aboutTitle": "About Us",
     "aboutIntro": "LuggageShare is a Saudi-based platform that connects travelers who have spare luggage space with people who need to send items.",
     "aboutMission": "Our mission is to make sending items between cities affordable, convenient, and community-driven. Instead of expensive courier services, why not share space with someone already traveling your route?",
     "aboutHow": "Travelers post their upcoming trips and available luggage capacity. Senders browse trips, request bookings, and coordinate directly with carriers through our secure chat. After delivery, both parties rate each other to build trust in the community.",
     "aboutValues": "We believe in trust, transparency, and community. Every user goes through identity verification, and our review system helps maintain a safe and reliable platform.",
     "aboutTeam": "Built by a small team in Riyadh, we're passionate about solving everyday logistics challenges through peer-to-peer sharing.",
-
     "howItWorksTitle": "How It Works",
     "howItWorksIntro": "LuggageShare makes it easy to send items between cities. Here's how:",
     "howStep1Title": "1. Post Your Trip",
@@ -1023,7 +1023,6 @@
     "howStep4Desc": "The carrier delivers the items. Once the sender confirms delivery, the carrier gets paid securely through the platform.",
     "howStep5Title": "5. Rate & Review",
     "howStep5Desc": "Both parties rate each other after delivery. Reviews help build a trusted community.",
-
     "helpTitle": "Help Center",
     "helpIntro": "Find answers to common questions below. Can't find what you're looking for? Contact us at help@luggageshare.com.",
     "helpQ1": "How do I create an account?",
@@ -1038,7 +1037,6 @@
     "helpA5": "Contact us immediately through the app or at help@luggageshare.com. We'll investigate and help resolve the issue. We strongly recommend communicating item details clearly and taking photos before handoff.",
     "helpQ6": "How do I cancel a booking?",
     "helpA6": "Go to your booking page and cancel from there. Please cancel with reasonable notice. Repeated cancellations may affect your account standing.",
-
     "safetyTitle": "Safety",
     "safetyIntro": "Your safety is our top priority. Here's how we keep the LuggageShare community secure.",
     "safetyVerification": "All users sign in with verified Google accounts. We encourage completing your profile with a real photo and name to build trust.",
@@ -1047,14 +1045,12 @@
     "safetyPayments": "Payments go through the platform, not directly between users. Carriers receive payment only after delivery is confirmed.",
     "safetyTips": "Meet in public places for handoffs. Take photos of items before and after. Communicate clearly about item contents. Trust your instincts — if something feels wrong, don't proceed.",
     "safetyReport": "If you encounter suspicious behavior, report it immediately through the app or contact help@luggageshare.com. We take all reports seriously.",
-
     "careersTitle": "Careers",
     "careersIntro": "We're building the future of peer-to-peer luggage sharing. Join our small but ambitious team in Riyadh.",
     "careersWhy": "At LuggageShare, you'll work on real problems that affect everyday people. We move fast, ship often, and value ownership. Every team member has a direct impact on the product.",
     "careersCulture": "We're a remote-friendly team that values clear communication, continuous learning, and work-life balance. We believe great products come from happy, empowered teams.",
     "careersOpen": "We're always looking for talented people in engineering, design, and operations. Even if we don't have an open position listed, we'd love to hear from you.",
     "careersApply": "Send your CV and a brief introduction to careers@luggageshare.com",
-
     "prohibitedTitle": "Prohibited Items",
     "prohibitedIntro": "For everyone's safety, the following items are strictly prohibited from being transported through LuggageShare:",
     "prohibitedList1": "Explosives, firearms, and weapons of any kind",

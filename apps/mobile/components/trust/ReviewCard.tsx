@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
-import { V2_COLORS, RADIUS, BUBBLE_SHADOWS } from '@/providers/ThemeProvider';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS, themed } from '@/providers/ThemeProvider';
 import { Avatar } from '@/components/common';
 
 interface ReviewCardProps {
@@ -62,40 +62,42 @@ export function ReviewCard({ review, index = 0 }: ReviewCardProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: RADIUS.card,
-    padding: 14,
-    marginBottom: 10,
-    ...BUBBLE_SHADOWS.sm,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  headerInfo: {
-    flex: 1,
-  },
-  name: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: V2_COLORS.text,
-  },
-  date: {
-    fontSize: 11,
-    marginTop: 1,
-    color: V2_COLORS.textMuted,
-  },
-  stars: {
-    flexDirection: 'row',
-    gap: 1,
-  },
-  comment: {
-    fontSize: 14,
-    lineHeight: 20,
-    marginTop: 10,
-    color: V2_COLORS.text,
-  },
-});
+const styles = themed(() =>
+  StyleSheet.create({
+    card: {
+      backgroundColor: V2_COLORS.surface,
+      borderRadius: RADIUS.card,
+      padding: 14,
+      marginBottom: 10,
+      ...BUBBLE_SHADOWS.sm,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+    },
+    headerInfo: {
+      flex: 1,
+    },
+    name: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: V2_COLORS.text,
+    },
+    date: {
+      fontSize: 11,
+      marginTop: 1,
+      color: V2_COLORS.textMuted,
+    },
+    stars: {
+      flexDirection: 'row',
+      gap: 1,
+    },
+    comment: {
+      fontSize: 14,
+      lineHeight: 20,
+      marginTop: 10,
+      color: V2_COLORS.text,
+    },
+  })
+);

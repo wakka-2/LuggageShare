@@ -11,7 +11,7 @@
     "splash": {
       "image": "./assets/images/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#2E5A8F"
+      "backgroundColor": "#7C6AFF"
     },
     "ios": {
       "supportsTablet": true,
@@ -20,21 +20,24 @@
       "infoPlist": {
         "NSCameraUsageDescription": "LuggageShare needs camera access to take photos of items",
         "NSPhotoLibraryUsageDescription": "LuggageShare needs photo library access to upload item photos",
-        "NSLocationWhenInUseUsageDescription": "LuggageShare needs location access for pickup and delivery coordination"
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#2E5A8F"
+        "backgroundColor": "#7C6AFF"
       },
       "package": "com.luggageshare.app",
       "permissions": [
         "android.permission.CAMERA",
-        "android.permission.READ_EXTERNAL_STORAGE",
-        "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.ACCESS_COARSE_LOCATION",
-        "android.permission.RECORD_AUDIO"
+        "android.permission.ACCESS_FINE_LOCATION"
+      ],
+      "blockedPermissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.ACCESS_BACKGROUND_LOCATION",
+        "android.permission.SYSTEM_ALERT_WINDOW"
       ]
     },
     "web": {
@@ -44,35 +47,34 @@
     },
     "plugins": [
       "expo-router",
-      "expo-secure-store",
-      "expo-apple-authentication",
-      [
-        "expo-camera",
-        {
-          "cameraPermission": "Allow LuggageShare to access your camera to take photos of items."
-        }
-      ],
-      [
-        "expo-image-picker",
-        {
-          "photosPermission": "Allow LuggageShare to access your photos to upload item images."
-        }
-      ],
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Allow LuggageShare to use your location for pickup and delivery coordination."
+          "locationWhenInUsePermission": "LuggageShare uses your location to set the pickup meeting point on the map.",
+          "isAndroidBackgroundLocationEnabled": false,
+          "isIosBackgroundLocationEnabled": false
+        }
+      ],
+      "expo-secure-store",
+      "expo-apple-authentication",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow LuggageShare to access your photos to upload item images.",
+          "cameraPermission": "Allow LuggageShare to use your camera to take photos of items.",
+          "microphonePermission": false
         }
       ],
       [
         "expo-notifications",
         {
           "icon": "./assets/images/notification-icon.png",
-          "color": "#2E5A8F"
+          "color": "#7C6AFF"
         }
       ],
       "expo-font",
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      "./plugins/withAndroidDialogTheme"
     ],
     "experiments": {
       "typedRoutes": true
@@ -89,7 +91,8 @@
       "supabasePublishableKey": "sb_publishable_IJg01FKuDoOraYCEpXA6ag_1XlB-0gu",
       "googleWebClientId": "74009374313-rak28eramgaojnr67fivn8qqo9hjin6r.apps.googleusercontent.com",
       "googleIosClientId": "",
-      "googleAndroidClientId": ""
+      "googleAndroidClientId": "",
+      "webUrl": "https://luggageshare-iota.vercel.app"
     },
     "owner": "aimanqaid",
     "runtimeVersion": {

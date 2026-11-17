@@ -17,6 +17,7 @@ import { ReviewBookStep } from '@/components/wizard/booking/ReviewBookStep';
 import { MOCK_LISTINGS, adaptMockListing } from '@/components/listings';
 import { validateWeight } from '@luggageshare/shared';
 import { showAlert } from '@/lib/alert';
+import { USE_MOCK_FALLBACK } from '@/lib/devFlags';
 
 const BOOKING_STEPS: WizardStepConfig[] = [
   {
@@ -33,7 +34,7 @@ const BOOKING_STEPS: WizardStepConfig[] = [
   },
   {
     component: PickupStep,
-    validate: (data) => !!data.pickupLocation?.trim(),
+    validate: (data) => !!data.pickupLocation?.trim() || typeof data.pickupLat === 'number',
   },
   {
     component: ReviewBookStep,
@@ -52,7 +53,9 @@ export default function CreateBookingScreen() {
 
   // Fall back to mock data when API doesn't return a result
   const mockMatch =
-    !apiListing && listingId ? MOCK_LISTINGS.find((m) => m.id === listingId) : undefined;
+    USE_MOCK_FALLBACK && !apiListing && listingId
+      ? MOCK_LISTINGS.find((m) => m.id === listingId)
+      : undefined;
   const listing = apiListing ?? (mockMatch ? adaptMockListing(mockMatch) : undefined);
 
   const [showSuccess, setShowSuccess] = useState(false);
@@ -63,7 +66,7 @@ export default function CreateBookingScreen() {
   const handleComplete = useCallback(
     async (data: Record<string, any>) => {
       if (!listingId) {
-        showAlert(t('common.errorTitle'), 'Missing listing ID');
+        showAlert(t('common.errorTitle'), t('booking.missingListing'));
         return;
       }
 
@@ -84,7 +87,7 @@ export default function CreateBookingScreen() {
       if (listing && availableWeight > 0 && weight > availableWeight) {
         showAlert(
           t('common.errorTitle'),
-          `Weight (${weight}kg) exceeds available (${availableWeight}kg)`
+          t('booking.weightExceedsAvailable', { weight, available: availableWeight })
         );
         return;
       }
@@ -105,6 +108,9 @@ export default function CreateBookingScreen() {
           listingId,
           totalWeight: weight,
           items: bookingItems,
+          pickupAddress: (data.pickupLocation || '').trim() || undefined,
+          pickupLat: typeof data.pickupLat === 'number' ? data.pickupLat : undefined,
+          pickupLng: typeof data.pickupLng === 'number' ? data.pickupLng : undefined,
         });
 
         setShowSuccess(true);

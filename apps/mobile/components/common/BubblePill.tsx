@@ -1,7 +1,7 @@
 import { Pressable, Text, View, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
-import { RADIUS, V2_COLORS } from '@/providers/ThemeProvider';
+import { RADIUS, V2_COLORS, themed } from '@/providers/ThemeProvider';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -72,43 +72,45 @@ export function BubblePill({
   );
 }
 
-const styles = StyleSheet.create({
-  pill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: RADIUS.pill,
-    borderWidth: 1.5,
-  },
-  inactive: {
-    backgroundColor: '#FFFFFF',
-    borderColor: 'rgba(124,106,255,0.08)',
-  },
-  icon: {
-    marginRight: 4,
-  },
-  label: {
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  labelActive: {
-    color: '#FFFFFF',
-  },
-  labelInactive: {
-    color: V2_COLORS.textSoft,
-  },
-  countBadge: {
-    marginLeft: 6,
-    minWidth: 18,
-    height: 18,
-    borderRadius: 9,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 4,
-  },
-  countText: {
-    fontSize: 10,
-    fontWeight: '700',
-  },
-});
+const styles = themed(() =>
+  StyleSheet.create({
+    pill: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      paddingVertical: 10,
+      borderRadius: RADIUS.pill,
+      borderWidth: 1.5,
+    },
+    inactive: {
+      backgroundColor: V2_COLORS.surface,
+      borderColor: 'rgba(124,106,255,0.08)',
+    },
+    icon: {
+      marginRight: 4,
+    },
+    label: {
+      fontSize: 13,
+      fontWeight: '600',
+    },
+    labelActive: {
+      color: '#FFFFFF',
+    },
+    labelInactive: {
+      color: V2_COLORS.textSoft,
+    },
+    countBadge: {
+      marginLeft: 6,
+      minWidth: 18,
+      height: 18,
+      borderRadius: 9,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: 4,
+    },
+    countText: {
+      fontSize: 10,
+      fontWeight: '700',
+    },
+  })
+);

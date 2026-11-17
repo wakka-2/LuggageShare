@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback } from 'react';
+import { useRefreshOnFocus } from '@/hooks/useRefreshOnFocus';
 import {
   View,
   Text,
@@ -33,13 +34,8 @@ import { useTheme } from '@/hooks/useTheme';
 import { useListings } from '@/hooks/useListings';
 import { mapApiListingToListing } from '@/lib/mappers';
 import { HomeHeader } from '@/components/home';
-import {
-  EmptyState,
-  BackgroundBlobs,
-  StatBubble,
-  SectionHeader,
-  BubbleButton,
-} from '@/components/common';
+import { CalendarModal } from '@/components/common/CalendarModal';
+import { EmptyState, BackgroundBlobs, SectionHeader, BubbleButton } from '@/components/common';
 import {
   ListingCard,
   ViewToggle,
@@ -52,12 +48,14 @@ import {
 import { useUnreadCount } from '@/hooks/useNotifications';
 import { SkeletonCard, StaggeredItem } from '@/components/animations';
 import { FloatingIcons, WaveDivider, SparkleGroup, OrbCluster } from '@/components/decorations';
+import { USE_MOCK_FALLBACK } from '@/lib/devFlags';
 import {
   V2_COLORS,
   GRADIENTS,
   RADIUS,
   BUBBLE_SHADOWS,
   TYPOGRAPHY,
+  themed,
 } from '@/providers/ThemeProvider';
 
 type TabValue = ListingType | 'all';
@@ -77,6 +75,7 @@ export default function HomeScreen() {
   const [searchFrom, setSearchFrom] = useState('');
   const [searchTo, setSearchTo] = useState('');
   const [searchDate, setSearchDate] = useState('');
+  const [dateCalendarOpen, setDateCalendarOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
   // Fetch real listings from API (server-side filtering for from/to/date)
@@ -90,6 +89,7 @@ export default function HomeScreen() {
     to: searchTo || undefined,
     date: searchDate || undefined,
   });
+  useRefreshOnFocus(refetch);
 
   // Airplane spin for pull-to-refresh
   const airplaneRotation = useSharedValue(0);
@@ -114,7 +114,10 @@ export default function HomeScreen() {
     if (apiListings && apiListings.length > 0) {
       return apiListings.map(mapApiListingToListing);
     }
-    if (isError || (!isLoading && (!apiListings || apiListings.length === 0))) {
+    if (
+      USE_MOCK_FALLBACK &&
+      (isError || (!isLoading && (!apiListings || apiListings.length === 0)))
+    ) {
       return MOCK_LISTINGS;
     }
     return [];
@@ -180,7 +183,7 @@ export default function HomeScreen() {
               <Text style={styles.heroLabel}>{t('home.welcomeTo')}</Text>
               <Text style={styles.heroTitle}>
                 {t('home.appName')}
-                <Text style={{ color: '#FFE5ED' }}>Share</Text>
+                {i18n.language !== 'ar' && <Text style={{ color: '#FFE5ED' }}>Share</Text>}
               </Text>
               <Text style={styles.heroSubtitle}>{t('home.heroDescription')}</Text>
               <View style={styles.heroCTA}>
@@ -197,28 +200,6 @@ export default function HomeScreen() {
             </LinearGradient>
           </Animated.View>
 
-          {/* Stats Row */}
-          <Animated.View entering={FadeInUp.delay(200).duration(400)} style={styles.statsRowWide}>
-            <StatBubble
-              value="2.5K+"
-              label={t('home.travelers')}
-              icon="people"
-              color={V2_COLORS.primary}
-            />
-            <StatBubble
-              value="15K+"
-              label={t('home.deliveries')}
-              icon="airplane"
-              color={V2_COLORS.accent1}
-            />
-            <StatBubble
-              value="4.8"
-              label={t('home.rating')}
-              icon="star"
-              color={V2_COLORS.accent2}
-            />
-          </Animated.View>
-
           {/* Search Bar */}
           <Animated.View
             entering={FadeIn.delay(100).duration(400)}
@@ -232,6 +213,7 @@ export default function HomeScreen() {
               onToChange={setSearchTo}
               onDateChange={setSearchDate}
               onSwap={handleSwap}
+              onOpenDatePicker={() => setDateCalendarOpen(true)}
             />
           </Animated.View>
 
@@ -306,6 +288,19 @@ export default function HomeScreen() {
   // Mobile Layout
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      {dateCalendarOpen && (
+        <CalendarModal
+          overlay
+          visible
+          value={searchDate ? new Date(`${searchDate}T00:00:00`) : null}
+          minimumDate={new Date()}
+          onSelect={(d) => {
+            const p = (n: number) => String(n).padStart(2, '0');
+            setSearchDate(`${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`);
+          }}
+          onClose={() => setDateCalendarOpen(false)}
+        />
+      )}
       <BackgroundBlobs variant="full" />
       <FloatingIcons variant="full" />
       <HomeHeader notificationCount={notificationCount} />
@@ -368,23 +363,6 @@ export default function HomeScreen() {
           </LinearGradient>
         </Animated.View>
 
-        {/* Stats Row */}
-        <Animated.View entering={FadeInUp.delay(100).duration(400)} style={styles.statsRow}>
-          <StatBubble
-            value="2.5K+"
-            label={t('home.travelers')}
-            icon="people"
-            color={V2_COLORS.primary}
-          />
-          <StatBubble
-            value="15K+"
-            label={t('home.deliveries')}
-            icon="airplane"
-            color={V2_COLORS.accent1}
-          />
-          <StatBubble value="4.8" label={t('home.rating')} icon="star" color={V2_COLORS.accent2} />
-        </Animated.View>
-
         {/* Wave Divider */}
         <WaveDivider color="mint" />
 
@@ -399,6 +377,7 @@ export default function HomeScreen() {
             onToChange={setSearchTo}
             onDateChange={setSearchDate}
             onSwap={handleSwap}
+            onOpenDatePicker={() => setDateCalendarOpen(true)}
           />
         </Animated.View>
 
@@ -479,233 +458,218 @@ export default function HomeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: V2_COLORS.bg,
-  } as ViewStyle,
-  scrollContent: {
-    paddingBottom: 32,
-  } as ViewStyle,
-  scrollContentWide: {
-    paddingBottom: 48,
-  } as ViewStyle,
+const styles = themed(() =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: V2_COLORS.bg,
+    } as ViewStyle,
+    scrollContent: {
+      paddingBottom: 32,
+    } as ViewStyle,
+    scrollContentWide: {
+      paddingBottom: 48,
+    } as ViewStyle,
 
-  // Hero Card
-  heroCardMobile: {
-    marginHorizontal: 16,
-    marginBottom: 16,
-    borderRadius: RADIUS.heroCard,
-    overflow: 'hidden',
-    ...BUBBLE_SHADOWS.lg,
-  } as ViewStyle,
-  heroCardWide: {
-    maxWidth: 1200,
-    alignSelf: 'center',
-    width: '100%',
-    paddingHorizontal: 24,
-    marginBottom: 24,
-    borderRadius: RADIUS.heroCard,
-    overflow: 'hidden',
-  } as ViewStyle,
-  heroGradient: {
-    paddingHorizontal: 24,
-    paddingVertical: 32,
-    position: 'relative',
-    overflow: 'hidden',
-  } as ViewStyle,
-  heroGradientMobile: {
-    paddingHorizontal: 20,
-    paddingVertical: 24,
-    position: 'relative',
-    overflow: 'hidden',
-  } as ViewStyle,
-  heroDecoCircle1: {
-    position: 'absolute',
-    top: -30,
-    right: -20,
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: 'rgba(255,255,255,0.12)',
-  } as ViewStyle,
-  heroDecoCircle2: {
-    position: 'absolute',
-    bottom: -40,
-    left: -20,
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: 'rgba(255,255,255,0.08)',
-  } as ViewStyle,
-  heroLabel: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: 'rgba(255,255,255,0.8)',
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-    marginBottom: 8,
-  } as TextStyle,
-  heroTitle: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    marginBottom: 8,
-    letterSpacing: -0.5,
-  } as TextStyle,
-  heroTitleMobile: {
-    ...TYPOGRAPHY.hero,
-    color: '#FFFFFF',
-    marginBottom: 6,
-  } as TextStyle,
-  heroSubtitle: {
-    fontSize: 15,
-    lineHeight: 22,
-    color: 'rgba(255,255,255,0.85)',
-    maxWidth: 500,
-    marginBottom: 20,
-  } as TextStyle,
-  heroSubtitleMobile: {
-    ...TYPOGRAPHY.caption,
-    color: 'rgba(255,255,255,0.85)',
-    marginBottom: 16,
-  } as TextStyle,
-  heroCTA: {
-    flexDirection: 'row',
-    gap: 10,
-  } as ViewStyle,
+    // Hero Card
+    heroCardMobile: {
+      marginHorizontal: 16,
+      marginBottom: 16,
+      borderRadius: RADIUS.heroCard,
+      overflow: 'hidden',
+      ...BUBBLE_SHADOWS.lg,
+    } as ViewStyle,
+    heroCardWide: {
+      maxWidth: 1200,
+      alignSelf: 'center',
+      width: '100%',
+      paddingHorizontal: 24,
+      marginBottom: 24,
+      borderRadius: RADIUS.heroCard,
+      overflow: 'hidden',
+    } as ViewStyle,
+    heroGradient: {
+      paddingHorizontal: 24,
+      paddingVertical: 32,
+      position: 'relative',
+      overflow: 'hidden',
+    } as ViewStyle,
+    heroGradientMobile: {
+      paddingHorizontal: 20,
+      paddingVertical: 24,
+      position: 'relative',
+      overflow: 'hidden',
+    } as ViewStyle,
+    heroDecoCircle1: {
+      position: 'absolute',
+      top: -30,
+      right: -20,
+      width: 120,
+      height: 120,
+      borderRadius: 60,
+      backgroundColor: 'rgba(255,255,255,0.12)',
+    } as ViewStyle,
+    heroDecoCircle2: {
+      position: 'absolute',
+      bottom: -40,
+      left: -20,
+      width: 100,
+      height: 100,
+      borderRadius: 50,
+      backgroundColor: 'rgba(255,255,255,0.08)',
+    } as ViewStyle,
+    heroLabel: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: 'rgba(255,255,255,0.8)',
+      letterSpacing: 1,
+      textTransform: 'uppercase',
+      marginBottom: 8,
+    } as TextStyle,
+    heroTitle: {
+      fontSize: 32,
+      fontWeight: '800',
+      color: '#FFFFFF',
+      marginBottom: 8,
+      letterSpacing: -0.5,
+    } as TextStyle,
+    heroTitleMobile: {
+      ...TYPOGRAPHY.hero,
+      color: '#FFFFFF',
+      marginBottom: 6,
+    } as TextStyle,
+    heroSubtitle: {
+      fontSize: 15,
+      lineHeight: 22,
+      color: 'rgba(255,255,255,0.85)',
+      maxWidth: 500,
+      marginBottom: 20,
+    } as TextStyle,
+    heroSubtitleMobile: {
+      ...TYPOGRAPHY.caption,
+      color: 'rgba(255,255,255,0.85)',
+      marginBottom: 16,
+    } as TextStyle,
+    heroCTA: {
+      flexDirection: 'row',
+      gap: 10,
+    } as ViewStyle,
 
-  // Stats
-  statsRow: {
-    flexDirection: 'row',
-    gap: 10,
-    paddingHorizontal: 16,
-    marginBottom: 20,
-  } as ViewStyle,
-  statsRowWide: {
-    flexDirection: 'row',
-    gap: 16,
-    maxWidth: 1200,
-    alignSelf: 'center',
-    width: '100%',
-    paddingHorizontal: 24,
-    marginBottom: 24,
-  } as ViewStyle,
+    // Search
+    sectionPadded: {
+      paddingHorizontal: 16,
+    } as ViewStyle,
+    searchContainerWide: {
+      maxWidth: 1200,
+      alignSelf: 'center',
+      width: '100%',
+      paddingHorizontal: 24,
+      marginBottom: 20,
+    } as ViewStyle,
 
-  // Search
-  sectionPadded: {
-    paddingHorizontal: 16,
-  } as ViewStyle,
-  searchContainerWide: {
-    maxWidth: 1200,
-    alignSelf: 'center',
-    width: '100%',
-    paddingHorizontal: 24,
-    marginBottom: 20,
-  } as ViewStyle,
+    // Controls row
+    controlsRow: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+      marginBottom: 8,
+    } as ViewStyle,
+    controlsRowWide: {
+      maxWidth: 1200,
+      alignSelf: 'center',
+      width: '100%',
+      paddingHorizontal: 24,
+    } as ViewStyle,
+    tabsWrapper: {
+      flex: 1,
+    } as ViewStyle,
+    toggleWrapper: {
+      marginStart: 16,
+      paddingTop: 4,
+    } as ViewStyle,
 
-  // Controls row
-  controlsRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    marginBottom: 8,
-  } as ViewStyle,
-  controlsRowWide: {
-    maxWidth: 1200,
-    alignSelf: 'center',
-    width: '100%',
-    paddingHorizontal: 24,
-  } as ViewStyle,
-  tabsWrapper: {
-    flex: 1,
-  } as ViewStyle,
-  toggleWrapper: {
-    marginStart: 16,
-    paddingTop: 4,
-  } as ViewStyle,
+    // Results header
+    resultsHeader: {
+      paddingHorizontal: 16,
+      marginBottom: 16,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    } as ViewStyle,
+    resultsHeaderWide: {
+      maxWidth: 1200,
+      alignSelf: 'center',
+      width: '100%',
+      paddingHorizontal: 24,
+    } as ViewStyle,
+    resultsCount: {
+      ...TYPOGRAPHY.caption,
+      color: V2_COLORS.textSoft,
+    } as TextStyle,
 
-  // Results header
-  resultsHeader: {
-    paddingHorizontal: 16,
-    marginBottom: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  } as ViewStyle,
-  resultsHeaderWide: {
-    maxWidth: 1200,
-    alignSelf: 'center',
-    width: '100%',
-    paddingHorizontal: 24,
-  } as ViewStyle,
-  resultsCount: {
-    ...TYPOGRAPHY.caption,
-    color: V2_COLORS.textSoft,
-  } as TextStyle,
+    // Listings container
+    listingsContainer: {
+      paddingHorizontal: 16,
+    } as ViewStyle,
+    listingsContainerWide: {
+      maxWidth: 1200,
+      alignSelf: 'center',
+      width: '100%',
+      paddingHorizontal: 24,
+    } as ViewStyle,
+    listingsGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 20,
+    } as ViewStyle,
+    gridItem: {
+      width: '48%',
+      minWidth: 340,
+    } as ViewStyle,
 
-  // Listings container
-  listingsContainer: {
-    paddingHorizontal: 16,
-  } as ViewStyle,
-  listingsContainerWide: {
-    maxWidth: 1200,
-    alignSelf: 'center',
-    width: '100%',
-    paddingHorizontal: 24,
-  } as ViewStyle,
-  listingsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 20,
-  } as ViewStyle,
-  gridItem: {
-    width: '48%',
-    minWidth: 340,
-  } as ViewStyle,
+    // Empty state
+    emptyState: {
+      width: '100%',
+      minHeight: 350,
+      alignItems: 'center',
+      justifyContent: 'center',
+    } as ViewStyle,
 
-  // Empty state
-  emptyState: {
-    width: '100%',
-    minHeight: 350,
-    alignItems: 'center',
-    justifyContent: 'center',
-  } as ViewStyle,
+    refreshIndicator: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 16,
+    } as ViewStyle,
 
-  refreshIndicator: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 16,
-  } as ViewStyle,
+    // Mobile controls
+    mobileControlsRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+      marginBottom: 16,
+    } as ViewStyle,
+    mobileListings: {
+      paddingHorizontal: 16,
+    } as ViewStyle,
 
-  // Mobile controls
-  mobileControlsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    marginBottom: 16,
-  } as ViewStyle,
-  mobileListings: {
-    paddingHorizontal: 16,
-  } as ViewStyle,
-
-  // FAB
-  fab: {
-    position: 'absolute',
-    bottom: 24,
-    end: 20,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    overflow: 'hidden',
-    ...BUBBLE_SHADOWS.glow,
-  } as ViewStyle,
-  fabGradient: {
-    width: 56,
-    height: 56,
-    alignItems: 'center',
-    justifyContent: 'center',
-  } as ViewStyle,
-});
+    // FAB
+    fab: {
+      position: 'absolute',
+      bottom: 24,
+      end: 20,
+      width: 56,
+      height: 56,
+      borderRadius: 28,
+      overflow: 'hidden',
+      ...BUBBLE_SHADOWS.glow,
+    } as ViewStyle,
+    fabGradient: {
+      width: 56,
+      height: 56,
+      alignItems: 'center',
+      justifyContent: 'center',
+    } as ViewStyle,
+  })
+);

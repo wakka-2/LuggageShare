@@ -14,18 +14,25 @@ module.exports = {
   ],
   root: true,
   env: {
-    'react-native/react-native': true,
+    es2022: true,
+    node: true,
     jest: true,
+  },
+  globals: {
+    __DEV__: 'readonly',
   },
   settings: {
     react: { version: 'detect' },
   },
-  ignorePatterns: ['node_modules/', '.expo/', 'dist/', 'coverage/'],
+  ignorePatterns: ['node_modules/', '.expo/', 'dist/', 'coverage/', 'android/', 'ios/'],
   rules: {
     // TypeScript
     '@typescript-eslint/no-explicit-any': 'warn',
     '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
     '@typescript-eslint/explicit-function-return-type': 'off',
+    // React Native needs require() for static assets (images, Lottie JSON) and for
+    // platform-conditional modules that must stay out of other platforms' bundles.
+    '@typescript-eslint/no-require-imports': 'off',
 
     // React
     'react/react-in-jsx-scope': 'off',

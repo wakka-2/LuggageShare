@@ -4,7 +4,7 @@ import { usePathname } from 'expo-router';
 import Animated, { FadeIn } from 'react-native-reanimated';
 
 import { useAuth } from '@/hooks/useAuth';
-import { V2_COLORS } from '@/providers/ThemeProvider';
+import { V2_COLORS, themed } from '@/providers/ThemeProvider';
 import {
   SIDEBAR_WIDTH,
   SIDEBAR_COLLAPSED_WIDTH,
@@ -59,17 +59,19 @@ export function WebShell({ children }: WebShellProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  shell: {
-    flex: 1,
-    minHeight: '100vh' as any,
-    backgroundColor: V2_COLORS.bg,
-  },
-  content: {
-    flex: 1,
-    minHeight: `calc(100vh - ${TOPBAR_HEIGHT}px)` as any,
-  },
-  pageWrapper: {
-    flex: 1,
-  },
-});
+const styles = themed(() =>
+  StyleSheet.create({
+    shell: {
+      flex: 1,
+      minHeight: '100vh' as any,
+      backgroundColor: V2_COLORS.bg,
+    },
+    content: {
+      flex: 1,
+      minHeight: `calc(100vh - ${TOPBAR_HEIGHT}px)` as any,
+    },
+    pageWrapper: {
+      flex: 1,
+    },
+  })
+);

@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, StyleSheet, ViewStyle } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { GRADIENTS, V2_COLORS, RADIUS } from '@/providers/ThemeProvider';
+import { GRADIENTS, V2_COLORS, RADIUS, themed } from '@/providers/ThemeProvider';
 
 interface GradientAccentStripProps {
   gradient?: 'primary' | 'mint' | 'warm' | 'cool' | 'secondary';
@@ -9,13 +9,13 @@ interface GradientAccentStripProps {
   style?: ViewStyle;
 }
 
-const GRADIENT_MAP: Record<string, readonly [string, string, ...string[]]> = {
+const GRADIENT_MAP: Record<string, readonly [string, string, ...string[]]> = themed(() => ({
   primary: GRADIENTS.primary,
   mint: GRADIENTS.mint,
   warm: GRADIENTS.warm,
   cool: GRADIENTS.cool,
   secondary: GRADIENTS.secondary,
-};
+}));
 
 export function GradientAccentStrip({
   gradient = 'primary',

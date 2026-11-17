@@ -20,7 +20,7 @@ import { Image } from 'expo-image';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 
-import { V2_COLORS, RADIUS, BUBBLE_SHADOWS, GRADIENTS } from '@/providers/ThemeProvider';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS, GRADIENTS, themed } from '@/providers/ThemeProvider';
 import { BackgroundBlobs } from '@/components/common/BackgroundBlobs';
 import { showAlert } from '@/lib/alert';
 import { useImageUpload } from '@/hooks/useImageUpload';
@@ -210,128 +210,130 @@ export default function PaymentScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: V2_COLORS.bg } as ViewStyle,
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  } as ViewStyle,
-  headerBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: RADIUS.pill,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...BUBBLE_SHADOWS.xs,
-  } as ViewStyle,
-  headerTitle: { fontSize: 18, fontWeight: '700', color: V2_COLORS.text } as TextStyle,
-  scrollContent: { padding: 16, paddingBottom: 40 } as ViewStyle,
+const styles = themed(() =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: V2_COLORS.bg } as ViewStyle,
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+    } as ViewStyle,
+    headerBtn: {
+      width: 36,
+      height: 36,
+      borderRadius: RADIUS.pill,
+      backgroundColor: V2_COLORS.surface,
+      alignItems: 'center',
+      justifyContent: 'center',
+      ...BUBBLE_SHADOWS.xs,
+    } as ViewStyle,
+    headerTitle: { fontSize: 18, fontWeight: '700', color: V2_COLORS.text } as TextStyle,
+    scrollContent: { padding: 16, paddingBottom: 40 } as ViewStyle,
 
-  amountCard: {
-    borderRadius: RADIUS.heroCard,
-    padding: 24,
-    alignItems: 'center',
-    marginBottom: 16,
-  } as ViewStyle,
-  amountLabel: { color: 'rgba(255,255,255,0.7)', fontSize: 14, fontWeight: '500' } as TextStyle,
-  amountValue: { color: '#FFF', fontSize: 36, fontWeight: '700', marginTop: 4 } as TextStyle,
-  amountCurrency: { fontSize: 18, fontWeight: '500' } as TextStyle,
+    amountCard: {
+      borderRadius: RADIUS.heroCard,
+      padding: 24,
+      alignItems: 'center',
+      marginBottom: 16,
+    } as ViewStyle,
+    amountLabel: { color: 'rgba(255,255,255,0.7)', fontSize: 14, fontWeight: '500' } as TextStyle,
+    amountValue: { color: '#FFF', fontSize: 36, fontWeight: '700', marginTop: 4 } as TextStyle,
+    amountCurrency: { fontSize: 18, fontWeight: '500' } as TextStyle,
 
-  card: {
-    borderRadius: RADIUS.card,
-    padding: 20,
-    marginBottom: 16,
-    backgroundColor: '#FFFFFF',
-    ...BUBBLE_SHADOWS.sm,
-  } as ViewStyle,
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    marginBottom: 16,
-    color: V2_COLORS.text,
-  } as TextStyle,
+    card: {
+      borderRadius: RADIUS.card,
+      padding: 20,
+      marginBottom: 16,
+      backgroundColor: V2_COLORS.surface,
+      ...BUBBLE_SHADOWS.sm,
+    } as ViewStyle,
+    cardTitle: {
+      fontSize: 16,
+      fontWeight: '700',
+      marginBottom: 16,
+      color: V2_COLORS.text,
+    } as TextStyle,
 
-  detailRow: { marginBottom: 14 } as ViewStyle,
-  detailLabel: {
-    fontSize: 13,
-    fontWeight: '500',
-    marginBottom: 4,
-    color: V2_COLORS.textSoft,
-  } as TextStyle,
-  detailValue: { fontSize: 16, fontWeight: '600', color: V2_COLORS.text } as TextStyle,
-  ibanText: {
-    fontSize: 15,
-    fontWeight: '600',
-    fontFamily: 'monospace',
-    letterSpacing: 1,
-    color: V2_COLORS.text,
-  } as TextStyle,
+    detailRow: { marginBottom: 14 } as ViewStyle,
+    detailLabel: {
+      fontSize: 13,
+      fontWeight: '500',
+      marginBottom: 4,
+      color: V2_COLORS.textSoft,
+    } as TextStyle,
+    detailValue: { fontSize: 16, fontWeight: '600', color: V2_COLORS.text } as TextStyle,
+    ibanText: {
+      fontSize: 15,
+      fontWeight: '600',
+      fontFamily: 'monospace',
+      letterSpacing: 1,
+      color: V2_COLORS.text,
+    } as TextStyle,
 
-  copyBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    height: 44,
-    borderRadius: RADIUS.pill,
-    backgroundColor: V2_COLORS.primary + '10',
-    marginTop: 4,
-  } as ViewStyle,
-  copyBtnText: { fontSize: 15, fontWeight: '600', color: V2_COLORS.primary } as TextStyle,
+    copyBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 8,
+      height: 44,
+      borderRadius: RADIUS.pill,
+      backgroundColor: V2_COLORS.primary + '10',
+      marginTop: 4,
+    } as ViewStyle,
+    copyBtnText: { fontSize: 15, fontWeight: '600', color: V2_COLORS.primary } as TextStyle,
 
-  bankAppBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    height: 48,
-    borderRadius: RADIUS.pill,
-    backgroundColor: '#FFFFFF',
-    marginBottom: 16,
-    ...BUBBLE_SHADOWS.xs,
-  } as ViewStyle,
-  bankAppText: { fontSize: 15, fontWeight: '600', color: V2_COLORS.primary } as TextStyle,
+    bankAppBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 8,
+      height: 48,
+      borderRadius: RADIUS.pill,
+      backgroundColor: V2_COLORS.surface,
+      marginBottom: 16,
+      ...BUBBLE_SHADOWS.xs,
+    } as ViewStyle,
+    bankAppText: { fontSize: 15, fontWeight: '600', color: V2_COLORS.primary } as TextStyle,
 
-  divider: { height: 1, marginBottom: 16, backgroundColor: V2_COLORS.cardShadow } as ViewStyle,
+    divider: { height: 1, marginBottom: 16, backgroundColor: V2_COLORS.cardShadow } as ViewStyle,
 
-  uploadBtn: {
-    height: 140,
-    borderRadius: RADIUS.card,
-    borderWidth: 2,
-    borderStyle: 'dashed',
-    borderColor: V2_COLORS.primary + '40',
-    backgroundColor: V2_COLORS.primary + '08',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-  } as ViewStyle,
-  uploadBtnText: { fontSize: 15, fontWeight: '600', color: V2_COLORS.primary } as TextStyle,
+    uploadBtn: {
+      height: 140,
+      borderRadius: RADIUS.card,
+      borderWidth: 2,
+      borderStyle: 'dashed',
+      borderColor: V2_COLORS.primary + '40',
+      backgroundColor: V2_COLORS.primary + '08',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 8,
+    } as ViewStyle,
+    uploadBtnText: { fontSize: 15, fontWeight: '600', color: V2_COLORS.primary } as TextStyle,
 
-  proofPreview: { gap: 12 } as ViewStyle,
-  proofImage: { width: '100%', height: 200, borderRadius: RADIUS.card } as ImageStyle,
-  changeImageBtn: {
-    height: 40,
-    borderRadius: RADIUS.pill,
-    backgroundColor: V2_COLORS.primary + '10',
-    alignItems: 'center',
-    justifyContent: 'center',
-  } as ViewStyle,
-  changeImageText: { fontSize: 14, fontWeight: '600', color: V2_COLORS.primary } as TextStyle,
+    proofPreview: { gap: 12 } as ViewStyle,
+    proofImage: { width: '100%', height: 200, borderRadius: RADIUS.card } as ImageStyle,
+    changeImageBtn: {
+      height: 40,
+      borderRadius: RADIUS.pill,
+      backgroundColor: V2_COLORS.primary + '10',
+      alignItems: 'center',
+      justifyContent: 'center',
+    } as ViewStyle,
+    changeImageText: { fontSize: 14, fontWeight: '600', color: V2_COLORS.primary } as TextStyle,
 
-  confirmBtn: {
-    marginTop: 8,
-    borderRadius: RADIUS.pill,
-    overflow: 'hidden',
-  } as ViewStyle,
-  confirmGradient: {
-    height: 56,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: RADIUS.pill,
-  } as ViewStyle,
-  confirmBtnText: { color: '#FFF', fontSize: 17, fontWeight: '700' } as TextStyle,
-});
+    confirmBtn: {
+      marginTop: 8,
+      borderRadius: RADIUS.pill,
+      overflow: 'hidden',
+    } as ViewStyle,
+    confirmGradient: {
+      height: 56,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: RADIUS.pill,
+    } as ViewStyle,
+    confirmBtnText: { color: '#FFF', fontSize: 17, fontWeight: '700' } as TextStyle,
+  })
+);

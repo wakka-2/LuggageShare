@@ -138,14 +138,26 @@ describe('ListingsService', () => {
       expect(result.meta.totalPages).toBe(3);
     });
 
+    // search() builds where = { AND: [...] } so bilingual city ORs can combine.
+    const andOf = () => prisma.listing.findMany.mock.calls[0][0].where.AND as any[];
+    const cityMatches = (conds: any[], field: string, term: string) =>
+      conds.some(
+        (c) =>
+          JSON.stringify(c[field]) === JSON.stringify({ contains: term, mode: 'insensitive' }) ||
+          (Array.isArray(c.OR) &&
+            c.OR.some(
+              (o: any) =>
+                JSON.stringify(o[field]) === JSON.stringify({ contains: term, mode: 'insensitive' })
+            ))
+      );
+
     it('should only return listings with status active', async () => {
       prisma.listing.findMany.mockResolvedValue([]);
       prisma.listing.count.mockResolvedValue(0);
 
       await service.search({});
 
-      const findManyCall = prisma.listing.findMany.mock.calls[0][0];
-      expect(findManyCall.where.status).toBe('active');
+      expect(andOf()).toContainEqual({ status: 'active' });
     });
 
     it('should filter by departure city (from) with case-insensitive contains', async () => {
@@ -154,11 +166,7 @@ describe('ListingsService', () => {
 
       await service.search({ from: 'Riyadh' });
 
-      const findManyCall = prisma.listing.findMany.mock.calls[0][0];
-      expect(findManyCall.where.departureCity).toEqual({
-        contains: 'Riyadh',
-        mode: 'insensitive',
-      });
+      expect(cityMatches(andOf(), 'departureCity', 'Riyadh')).toBe(true);
     });
 
     it('should filter by arrival city (to) with case-insensitive contains', async () => {
@@ -167,25 +175,24 @@ describe('ListingsService', () => {
 
       await service.search({ to: 'Jeddah' });
 
-      const findManyCall = prisma.listing.findMany.mock.calls[0][0];
-      expect(findManyCall.where.arrivalCity).toEqual({
-        contains: 'Jeddah',
-        mode: 'insensitive',
-      });
+      expect(cityMatches(andOf(), 'arrivalCity', 'Jeddah')).toBe(true);
     });
 
     it('should filter by date with gte and lt for a full-day range', async () => {
       prisma.listing.findMany.mockResolvedValue([]);
       prisma.listing.count.mockResolvedValue(0);
+      // Use a future date: past dates are deliberately clamped to "now".
+      const day = new Date();
+      day.setDate(day.getDate() + 30);
+      const iso = day.toISOString().slice(0, 10);
 
-      await service.search({ date: '2026-03-15' });
+      await service.search({ date: iso });
 
-      const findManyCall = prisma.listing.findMany.mock.calls[0][0];
-      expect(findManyCall.where.departureDate).toBeDefined();
-      expect(findManyCall.where.departureDate.gte).toEqual(new Date('2026-03-15'));
-      // lt should be the next day
-      const nextDay = new Date('2026-03-16');
-      expect(findManyCall.where.departureDate.lt).toEqual(nextDay);
+      const dateCond = andOf().find((c) => c.departureDate)?.departureDate;
+      expect(dateCond.gte).toEqual(new Date(iso));
+      const nextDay = new Date(iso);
+      nextDay.setDate(nextDay.getDate() + 1);
+      expect(dateCond.lt).toEqual(nextDay);
     });
 
     it('should filter by minimum weight with gte', async () => {
@@ -194,31 +201,20 @@ describe('ListingsService', () => {
 
       await service.search({ minWeight: 5 });
 
-      const findManyCall = prisma.listing.findMany.mock.calls[0][0];
-      expect(findManyCall.where.availableWeight).toEqual({ gte: 5 });
+      expect(andOf()).toContainEqual({ availableWeight: { gte: 5 } });
     });
 
     it('should combine multiple filters together', async () => {
       prisma.listing.findMany.mockResolvedValue([]);
       prisma.listing.count.mockResolvedValue(0);
 
-      await service.search({
-        from: 'Riyadh',
-        to: 'Jeddah',
-        minWeight: 5,
-      });
+      await service.search({ from: 'Riyadh', to: 'Jeddah', minWeight: 5 });
 
-      const findManyCall = prisma.listing.findMany.mock.calls[0][0];
-      expect(findManyCall.where.status).toBe('active');
-      expect(findManyCall.where.departureCity).toEqual({
-        contains: 'Riyadh',
-        mode: 'insensitive',
-      });
-      expect(findManyCall.where.arrivalCity).toEqual({
-        contains: 'Jeddah',
-        mode: 'insensitive',
-      });
-      expect(findManyCall.where.availableWeight).toEqual({ gte: 5 });
+      const conds = andOf();
+      expect(conds).toContainEqual({ status: 'active' });
+      expect(cityMatches(conds, 'departureCity', 'Riyadh')).toBe(true);
+      expect(cityMatches(conds, 'arrivalCity', 'Jeddah')).toBe(true);
+      expect(conds).toContainEqual({ availableWeight: { gte: 5 } });
     });
 
     it('should not add filter fields when params are undefined', async () => {
@@ -227,13 +223,11 @@ describe('ListingsService', () => {
 
       await service.search({});
 
-      const findManyCall = prisma.listing.findMany.mock.calls[0][0];
-      // Service adds a future-date filter when no explicit date is provided
-      expect(findManyCall.where.status).toBe('active');
-      expect(findManyCall.where.departureDate).toBeDefined();
-      expect(findManyCall.where.departureDate.gte).toBeInstanceOf(Date);
-      // No extra keys beyond status + departureDate
-      expect(Object.keys(findManyCall.where)).toHaveLength(2);
+      // Only status + the implicit "upcoming trips" date filter
+      const conds = andOf();
+      expect(conds).toHaveLength(2);
+      expect(conds).toContainEqual({ status: 'active' });
+      expect(conds.find((c) => c.departureDate)?.departureDate.gte).toBeInstanceOf(Date);
     });
 
     it('should include carrier select fields in results', async () => {
@@ -333,6 +327,8 @@ describe('ListingsService', () => {
           status: 'active',
           departureCity: 'Riyadh',
           arrivalCity: 'Jeddah',
+          departureCode: null,
+          arrivalCode: null,
           departureDate: new Date('2026-03-15'),
           flightNumber: undefined,
           availableWeight: 10,
@@ -342,6 +338,22 @@ describe('ListingsService', () => {
           notes: undefined,
         },
       });
+    });
+
+    it('should normalize airport codes to trimmed upper case', async () => {
+      prisma.listing.create.mockResolvedValue(makeListing());
+
+      await service.create(CARRIER_ID, {
+        ...makeCreateDto(),
+        departureCode: ' ruh ',
+        arrivalCode: 'jed',
+      });
+
+      expect(prisma.listing.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ departureCode: 'RUH', arrivalCode: 'JED' }),
+        })
+      );
     });
 
     it('should set status to active', async () => {

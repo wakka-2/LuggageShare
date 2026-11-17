@@ -58,14 +58,51 @@ export function useMessages(bookingId: string | null) {
 export function useSendMessage() {
   const queryClient = useQueryClient();
 
+  type SendVars = { bookingId: string; content: string; sender?: ApiMessage['sender'] };
+
   return useMutation({
-    mutationFn: async ({ bookingId, content }: { bookingId: string; content: string }) => {
+    mutationFn: async ({ bookingId, content }: SendVars) => {
       const { data } = await apiClient.post(`/messages/conversations/${bookingId}`, { content });
-      return data;
+      return (data?.data ?? data) as ApiMessage;
     },
-    onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['messages', variables.bookingId] });
+    // Show the message immediately instead of waiting for the next 5s poll.
+    onMutate: async ({ bookingId, content, sender }: SendVars) => {
+      if (!sender) return { tempId: null };
+      const key = ['messages', bookingId];
+      await queryClient.cancelQueries({ queryKey: key });
+      const tempId = `temp-${Date.now()}`;
+      queryClient.setQueryData<ApiMessage[]>(key, (old = []) => [
+        ...old,
+        {
+          id: tempId,
+          bookingId,
+          senderId: sender.id,
+          content,
+          isRead: false,
+          createdAt: new Date().toISOString(),
+          sender,
+        },
+      ]);
+      return { tempId };
+    },
+    onSuccess: (saved, { bookingId }, ctx) => {
+      if (saved?.id) {
+        queryClient.setQueryData<ApiMessage[]>(['messages', bookingId], (old = []) => {
+          const withoutTemp = old.filter((m) => m.id !== ctx?.tempId && m.id !== saved.id);
+          return [...withoutTemp, saved];
+        });
+      }
       queryClient.invalidateQueries({ queryKey: ['conversations'] });
+    },
+    onError: (_err, { bookingId }, ctx) => {
+      if (ctx?.tempId) {
+        queryClient.setQueryData<ApiMessage[]>(['messages', bookingId], (old = []) =>
+          old.filter((m) => m.id !== ctx.tempId)
+        );
+      }
+    },
+    onSettled: (_d, _e, { bookingId }) => {
+      queryClient.invalidateQueries({ queryKey: ['messages', bookingId] });
     },
   });
 }

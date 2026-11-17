@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, StyleSheet, ViewStyle } from 'react-native';
 import Svg, { Path, Defs, LinearGradient as SvgGradient, Stop } from 'react-native-svg';
-import { V2_COLORS } from '@/providers/ThemeProvider';
+import { V2_COLORS, themed } from '@/providers/ThemeProvider';
 
 interface WaveDividerProps {
   color?: 'primary' | 'mint' | 'warm' | 'cool';
@@ -10,12 +10,12 @@ interface WaveDividerProps {
   style?: ViewStyle;
 }
 
-const COLOR_MAP = {
+const COLOR_MAP = themed(() => ({
   primary: { start: V2_COLORS.primaryMid + '20', end: V2_COLORS.primaryLight + '08' },
   mint: { start: V2_COLORS.accent1 + '25', end: V2_COLORS.accent3 + '08' },
   warm: { start: V2_COLORS.accent2 + '25', end: V2_COLORS.secondary + '10' },
   cool: { start: V2_COLORS.accent3 + '20', end: V2_COLORS.primaryMid + '08' },
-};
+}));
 
 export function WaveDivider({
   color = 'primary',

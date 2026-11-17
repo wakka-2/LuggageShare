@@ -1,4 +1,5 @@
-import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import { useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Platform, Pressable } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, {
@@ -10,7 +11,15 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { BubbleInput, BubbleButton, BubblePill } from '@/components/common';
-import { V2_COLORS, RADIUS, BUBBLE_SHADOWS } from '@/providers/ThemeProvider';
+import { V2_COLORS, RADIUS, BUBBLE_SHADOWS, themed } from '@/providers/ThemeProvider';
+import { cityLabel } from '@/lib/airports';
+import { CalendarModal } from '@/components/common/CalendarModal';
+
+/** Local calendar date as YYYY-MM-DD (toISOString would use UTC). */
+function localYmd(d: Date): string {
+  const p = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+}
 
 interface SearchBarProps {
   from: string;
@@ -21,20 +30,22 @@ interface SearchBarProps {
   onDateChange: (value: string) => void;
   onSearch?: () => void;
   onSwap?: () => void;
+  /** Open a calendar rendered by the screen (a Modal nested in scroll content mis-sizes on Android). */
+  onOpenDatePicker?: () => void;
 }
 
 const POPULAR_ROUTES = [
-  { from: 'RUH', to: 'DXB', labelKey: 'searchBar.routeRuhDxb' },
-  { from: 'JED', to: 'CAI', labelKey: 'searchBar.routeJedCai' },
-  { from: 'DMM', to: 'BAH', labelKey: 'searchBar.routeDmmBah' },
-  { from: 'RUH', to: 'AMM', labelKey: 'searchBar.routeRuhAmm' },
+  { from: 'Riyadh', to: 'Dubai', labelKey: 'searchBar.routeRuhDxb' },
+  { from: 'Jeddah', to: 'Cairo', labelKey: 'searchBar.routeJedCai' },
+  { from: 'Dammam', to: 'Bahrain', labelKey: 'searchBar.routeDmmBah' },
+  { from: 'Riyadh', to: 'Amman', labelKey: 'searchBar.routeRuhAmm' },
 ];
 
 const QUICK_DATES = [
   {
     key: 'today',
     labelKey: 'searchBar.today',
-    getValue: () => new Date().toISOString().split('T')[0],
+    getValue: () => localYmd(new Date()),
   },
   {
     key: 'tomorrow',
@@ -42,7 +53,7 @@ const QUICK_DATES = [
     getValue: () => {
       const d = new Date();
       d.setDate(d.getDate() + 1);
-      return d.toISOString().split('T')[0];
+      return localYmd(d);
     },
   },
   {
@@ -51,7 +62,7 @@ const QUICK_DATES = [
     getValue: () => {
       const d = new Date();
       d.setDate(d.getDate() + 7);
-      return d.toISOString().split('T')[0];
+      return localYmd(d);
     },
   },
 ];
@@ -63,10 +74,12 @@ export function SearchBar({
   onFromChange,
   onToChange,
   onDateChange,
+  onOpenDatePicker,
   onSearch,
   onSwap,
 }: SearchBarProps) {
   const { t, i18n } = useTranslation();
+  const [calendarOpen, setCalendarOpen] = useState(false);
   const isRTL = i18n.language === 'ar';
   const isWeb = Platform.OS === 'web';
 
@@ -104,7 +117,7 @@ export function SearchBar({
       {/* Search Inputs */}
       <View style={[styles.searchRow, isWeb && styles.searchRowWeb]}>
         <BubbleInput
-          value={from}
+          value={cityLabel(from)}
           onChangeText={onFromChange}
           placeholder={t('searchBar.from')}
           dotColor={V2_COLORS.accent1}
@@ -126,20 +139,41 @@ export function SearchBar({
         </TouchableOpacity>
 
         <BubbleInput
-          value={to}
+          value={cityLabel(to)}
           onChangeText={onToChange}
           placeholder={t('searchBar.to')}
           dotColor={V2_COLORS.secondary}
           icon="navigate"
         />
 
-        <BubbleInput
-          value={date ? formatDateDisplay(date) : ''}
-          onChangeText={onDateChange}
-          placeholder={t('searchBar.date')}
-          dotColor={V2_COLORS.accent2}
-          icon="calendar"
-        />
+        {/* Date opens the calendar; typing a date by hand was error-prone. */}
+        <Pressable
+          onPress={() => (onOpenDatePicker ? onOpenDatePicker() : setCalendarOpen(true))}
+          accessibilityRole="button"
+          accessibilityLabel={t('searchBar.date')}
+        >
+          <View pointerEvents="none">
+            <BubbleInput
+              value={date ? formatDateDisplay(date) : ''}
+              onChangeText={() => undefined}
+              placeholder={t('searchBar.date')}
+              dotColor={V2_COLORS.accent2}
+              icon="calendar"
+            />
+          </View>
+        </Pressable>
+        {calendarOpen && (
+          <CalendarModal
+            visible
+            value={date ? new Date(`${date}T00:00:00`) : null}
+            minimumDate={new Date()}
+            onSelect={(d) => {
+              const p = (n: number) => String(n).padStart(2, '0');
+              onDateChange(`${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`);
+            }}
+            onClose={() => setCalendarOpen(false)}
+          />
+        )}
 
         <BubbleButton
           label={isWeb ? t('searchBar.search') : ''}
@@ -261,75 +295,77 @@ export function SearchBar({
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    marginBottom: 16,
-  },
-  searchRow: {
-    flexDirection: 'column',
-    gap: 10,
-  },
-  searchRowWeb: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-  },
-  swapButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: V2_COLORS.blob1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    alignSelf: 'center',
-    ...BUBBLE_SHADOWS.xs,
-  },
-  quickOptions: {
-    marginTop: 16,
-    gap: 14,
-  },
-  quickSection: {
-    gap: 8,
-  },
-  quickLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    color: V2_COLORS.textMuted,
-  },
-  quickChips: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  activeFilters: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: 12,
-    paddingTop: 12,
-  },
-  filterTags: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    flex: 1,
-  },
-  filterTag: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: RADIUS.pill,
-    gap: 6,
-  },
-  filterTagText: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  clearAllText: {
-    fontSize: 13,
-    fontWeight: '600',
-  },
-});
+const styles = themed(() =>
+  StyleSheet.create({
+    container: {
+      marginBottom: 16,
+    },
+    searchRow: {
+      flexDirection: 'column',
+      gap: 10,
+    },
+    searchRowWeb: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flexWrap: 'wrap',
+    },
+    swapButton: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      backgroundColor: V2_COLORS.blob1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      alignSelf: 'center',
+      ...BUBBLE_SHADOWS.xs,
+    },
+    quickOptions: {
+      marginTop: 16,
+      gap: 14,
+    },
+    quickSection: {
+      gap: 8,
+    },
+    quickLabel: {
+      fontSize: 12,
+      fontWeight: '600',
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
+      color: V2_COLORS.textMuted,
+    },
+    quickChips: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 8,
+    },
+    activeFilters: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginTop: 12,
+      paddingTop: 12,
+    },
+    filterTags: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 8,
+      flex: 1,
+    },
+    filterTag: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+      borderRadius: RADIUS.pill,
+      gap: 6,
+    },
+    filterTagText: {
+      fontSize: 12,
+      fontWeight: '600',
+    },
+    clearAllText: {
+      fontSize: 13,
+      fontWeight: '600',
+    },
+  })
+);

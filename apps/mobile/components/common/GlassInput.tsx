@@ -150,7 +150,6 @@ export function GlassInput({
   const innerGlowStyle =
     !isDark && isFocused
       ? {
-          // @ts-ignore web-only
           boxShadow: `inset 0 1px 2px ${colors.glassHighlight}`,
         }
       : undefined;
@@ -169,9 +168,8 @@ export function GlassInput({
             styles.inputContainer,
             {
               backgroundColor: colors.glassBg,
-              // @ts-ignore web-only CSS
               backdropFilter: `blur(${BLUR.light}px)`,
-              // @ts-ignore web-only CSS
+              // @ts-expect-error web-only CSS
               WebkitBackdropFilter: `blur(${BLUR.light}px)`,
             },
             multiline && styles.inputContainerMultiline,
