@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api';
+import { track } from '@/lib/analytics';
 import { useAuth } from '@/providers/AuthProvider';
 
 export interface ApiBooking {
@@ -299,7 +300,8 @@ export function useCreateBooking() {
       const { data } = await apiClient.post('/bookings', params);
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (_data, params) => {
+      track('booking_created', { weight: params.totalWeight });
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
       queryClient.invalidateQueries({ queryKey: ['listings'] });
     },

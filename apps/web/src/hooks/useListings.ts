@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api';
+import { track } from '@/lib/analytics';
 import { useAuth } from '@/providers/AuthProvider';
 
 export interface ApiListing {
@@ -113,7 +114,8 @@ export function useCreateListing() {
       const { data } = await apiClient.post('/listings', params);
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (_data, params) => {
+      track('listing_created', { from: params.departureCity, to: params.arrivalCity });
       queryClient.invalidateQueries({ queryKey: ['listings'] });
       queryClient.invalidateQueries({ queryKey: ['myListings'] });
     },
